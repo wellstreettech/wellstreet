@@ -211,3 +211,41 @@ Counted: 53 non-fork tests + 4 fork tests, all passing at audit time (including 
 | OZ `lib/openzeppelin-contracts/package.json` | 0 | `openzeppelin-solidity 5.7.0` (rounding analysis pinned to that version) |
 
 This file is the only artifact created by this audit; no source, test, script, doc, or config file was modified.
+
+---
+
+## Addendum — 2026-08-31 pre-deploy hardens applied (F-03b, F-04b; tests G6/G7)
+
+**What this section is:** the pre-deploy code-state record. The findings above describe the audit-time (pre-harden) bytecode; **the bytecode that will actually deploy is the one described HERE.** Both hardens are fix option (b) of their findings (F-03b = the "(b) is recommended" option of F-03; F-04b = the "optionally make ... underflow-safe" option of F-04). Applied 2026-08-31, before any deployment, while every contract was still changeable. No other behavior was changed; no transactions were broadcast.
+
+### F-03b — `Harvester._split` credits the vault's actual balance delta (IMPLEMENTED)
+
+`src/Harvester.sol` (`_split`): the vault's asset balance is measured immediately before and immediately after the `safeTransfer(vault, vaultShare)`, and the credit call is now `vault.harvest(<actual delta>)` instead of `vault.harvest(vaultShare)`. The split arithmetic is unchanged (the intended `vaultShare`, the tip and the protocol accrual are still derived from `proceeds` exactly as audited — C6); only the credited amount became empirical. Consequences, per the F-03 fix intent: a fee-on-transfer surprise or any transfer loss can never create an accounting divergence between what arrived and what was credited, and the F-03 "harvest-credit death" (every harvest reverting `ExcessTooSmall` while an FOT upgrade is live) is resolved — yield flow continues at the received rate. If nothing arrives (pathological 100% loss), the credit call reverts `ZeroHarvest` and the atomicity design still rolls the whole harvest back (fees stay in the LP position). A credit above the intended share remains impossible to abuse: the credit is bounded by the vault's physical excess (C2/C3 unchanged), and after an F-04-style burn it can revert `ExcessTooSmall` gracefully (see F-04b).
+
+**Event ABI change:** `Harvested` gained one field — `vaultCredited` (inserted after `vaultShare`; data is now 8 words, topics unchanged). It carries the amount actually credited, so the discrepancy against the intended `vaultShare` is observable on-chain. The repo's only in-tree consumer (the G1 fork test decoder) was updated in the same change; a repo-wide grep found no other consumer.
+
+### F-04b — underflow-safe `unaccountedAssets()` and harvest excess (IMPLEMENTED)
+
+`src/YieldShares.sol`: `unaccountedAssets()` returns 0 when the vault's token balance is at or below `_totalAssetsStored` (was: arithmetic underflow → Panic 0x11 after an issuer `adminBurn` below the accounting figure). `harvest()` clamps the excess the same way, so with no excess it reverts with the existing `ExcessTooSmall(assets, 0)` domain error instead of a panic. A burned vault now degrades to graceful no-yield. **Withdrawal math (`_withdraw`) is byte-for-byte unchanged** — the F-04 tail-insolvency residual (the final `X` wei of accounting unpayable after a burn) remains exactly as documented, and is now pinned by test rather than left implicit.
+
+### G6/G7 tests added (audit sketches, updated for the hardened behavior)
+
+New mocks in `test/mocks/MockERC20.sol`: `MockLossyTransferToken` (under-delivers transfers INTO one configured recipient — isolates the harvester→vault credit-leg loss) and `MockToggleableFeeOnTransferToken` (clean until `setFot(true)` — models the issuer fleet upgrade).
+
+- G6 (F-03b), `test/Harvester.t.sol`:
+  - `test_fotHarvest_creditsVaultActualBalanceDelta_notDeclaredShare` — end-to-end harvest over the lossy mock (10% loss on the credit leg only): intended share 1.8e18 vs credited 1.62e18; `totalAssets` == physical balance (no divergence), `unaccountedAssets()` == 0, tip/accrual unaffected (still proceeds-derived), and a second harvest credits its own delta on top — yield flow survives the lossy upgrade (the F-03 fix's point).
+  - `test_fotHarvest_eventEmitsIntendedShare_andCreditedDelta` — pins the `vaultShare` (intended) vs `vaultCredited` (empirical) fields of the `Harvested` event via `vm.expectEmit`.
+  - `test_fot_withdrawRetrievabilityAfterUpgrade` (the audit's literal G6 sketch — the F-03 withdraw-path walk), `test/YieldShares.t.sol` — a token that becomes fee-on-transfer after deposit: redeem pays the full accounted assets out (receiver gets assets×(1−f)), `balance >= _totalAssetsStored` holds through every exit, and the last withdrawer still gets out.
+- G7 (F-04b), `test/YieldShares.t.sol`:
+  - `test_adminBurn_belowStored_degradesGracefully_notPanic` — issuer burn below stored: `unaccountedAssets()` reads 0 (no Panic), a pushed-then-credited harvest reverts `ExcessTooSmall(1e18, 0)` (exact selector+args — proves the domain error, not a panic), and once the gap is covered the harvester credits again, still bounded by physical arrival.
+  - `test_adminBurn_belowStored_withdrawalsStillWork_tailRecoversAfterBackingRestored` — withdrawals work while the balance covers the claim; the final-tail revert is pinned AS-IS (untouched withdrawal math); full recovery after backing is restored.
+- `test/fork/HarvestFork.t.sol`: the Harvested decoder was updated for the new field (signature now 10 typed words, `uint256[8]` data), and both fork tests additionally assert `vaultCredited == vaultShare` on the clean chain (delta == declared when the token is not fee-on-transfer). Fork suite remains env-gated (`WELLSTREET_ROBINHOOD_RPC_URL`).
+
+### Suite re-run (2026-08-31, `forge test -vvv` from the repo root)
+
+Two runs were executed (the first run caught two bugs in the NEW tests themselves — a nested `balanceOf` in a call's argument list consumed the `vm.prank`/`vm.expectRevert`, the exact arg-evaluation trap this suite already documents in `test_firstDepositorInflationFails`; the tests were fixed, no contract code changed between runs):
+
+- Run 1: `56 passed; 2 failed; 2 skipped (60 total tests)` — both failures in the new YieldShares tests described above.
+- Run 2 (final): `58 passed; 0 failed; 2 skipped (60 total tests)` — 7 suites: `WellstreetTimelockTest` 16 passed · `VaultFactoryTest` 6 passed · `DeployWiringTest` 1 passed · `YieldSharesTest` 15 passed (12 prior + 3 new) · `HarvesterTest` 20 passed (18 prior + 2 new) · `SPYPoolForkTest` 1 skipped (env-gated) · `HarvestForkTest` 1 skipped (env-gated). The 2 skipped entries are the two env-gated fork contracts collapsing to one entry each (forge behavior when `setUp` skips — the audit-time baseline's "1 skipped" is the same collapse for the single fork file that existed then; the second fork file was added post-audit by the G1-gate session). Zero failures, zero attributable regressions in the pre-existing 53-test suite.
+
+Note: a standalone `forge build` invocation was blocked by the operator session's command-permission gate; `forge test` performs the full compile before running and the final run completed with zero compile errors — the build is proven by the passing run itself.

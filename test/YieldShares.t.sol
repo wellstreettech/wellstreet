@@ -6,7 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import {YieldShares} from "../src/YieldShares.sol";
 import {WellstreetTimelock} from "../src/WellstreetTimelock.sol";
-import {MockERC20, MockFeeOnTransferToken} from "./mocks/MockERC20.sol";
+import {MockERC20, MockFeeOnTransferToken, MockToggleableFeeOnTransferToken} from "./mocks/MockERC20.sol";
 
 /// @notice Unit tests for the YieldShares vault invariants. The timelock is used for
 ///         real in the admin flows (queue -> 48h warp -> permissionless execute).
@@ -349,5 +349,134 @@ contract YieldSharesTest is Test {
         // Constructor rejects an over-cap initial fee.
         vm.expectRevert(abi.encodeWithSelector(YieldShares.FeeTooHigh.selector, 2001, 2000));
         new YieldShares(IERC20(address(spy)), "x", "x", address(timelock), pauser, 2001);
+    }
+
+    // ------------------------------------------------------------------
+    // F-03 / G6 sketch: issuer fee-on-transfer upgrade on the WITHDRAW path —
+    // retrievability is preserved, the issuer taxes each exit
+    // ------------------------------------------------------------------
+
+    function test_fot_withdrawRetrievabilityAfterUpgrade() public {
+        MockToggleableFeeOnTransferToken tok = new MockToggleableFeeOnTransferToken();
+        YieldShares v =
+            new YieldShares(IERC20(address(tok)), "Wellstreet SPY", "ws-SPY", address(timelock), pauser, 1000);
+
+        // Deposit on the CLEAN token (exact-amount deposit succeeds).
+        tok.mint(alice, 10e18);
+        vm.startPrank(alice);
+        tok.approve(address(v), type(uint256).max);
+        v.deposit(10e18, alice);
+        vm.stopPrank();
+        assertEq(v.totalAssets(), 10e18);
+        assertEq(tok.balanceOf(address(v)), 10e18);
+
+        // Issuer fleet upgrade: the token becomes fee-on-transfer (10%).
+        tok.setFot(true);
+
+        // Redeem half: the vault debits the FULL accounted assets (5e18) while the
+        // receiver gets assets*(1-f) — retrievability preserved, issuer tax on exit.
+        uint256 shares = v.balanceOf(alice);
+        vm.prank(alice);
+        uint256 out = v.redeem(shares / 2, alice, alice);
+        assertEq(out, 5e18);
+        assertEq(tok.balanceOf(alice), 4.5e18);
+        assertEq(v.totalAssets(), 5e18); // accounting side debited in full
+        assertEq(tok.balanceOf(address(v)), 5e18); // solvency invariant intact: balance >= stored
+        assertEq(v.unaccountedAssets(), 0);
+
+        // The last withdrawer still gets out (each exit taxed by f). The balance is
+        // read BEFORE the prank — a nested call in the argument list would consume it.
+        uint256 remaining = v.balanceOf(alice);
+        vm.prank(alice);
+        out = v.redeem(remaining, alice, alice);
+        assertEq(out, 5e18);
+        assertEq(tok.balanceOf(alice), 9e18); // 10e18 accounted, 1e18 total issuer tax
+        assertEq(v.totalAssets(), 0);
+        assertEq(tok.balanceOf(address(v)), 0);
+    }
+
+    // ------------------------------------------------------------------
+    // F-04b / G7: an issuer adminBurn below the accounting figure degrades
+    // gracefully — unaccountedAssets() reads 0, harvest reverts ExcessTooSmall
+    // (never Panic 0x11), and redemptions keep working while covered
+    // ------------------------------------------------------------------
+
+    function test_adminBurn_belowStored_degradesGracefully_notPanic() public {
+        address fakeHarvester = makeAddr("fake-harvester");
+        _timelockExecute(address(vault), abi.encodeCall(YieldShares.setHarvester, (fakeHarvester)));
+
+        spy.mint(alice, 10e18);
+        vm.startPrank(alice);
+        spy.approve(address(vault), type(uint256).max);
+        vault.deposit(10e18, alice);
+        vm.stopPrank();
+
+        // Issuer adminBurn (pause/block exempt on the deployed token; the mock's
+        // open burn() models it) drives the balance BELOW the accounting figure:
+        // balance 6e18 < stored 10e18.
+        spy.burn(address(vault), 4e18);
+        assertEq(spy.balanceOf(address(vault)), 6e18);
+        assertEq(vault.totalAssets(), 10e18);
+
+        // Pre-harden this read panicked (0x11). Now it degrades to 0.
+        assertEq(vault.unaccountedAssets(), 0);
+
+        // ...and the harvest excess check reverts with the DOMAIN error, not a
+        // panic (excess clamps to 0 while the balance is below the figure).
+        spy.mint(fakeHarvester, 2e18);
+        vm.startPrank(fakeHarvester);
+        spy.transfer(address(vault), 2e18); // balance 8e18, still below stored
+        vm.expectRevert(abi.encodeWithSelector(YieldShares.ExcessTooSmall.selector, 1e18, 0));
+        vault.harvest(1e18);
+        vm.stopPrank();
+
+        // Once physical backing is restored above the figure, the harvester can
+        // credit again — and never more than physically arrived.
+        spy.mint(fakeHarvester, 4e18);
+        vm.startPrank(fakeHarvester);
+        spy.transfer(address(vault), 4e18); // balance 12e18, stored 10e18, excess 2e18
+        vault.harvest(2e18);
+        vm.stopPrank();
+        assertEq(vault.totalAssets(), 12e18); // the burned gap fully covered by the pushes
+        assertEq(spy.balanceOf(address(vault)), 12e18);
+        assertEq(vault.unaccountedAssets(), 0);
+    }
+
+    function test_adminBurn_belowStored_withdrawalsStillWork_tailRecoversAfterBackingRestored() public {
+        spy.mint(alice, 10e18);
+        vm.startPrank(alice);
+        spy.approve(address(vault), type(uint256).max);
+        vault.deposit(10e18, alice);
+        vm.stopPrank();
+
+        // 4e18 of backing is gone (issuer adminBurn).
+        spy.burn(address(vault), 4e18);
+
+        // Withdrawals still work while the physical balance covers the claim
+        // (pro-rata of ACCOUNTED assets): half the position redeems fine.
+        uint256 shares = vault.balanceOf(alice);
+        vm.prank(alice);
+        uint256 out = vault.redeem(shares / 2, alice, alice);
+        assertEq(out, 5e18); // balance 6e18 covers it
+        assertEq(spy.balanceOf(alice), 5e18);
+        assertEq(vault.totalAssets(), 5e18); // stored 5e18 > balance 1e18 — the insolvent tail
+
+        // The remaining claim is unpayable (audit F-04's tail: 4e18 of backing is
+        // gone, order-independent) — pinned AS-IS; withdrawal math is deliberately
+        // untouched by the F-04b harden. The balance is read BEFORE the prank — a
+        // nested call in the argument list would consume it (and the expectRevert).
+        uint256 remaining = vault.balanceOf(alice);
+        vm.prank(alice);
+        vm.expectRevert(); // MockERC20 balance underflow on the final transfer
+        vault.redeem(remaining, alice, alice);
+
+        // Backing restored (issuer restitution/donation): the tail redeems whole.
+        spy.mint(address(vault), 4e18);
+        remaining = vault.balanceOf(alice);
+        vm.prank(alice);
+        out = vault.redeem(remaining, alice, alice);
+        assertEq(out, 5e18);
+        assertEq(vault.totalAssets(), 0);
+        assertEq(spy.balanceOf(address(vault)), 0);
     }
 }

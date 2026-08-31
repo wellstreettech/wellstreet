@@ -6,7 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {YieldShares} from "../src/YieldShares.sol";
 import {WellstreetTimelock} from "../src/WellstreetTimelock.sol";
 import {Harvester} from "../src/Harvester.sol";
-import {MockERC20} from "./mocks/MockERC20.sol";
+import {MockERC20, MockLossyTransferToken} from "./mocks/MockERC20.sol";
 import {MockPositionManager} from "./mocks/MockPositionManager.sol";
 import {MockRouter, MockQuoter} from "./mocks/MockSwaps.sol";
 
@@ -31,6 +31,28 @@ contract HarvesterTest is Test {
     address depositor = makeAddr("depositor");
 
     uint256 tokenId;
+
+    // F-03b stack: the same wiring over a token that under-delivers transfers INTO
+    // the vault (lossy vault leg, everything else clean).
+    MockLossyTransferToken lossyTok;
+    YieldShares lossyVault;
+    Harvester lossyHarvester;
+    uint256 lossyTokenId;
+
+    /// @notice Mirror of Harvester.Harvested for vm.expectEmit matching (field order
+    ///         must match the contract's event exactly).
+    event Harvested(
+        uint256 indexed tokenId,
+        address indexed caller,
+        uint256 amount0Collected,
+        uint256 amount1Collected,
+        uint256 swappedOut,
+        uint256 proceeds,
+        uint256 vaultShare,
+        uint256 vaultCredited,
+        uint256 tip,
+        uint256 accrued
+    );
 
     // Fee seed: 1 WETH leg + 2 SPY leg; router/quoter rate 3000 SPY per WETH.
     uint256 constant WETH_FEE = 1e18;
@@ -402,5 +424,84 @@ contract HarvesterTest is Test {
         vm.prank(makeAddr("carol"));
         harvester.harvest();
         assertGt(spy.balanceOf(makeAddr("carol")), carolBefore);
+    }
+
+    // ------------------------------------------------------------------
+    // F-03b / G6: the vault is credited its ACTUAL balance delta, not the
+    // declared share — a lossy (fee-on-transfer) vault leg cannot diverge
+    // accounting from arrival
+    // ------------------------------------------------------------------
+
+    /// @dev Stand up the F-03b stack: a vault over MockLossyTransferToken with the
+    ///      loss configured on the harvester -> vault leg, wired to its own harvester
+    ///      through the real timelock (identical wiring to setUp).
+    function _setUpLossyVaultStack() internal {
+        lossyTok = new MockLossyTransferToken();
+        lossyVault = new YieldShares(IERC20(address(lossyTok)), "Wellstreet SPY", "ws-SPY", address(timelock), pauser, 1000);
+        lossyTok.setLossyRecipient(address(lossyVault)); // 10% loss on the credit leg only
+        lossyHarvester = new Harvester(
+            address(lossyVault), address(timelock), address(timelock), address(lossyTok), address(weth), 500,
+            address(npm), address(router), address(quoter)
+        );
+        _timelockExecute(address(lossyVault), abi.encodeCall(YieldShares.setHarvester, (address(lossyHarvester))));
+        lossyTokenId = npm.mintPosition(address(weth), address(lossyTok), 500, alice);
+        vm.prank(alice);
+        npm.safeTransferFrom(alice, address(lossyHarvester), lossyTokenId);
+    }
+
+    function test_fotHarvest_creditsVaultActualBalanceDelta_notDeclaredShare() public {
+        _setUpLossyVaultStack();
+
+        // Asset-leg-only fees: 2e18 collected (no WETH leg -> no swap).
+        lossyTok.mint(address(npm), 2e18);
+        npm.seedFees(lossyTokenId, 0, 2e18);
+
+        uint256 intendedVaultShare = (2e18 * 9000) / 10_000; // 1.8e18 — the arithmetic split
+        uint256 arrivedDelta = (intendedVaultShare * 9000) / 10_000; // 1.62e18 — 10% loss into the vault
+        assertTrue(intendedVaultShare != arrivedDelta); // the discrepancy path is genuinely exercised
+
+        vm.prank(bob);
+        lossyHarvester.harvest();
+
+        // The vault was credited what PHYSICALLY ARRIVED, not the declared share
+        // (pre-harden this exact flow reverts ExcessTooSmall — audit F-03).
+        assertEq(lossyVault.totalAssets(), arrivedDelta);
+        assertEq(lossyTok.balanceOf(address(lossyVault)), arrivedDelta); // arrival == accounting, no divergence
+        assertEq(lossyVault.unaccountedAssets(), 0);
+
+        // The rest of the split is unaffected by the harden (still derived from
+        // the intended proceeds, not the delivered delta).
+        assertEq(lossyHarvester.protocolAccrued(), 0.198e18);
+        assertEq(lossyTok.balanceOf(bob), 0.002e18); // tip (clean leg)
+
+        // Yield flow CONTINUES under the lossy upgrade (the F-03 fix's point): a
+        // second harvest credits its own arrived delta on top.
+        lossyTok.mint(address(npm), 2e18);
+        npm.seedFees(lossyTokenId, 0, 2e18);
+        vm.prank(bob);
+        lossyHarvester.harvest();
+
+        assertEq(lossyVault.totalAssets(), 2 * arrivedDelta);
+        assertEq(lossyTok.balanceOf(address(lossyVault)), 2 * arrivedDelta);
+        assertEq(lossyVault.unaccountedAssets(), 0);
+    }
+
+    function test_fotHarvest_eventEmitsIntendedShare_andCreditedDelta() public {
+        _setUpLossyVaultStack();
+
+        lossyTok.mint(address(npm), 2e18);
+        npm.seedFees(lossyTokenId, 0, 2e18);
+
+        uint256 intended = (2e18 * 9000) / 10_000; // 1.8e18
+        uint256 credited = (intended * 9000) / 10_000; // 1.62e18
+        uint256 tip = (2e18 * 10) / 10_000;
+        uint256 accrued = 2e18 - intended - tip;
+
+        // The Harvested event carries BOTH the intended share and the empirical
+        // credit, so the discrepancy is observable on-chain.
+        vm.expectEmit(true, true, true, true, address(lossyHarvester));
+        emit Harvested(lossyTokenId, bob, 0, 2e18, 0, 2e18, intended, credited, tip, accrued);
+        vm.prank(bob);
+        lossyHarvester.harvest();
     }
 }

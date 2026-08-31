@@ -97,7 +97,11 @@ interface IYieldSharesVault {
 ///            allowance), then splits the proceeds:
 ///              * vault share  = proceeds * (10000 - vault.feeBps()) / 10000
 ///                -> transferred to the vault, then credited via vault.harvest() —
-///                totalAssets rises, NO shares are minted.
+///                totalAssets rises, NO shares are minted. The CREDITED amount is
+///                the vault's actual balance delta (what physically arrived), not
+///                the declared share: a fee-on-transfer upgrade or any transfer
+///                loss can never diverge the accounting from the arrival (the
+///                discrepancy is emitted in the Harvested event).
 ///              * protocol share = the remainder, minus the caller tip.
 ///              * caller tip = 0.1% of the total proceeds (TIP_BPS = 10), deducted
 ///                FROM the protocol share (the treasury net receives
@@ -171,6 +175,7 @@ contract Harvester is IERC721Receiver, ReentrancyGuard {
         uint256 swappedOut,
         uint256 proceeds,
         uint256 vaultShare,
+        uint256 vaultCredited,
         uint256 tip,
         uint256 accrued
     );
@@ -291,13 +296,16 @@ contract Harvester is IERC721Receiver, ReentrancyGuard {
         }
 
         uint256 proceeds = assetCollected + swappedOut;
-        (uint256 vaultShare, uint256 tip, uint256 accrued) = proceeds > 0 ? _split(proceeds) : (0, 0, 0);
+        (uint256 vaultShare, uint256 vaultCredited, uint256 tip, uint256 accrued) =
+            proceeds > 0 ? _split(proceeds) : (0, 0, 0, 0);
 
         // Force-sent/donated WETH (anything beyond the collected leg) goes to the
         // treasury UNSWAPPED, never dumped.
         _forwardDonations(weth, 0);
 
-        emit Harvested(positionId, msg.sender, amount0, amount1, swappedOut, proceeds, vaultShare, tip, accrued);
+        emit Harvested(
+            positionId, msg.sender, amount0, amount1, swappedOut, proceeds, vaultShare, vaultCredited, tip, accrued
+        );
     }
 
     // ------------------------------------------------------------------
@@ -364,10 +372,17 @@ contract Harvester is IERC721Receiver, ReentrancyGuard {
     /// @dev Split proceeds: vault share raises totalAssets (no shares minted); the
     ///      protocol share accrues for the treasury, with the 0.1% caller tip deducted
     ///      FROM it (the tip is 0.1% of total proceeds, never more than the protocol
-    ///      share).
+    ///      share). The vault is credited its ACTUAL balance delta (audit F-03b): the
+    ///      split arithmetic still targets `vaultShare`, but what gets credited is
+    ///      what physically arrived — a fee-on-transfer surprise or any transfer loss
+    ///      can never create an accounting divergence between what arrived and what
+    ///      was credited (crediting the declared amount would instead revert the whole
+    ///      harvest at the vault's excess bound and freeze yield accrual). Any
+    ///      discrepancy is emitted in the Harvested event (vaultShare vs
+    ///      vaultCredited).
     function _split(uint256 proceeds)
         internal
-        returns (uint256 vaultShare, uint256 tip, uint256 accrued)
+        returns (uint256 vaultShare, uint256 vaultCredited, uint256 tip, uint256 accrued)
     {
         uint256 fee = IYieldSharesVault(vault).feeBps();
         vaultShare = (proceeds * (BPS - fee)) / BPS;
@@ -377,8 +392,10 @@ contract Harvester is IERC721Receiver, ReentrancyGuard {
         accrued = protocolShare - tip;
 
         if (vaultShare > 0) {
+            uint256 vaultBalanceBefore = IERC20(asset).balanceOf(vault);
             IERC20(asset).safeTransfer(vault, vaultShare);
-            IYieldSharesVault(vault).harvest(vaultShare);
+            vaultCredited = IERC20(asset).balanceOf(vault) - vaultBalanceBefore;
+            IYieldSharesVault(vault).harvest(vaultCredited);
         }
         if (tip > 0) {
             IERC20(asset).safeTransfer(msg.sender, tip);

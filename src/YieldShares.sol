@@ -126,8 +126,12 @@ contract YieldShares is ERC4626, ReentrancyGuard {
     ///         yield pushed by the harvester that has not been credited yet. Claimable
     ///         by nobody; only a harvester push (harvest) converts excess into
     ///         accounted assets, and only by the exact pushed amount.
+    /// @dev Underflow-safe (audit F-04b): returns 0 when the balance is at or below
+    ///      the accounting figure (e.g. after an issuer adminBurn against the vault)
+    ///      instead of panicking — a burned vault degrades to graceful no-yield.
     function unaccountedAssets() external view returns (uint256) {
-        return IERC20(asset()).balanceOf(address(this)) - _totalAssetsStored;
+        uint256 balance = IERC20(asset()).balanceOf(address(this));
+        return balance > _totalAssetsStored ? balance - _totalAssetsStored : 0;
     }
 
     /// @dev Virtual share offset applied to the ERC-4626 conversion math (anti
@@ -200,11 +204,15 @@ contract YieldShares is ERC4626, ReentrancyGuard {
     ///      credits exactly what it pushed. The amount is bounded by the vault's
     ///      unaccounted excess, so a harvester can never credit more than physically
     ///      arrived, and donations can never be credited (the harvester only declares
-    ///      what it itself transferred).
+    ///      what it itself transferred). The excess computation is underflow-safe
+    ///      (audit F-04b): when the balance is at or below the accounting figure
+    ///      (issuer adminBurn), there is no excess and the call reverts with
+    ///      ExcessTooSmall — never an arithmetic panic. Withdrawal math is untouched.
     function harvest(uint256 assets) external nonReentrant {
         if (msg.sender != harvester) revert NotHarvester(msg.sender);
         if (assets == 0) revert ZeroHarvest();
-        uint256 excess = IERC20(asset()).balanceOf(address(this)) - _totalAssetsStored;
+        uint256 balance = IERC20(asset()).balanceOf(address(this));
+        uint256 excess = balance > _totalAssetsStored ? balance - _totalAssetsStored : 0;
         if (assets > excess) revert ExcessTooSmall(assets, excess);
         _totalAssetsStored += assets;
         emit YieldHarvested(assets, _totalAssetsStored);

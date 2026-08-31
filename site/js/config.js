@@ -242,11 +242,12 @@
     docs: {
       docsDir: '../docs/public',
       index: [
-        { id: 'welcome',     title: 'Welcome',        file: 'welcome.md' },
-        { id: 'how-it-works', title: 'How it works',  file: 'how-it-works.md' },
-        { id: 'risks',       title: 'Risks & threat model', file: 'risks.md' },
-        { id: 'methodology', title: 'APR methodology', file: 'methodology.md' },
-        { id: 'faq',         title: 'FAQ',            file: 'faq.md' }
+        { id: 'compliance',      title: 'Compliance posture',     file: 'compliance.md' },
+        { id: 'guarantees',      title: 'Contract guarantees',    file: 'guarantees.md' },
+        { id: 'not-guaranteed',  title: 'What is not guaranteed', file: 'not-guaranteed.md' },
+        { id: 'risk-disclosure', title: 'Risk disclosure',        file: 'risk-disclosure.md' },
+        { id: 'run-it-yourself', title: 'Run it yourself',        file: 'run-it-yourself.md' },
+        { id: 'tokenomics',      title: 'Tokenomics',             file: 'tokenomics.md' }
       ]
     },
 

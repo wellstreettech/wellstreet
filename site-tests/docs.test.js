@@ -147,3 +147,35 @@ test('renderMarkdown handles null/undefined and CRLF line endings', () => {
   assert.ok(crlf.indexOf('<h1>H</h1>') !== -1);
   assert.ok(crlf.indexOf('<p>para</p>') !== -1);
 });
+
+// ---- Docs index ↔ disk truth ------------------------------------------------
+// The docs tab fetches markdown AT RUNTIME from a relative path; an index entry
+// whose file is missing on disk renders an honest "not published yet" state.
+// These tests pin the index to the files that actually exist in docs/public/
+// so the tab can never silently list phantom pages again.
+
+test('docs index lists exactly the 6 published docs', () => {
+  assert.strictEqual(config.docs.index.length, 6);
+  assert.deepStrictEqual(
+    config.docs.index.map(function (d) { return d.id; }),
+    ['compliance', 'guarantees', 'not-guaranteed',
+     'risk-disclosure', 'run-it-yourself', 'tokenomics']
+  );
+});
+
+test('every docs index entry has a non-empty id, title and file', () => {
+  for (const d of config.docs.index) {
+    assert.ok(typeof d.id === 'string' && d.id.trim() !== '', 'missing id: ' + JSON.stringify(d));
+    assert.ok(typeof d.title === 'string' && d.title.trim() !== '', 'missing title for id ' + d.id);
+    assert.ok(typeof d.file === 'string' && d.file.trim() !== '', 'missing file for id ' + d.id);
+  }
+});
+
+test('every docs index file exists on disk at docs/public/<file>', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  for (const d of config.docs.index) {
+    const p = path.join(__dirname, '..', 'docs', 'public', d.file);
+    assert.ok(fs.existsSync(p), 'index lists a file that does not exist: ' + p);
+  }
+});

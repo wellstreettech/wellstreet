@@ -95,7 +95,7 @@ contract HarvestForkTest is Test {
     uint256 constant INITIAL_FEE_BPS = 1000; // 10% protocol / 90% depositors
 
     bytes32 constant HARVESTED_SIG =
-        keccak256("Harvested(uint256,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)");
+        keccak256("Harvested(uint256,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)");
     bytes32 constant POSITION_RECEIVED_SIG = keccak256("PositionReceived(address,uint256,address)");
 
     WellstreetTimelock timelock;
@@ -118,6 +118,7 @@ contract HarvestForkTest is Test {
         uint256 swappedOut;
         uint256 proceeds;
         uint256 vaultShare;
+        uint256 vaultCredited;
         uint256 tip;
         uint256 accrued;
     }
@@ -291,8 +292,8 @@ contract HarvestForkTest is Test {
         for (uint256 i = 0; i < entries.length; i++) {
             if (entries[i].topics[0] == HARVESTED_SIG && entries[i].topics.length == 3) {
                 // data words: amount0Collected, amount1Collected, swappedOut,
-                // proceeds, vaultShare, tip, accrued
-                uint256[7] memory w = abi.decode(entries[i].data, (uint256[7]));
+                // proceeds, vaultShare, vaultCredited, tip, accrued
+                uint256[8] memory w = abi.decode(entries[i].data, (uint256[8]));
                 e.tokenId = uint256(entries[i].topics[1]);
                 e.caller = address(uint160(uint256(entries[i].topics[2])));
                 e.amount0Collected = w[0];
@@ -300,8 +301,9 @@ contract HarvestForkTest is Test {
                 e.swappedOut = w[2];
                 e.proceeds = w[3];
                 e.vaultShare = w[4];
-                e.tip = w[5];
-                e.accrued = w[6];
+                e.vaultCredited = w[5];
+                e.tip = w[6];
+                e.accrued = w[7];
                 found = true;
             }
         }
@@ -372,6 +374,7 @@ contract HarvestForkTest is Test {
         assertEq(e0.swappedOut, 0);
         assertEq(e0.proceeds, 0);
         assertEq(e0.vaultShare, 0);
+        assertEq(e0.vaultCredited, 0);
         assertEq(e0.tip, 0);
         assertEq(e0.accrued, 0);
         assertEq(vault.totalAssets(), 0);
@@ -430,6 +433,9 @@ contract HarvestForkTest is Test {
         // vault share = floor(proceeds * 9000 / 10000)
         assertEq(vault.feeBps(), INITIAL_FEE_BPS);
         assertEq(e1.vaultShare, (e1.proceeds * 9000) / 10000, "vault share != 90% of proceeds");
+        // The credited amount (F-03b empirical delta) equals the declared share on a
+        // clean (non-fee-on-transfer) token — the discrepancy path is not exercised.
+        assertEq(e1.vaultCredited, e1.vaultShare, "credited != declared share on a clean token");
         // tip = floor(proceeds * 10 / 10000) = floor(proceeds / 1000)
         assertEq(e1.tip, (e1.proceeds * 10) / 10000, "tip != 0.1% of proceeds");
         assertGt(e1.tip, 0, "caller tip is zero");
@@ -493,6 +499,7 @@ contract HarvestForkTest is Test {
         // are zero-safe, so a fully-truncated re-seed also passes honestly).
         assertEq(e2.proceeds, e2.amount1Collected + e2.swappedOut, "proceeds != asset leg + swapped WETH leg");
         assertEq(e2.vaultShare, (e2.proceeds * 9000) / 10000, "vault share formula broken on second harvest");
+        assertEq(e2.vaultCredited, e2.vaultShare, "credited != declared share on second harvest");
         assertEq(e2.tip, (e2.proceeds * 10) / 10000, "tip formula broken on second harvest");
         assertEq(e2.accrued, e2.proceeds - e2.vaultShare - e2.tip, "accrual formula broken on second harvest");
         assertEq(vault.totalAssets() - totalAssetsAfter1, e2.vaultShare, "totalAssets delta != second vault share");
