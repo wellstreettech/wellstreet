@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  forge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Show toolchain
+        run: forge --version
+
+      - name: Build
+        run: forge build
+
+      # Fork suites (test/fork/) self-skip when WELLSTREET_ROBINHOOD_RPC_URL is
+      # unset — unit + invariant suites run everywhere; the live-state suites run
+      # locally / in CI once the dedicated RPC secret is configured.
+      - name: Test
+        run: forge test -vvv

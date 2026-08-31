@@ -15,3 +15,5 @@ out/
 /docs/internal/
 
 # docs/public/ is intentionally NOT ignored — it is the public documentation.
+.vercel
+.env*
