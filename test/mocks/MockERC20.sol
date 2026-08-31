@@ -87,3 +87,84 @@ contract MockFeeOnTransferToken is MockERC20 {
         return true;
     }
 }
+
+/// @notice Mock token that under-delivers transfers INTO one configured recipient
+///         (10% skimmed to address(this)) and is clean everywhere else. Models the
+///         audit F-03b credit-path loss — an issuer upgrade taxing the
+///         harvester -> vault leg — while every other leg stays intact, so the
+///         empirical-credit harden is isolated in the harvest tests.
+contract MockLossyTransferToken is MockERC20 {
+    uint256 public constant TAX_BPS = 1000; // 10%
+    address public lossyRecipient;
+
+    constructor() MockERC20("Lossy Transfer", "LOSSY") {}
+
+    function setLossyRecipient(address to) external {
+        lossyRecipient = to;
+    }
+
+    function transfer(address to, uint256 amount) external override returns (bool) {
+        return _lossyTransfer(msg.sender, to, amount);
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external override returns (bool) {
+        uint256 allowed = allowance[from][msg.sender];
+        if (allowed != type(uint256).max) {
+            allowance[from][msg.sender] = allowed - amount;
+        }
+        return _lossyTransfer(from, to, amount);
+    }
+
+    function _lossyTransfer(address from, address to, uint256 amount) internal returns (bool) {
+        if (to != lossyRecipient) {
+            return _transfer(from, to, amount);
+        }
+        uint256 tax = (amount * TAX_BPS) / 10_000;
+        uint256 net = amount - tax;
+        balanceOf[from] -= amount;
+        balanceOf[to] += net;
+        balanceOf[address(this)] += tax;
+        emit Transfer(from, to, net);
+        return true;
+    }
+}
+
+/// @notice Mock token whose issuer can UPGRADE it into fee-on-transfer behavior at
+///         any time (clean until setFot(true)) — models the audit F-03 issuer-upgrade
+///         scenario on the withdraw path (deposits happen on the clean token, exits
+///         run on the taxed one).
+contract MockToggleableFeeOnTransferToken is MockERC20 {
+    uint256 public constant TAX_BPS = 1000; // 10%
+    bool public fot;
+
+    constructor() MockERC20("Upgradeable FOT", "UFOT") {}
+
+    function setFot(bool enabled) external {
+        fot = enabled;
+    }
+
+    function transfer(address to, uint256 amount) external override returns (bool) {
+        return _maybeTaxedTransfer(msg.sender, to, amount);
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external override returns (bool) {
+        uint256 allowed = allowance[from][msg.sender];
+        if (allowed != type(uint256).max) {
+            allowance[from][msg.sender] = allowed - amount;
+        }
+        return _maybeTaxedTransfer(from, to, amount);
+    }
+
+    function _maybeTaxedTransfer(address from, address to, uint256 amount) internal returns (bool) {
+        if (!fot) {
+            return _transfer(from, to, amount);
+        }
+        uint256 tax = (amount * TAX_BPS) / 10_000;
+        uint256 net = amount - tax;
+        balanceOf[from] -= amount;
+        balanceOf[to] += net;
+        balanceOf[address(this)] += tax;
+        emit Transfer(from, to, net);
+        return true;
+    }
+}
