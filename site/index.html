@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Wellstreet — open-source ERC-4626 yield vaults for tokenized stocks on Robinhood Chain (chain 4663). No audit. Every number on this page is read by your browser straight from public chain nodes.">
+  <meta name="color-scheme" content="light">
+  <title>Wellstreet — yield vaults for tokenized stocks</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="ws-root">
+
+    <!-- Jurisdiction disclosure banner: shown on non-gating mirrors (IPFS/ENS);
+         the F19 disclosure line is injected verbatim by js/geo.js. -->
+    <div id="ws-jurisdiction-banner" class="jurisdiction-banner" hidden>
+      <div class="wrap">
+        <span>Jurisdiction notice: this mirror cannot enforce the canonical domain's jurisdiction gate. Availability may be restricted on wellstreet.tech.</span>
+        <span class="disclosure" data-geo-disclosure>geo-blocking has no adjudicated safe harbor — it reduces, not eliminates, exposure</span>
+      </div>
+    </div>
+
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="index.html">
+          <span class="brand-word">Wellstreet</span>
+          <span class="brand-tag">yield vaults · tokenized stocks</span>
+        </a>
+        <nav class="site-nav" aria-label="Sections">
+          <a href="#vaults">Vaults</a>
+          <a href="#deposit">Deposit / Redeem</a>
+          <a href="#docs">Docs</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- ============ HERO ============ -->
+      <section class="hero" id="top">
+        <div class="wrap">
+          <h1>Yield vaults for <span class="punch">tokenized stocks</span>.<br>Checkable, not sellable.</h1>
+          <p class="lede">
+            Wellstreet wraps on-chain stock tokens (starting with the S&amp;P 500 ETF token "SPY" on Robinhood Chain,
+            chain&nbsp;4663) in open-source ERC-4626 vaults and routes liquidity-pool fee income to depositors.
+            MIT-licensed and unaudited — the docs are written to be checkable against the code, not to sell anything.
+          </p>
+          <div class="hero-facts">
+            <div class="hero-fact">
+              <span class="k">Who holds the keys</span>
+              <span class="v">You. Vault shares are yours; redeems have no pause path.</span>
+            </div>
+            <div class="hero-fact">
+              <span class="k">Fee split</span>
+              <span class="v">90% depositors / 10% protocol (timelock-settable, hard-capped at 20%).</span>
+            </div>
+            <div class="hero-fact">
+              <span class="k">Where the numbers come from</span>
+              <span class="v">Your browser, reading public RPC nodes. No backend, no API keys.</span>
+            </div>
+            <div class="hero-fact">
+              <span class="k">Audit status</span>
+              <span class="v">None. Read the invariants and the threat model instead.</span>
+            </div>
+          </div>
+          <div id="chain-badge" class="muted" style="margin-top:14px" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- ============ LIVE VAULT CARDS ============ -->
+      <section class="block" id="vaults">
+        <div class="wrap">
+          <div class="block-head">
+            <span class="index">01</span>
+            <h2>Vaults</h2>
+            <span class="spacer"></span>
+            <span class="muted" id="vaults-updated">live on-chain reads</span>
+          </div>
+          <p class="block-sub">
+            Everything below is fetched live by this page: token state, pool balances, the pool's price and its
+            owner-set fee cut (decoded from the pool's own <code>slot0</code>). The vault contract itself has not
+            deployed yet — the cards say so plainly instead of showing a fake product.
+          </p>
+          <div id="vault-grid"></div>
+          <div class="apr-footnote" id="apr-footnote">
+            <span class="lbl">Projected depositor APR — projected, methodology-linked</span>
+            <span id="apr-footnote-text"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ DEPOSIT / REDEEM WIDGET ============ -->
+      <section class="block" id="deposit">
+        <div class="wrap">
+          <div class="block-head">
+            <span class="index">02</span>
+            <h2>Deposit / Redeem</h2>
+            <span class="spacer"></span>
+            <span class="muted" id="widget-chain"></span>
+          </div>
+          <p class="block-sub">
+            Standard ERC-4626 flows: approve the vault to spend the underlying, then deposit for shares
+            (<code>ws-SPY</code>) — or redeem/withdraw shares back to underlying. Redeem and withdraw have no
+            pause path in the protocol design: our own controls can never trap your funds.
+          </p>
+
+          <div class="widget-grid">
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Deposit</h3>
+                <span class="share-symbol">ws-SPY</span>
+              </div>
+              <div class="panel-body">
+                <div class="field">
+                  <label for="dep-amount">Amount of SPY (underlying)</label>
+                  <input type="text" id="dep-amount" inputmode="decimal" placeholder="0.0" disabled>
+                </div>
+                <div class="btn-row">
+                  <button type="button" class="btn" id="btn-approve" disabled>1 · Approve</button>
+                  <button type="button" class="btn btn-primary" id="btn-deposit" disabled>2 · Deposit</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Redeem</h3>
+                <span class="share-symbol">ws-SPY</span>
+              </div>
+              <div class="panel-body">
+                <div class="field">
+                  <label for="red-amount">Amount (shares for redeem / SPY for withdraw)</label>
+                  <input type="text" id="red-amount" inputmode="decimal" placeholder="0.0" disabled>
+                </div>
+                <div class="btn-row">
+                  <button type="button" class="btn" id="btn-redeem" disabled>Redeem shares</button>
+                  <button type="button" class="btn" id="btn-withdraw" disabled>Withdraw underlying</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row" style="margin-top:20px">
+            <button type="button" class="btn btn-primary" id="btn-connect">Connect wallet</button>
+          </div>
+          <div id="wallet-balances" aria-live="polite"></div>
+          <div id="widget-status" aria-live="polite"></div>
+          <p id="acquire-note" class="muted"></p>
+        </div>
+      </section>
+
+      <!-- ============ DOCS TAB ============ -->
+      <section class="block" id="docs">
+        <div class="wrap">
+          <div class="block-head">
+            <span class="index">03</span>
+            <h2>Docs</h2>
+            <span class="spacer"></span>
+            <span class="muted">markdown, rendered locally — no analytics, no tracking</span>
+          </div>
+          <p class="block-sub">
+            The honest-docs set: how the vault works, what can go wrong, and the exact methodology behind every
+            number this page shows. Docs load from a relative path (IPFS-ready) and render in your browser.
+          </p>
+          <div id="doc-tabs"></div>
+          <div id="doc-pane" role="tabpanel" tabindex="0"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <div class="footer-grid">
+          <div>
+            <div class="h">Protocol</div>
+            <div>wellstreet.tech (canonical) · wellstreet.eth (ENS + IPFS mirror)</div>
+            <div>Chain 4663 (Robinhood Chain) · ERC-4626 · Uniswap V3 fee harvesting</div>
+          </div>
+          <div>
+            <div class="h">Source &amp; license</div>
+            <div>MIT — source repository publishes with the new identity at launch (placeholder until then).</div>
+            <div>No audit. Verify the contracts yourself; the docs tell you exactly how.</div>
+          </div>
+          <div>
+            <div class="h">Honesty line</div>
+            <div>Nothing on this page is an offer, a promise, or financial advice. Yield figures are projections
+            tied to a published methodology and can go to zero with pool activity.</div>
+          </div>
+        </div>
+        <div class="footer-fine">
+          <span id="footer-year">2026</span> Wellstreet contributors.
+          <span id="trademark-note"></span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============ GEO BLOCK PAGE TEMPLATE ============
+       Used verbatim as the served page by the edge middleware (HTTP 403 on the
+       canonical domain, production only) and as the static courtesy overlay.
+       The F19 disclosure is injected verbatim by js/geo.js into
+       [data-geo-disclosure]; the country code into [data-geo-country]. -->
+  <template id="ws-geo-block">
+    <div class="geo-block-page">
+      <div class="geo-block-card">
+        <div class="geo-block-head">
+          <span class="code">403</span>
+          <span>JURISDICTION RESTRICTED</span>
+        </div>
+        <div class="geo-block-body">
+          <h1>Access restricted from <span data-geo-country></span></h1>
+          <p>Wellstreet restricts access from this jurisdiction on its canonical domain pending compliance
+          review. This page is served with HTTP status 403 by edge middleware on the canonical domain
+          (production only — previews and the static mirror are not gated).</p>
+          <div class="geo-disclosure" data-geo-disclosure>geo-blocking has no adjudicated safe harbor — it reduces, not eliminates, exposure</div>
+          <p>Honest framing, because this protocol does not talk around things: the gate above is a policy
+          choice, not a legal shield. Jurisdiction rules vary, enforcement against decentralized software is
+          unsettled, and the disclosure line above is the whole of what can honestly be claimed about it.</p>
+          <p>If you believe you reached this page in error, the static mirror at wellstreet.eth serves the same
+          protocol with a jurisdiction-disclosure banner instead of a gate.</p>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script src="js/config.js"></script>
+  <script src="js/abi.js"></script>
+  <script src="js/rpc.js"></script>
+  <script src="js/geo.js"></script>
+  <script src="js/vault.js"></script>
+  <script src="js/apr.js"></script>
+  <script src="js/wallet.js"></script>
+  <script src="js/docs.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

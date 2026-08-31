@@ -1,0 +1,17 @@
+# Dependencies and build output
+node/
+cache/
+out/
+
+# Vercel
+.vercel/
+
+# Secrets — never commit
+.env
+
+# Internal ops evidence and runbooks are LOCAL-ONLY: never committed to the
+# public repository (they are mirrored to a separate private backup repo).
+/docs/ops/
+/docs/internal/
+
+# docs/public/ is intentionally NOT ignored — it is the public documentation.
