@@ -46,25 +46,11 @@
   }
 
   // ------------------------------------------------------------------
-  // 1. Jurisdiction gate — runs BEFORE any other rendering.
-  // Country source (client side): the edge middleware wrapper may inject
-  // window.__WS_COUNTRY__ when serving the block/overlay template; '?geo=XX' is a
-  // template-testing hook. On the canonical domain ENFORCEMENT is server-side
-  // (403 via edge middleware — see js/geo.js header); on the static mirror there
-  // is no gate, only the disclosure banner.
+  // Jurisdiction gate: DISABLED (decision D14, 2026-08-31) — the protocol
+  // performs no jurisdictional blocking. js/geo.js + its unit tests remain
+  // (pure, unwired, harmless) per D13's letter; nothing injects a country
+  // and no gate runs anywhere in init().
   // ------------------------------------------------------------------
-  function runGeoGate() {
-    var country = null;
-    try {
-      country = window.__WS_COUNTRY__ || null;
-      if (!country && location.search) {
-        var m = location.search.match(/[?&]geo=([A-Za-z]{2})\b/);
-        if (m) { country = m[1]; }
-      }
-    } catch (e) { /* non-browser */ }
-    var decision = WS.geo.gateDecision(country, cfg.geo);
-    return WS.geo.applyGate(decision, { config: cfg, mirrorMode: WS.geo.detectMirrorMode(cfg) });
-  }
 
   // ------------------------------------------------------------------
   // 2. Vault cards + APR + widget
@@ -439,9 +425,6 @@
   // ------------------------------------------------------------------
 
   function init() {
-    var gate = runGeoGate();
-    if (gate && gate.applied === 'blocked') { return; } // block page replaced the content
-
     // year stamp
     var y = $('footer-year');
     if (y) { y.textContent = String(new Date().getFullYear()); }

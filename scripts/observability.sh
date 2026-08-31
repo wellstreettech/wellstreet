@@ -603,9 +603,9 @@ fi
 section "(f) site + /api/health"
 CODE=$(http_code "$SITE_URL/")
 if [ "$CODE" = "200" ]; then
-  record PASS "(f1)" "GET $SITE_URL/ -> 200 (expected from a non-blocked jurisdiction; the geo-gate answers 403 to US/UK by design)"
+  record PASS "(f1)" "GET $SITE_URL/ -> 200 (no jurisdictional gating — the protocol performs no geo-blocking by design)"
 else
-  record FAIL "(f1)" "GET $SITE_URL/ -> HTTP $CODE — site down, wrong deploy target, or the geo-gate is answering from this source IP. Verify the Vercel project + alias before touching DNS."
+  record FAIL "(f1)" "GET $SITE_URL/ -> HTTP $CODE — site down, wrong deploy target, or an upstream edge 403. Verify the Vercel project + alias before touching DNS."
 fi
 HEALTH_CODE=$(http_code "$SITE_URL/api/health")
 HEALTH_BODY=$(http_get "$SITE_URL/api/health")
