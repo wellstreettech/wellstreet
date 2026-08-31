@@ -274,9 +274,9 @@ test('docs tab renders the honest not-yet-published state (relative fetch path)'
   // it as a string, so assert against the pane's innerHTML directly.
   const pane = REGISTRY['doc-pane'];
   assert.ok(pane.innerHTML.indexOf('Not published yet') !== -1, 'docs missing-state rendered');
-  assert.ok(pane.innerHTML.indexOf('welcome.md') !== -1, 'expected doc filename shown');
+  assert.ok(pane.innerHTML.indexOf(config.docs.index[0].file) !== -1, 'expected doc filename shown');
   const text = allText(global.document.body).join(' | ');
-  assert.ok(text.indexOf('Welcome') !== -1, 'doc tab label rendered');
+  assert.ok(text.indexOf(config.docs.index[0].title) !== -1, 'doc tab label rendered');
 });
 
 test('SERVERLESS-CLEAN GATE: every fetch is a configured public RPC endpoint or a relative docs path', async () => {
