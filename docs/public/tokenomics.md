@@ -45,6 +45,10 @@ The treasury is controlled by a 48-hour timelock: proposals are public on-chain,
 
 Any use beyond those two requires a public 48-hour timelock proposal, visible on-chain, before funds move.
 
+## Allocations
+
+No team allocation and no foundation treasury: the only protocol-owned capital in the system is the harvester's LP seed, custodied by the treasury and removable only through the public 48-hour timelock.
+
 ## Token parameters
 
 | Parameter | Value |

@@ -45,6 +45,8 @@ One caveat that belongs in the same sentence: the underlying stock token can its
 
 Owner-controlled parameters go through a 48-hour timelock: the protocol fee (within its cap), the deposit pause, grants and revocations of the pause-only role, and any removal or rebalancing of the treasury's LP capital. A proposal is public on-chain, waits at least 48 hours, and can then be executed by anyone — execution is permissionless. No owner action takes effect immediately.
 
+**Who schedules them: one key.** The timelock has a single proposer — the Wellstreet deployer EOA. Only that key can put an owner action into the queue; execution after the delay is open to everyone, scheduling is not. That concentration is a fact about the v1 deployment and is stated here because this page is where control claims live. What is decentralized about Wellstreet is the code — open source, MIT-licensed, forkable, runnable by anyone from their own key ([run-it-yourself.md](run-it-yourself.md)) — not the keys, and this page does not pretend otherwise.
+
 Sweeping already-accrued fees to the treasury is permissionless and needs no owner action.
 
 ### The pause model, precisely

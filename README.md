@@ -6,6 +6,12 @@ Wellstreet is an open-source yield-vault protocol on Robinhood Chain (chain ID 4
 
 This README is written to be checkable against the code, not to sell anything. Read [docs/public/not-guaranteed.md](docs/public/not-guaranteed.md) and [docs/public/risk-disclosure.md](docs/public/risk-disclosure.md) before using anything here.
 
+## No company
+
+There is no company and no foundation behind Wellstreet. The code is MIT-licensed and deploys from public source, and the admin surface is deliberately small: owner controls live behind a public 48-hour timelock — every proposal queued on-chain, readable by anyone for at least 48 hours before it can execute, executable by anyone after the delay — and the one other privileged key can only pause deposits and can be revoked by the timelock. No owner action takes effect immediately.
+
+Running it yourself is a feature, not a fallback: fork the repository, deploy the same contracts from your own key, and you are running the same protocol — nothing on anyone's allowlist, no permission to ask. Walkthrough: [docs/public/run-it-yourself.md](docs/public/run-it-yourself.md).
+
 ## The three contracts
 
 | Contract | What it does |
@@ -73,7 +79,7 @@ Documentation cites `wellstreet.eth` as the canonical protocol identity.
 
 ## Risk
 
-This is experimental software with no audit. The wrapped stock tokens are issued and administered by a third party that can pause transfers, upgrade the token fleet, and burn balances; those actions are outside this protocol's control. Geographic access restrictions apply on the canonical domain. The full list is in [docs/public/risk-disclosure.md](docs/public/risk-disclosure.md).
+This is experimental software with no audit. The wrapped stock tokens are issued and administered by a third party that can pause transfers, upgrade the token fleet, and burn balances; those actions are outside this protocol's control. The protocol performs no jurisdictional blocking; you are responsible for complying with the law where you are. The full list is in [docs/public/risk-disclosure.md](docs/public/risk-disclosure.md).
 
 Nothing here is investment advice.
 

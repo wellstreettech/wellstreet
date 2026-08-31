@@ -19,10 +19,12 @@ $WELL holders receive no distributions. The automated buyback leg funded by the 
 
 Stated plainly, without the usual softening:
 
-- The treasury timelock has **a single proposer key** — the Wellstreet deployer EOA. Only that key can schedule an owner action. Execution after the 48-hour delay is open to anyone, but scheduling is not. Any claim that "no single key can act alone" would be false, and none is made here.
+- The treasury timelock has **a single proposer key** — the Wellstreet deployer EOA. Only that key can schedule an owner action. Execution after the 48-hour delay is open to anyone, but scheduling is not. One key can and does control the protocol's schedule of owner actions, and this project does not pretend otherwise.
 - The same EOA holds a **function-limited pause-only authority** over deposits (it can pause deposits and do nothing else privileged). The timelock can revoke it.
 - `MAX_FEE_BPS` (20%) is the **only structural bound** on fee escalation. Keeping the fee at 10% is a governance commitment, not a code guarantee.
 - Everything the timelock does is public and waits 48 hours: proposals are visible on-chain, and any address can execute them after the delay.
+
+The decentralization this project claims is about the code, not the keys: fully open source, MIT-licensed, permissionlessly forkable, and runnable by anyone from their own key ([run-it-yourself.md](run-it-yourself.md)). Control, by contrast, is concentrated in the keys described above — and that is disclosed here rather than dressed up, because a decentralization claim that contradicts the visible on-chain code would be worthless.
 
 ## Deployer key custody
 
@@ -32,4 +34,4 @@ One key currently embodies: vault owner, treasury timelock proposer, pause autho
 
 ## Jurisdiction
 
-Access to the canonical domain (wellstreet.tech) is blocked from the United States and the United Kingdom; the IPFS mirror carries a disclosure banner because it cannot enforce a block. Geo-blocking has no adjudicated safe harbor — it reduces, not eliminates, exposure. See [risk-disclosure.md](risk-disclosure.md).
+The protocol performs no jurisdictional blocking: nothing in the contracts, this repository, or its docs gates access by geography, IP address, or nationality. Whoever serves a frontend — the canonical domain (wellstreet.tech), the IPFS mirror, or any fork's copy — may impose its own access rules; such a gate belongs to the operator serving it, not to the protocol. You are responsible for complying with the law where you are, and the protocol makes no representation that access or use is lawful anywhere. Geo-blocking has no adjudicated safe harbor — it reduces, not eliminates, exposure — which is part of why the protocol states no lawful-anywhere claim rather than implying a block line settles the question. See [risk-disclosure.md](risk-disclosure.md).

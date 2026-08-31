@@ -41,7 +41,7 @@ The cost of the design is real and disclosed: the protocol's own capital can shr
 
 ## Owner controls are single-keyed
 
-- The treasury timelock has **a single proposer key** — the Wellstreet deployer EOA. Execution after the 48-hour delay is open to anyone, but only that key can start a proposal, and therefore only that key can schedule any owner action. We do not claim "no single key can act alone"; that claim would be false.
+- The treasury timelock has **a single proposer key** — the Wellstreet deployer EOA. Execution after the 48-hour delay is open to anyone, but only that key can start a proposal, and therefore only that key can schedule any owner action. The openness this project claims — open source, MIT, permissionlessly forkable — is a claim about the code, not the keys; the concentration above is real and disclosed.
 - The same EOA holds a **function-limited pause-only authority** over deposits (it can pause deposits and do nothing else privileged). The timelock can revoke it.
 - `MAX_FEE_BPS` (20%) is the **only structural bound** on fee escalation. Keeping the fee at 10% is a governance commitment, not a code guarantee — the code's job is only to keep it under 20%.
 

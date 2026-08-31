@@ -11,11 +11,12 @@
 <body>
   <div id="ws-root">
 
-    <!-- Jurisdiction disclosure banner: shown on non-gating mirrors (IPFS/ENS);
+    <!-- Jurisdiction disclosure banner: shown on mirrors (IPFS/ENS). The protocol
+         performs no jurisdictional blocking; this banner is pure disclosure, and
          the F19 disclosure line is injected verbatim by js/geo.js. -->
     <div id="ws-jurisdiction-banner" class="jurisdiction-banner" hidden>
       <div class="wrap">
-        <span>Jurisdiction notice: this mirror cannot enforce the canonical domain's jurisdiction gate. Availability may be restricted on wellstreet.tech.</span>
+        <span>Jurisdiction notice: the protocol performs no jurisdictional blocking, and nothing gates access here. You are responsible for complying with the law where you are; the protocol makes no representation that access is lawful anywhere.</span>
         <span class="disclosure" data-geo-disclosure>geo-blocking has no adjudicated safe harbor — it reduces, not eliminates, exposure</span>
       </div>
     </div>
@@ -177,7 +178,8 @@
           </div>
           <div>
             <div class="h">Source &amp; license</div>
-            <div>MIT — source repository publishes with the new identity at launch (placeholder until then).</div>
+            <div>Open source. MIT. No company behind it. Owner controls live behind a public 48-hour timelock. Run it yourself.</div>
+            <div>Source repository publishes with the new identity at launch (placeholder until then).</div>
             <div>No audit. Verify the contracts yourself; the docs tell you exactly how.</div>
           </div>
           <div>
@@ -194,9 +196,12 @@
     </footer>
   </div>
 
-  <!-- ============ GEO BLOCK PAGE TEMPLATE ============
-       Used verbatim as the served page by the edge middleware (HTTP 403 on the
-       canonical domain, production only) and as the static courtesy overlay.
+  <!-- ============ OPERATOR GATE PAGE TEMPLATE ============
+       NOT served by this protocol: the protocol performs no jurisdictional
+       blocking and nothing in this repository returns a 403 (decision log,
+       2026-08-31). The template is retained only because js/geo.js (unchanged)
+       renders it if a site operator ever configures a gate — if you are seeing
+       it, the gate belongs to whoever serves this copy, not to the protocol.
        The F19 disclosure is injected verbatim by js/geo.js into
        [data-geo-disclosure]; the country code into [data-geo-country]. -->
   <template id="ws-geo-block">
@@ -204,19 +209,22 @@
       <div class="geo-block-card">
         <div class="geo-block-head">
           <span class="code">403</span>
-          <span>JURISDICTION RESTRICTED</span>
+          <span>ACCESS GATED BY THIS SITE'S OPERATOR</span>
         </div>
         <div class="geo-block-body">
-          <h1>Access restricted from <span data-geo-country></span></h1>
-          <p>Wellstreet restricts access from this jurisdiction on its canonical domain pending compliance
-          review. This page is served with HTTP status 403 by edge middleware on the canonical domain
-          (production only — previews and the static mirror are not gated).</p>
+          <h1>Access gated from <span data-geo-country></span></h1>
+          <p>The Wellstreet protocol performs no jurisdictional blocking: nothing in its contracts or
+          repository restricts access by geography, and it makes no representation that access or use is
+          lawful anywhere. This page is an operator-level access rule — chosen by whoever serves this copy
+          of the site, not a control the protocol or its contracts exercise. You are responsible for
+          complying with your local law.</p>
           <div class="geo-disclosure" data-geo-disclosure>geo-blocking has no adjudicated safe harbor — it reduces, not eliminates, exposure</div>
-          <p>Honest framing, because this protocol does not talk around things: the gate above is a policy
-          choice, not a legal shield. Jurisdiction rules vary, enforcement against decentralized software is
-          unsettled, and the disclosure line above is the whole of what can honestly be claimed about it.</p>
-          <p>If you believe you reached this page in error, the static mirror at wellstreet.eth serves the same
-          protocol with a jurisdiction-disclosure banner instead of a gate.</p>
+          <p>Honest framing, because this protocol does not talk around things: a gate is a policy choice by
+          whoever serves it, not a legal shield. Jurisdiction rules vary, enforcement against decentralized
+          software is unsettled, and the disclosure line above is the whole of what can honestly be claimed
+          about it.</p>
+          <p>The same open-source protocol runs anywhere without one: fork the repository, deploy and serve
+          it yourself, or use any mirror another operator publishes.</p>
         </div>
       </div>
     </div>

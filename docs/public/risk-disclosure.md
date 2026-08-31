@@ -29,18 +29,17 @@ The vault, harvester, and timelock are new contracts with no operating history a
 
 ## Key risk — who can do what, with which keys
 
-- The treasury timelock has **a single proposer key**: the Wellstreet deployer EOA. Only that key can schedule owner actions (fee changes within the cap, deposit pause, pause-role grants, treasury movements). Execution after the 48-hour delay is permissionless. We do not claim "no single key can act alone" — the claim would be false.
+- The treasury timelock has **a single proposer key**: the Wellstreet deployer EOA. Only that key can schedule owner actions (fee changes within the cap, deposit pause, pause-role grants, treasury movements). Execution after the 48-hour delay is permissionless. That concentration is real, and the openness this project claims — open source, MIT, permissionlessly forkable — is a claim about the code, not about the keys.
 - The same EOA holds a function-limited **pause-only authority** over deposits, revocable by the timelock.
 - `MAX_FEE_BPS` (20%) is the **only structural bound** on fee escalation.
 - That one EOA is therefore a total-compromise point: vault owner, treasury proposer, pause authority, token-launch creator wallet, LP seeder. The deployer key is required to be moved to a hardware wallet (or documented cold storage) before launch — until that happens and is documented, treat every privileged capability above as attached to a hot key. See [compliance.md](compliance.md).
 
-## Geographic and jurisdictional disclosure
+## Jurisdictional posture
 
-- The canonical domain (**wellstreet.tech**) blocks access from the United States and the United Kingdom.
-- The IPFS mirror (reachable via **wellstreet.eth**, for example at wellstreet.eth.limo) cannot technically enforce a geo-block; it carries a jurisdiction-disclosure banner instead.
-- **Geo-blocking has no adjudicated safe harbor — it reduces, not eliminates, exposure.**
-
-Nothing here is directed at, or intended for access or use by, any person in a jurisdiction where distribution or use would be contrary to law or regulation. You are responsible for knowing and following your own jurisdiction's rules.
+- **The protocol performs no jurisdictional blocking.** Nothing in the contracts, this repository, or its docs gates access by geography, IP address, or nationality, and nothing obliges a fork to add such a gate.
+- **No lawful-anywhere representation.** The protocol makes no representation that access or use is lawful in any jurisdiction. Nothing here is directed at, or intended for access or use by, any person in a jurisdiction where distribution or use would be contrary to law or regulation. Knowing and following your own jurisdiction's rules is yours to do, not the protocol's to enforce.
+- **Frontend operators set their own rules.** The canonical domain (**wellstreet.tech**), a mirror (reachable via **wellstreet.eth**, for example at wellstreet.eth.limo), or a fork's copy may each impose — or not impose — whatever access rules their operator chooses. Any such gate belongs to the operator serving it, not to the protocol or its contracts.
+- **Geo-blocking has no adjudicated safe harbor — it reduces, not eliminates, exposure.** That line is carried here as pure disclosure, and it is the reason for the posture above: a block page does not settle the legal question, so the protocol makes no lawful-access claim rather than implying that a block line would.
 
 ## Yield risk
 
