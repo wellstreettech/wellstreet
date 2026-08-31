@@ -30,6 +30,10 @@
   // window.ethereum fallback preserved.
   function addProvider(list, detail) {
     if (!detail || !detail.info || !detail.provider) { return list; }
+    // eip-6963 requires uuid + rdns on every announce; an info without them is
+    // malformed AND would dedupe against other identity-less announces
+    // (undefined === undefined), silently hiding a wallet at the money boundary.
+    if (!detail.info.rdns || !detail.info.uuid) { return list; }
     for (var i = 0; i < list.length; i++) {
       if (list[i].info.rdns === detail.info.rdns && list[i].info.uuid === detail.info.uuid) { return list; }
     }

@@ -36,6 +36,17 @@ test('addProvider: dedupes by (rdns, uuid); same rdns with a new uuid is a disti
   assert.notStrictEqual(list, wallet.addProvider(list, providerDetail('new', 'u3')));
 });
 
+test('addProvider: an info missing rdns or uuid is malformed (dropped, never dedupe-collided)', () => {
+  let list = [];
+  list = wallet.addProvider(list, providerDetail('io.metamask', 'u1', 'MetaMask'));
+  // info present but identity fields missing — a non-compliant announce must not
+  // enter the registry, where two of them would collide on undefined===undefined
+  assert.strictEqual(wallet.addProvider(list, { info: {}, provider: { fake: 1 } }), list);
+  assert.strictEqual(wallet.addProvider(list, { info: { uuid: 'u2' }, provider: { fake: 2 } }), list);
+  assert.strictEqual(wallet.addProvider(list, { info: { rdns: 'com.x' }, provider: { fake: 3 } }), list);
+  assert.strictEqual(list.length, 1, 'malformed announces dropped, registry unchanged');
+});
+
 test('receiptOutcome: maps receipt to confirmed / reverted / unknown / not-mined', () => {
   assert.strictEqual(wallet.receiptOutcome({ status: '0x1', blockNumber: '0x5' }), 'confirmed');
   assert.strictEqual(wallet.receiptOutcome({ status: '0x01', blockNumber: '0x5' }), 'confirmed');
