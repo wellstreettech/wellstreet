@@ -14,6 +14,7 @@ const assert = require('node:assert');
 
 const config = require('../site/js/config.js');
 const abi = require('../site/js/abi.js');
+const amount = require('../site/js/amount.js');
 const rpc = require('../site/js/rpc.js');
 const geo = require('../site/js/geo.js');
 const vault = require('../site/js/vault.js');

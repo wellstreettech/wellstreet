@@ -143,7 +143,7 @@ section.block .wrap { padding-top: 44px; padding-bottom: 48px; }
 .panel-body { padding: 14px; }
 .field label { display: block; font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin-bottom: 6px; }
 .field input[type="text"], .field input[type="number"] {
-  width: 100%; padding: 10px; font-family: var(--mono); font-size: 0.95rem;
+  width: 100%; padding: 10px; font-family: var(--mono); font-size: 1rem; /* 16px: below this iOS Safari auto-zooms on focus */
   border: 2px solid var(--line); background: var(--paper); color: var(--ink);
 }
 .field input:disabled { background: var(--paper-2); color: var(--ink-soft); }
@@ -163,6 +163,12 @@ button.btn-primary:hover:not(:disabled) { background: #0a5940; }
 #acquire-note { margin: 14px 0 0 0; font-size: 0.8rem; color: var(--ink-soft); }
 .tx-link { margin-left: 10px; font-family: var(--mono); font-size: 0.78rem; }
 
+/* wallet picker (eip-6963 multi-wallet) + noscript note */
+#wallet-picker { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+#wallet-picker[hidden] { display: none; }
+#wallet-picker .picker-label { font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
+.noscript-note { padding-top: 16px; padding-bottom: 16px; font-size: 0.9rem; color: var(--ink-soft); border-bottom: 2px solid var(--line); }
+
 /* ---------- docs ---------- */
 .doc-tabs { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 2px solid var(--line); }
 .doc-tab {
@@ -176,6 +182,7 @@ button.btn-primary:hover:not(:disabled) { background: #0a5940; }
 #doc-pane[aria-busy="true"] { color: var(--ink-soft); font-family: var(--mono); font-size: 0.85rem; }
 #doc-pane h1, #doc-pane h2, #doc-pane h3 { text-transform: none; letter-spacing: 0; }
 #doc-pane h1 { font-size: 1.4rem; border-bottom: 2px solid var(--line); padding-bottom: 8px; }
+#doc-pane .table-wrap { overflow-x: auto; }
 #doc-pane table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.9rem; }
 #doc-pane th, #doc-pane td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
 #doc-pane th { background: var(--paper-2); font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; }

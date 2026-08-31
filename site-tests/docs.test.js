@@ -92,6 +92,8 @@ test('blockquote, hr and tables render', () => {
   assert.ok(table.indexOf('<table>') !== -1);
   assert.ok(table.indexOf('<th>Pool</th>') !== -1);
   assert.ok(table.indexOf('<td>70.87%</td>') !== -1);
+  // tables are wrapped for horizontal scroll on narrow screens (mobile fix)
+  assert.ok(table.indexOf('<div class="table-wrap"><table>') === 0);
 });
 
 test('multi-line paragraphs collapse into one <p>', () => {

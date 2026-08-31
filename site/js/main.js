@@ -32,10 +32,7 @@
     return v.toFixed(digits == null ? 2 : digits) + '%';
   }
   function fmtToken(raw, decimals) {
-    if (raw === null || raw === undefined) { return '—'; }
-    var d = decimals == null ? 18 : decimals;
-    var v = Number(raw) / Math.pow(10, d);
-    return v.toLocaleString('en-US', { maximumFractionDigits: 4 });
+    return WS.amount.formatUnits(raw, decimals == null ? 18 : decimals, 4);
   }
   function fmtAge(seconds) {
     if (seconds === null || seconds === undefined) { return ''; }
@@ -61,8 +58,49 @@
     wallet: null,        // {account, chainId}
     pool: null,          // live pool snapshot
     apr: null,           // last APR derivation
-    vaultDeployed: false
+    vaultDeployed: false,
+    lastUpdated: null    // timestamp of the last successful card refresh
   };
+
+  var cards = [];        // {vaultCfg, mounts} — refreshed on the live-refresh loop
+
+  // ------------------------------------------------------------------
+  // Live refresh (A1): the page claims "live on-chain reads" — that must stay
+  // true over time, not only at load. Data refreshes every 60s (public-RPC
+  // polite, visibility-gated, paused while a wallet flow is in flight); the
+  // age stamp updates every 5s. Timers are unref'd so node --test exits.
+  // ------------------------------------------------------------------
+  var REFRESH_MS = 60000;
+  var STAMP_MS = 5000;
+  var flowPending = false;
+
+  function anyVisible() {
+    return typeof document === 'undefined' || document.visibilityState !== 'hidden';
+  }
+
+  function updateStamp() {
+    var n = $('vaults-updated');
+    if (!n) { return; }
+    if (!state.lastUpdated) { n.textContent = 'live on-chain reads — first load…'; return; }
+    n.textContent = 'live on-chain reads · updated ' +
+      fmtAge(Math.max(0, Math.round((Date.now() - state.lastUpdated) / 1000)));
+  }
+
+  async function refreshCards() {
+    if (flowPending || !anyVisible() || !state.client) { return; }
+    for (var i = 0; i < cards.length; i++) {
+      await loadVaultData(cards[i].vaultCfg, cards[i].mounts);
+    }
+    state.lastUpdated = Date.now();
+    updateStamp();
+  }
+
+  function startTimers() {
+    var stamp = setInterval(updateStamp, STAMP_MS);
+    var refresh = setInterval(refreshCards, REFRESH_MS);
+    if (stamp && typeof stamp.unref === 'function') { stamp.unref(); }
+    if (refresh && typeof refresh.unref === 'function') { refresh.unref(); }
+  }
 
   function row(label, valueNode, cls) {
     var r = el('div', 'card-row' + (cls ? ' ' + cls : ''));
@@ -337,15 +375,84 @@
     }
   }
 
+  // ---------------- wallet connect (eip-6963 aware) ----------------
+
   async function connectWallet() {
+    var list = WS.wallet.discovered();
+    if (list.length > 1) { showWalletPicker(list); return; }
+    await connectUsing(list.length === 1 ? list[0] : null);
+  }
+
+  async function connectUsing(entry) {
     try {
-      var res = await WS.wallet.connect(cfg);
+      var res = await WS.wallet.connect(cfg, entry ? entry.provider : undefined);
       state.wallet = res;
-      widgetStatus('Connected ' + fmtAddr(res.account) + ' on chain ' + res.chainId + '.', false);
+      hideWalletPicker();
+      widgetStatus('Connected ' + fmtAddr(res.account) +
+        (entry && entry.info && entry.info.name ? ' via ' + entry.info.name : '') +
+        ' on chain ' + res.chainId + '.', false);
       renderWidgetState();
     } catch (err) {
       var d = WS.wallet.describeError(err);
       widgetStatus('Connect failed: ' + d.message, true);
+      renderWidgetState();
+    }
+  }
+
+  function showWalletPicker(list) {
+    var box = $('wallet-picker');
+    if (!box) { connectUsing(list[0]); return; }
+    box.hidden = false;
+    box.textContent = '';
+    box.appendChild(el('span', 'picker-label', 'Multiple wallets detected — choose one:'));
+    list.forEach(function (entry) {
+      var b = el('button', 'btn picker-btn', (entry.info && entry.info.name) || (entry.info && entry.info.rdns) || 'Wallet');
+      b.type = 'button';
+      b.addEventListener('click', function () { connectUsing(entry); });
+      box.appendChild(b);
+    });
+  }
+
+  function hideWalletPicker() {
+    var box = $('wallet-picker');
+    if (box) { box.hidden = true; box.textContent = ''; }
+  }
+
+  // ---------------- write flows ----------------
+
+  function tokenDecimals() {
+    var t = cfg.tokens && cfg.tokens.spy;
+    return (t && t.decimals != null) ? t.decimals : 18;
+  }
+
+  // Exact string→BigInt parse (amount.js). Returns {ok, value, reason} — the
+  // reason is written to be shown to the user as-is.
+  function parseInput(id) {
+    var n = $(id);
+    return WS.amount.parseUnits(n ? n.value : '', tokenDecimals());
+  }
+
+  // A sent transaction is not a confirmed transaction. Polls for the receipt
+  // through the site's own RPC client and reports the honest outcome.
+  async function confirmTx(hash, label) {
+    widgetStatus(label + ' sent — waiting for confirmation…', false);
+    linkTx(hash);
+    var receipt = null;
+    try {
+      receipt = await WS.wallet.waitForReceipt(state.client, hash, {});
+    } catch (e) { /* polling failure falls through to the honest pending state */ }
+    var outcome = WS.wallet.receiptOutcome(receipt);
+    if (outcome === 'confirmed') {
+      var block = receipt.blockNumber != null
+        ? Number(BigInt(receipt.blockNumber)).toLocaleString('en-US') : '?';
+      widgetStatus(label + ' confirmed in block ' + block + '.', false);
+      linkTx(hash);
+    } else if (outcome === 'reverted') {
+      widgetStatus(label + ' REVERTED on-chain — no state changed. Do not retry blindly; check the reason in the explorer.', true);
+      linkTx(hash);
+    } else {
+      widgetStatus(label + ' sent but not confirmed within the polling window — the explorer link shows the live status.', true);
+      linkTx(hash);
     }
   }
 
@@ -353,53 +460,51 @@
     var v = vaultCfg();
     if (!state.wallet) { widgetStatus('Connect a wallet first.', true); return; }
     if (!WS.vault.isDeployed(v.vault)) { widgetStatus('Vault pending deploy — this flow is intentionally disabled.', true); return; }
-    var dec = 18;
+    flowPending = true;
     try {
       if (kind === 'approve') {
-        var amtA = parseAmount($('dep-amount').value);
-        if (!amtA) { widgetStatus('Enter an amount first.', true); return; }
+        var amtA = parseInput('dep-amount');
+        if (!amtA.ok) { widgetStatus(amtA.reason, true); return; }
+        if (amtA.value === 0n) { widgetStatus('Enter an amount greater than zero.', true); return; }
         widgetStatus('Waiting for wallet confirmation (approve)…', false);
-        var h1 = await WS.wallet.approve(cfg, v.asset, v.vault, amtA);
-        widgetStatus('Approve sent: ' + h1, false);
-        linkTx(h1);
+        var h1 = await WS.wallet.approve(cfg, v.asset, v.vault, amtA.value);
+        await confirmTx(h1, 'Approve');
       } else if (kind === 'deposit') {
-        var amtD = parseAmount($('dep-amount').value);
-        if (!amtD) { widgetStatus('Enter an amount first.', true); return; }
+        var amtD = parseInput('dep-amount');
+        if (!amtD.ok) { widgetStatus(amtD.reason, true); return; }
+        if (amtD.value === 0n) { widgetStatus('Enter an amount greater than zero.', true); return; }
         widgetStatus('Waiting for wallet confirmation (deposit)…', false);
-        var h2 = await WS.wallet.deposit(cfg, v.vault, amtD, state.wallet.account);
-        widgetStatus('Deposit sent: ' + h2, false);
-        linkTx(h2);
+        var h2 = await WS.wallet.deposit(cfg, v.vault, amtD.value, state.wallet.account);
+        await confirmTx(h2, 'Deposit');
       } else if (kind === 'withdraw') {
-        var amtW = parseAmount($('red-amount').value);
-        if (!amtW) { widgetStatus('Enter an amount first.', true); return; }
+        var amtW = parseInput('red-amount');
+        if (!amtW.ok) { widgetStatus(amtW.reason, true); return; }
+        if (amtW.value === 0n) { widgetStatus('Enter an amount greater than zero.', true); return; }
         widgetStatus('Waiting for wallet confirmation (withdraw)…', false);
-        var h3 = await WS.wallet.withdraw(cfg, v.vault, amtW, state.wallet.account, state.wallet.account);
-        widgetStatus('Withdraw sent: ' + h3, false);
-        linkTx(h3);
+        var h3 = await WS.wallet.withdraw(cfg, v.vault, amtW.value, state.wallet.account, state.wallet.account);
+        await confirmTx(h3, 'Withdraw');
       } else if (kind === 'redeem') {
-        var amtR = parseAmount($('red-amount').value);
-        if (!amtR) { widgetStatus('Enter an amount first.', true); return; }
+        var amtR = parseInput('red-amount');
+        if (!amtR.ok) { widgetStatus(amtR.reason, true); return; }
+        if (amtR.value === 0n) { widgetStatus('Enter an amount greater than zero.', true); return; }
         widgetStatus('Waiting for wallet confirmation (redeem)…', false);
-        var h4 = await WS.wallet.redeem(cfg, v.vault, amtR, state.wallet.account, state.wallet.account);
-        widgetStatus('Redeem sent: ' + h4, false);
-        linkTx(h4);
+        var h4 = await WS.wallet.redeem(cfg, v.vault, amtR.value, state.wallet.account, state.wallet.account);
+        await confirmTx(h4, 'Redeem');
       }
     } catch (err) {
       var d = WS.wallet.describeError(err);
       widgetStatus('Failed: ' + d.message, true);
+    } finally {
+      flowPending = false;
+      renderWidgetState();
     }
-    renderWidgetState();
-  }
-
-  function parseAmount(str) {
-    var v = parseFloat(str);
-    if (!isFinite(v) || v <= 0) { return null; }
-    return BigInt(Math.round(v * 1e6)) * 1000000000000n; // 18-decimals safe parse
   }
 
   function linkTx(hash) {
     var box = $('widget-status');
     if (!box || !hash) { return; }
+    var prev = box.querySelector('.tx-link');
+    if (prev) { prev.remove(); }
     var a = el('a', 'tx-link', 'view on explorer');
     a.href = cfg.chain.explorerTx(hash);
     a.target = '_blank';
@@ -447,6 +552,9 @@
       batchMaxCalls: cfg.rpc.batchMaxCalls
     });
 
+    // eip-6963 multi-wallet discovery (best-effort; legacy window.ethereum fallback)
+    WS.wallet.startDiscovery();
+
     // vault cards
     var grid = $('vault-grid');
     if (grid) {
@@ -454,9 +562,11 @@
         var mounts = renderCardShell(v);
         grid.appendChild(mounts.card);
         mounts.rows.appendChild(row('Status', 'connecting to public RPC…'));
-        loadVaultData(v, mounts);
+        cards.push({ vaultCfg: v, mounts: mounts });
       });
+      refreshCards();
     }
+    startTimers();
 
     // widget wiring
     var connectBtn = $('btn-connect');

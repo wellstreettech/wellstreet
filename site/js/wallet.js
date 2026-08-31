@@ -1,6 +1,7 @@
 /*
  * Wellstreet site — wallet.js
- * Injected-provider wallet flows (window.ethereum) — v1 scope per the locked spec:
+ * Injected-provider wallet flows (window.ethereum + eip-6963 multi-wallet
+ * discovery) — v1 scope per the locked spec:
  * connect, chain check/switch, ERC-20 approve, ERC-4626 deposit/mint/withdraw/redeem,
  * each with an HONEST error state (no silent swallowing, no fake success).
  *
@@ -21,10 +22,48 @@
 
   function isAvailable() { return provider() !== null; }
 
+  // ---------------- eip-6963 multi-wallet discovery ----------------
+  // Wallets implementing eip-6963 announce themselves on window events. Without
+  // this, a multi-wallet browser silently picks whichever extension last grabbed
+  // window.ethereum — a hidden choice at the money boundary. The dedupe core is
+  // pure and unit-tested; the event wiring is best-effort with the legacy
+  // window.ethereum fallback preserved.
+  function addProvider(list, detail) {
+    if (!detail || !detail.info || !detail.provider) { return list; }
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].info.rdns === detail.info.rdns && list[i].info.uuid === detail.info.uuid) { return list; }
+    }
+    return list.concat([detail]);
+  }
+
+  var discoveredProviders = [];
+
+  function startDiscovery() {
+    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') { return; }
+    if (startDiscovery._wired) { return; }
+    startDiscovery._wired = true;
+    window.addEventListener('eip6963:announceProvider', function (ev) {
+      var before = discoveredProviders.length;
+      discoveredProviders = addProvider(discoveredProviders, ev && ev.detail);
+      if (discoveredProviders.length !== before && typeof window.dispatchEvent === 'function' && typeof Event === 'function') {
+        try { window.dispatchEvent(new Event('ws:providers-changed')); } catch (e) { /* non-fatal */ }
+      }
+    });
+    try {
+      if (typeof window.dispatchEvent === 'function' && typeof Event === 'function') {
+        window.dispatchEvent(new Event('eip6963:requestProvider'));
+      }
+    } catch (e) { /* discovery is best-effort; the injected fallback remains */ }
+  }
+
+  function discovered() { return discoveredProviders.slice(); }
+
   // Connect + ensure the right chain. Returns {account, chainId} or throws a
   // described error (describeError gives the human-readable form).
-  async function connect(cfg) {
-    var p = provider();
+  // `injected` is an eip-6963 announced provider; omit it for the legacy
+  // window.ethereum path.
+  async function connect(cfg, injected) {
+    var p = injected || provider();
     if (!p) {
       var noProvider = new Error('No injected wallet found. Install a browser wallet to use the vault.');
       noProvider.code = 'WS_NO_PROVIDER';
@@ -139,6 +178,42 @@
     return abi.decodeUint(raw);
   }
 
+  // ---------------- receipt confirmation (a sent tx is not a confirmed tx) ----------------
+  // Polls eth_getTransactionReceipt through the site's own RPC client. Returns the
+  // receipt once mined, or null after maxAttempts — the caller renders the honest
+  // "still pending" state, never a fabricated success.
+  async function waitForReceipt(client, hash, opts) {
+    opts = opts || {};
+    var intervalMs = opts.intervalMs == null ? 500 : opts.intervalMs;
+    var maxAttempts = opts.maxAttempts == null ? 60 : opts.maxAttempts;
+    var sleepFn = opts.sleepFn || function (ms) {
+      return new Promise(function (r) { setTimeout(r, ms); });
+    };
+    for (var i = 0; i < maxAttempts; i++) {
+      var r = await client.call('eth_getTransactionReceipt', [hash]);
+      if (r && typeof r === 'object' && (r.blockHash != null || r.blockNumber != null || r.status != null)) {
+        return r;
+      }
+      await sleepFn(intervalMs);
+    }
+    return null;
+  }
+
+  // PURE: 'confirmed' | 'reverted' | 'included-unknown-status' | null (not mined).
+  function receiptOutcome(receipt) {
+    if (!receipt || typeof receipt !== 'object') { return null; }
+    if (receipt.status != null) {
+      var st = Number(receipt.status);
+      if (!isNaN(st)) {
+        if (st === 1) { return 'confirmed'; }
+        if (st === 0) { return 'reverted'; }
+        return 'included-unknown-status';
+      }
+    }
+    if (receipt.blockHash != null || receipt.blockNumber != null) { return 'included-unknown-status'; }
+    return null;
+  }
+
   // ---------------- honest error mapping ----------------
 
   function describeError(err) {
@@ -185,6 +260,9 @@
   return {
     isAvailable: isAvailable,
     connect: connect,
+    startDiscovery: startDiscovery,
+    discovered: discovered,
+    addProvider: addProvider,
     onAccountsChanged: onAccountsChanged,
     onChainChanged: onChainChanged,
     approve: approve,
@@ -194,6 +272,8 @@
     redeem: redeem,
     balanceOf: balanceOf,
     allowance: allowance,
+    waitForReceipt: waitForReceipt,
+    receiptOutcome: receiptOutcome,
     describeError: describeError
   };
 });

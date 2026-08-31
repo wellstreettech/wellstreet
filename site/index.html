@@ -4,11 +4,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Wellstreet — open-source ERC-4626 yield vaults for tokenized stocks on Robinhood Chain (chain 4663). No audit. Every number on this page is read by your browser straight from public chain nodes.">
+  <meta property="og:title" content="Wellstreet — yield vaults for tokenized stocks">
+  <meta property="og:description" content="Open-source ERC-4626 vaults wrapping tokenized stocks on Robinhood Chain (chain 4663). No audit. Every number is read by your browser straight from public chain nodes.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wellstreet.tech/">
+  <meta property="og:site_name" content="Wellstreet">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#f6f4ec">
   <meta name="color-scheme" content="light">
   <title>Wellstreet — yield vaults for tokenized stocks</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <noscript>
+    <div class="wrap noscript-note">
+      This page renders live on-chain reads in your browser and needs JavaScript.
+      Nothing is hidden behind it: the contracts are open source, the docs are plain
+      markdown under /docs/public/, and every number the page shows is a public RPC
+      call you can make yourself.
+    </div>
+  </noscript>
   <div id="ws-root">
 
     <!-- Jurisdiction disclosure banner: shown on mirrors (IPFS/ENS). The protocol
@@ -143,6 +158,7 @@
           <div class="btn-row" style="margin-top:20px">
             <button type="button" class="btn btn-primary" id="btn-connect">Connect wallet</button>
           </div>
+          <div id="wallet-picker" hidden></div>
           <div id="wallet-balances" aria-live="polite"></div>
           <div id="widget-status" aria-live="polite"></div>
           <p id="acquire-note" class="muted"></p>
@@ -232,6 +248,7 @@
 
   <script src="js/config.js"></script>
   <script src="js/abi.js"></script>
+  <script src="js/amount.js"></script>
   <script src="js/rpc.js"></script>
   <script src="js/geo.js"></script>
   <script src="js/vault.js"></script>
