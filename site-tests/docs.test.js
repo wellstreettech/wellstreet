@@ -181,3 +181,128 @@ test('every docs index file exists on disk at docs/public/<file>', () => {
     assert.ok(fs.existsSync(p), 'index lists a file that does not exist: ' + p);
   }
 });
+
+// ---- R2 docs proof-nav: slugger, TOC, copy, deep links -----------------------
+
+test('docId absent: output is byte-identical to the pre-R2 renderer and carries no ids', () => {
+  const md = '# Title\n\n## A heading\n\n### Deeper\n';
+  assert.strictEqual(docs.renderMarkdown(md), docs.renderMarkdown(md, {}));
+  assert.strictEqual(docs.renderMarkdown(md), docs.renderMarkdown(md, {}));
+  assert.ok(docs.renderMarkdown(md).indexOf('id=') === -1, 'no id attributes without docId');
+});
+
+test('docId namespaces ids on every heading level h1-h6', () => {
+  const md = '# One\n## Two\n### Three\n#### Four\n##### Five\n###### Six\n';
+  const out = docs.renderMarkdown(md, { docId: 'd' });
+  assert.ok(out.indexOf('<h1 id="doc-d-one">') !== -1);
+  assert.ok(out.indexOf('<h2 id="doc-d-two">') !== -1);
+  assert.ok(out.indexOf('<h3 id="doc-d-three">') !== -1);
+  assert.ok(out.indexOf('<h4 id="doc-d-four">') !== -1);
+  assert.ok(out.indexOf('<h5 id="doc-d-five">') !== -1);
+  assert.ok(out.indexOf('<h6 id="doc-d-six">') !== -1);
+});
+
+test('slug rules: lowercase, punctuation stripped, whitespace collapsed, trimmed', () => {
+  assert.strictEqual(docs.slugify('1. Donations cannot move the share price'), '1-donations-cannot-move-the-share-price');
+  assert.strictEqual(docs.slugify('  Mixed   CASE text!  '), 'mixed-case-text');
+  assert.strictEqual(docs.slugify('Fee → treasury'), 'fee-treasury');
+  assert.strictEqual(docs.slugify('A — B → C'), 'a-b-c');
+});
+
+test('real non-ASCII doc headings slug to [a-z0-9-] only, no leading/trailing dash', () => {
+  const cases = [
+    'Treasury capital bears real market risk — and why that never touches depositors',
+    '1. Vault protocol fee → treasury (not the token)',
+    '2. $WELL creator fee share → automated buybacks',
+    "Issuer risk — the stock token is someone else's contract",
+    'Key risk — who can do what, with which keys'
+  ];
+  for (const h of cases) {
+    const slug = docs.slugify(h);
+    assert.ok(slug.length > 0, 'non-empty slug: ' + h);
+    assert.match(slug, /^[a-z0-9]+(-[a-z0-9]+)*$/, 'slug shape: ' + slug);
+  }
+});
+
+test('empty-slug heading falls back to section and dedupes under the same rule', () => {
+  const out = docs.renderMarkdown('## → →\n\n## ———\n', { docId: 'x' });
+  assert.ok(out.indexOf('id="doc-x-section"') !== -1);
+  assert.ok(out.indexOf('id="doc-x-section-2"') !== -1);
+});
+
+test('duplicate slugs dedupe by appending -2, -3 in order', () => {
+  const out = docs.renderMarkdown('## Same\n\n## Same\n\n## Same\n', { docId: 'x' });
+  assert.ok(out.indexOf('id="doc-x-same"') !== -1);
+  assert.ok(out.indexOf('id="doc-x-same-2"') !== -1);
+  assert.ok(out.indexOf('id="doc-x-same-3"') !== -1);
+});
+
+test('a natural -2 slug never collides with a deduped duplicate', () => {
+  // "Risk 2" NATURAL slug is risk-2 (whitespace run → '-'); the deduped duplicate
+  // of "Risk" must skip BOTH the plain and the natural -2 candidate
+  const out = docs.renderMarkdown('## Risk 2\n\n## Risk\n\n## Risk\n', { docId: 'x' });
+  assert.ok(out.indexOf('id="doc-x-risk-2"') !== -1, 'natural risk-2 kept');
+  assert.ok(out.indexOf('id="doc-x-risk"') !== -1, 'plain risk kept');
+  assert.ok(out.indexOf('id="doc-x-risk-3"') !== -1, 'duplicate skips BOTH taken candidates');
+  const ids = out.match(/id="[^"]+"/g);
+  assert.strictEqual(new Set(ids).size, ids.length, 'all ids unique');
+});
+
+test('buildToc renders the nav with h2+h3 links in document order', () => {
+  const body = docs.renderMarkdown('# T\n\n## Alpha\n\n### Beta\n\n## Gamma\n', { docId: 'd' });
+  const toc = docs.buildToc(body);
+  assert.ok(toc !== null);
+  assert.ok(toc.indexOf('<nav class="doc-toc" aria-label="On this page">') === 0);
+  assert.ok(toc.indexOf('<a href="#doc-d-alpha">Alpha</a>') !== -1);
+  assert.ok(toc.indexOf('<a href="#doc-d-beta">Beta</a>') !== -1);
+  assert.ok(toc.indexOf('<a href="#doc-d-gamma">Gamma</a>') !== -1);
+  assert.ok(toc.indexOf('Alpha') < toc.indexOf('Beta') && toc.indexOf('Beta') < toc.indexOf('Gamma'));
+});
+
+test('buildToc returns null for <2 id-carrying headings and for id-less markup', () => {
+  assert.strictEqual(docs.buildToc('<h2 id="doc-d-one">One</h2>'), null);
+  assert.strictEqual(docs.buildToc(docs.renderMarkdown('## no ids here\n')), null);
+  assert.strictEqual(docs.buildToc(''), null);
+  assert.strictEqual(docs.buildToc(null), null);
+});
+
+test('copyToClipboard: success, rejection and absent API are all honest', async () => {
+  assert.strictEqual(await docs.copyToClipboard('hello', { writeText: async () => {} }), 'copied');
+  assert.strictEqual(
+    await docs.copyToClipboard('hello', { writeText: async () => { throw new Error('denied'); } }),
+    'unavailable'
+  );
+  assert.strictEqual(await docs.copyToClipboard('hello', null), 'unavailable');
+  assert.strictEqual(await docs.copyToClipboard('hello', {}), 'unavailable');
+});
+
+test('docFromHash: hyphenated ids prefix-match, unknown hashes return null', () => {
+  assert.strictEqual(docs.docFromHash(config, '#doc-risk-disclosure-something').id, 'risk-disclosure');
+  assert.strictEqual(docs.docFromHash(config, '#doc-guarantees-1-donations-cannot-move-the-share-price').id, 'guarantees');
+  assert.strictEqual(docs.docFromHash(config, '#doc-run-it-yourself-1-build').id, 'run-it-yourself');
+  assert.strictEqual(docs.docFromHash(config, '#vaults'), null);
+  assert.strictEqual(docs.docFromHash(config, '#doc-not-a-real-doc-x'), null);
+  assert.strictEqual(docs.docFromHash(config, ''), null);
+  assert.strictEqual(docs.docFromHash(config, null), null);
+});
+
+test('realistic doc sample renders ids end-to-end via docId', () => {
+  const md = [
+    '# Wellstreet risks',
+    '',
+    '## Vault risks',
+    '',
+    '- Issuer pause: the stock token can be paused by its issuer',
+    '',
+    '## Oracle risks',
+    '',
+    '| Check | Status |',
+    '| ----- | ------ |',
+    '| first-depositor inflation | tested |'
+  ].join('\n');
+  const out = docs.renderMarkdown(md, { docId: 'risks' });
+  assert.ok(out.indexOf('<h1 id="doc-risks-wellstreet-risks">') !== -1);
+  assert.ok(out.indexOf('<h2 id="doc-risks-vault-risks">') !== -1);
+  const toc = docs.buildToc(out);
+  assert.ok(toc !== null && toc.indexOf('#doc-risks-vault-risks') !== -1);
+});

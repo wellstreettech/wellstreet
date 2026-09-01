@@ -528,9 +528,51 @@
     var tabMount = $('doc-tabs');
     var pane = $('doc-pane');
     if (!tabMount || !pane) { return; }
-    WS.docs.buildTabs(cfg, tabMount, pane, null);
+    // deep link: '#doc-<docId>-<slug>' loads THAT doc (stub-safe hash read);
+    // buildTabs' click handler stays the only writer of tab activation state —
+    // we delegate by clicking the matched tab.
+    var h = (typeof location !== 'undefined') ? location.hash : '';
+    var target = WS.docs.docFromHash(cfg, h);
+    var onLoaded = target ? function (doc) {
+      if (doc && doc.id === target.id) {
+        var t = document.getElementById(h.slice(1));
+        if (t && typeof t.scrollIntoView === 'function') { t.scrollIntoView(); }
+      }
+    } : null;
+    WS.docs.buildTabs(cfg, tabMount, pane, onLoaded);
+    if (target) {
+      var btn = tabMount.querySelector('.doc-tab[data-doc-id="' + target.id + '"]');
+      if (btn && typeof btn.click === 'function') { btn.click(); return; }
+    }
     var first = cfg.docs.index[0];
     if (first) { WS.docs.loadDoc(cfg, first, pane); }
+  }
+
+  // ---------------- header scrollspy (R2): one .active anchor max ----------------
+
+  function initScrollSpy() {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) { return; }
+    var sections = ['vaults', 'deposit', 'docs'].map(function (id) { return $(id); }).filter(Boolean);
+    if (!sections.length) { return; }
+    var io = new IntersectionObserver(function (entries) {
+      // deepest section reached wins — adjacent sections co-intersect the band
+      // during a ~40px scroll window, so entry order is never trusted
+      var deepest = null;
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) {
+          var sec = entries[i].target;
+          if (!deepest || sec.offsetTop > deepest.offsetTop) { deepest = sec; }
+        }
+      }
+      var anchors = document.body.querySelectorAll('.site-nav a:not(.nav-cta)');
+      for (var a = 0; a < anchors.length; a++) { anchors[a].classList.remove('active'); }
+      if (deepest) {
+        for (var b = 0; b < anchors.length; b++) {
+          if (anchors[b].getAttribute('href') === '#' + deepest.id) { anchors[b].classList.add('active'); }
+        }
+      }
+    }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+    sections.forEach(function (sec) { io.observe(sec); });
   }
 
   // ------------------------------------------------------------------
@@ -592,6 +634,7 @@
 
     renderWidgetState();
     initDocs();
+    initScrollSpy();
   }
 
   if (document.readyState === 'loading') {

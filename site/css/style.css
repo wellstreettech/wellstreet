@@ -1,11 +1,13 @@
 /* ============================================================
    Wellstreet — own visual identity.
    Warm paper / ink, flat, hard 2px borders, zero gradients,
-   zero webfonts (system stacks only — IPFS-friendly, dependency-free).
+   self-hosted OFL webfonts (EB Garamond display + Inter text, relative ../fonts/
+   paths — IPFS-friendly, dependency-free; system stacks remain as fallbacks).
    v1.1 visual pass: editorial-ledger serif display layer (V1),
    tabular data figures + status glyphs (V2), unified honest states
    (V5), micro-motion with reduced-motion guard (V6), designed
    pending state (V4), mobile nav reflow (V3), docs-pane polish (V8).
+   v1.2 (2026-09-01, R2): design-token foundation — spacing/type-scale/radius/shadow tokens defined in the appended :root block.
    ============================================================ */
 
 :root {
@@ -19,15 +21,34 @@
   --warn: #a33a24;        /* honest red — warnings, blocked, unavailable */
   --code-bg: #e9e5d6;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --serif: "EB Garamond", Georgia, "Iowan Old Style", "Times New Roman", serif;
   --motion: 140ms ease;   /* V6: one shared motion token — deliberately small */
+}
+
+/* Self-hosted OFL webfonts (R2, user-approved): display serif + text sans, both
+   variable-weight single files under ../fonts/ (relative path — IPFS-ready).
+   font-display: swap keeps the system-stack fallback visible while faces load. */
+@font-face {
+  font-family: "EB Garamond";
+  src: url('../fonts/eb-garamond-latin-var.woff2') format('woff2');
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url('../fonts/inter-latin-var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 * { box-sizing: border-box; }
 
 html, body {
   margin: 0;
-  padding: 0;
+  padding: var(--space-0);
   background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
@@ -37,14 +58,14 @@ html, body {
 body[data-geo-blocked="true"] { background: var(--paper); }
 
 a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; transition: color var(--motion), outline-color var(--motion); }
-a:visited { color: #0a5540; }
+a:visited { color: var(--accent-visited); }
 a, button, input, [tabindex] { outline: 2px solid transparent; outline-offset: 2px; }
 a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline-color: var(--accent); }
-code { font-family: var(--mono); background: var(--code-bg); padding: 0 4px; border: 1px solid var(--line); font-size: 0.92em; }
-pre { background: var(--code-bg); border: 2px solid var(--line); padding: 12px; overflow-x: auto; }
-pre code { background: none; border: none; padding: 0; }
+code { font-family: var(--mono); background: var(--code-bg); padding: var(--space-0) var(--space-4); border: 1px solid var(--line); font-size: var(--step-18); }
+pre { background: var(--code-bg); border: 2px solid var(--line); padding: var(--space-12); overflow-x: auto; }
+pre code { background: none; border: none; padding: var(--space-0); }
 
-.wrap { max-width: 1020px; margin: 0 auto; padding: 0 20px; }
+.wrap { max-width: var(--wrap-max); margin: 0 auto; padding: var(--space-0) var(--space-20); }
 
 /* ---------- header ---------- */
 .site-header {
@@ -59,179 +80,213 @@ pre code { background: none; border: none; padding: 0; }
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding-top: 14px;
-  padding-bottom: 14px;
+  padding-top: var(--space-14);
+  padding-bottom: var(--space-14);
 }
 .brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: var(--ink); }
 .brand-word {
-  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif; /* serif masthead — editorial-ledger V1 */
+  font-family: var(--serif); /* serif masthead — editorial-ledger V1 */
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  font-size: 1.15rem;
+  font-size: var(--step-14);
   border: 2px solid var(--line);
-  padding: 2px 10px;
+  padding: var(--space-2) var(--space-10);
   background: var(--paper-2);
 }
-.brand-tag { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-soft); text-transform: uppercase; }
+.brand-tag { font-family: var(--mono); font-size: var(--step-3); color: var(--ink-soft); text-transform: uppercase; }
 .site-nav { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
-.site-nav a { color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid transparent; padding: 4px 0; transition: border-bottom-color var(--motion), color var(--motion); }
+.site-nav a { color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: var(--step-5); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid transparent; padding: var(--space-4) var(--space-0); transition: border-bottom-color var(--motion), color var(--motion); }
 .site-nav a:hover { border-bottom-color: var(--line); }
+/* R2 header CTA — honest conversion affordance (copy reused verbatim from the footer;
+   targets the #docs section, never the pre-deploy deposit widget). Specificity-bearing
+   selector so the base .site-nav a rule cannot squash the pill. */
+.site-nav a.nav-cta {
+  background: var(--ink); color: var(--paper);
+  border-bottom: none;
+  border-radius: 999px; min-height: 38px;
+  padding: var(--space-6) var(--space-16);
+  font-family: var(--mono); font-size: var(--step-5); text-transform: uppercase; letter-spacing: 0.06em;
+  line-height: 1; display: inline-flex; align-items: center; text-decoration: none;
+  transition: background-color var(--motion);
+}
+.site-nav a.nav-cta:hover { background: var(--ink-soft); }
+.site-nav a.active { border-bottom-color: var(--ink); }
 
 /* ---------- jurisdiction banner ---------- */
 .jurisdiction-banner {
   border-bottom: 2px solid var(--warn);
-  background: #f8e9e3;
+  background: var(--warn-bg);
   color: var(--ink);
-  font-size: 0.85rem;
+  font-size: var(--step-7);
 }
-.jurisdiction-banner .wrap { padding-top: 10px; padding-bottom: 10px; }
+.jurisdiction-banner .wrap { padding-top: var(--space-10); padding-bottom: var(--space-10); }
 .jurisdiction-banner .disclosure { font-family: var(--mono); display: block; margin-top: 4px; }
 
 /* ---------- hero ---------- */
 .hero { border-bottom: 2px solid var(--line); }
-.hero .wrap { padding-top: 56px; padding-bottom: 48px; }
+.hero .wrap { padding-top: var(--space-56); padding-bottom: var(--space-48); }
 .hero h1 {
-  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif; /* V1 editorial-ledger display */
-  font-size: clamp(2rem, 4.8vw, 3.3rem);
-  line-height: 1.1;
+  font-family: var(--serif); /* V1 editorial-ledger display — R2 re-typed to the ens.domains display register */
+  font-size: clamp(2.5rem, 7.8vw, 6.25rem);
+  font-weight: 400;
+  line-height: 0.96;
   margin: 0 0 18px 0;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
+  letter-spacing: -0.035em;
 }
 .hero h1 .punch { color: var(--accent); }
-.hero .lede { max-width: 46rem; font-size: 1.05rem; margin: 0 0 26px 0; color: var(--ink-soft); }
+.hero .lede { max-width: 46rem; font-size: var(--step-13); margin: 0 0 26px 0; color: var(--ink-soft); }
 .hero-facts { display: flex; flex-wrap: wrap; gap: 0; border: 2px solid var(--line); background: var(--paper-2); }
-.hero-fact { flex: 1 1 200px; padding: 14px 16px; border-right: 2px solid var(--line); min-width: 180px; }
+.hero-fact { flex: 1 1 200px; padding: var(--space-14) var(--space-16); border-right: 2px solid var(--line); min-width: 180px; }
 .hero-fact:last-child { border-right: none; }
-.hero-fact .k { display: block; font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
+.hero-fact .k { display: block; font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
 .hero-fact .v { font-weight: 700; font-variant-numeric: tabular-nums; }
 
 /* ---------- sections ---------- */
 section.block { border-bottom: 2px solid var(--line); }
-section.block .wrap { padding-top: 44px; padding-bottom: 48px; }
+section.block .wrap { padding-top: var(--space-44); padding-bottom: var(--space-48); }
 .block-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; }
-.block-head .index { font-family: var(--mono); color: var(--accent); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.22em; } /* V1: section numbers promoted */
+.block-head .index { font-family: var(--mono); color: var(--accent); font-weight: 700; font-size: var(--step-7); letter-spacing: 0.22em; } /* V1: section numbers promoted */
 .block-head h2 {
   margin: 0;
-  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif; /* V1 editorial-ledger display */
+  font-family: var(--serif); /* V1 editorial-ledger display */
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  font-size: clamp(1.35rem, 2.6vw, 1.7rem);
+  font-size: var(--step-21);
 }
 .block-head .spacer { flex: 1; }
 .block-sub { color: var(--ink-soft); margin: -10px 0 22px 0; max-width: 52rem; }
 
 /* ---------- vault cards ---------- */
 #vault-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-.vault-card { border: 2px solid var(--line); background: #fbfaf5; display: flex; flex-direction: column; transition: box-shadow var(--motion); }
-.vault-card:hover { box-shadow: 4px 4px 0 0 rgba(23, 25, 29, 0.12); }
+.vault-card { border: 2px solid var(--line); background: var(--paper-raised); display: flex; flex-direction: column; transition: box-shadow var(--motion); border-radius: var(--radius-soft); box-shadow: var(--shadow-soft); }
+.vault-card:hover { box-shadow: var(--shadow-soft-hover); }
 .card-head {
   display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
-  border-bottom: 2px solid var(--line); padding: 12px 14px; background: var(--paper-2);
+  border-bottom: 2px solid var(--line); padding: var(--space-12) var(--space-14); background: var(--paper-2);
 }
-.card-title { margin: 0; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.04em; }
-.share-symbol { font-family: var(--mono); font-size: 0.8rem; border: 1px solid var(--line); padding: 2px 8px; background: var(--paper); }
-.card-rows { padding: 6px 14px; font-variant-numeric: tabular-nums; } /* V2: aligned data figures */
-.card-row { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 1px dotted #b9b4a3; font-size: 0.92rem; }
+.card-title { margin: 0; font-size: var(--step-13); text-transform: uppercase; letter-spacing: 0.04em; }
+.share-symbol { font-family: var(--mono); font-size: var(--step-5); border: 1px solid var(--line); padding: var(--space-2) var(--space-8); background: var(--paper); }
+.card-rows { padding: var(--space-6) var(--space-14); font-variant-numeric: tabular-nums; } /* V2: aligned data figures */
+.card-row { display: flex; justify-content: space-between; gap: 14px; padding: var(--space-9) var(--space-0); border-bottom: 1px dotted var(--line-dotted); font-size: var(--step-10); }
 .card-row:last-child { border-bottom: none; }
 .row-label { color: var(--ink-soft); flex: 0 0 auto; }
-.row-value { text-align: right; font-family: var(--mono); font-size: 0.88rem; word-break: break-word; font-variant-numeric: tabular-nums; }
-.card-row-strong .row-value strong { color: var(--accent); font-size: 1.05rem; }
-.card-note { margin: 0; padding: 10px 14px 14px 14px; font-size: 0.78rem; color: var(--ink-soft); border-top: 1px dotted #b9b4a3; }
+.row-value { text-align: right; font-family: var(--mono); font-size: var(--step-8); word-break: break-word; font-variant-numeric: tabular-nums; }
+.card-row-strong .row-value strong { color: var(--accent); font-size: var(--step-13); }
+.card-note { margin: 0; padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14); font-size: var(--step-4); color: var(--ink-soft); border-top: 1px dotted var(--line-dotted); }
 
-.flag { font-family: var(--mono); font-size: 0.82rem; }
+.flag { font-family: var(--mono); font-size: var(--step-6); }
 .flag-ok { color: var(--accent); }
 .flag-warn { color: var(--warn); }
 /* V2: the ●/△ status glyphs are aligned (fixed advance) so multi-line flags keep their column */
 .flag .flag-glyph { display: inline-block; min-width: 1.2em; text-align: center; }
 .flag-ok .flag-glyph { color: var(--accent); }
 .flag-warn .flag-glyph { color: var(--warn); }
-.muted { color: var(--ink-soft); font-size: 0.82em; }
+.muted { color: var(--ink-soft); font-size: var(--step-19); }
 
 .apr-footnote {
   margin-top: 18px; border: 2px solid var(--line); border-left-width: 8px;
-  background: var(--paper-2); padding: 12px 16px; font-size: 0.82rem; color: var(--ink-soft);
+  background: var(--paper-2); padding: var(--space-12) var(--space-16); font-size: var(--step-6); color: var(--ink-soft);
 }
-.apr-footnote .lbl { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.72rem; color: var(--ink); display: block; margin-bottom: 4px; }
+.apr-footnote .lbl { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step-3); color: var(--ink); display: block; margin-bottom: 4px; }
 
 /* ---------- vault-card pending state (V4) — pre-deploy, EVERY card is pending:
    render it as intentional scaffolding, not an unfinished page ---------- */
-.vault-card--pending { border-style: dashed; background: #f8f5ea; }
+.vault-card--pending { border-style: dashed; background: var(--paper-pending); }
 .vault-card--pending .card-head { border-bottom-style: dashed; }
 .pending-tag {
-  font-family: var(--mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--warn); border: 1px solid var(--warn); background: #f8e9e3; padding: 2px 8px; white-space: nowrap;
+  font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--warn); border: 1px solid var(--warn); background: var(--warn-bg); padding: var(--space-2) var(--space-8); white-space: nowrap;
 }
 
 /* ---------- widget ---------- */
 .widget-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-.panel { border: 2px solid var(--line); background: #fbfaf5; transition: box-shadow var(--motion); }
-.panel:hover { box-shadow: 4px 4px 0 0 rgba(23, 25, 29, 0.12); }
-.panel-head { border-bottom: 2px solid var(--line); background: var(--paper-2); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.panel-head h3 { margin: 0; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.panel-body { padding: 14px; }
-.field label { display: block; font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin-bottom: 6px; }
+.panel { border: 2px solid var(--line); background: var(--paper-raised); transition: box-shadow var(--motion); border-radius: var(--radius-soft); box-shadow: var(--shadow-soft); }
+.panel:hover { box-shadow: var(--shadow-soft-hover); }
+.panel-head { border-bottom: 2px solid var(--line); background: var(--paper-2); padding: var(--space-10) var(--space-14); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.panel-head h3 { margin: 0; font-size: var(--step-11); text-transform: uppercase; letter-spacing: 0.05em; }
+.panel-body { padding: var(--space-14); }
+.field label { display: block; font-family: var(--mono); font-size: var(--step-3); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin-bottom: 6px; }
 .field input[type="text"], .field input[type="number"] {
-  width: 100%; padding: 10px; font-family: var(--mono); font-size: 1rem; /* 16px: below this iOS Safari auto-zooms on focus */
+  width: 100%; padding: var(--space-10); font-family: var(--mono); font-size: var(--step-12); /* 16px: below this iOS Safari auto-zooms on focus */
   border: 2px solid var(--line); background: var(--paper); color: var(--ink);
 }
 .field input:disabled { background: var(--paper-2); color: var(--ink-soft); }
 .field + .field { margin-top: 12px; }
 .btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 button.btn {
-  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8rem;
-  padding: 10px 16px; border: 2px solid var(--line); background: var(--paper); color: var(--ink);
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--step-5);
+  padding: var(--space-10) var(--space-16); border: 2px solid var(--line); background: var(--paper); color: var(--ink);
   cursor: pointer; transition: background-color var(--motion), color var(--motion), outline-color var(--motion);
+  border-radius: var(--radius-base); /* soft ens treatment: buttons carry the base radius, cards the 12px soft radius */
+  min-height: 44px; /* money-path mobile ergonomics — ens.domains action targets measure 52px @400 / 72px @1280; 44 = platform floor; NOT an a11y-compliance claim */
 }
 button.btn:hover:not(:disabled) { background: var(--paper-2); }
 button.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 button.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--ink); }
-button.btn-primary:hover:not(:disabled) { background: #0a5940; }
-#widget-status { margin-top: 16px; padding: 10px 12px; border: 2px solid var(--line); background: var(--paper-2); font-size: 0.85rem; min-height: 40px; word-break: break-all; }
-#wallet-balances { margin-top: 10px; font-family: var(--mono); font-size: 0.8rem; color: var(--ink-soft); }
-#acquire-note { margin: 14px 0 0 0; font-size: 0.8rem; color: var(--ink-soft); }
-.tx-link { margin-left: 10px; font-family: var(--mono); font-size: 0.78rem; }
+button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+#widget-status { margin-top: 16px; padding: var(--space-10) var(--space-12); border: 2px solid var(--line); background: var(--paper-2); font-size: var(--step-7); min-height: 40px; word-break: break-all; }
+#wallet-balances { margin-top: 10px; font-family: var(--mono); font-size: var(--step-5); color: var(--ink-soft); }
+#acquire-note { margin: 14px 0 0 0; font-size: var(--step-5); color: var(--ink-soft); }
+.tx-link { margin-left: 10px; font-family: var(--mono); font-size: var(--step-4); }
 
 /* wallet picker (eip-6963 multi-wallet) + noscript note */
 #wallet-picker { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 #wallet-picker[hidden] { display: none; }
-#wallet-picker .picker-label { font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
-.noscript-note { padding-top: 16px; padding-bottom: 16px; font-size: 0.9rem; color: var(--ink-soft); border-bottom: 2px solid var(--line); }
+#wallet-picker .picker-label { font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
+.noscript-note { padding-top: var(--space-16); padding-bottom: var(--space-16); font-size: var(--step-9); color: var(--ink-soft); border-bottom: 2px solid var(--line); }
 
 /* ---------- docs ---------- */
 .doc-tabs { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 2px solid var(--line); }
 .doc-tab {
-  font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;
-  padding: 9px 14px; background: var(--paper-2); border: 2px solid var(--line); border-bottom: none;
+  font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.05em;
+  padding: var(--space-9) var(--space-14); background: var(--paper-2); border: 2px solid var(--line); border-bottom: none;
   margin-right: 6px; cursor: pointer; color: var(--ink-soft);
   transition: background-color var(--motion), color var(--motion), outline-color var(--motion);
+  min-height: 44px; /* money-path mobile ergonomics — ens.domains action targets measure 52px @400 / 72px @1280; 44 = platform floor; NOT an a11y-compliance claim */
 }
 .doc-tab.active { background: var(--ink); color: var(--paper); }
 .doc-tab:hover:not(.active) { background: var(--paper); color: var(--ink); }
 /* V8: the doc pane reads as a document — measure-limited, serif headers, mono code */
-#doc-pane { border: 2px solid var(--line); border-top: none; background: #fbfaf5; padding: 22px 24px; min-height: 220px; max-width: 72ch; }
-#doc-pane[aria-busy="true"] { color: var(--ink-soft); font-family: var(--mono); font-size: 0.85rem; }
+#doc-pane { border: 2px solid var(--line); border-top: none; background: var(--paper-raised); padding: var(--space-22) var(--space-24); min-height: 220px; max-width: 72ch; }
+#doc-pane[aria-busy="true"] { color: var(--ink-soft); font-family: var(--mono); font-size: var(--step-7); }
 #doc-pane h1, #doc-pane h2, #doc-pane h3 {
   text-transform: none; letter-spacing: 0;
-  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif; /* V1 stack in the docs pane */
+  font-family: var(--serif); /* V1 stack in the docs pane */
 }
-#doc-pane h1 { font-size: 1.55rem; border-bottom: 2px solid var(--line); padding-bottom: 8px; } /* per-doc title as document header */
-#doc-pane pre { border: 2px solid var(--line); background: var(--code-bg); padding: 12px; overflow-x: auto; font-size: 0.85rem; }
+#doc-pane h1 { font-size: var(--step-16); border-bottom: 2px solid var(--line); padding-bottom: var(--space-8); } /* per-doc title as document header */
+#doc-pane pre { border: 2px solid var(--line); background: var(--code-bg); padding: var(--space-12); overflow-x: auto; font-size: var(--step-7); }
 #doc-pane .table-wrap { overflow-x: auto; }
-#doc-pane table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.9rem; }
-#doc-pane th, #doc-pane td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
-#doc-pane th { background: var(--paper-2); font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; }
-#doc-pane blockquote { border-left: 6px solid var(--line); margin: 12px 0; padding: 4px 14px; background: var(--paper-2); }
+#doc-pane table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: var(--step-9); }
+#doc-pane th, #doc-pane td { border: 1px solid var(--line); padding: var(--space-6) var(--space-10); text-align: left; }
+#doc-pane th { background: var(--paper-2); font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; }
+#doc-pane blockquote { border-left: 6px solid var(--line); margin: 12px 0; padding: var(--space-4) var(--space-14); background: var(--paper-2); }
 /* V5: the docs "Not published yet." empty state gets the same honest-state treatment */
-.doc-missing { color: var(--ink-soft); font-size: 0.9rem; border: 2px solid var(--line); background: var(--paper-2); padding: 14px 16px; }
+.doc-missing { color: var(--ink-soft); font-size: var(--step-9); border: 2px solid var(--line); background: var(--paper-2); padding: var(--space-14) var(--space-16); }
+/* R2 docs proof-nav: on-page TOC (deep-linkable headings) + code copy buttons.
+   Chrome styling only — the data/ledger surfaces inside the pane keep hard borders. */
+.doc-toc {
+  display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-14);
+  margin: 0 0 var(--space-16) 0; padding-bottom: var(--space-8);
+  border-bottom: 1px dotted var(--line-dotted);
+  font-family: var(--mono); font-size: var(--step-4);
+}
+.doc-toc a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid transparent; transition: color var(--motion), border-bottom-color var(--motion); }
+.doc-toc a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.code-copy {
+  font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.06em;
+  padding: var(--space-2) var(--space-8); border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-soft);
+  cursor: pointer; transition: background-color var(--motion), color var(--motion);
+  margin-top: var(--space-2);
+}
+.code-copy:hover { color: var(--ink); background: var(--paper); }
 
 /* ---------- honest states (V5) — one component for "we're working, nothing faked" ----------
    Used by the live-read status row + APR placeholder in main.js and by the docs pane's
    aria-busy loading state; the pulse ships WITH its prefers-reduced-motion nullification. */
 .state, #doc-pane[aria-busy="true"] {
   font-family: var(--mono);
-  font-size: 0.85rem;
+  font-size: var(--step-7);
   color: var(--ink-soft);
   animation: ws-state-pulse 1.8s ease-in-out infinite;
 }
@@ -242,11 +297,11 @@ button.btn-primary:hover:not(:disabled) { background: #0a5940; }
 
 /* ---------- footer ---------- */
 .site-footer { background: var(--ink); color: var(--paper); }
-.site-footer .wrap { padding-top: 28px; padding-bottom: 34px; }
+.site-footer .wrap { padding-top: var(--space-28); padding-bottom: var(--space-34); }
 .site-footer a { color: var(--paper); }
-.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; font-size: 0.82rem; }
-.footer-grid .h { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.72rem; margin-bottom: 6px; color: #cfcabb; }
-.footer-fine { margin-top: 20px; font-size: 0.72rem; color: #b7b2a2; }
+.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; font-size: var(--step-6); }
+.footer-grid .h { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step-3); margin-bottom: 6px; color: var(--footer-muted); }
+.footer-fine { margin-top: 20px; font-size: var(--step-3); color: var(--footer-faint); }
 
 /* ---------- geo block page ---------- */
 .geo-block-page { max-width: 760px; margin: 8vh auto; padding: 0 20px; }
@@ -265,13 +320,16 @@ button.btn-primary:hover:not(:disabled) { background: #0a5940; }
    V3: mobile keeps its section navigation — the header reflows so the nav
    anchors sit as a compact strip under the brand row instead of being hidden. */
 @media (max-width: 640px) {
-  .site-header .wrap { flex-direction: column; align-items: flex-start; gap: 8px; padding-top: 12px; padding-bottom: 12px; }
-  .hero .wrap { padding-top: 36px; padding-bottom: 32px; }
+  .site-header .wrap { flex-direction: column; align-items: flex-start; gap: 8px; padding-top: var(--space-12); padding-bottom: var(--space-12); }
+  .hero .wrap { padding-top: var(--space-36); padding-bottom: var(--space-32); }
   .hero-facts { flex-direction: column; } /* pre-existing 400px clip fix (V1-adjacent): facts stack */
   .hero-fact { border-right: none; border-bottom: 2px solid var(--line); min-width: 0; }
   .hero-fact:last-child { border-bottom: none; }
   .card-row { flex-direction: column; gap: 2px; }
   .row-value { text-align: left; }
+  /* R2: the docs tab strip stays ONE row on mobile — swipeable, snap-aligned */
+  .doc-tabs { flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; }
+  .doc-tab { flex: 0 0 auto; scroll-snap-align: start; }
 }
 
 /* ---------- reduced motion (V5+V6 shared guard) — every animation and transition
@@ -281,4 +339,74 @@ button.btn-primary:hover:not(:disabled) { background: #0a5940; }
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ---------- design tokens (v1.2, R2 foundation) — 1:1 aliases of the values this
+   stylesheet already shipped; consumption sites read var(--step-*) / var(--space-*).
+   A second :root block merges identically in the cascade. The geo template's
+   declarations stay literal by design (D14 retention). ---------- */
+:root {
+  /* color aliases (existing hex values, named) */
+  --paper-raised: #fbfaf5;
+  --paper-pending: #f8f5ea;
+  --warn-bg: #f8e9e3;
+  --accent-visited: #0a5540;
+  --accent-hover: #0a5940;
+  --line-dotted: #b9b4a3;
+  --footer-muted: #cfcabb;
+  --footer-faint: #b7b2a2;
+  /* space scale (px, value-named) */
+  --space-0: 0;
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-9: 9px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-22: 22px;
+  --space-24: 24px;
+  --space-28: 28px;
+  --space-32: 32px;
+  --space-34: 34px;
+  --space-36: 36px;
+  --space-44: 44px;
+  --space-48: 48px;
+  --space-56: 56px;
+  /* type scale (1:1 aliases, canonical order step-1..step-21) */
+  --step-1: 0.68rem;
+  --step-2: 0.7rem;
+  --step-3: 0.72rem;
+  --step-4: 0.78rem;
+  --step-5: 0.8rem;
+  --step-6: 0.82rem;
+  --step-7: 0.85rem;
+  --step-8: 0.88rem;
+  --step-9: 0.9rem;
+  --step-10: 0.92rem;
+  --step-11: 0.95rem;
+  --step-12: 1rem;
+  --step-13: 1.05rem;
+  --step-14: 1.15rem;
+  --step-15: 1.3rem;
+  --step-16: 1.55rem;
+  --step-17: 2rem;
+  --step-18: 0.92em;
+  --step-19: 0.82em;
+  --step-20: clamp(2rem, 4.8vw, 3.3rem);
+  --step-21: clamp(1.35rem, 2.6vw, 1.7rem);
+  /* layout */
+  --wrap-max: 1020px;
+  /* ens-derived soft treatment (R2, user-approved taste split): CARDS/BUTTONS carry
+     the soft radius + diffuse shadow; every data/ledger element (tables, code blocks,
+     stat rows, hero facts) keeps its hard 2px border. --ink-deep is the ens INK
+     reference value; a second-accent role is deliberately NOT assigned to it. */
+  --radius-base: 4px;
+  --radius-soft: 12px;
+  --shadow-soft: 0 20px 28px rgba(14, 61, 104, 0.06);
+  --shadow-soft-hover: 0 24px 40px rgba(14, 61, 104, 0.1);
+  --ink-deep: #011A25;
 }
