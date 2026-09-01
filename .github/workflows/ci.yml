@@ -20,11 +20,29 @@ jobs:
       - name: Build
         run: forge build
 
-      # Fork suites (test/fork/) self-skip when WELLSTREET_ROBINHOOD_RPC_URL is
-      # unset — unit + invariant suites run everywhere; the live-state suites run
-      # locally / in CI once the dedicated RPC secret is configured.
+      # Fork suites (test/fork/) fork the Robinhood Chain RPC; the URL is injected
+      # from the WELLSTREET_ROBINHOOD_RPC_URL repo secret (env-read only — GitHub
+      # Actions masks registered secret values in logs). Locally the suites
+      # self-skip when the env var is unset (honest skip); in CI a skip is a
+      # FAILURE — the assert step below fails the job on any skipped test, so
+      # green always means the fork suites ran and passed.
       - name: Test
-        run: forge test -vvv
+        timeout-minutes: 10
+        env:
+          WELLSTREET_ROBINHOOD_RPC_URL: ${{ secrets.WELLSTREET_ROBINHOOD_RPC_URL }}
+        run: |
+          set -o pipefail
+          forge test -vvv 2>&1 | tee /tmp/forge-output.log
+
+      - name: Assert fork coverage (no skips)
+        run: |
+          if grep -q '\[SKIP' /tmp/forge-output.log; then
+            echo "::error::forge reported skipped tests — fork coverage did not run (green-but-skipped is false assurance)"
+            exit 1
+          fi
+          grep -q 'test/fork/SPYPool.fork.t.sol:SPYPoolForkTest' /tmp/forge-output.log || { echo "::error::SPYPoolForkTest did not run in the forge output"; exit 1; }
+          grep -q 'test/fork/HarvestFork.t.sol:HarvestForkTest' /tmp/forge-output.log || { echo "::error::HarvestForkTest did not run in the forge output"; exit 1; }
+          grep -E '^Ran [0-9]+ test suites in .*: [0-9]+ tests passed, 0 failed, 0 skipped \([0-9]+ total tests\)$' /tmp/forge-output.log || { echo "::error::forge summary line does not read 0 failed, 0 skipped — check the Test step log"; exit 1; }
 
   node-test:
     runs-on: ubuntu-latest
