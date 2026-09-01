@@ -113,18 +113,26 @@
   }
 
   function flagNode(ok, text) {
-    var n = el('span', 'flag ' + (ok ? 'flag-ok' : 'flag-warn'), (ok ? '● ' : '△ ') + text);
+    // V2: the ●/△ glyph is its own element (aligned + colored via CSS) instead of a raw text prefix.
+    var n = el('span', 'flag ' + (ok ? 'flag-ok' : 'flag-warn'));
+    n.appendChild(el('span', 'flag-glyph', ok ? '●' : '△'));
+    n.appendChild(el('span', null, ' ' + text));
     return n;
   }
 
   function renderCardShell(vaultCfg) {
-    var card = el('article', 'vault-card');
+    // V4: a PENDING_DEPLOY vault renders a designed pending card (dashed variant + tag),
+    // not a finished-looking card with a warning row. The honest sentence in
+    // vaultStatusRow() below is copy-frozen — the styling around it is what changes.
+    var pending = !WS.vault.isDeployed(vaultCfg.vault);
+    var card = el('article', 'vault-card' + (pending ? ' vault-card--pending' : ''));
     card.setAttribute('data-vault-id', vaultCfg.id);
     var head = el('div', 'card-head');
     var title = el('h3', 'card-title', vaultCfg.displayName);
     var sym = el('span', 'share-symbol', vaultCfg.shareSymbol);
     head.appendChild(title);
     head.appendChild(sym);
+    if (pending) { head.appendChild(el('span', 'pending-tag', 'awaiting on-chain deploy')); }
     card.appendChild(head);
     var rows = el('div', 'card-rows');
     card.appendChild(rows);
@@ -183,7 +191,7 @@
   }
 
   function aprRow(apr) {
-    if (!apr) { return row('Projected depositor APR', 'computing…', 'card-row-strong'); }
+    if (!apr) { return row('Projected depositor APR', el('span', 'state', 'computing…'), 'card-row-strong'); }
     var frag = document.createDocumentFragment();
     frag.appendChild(el('strong', null, fmtPct(apr.depositorAprPct) + ' — ' + apr.label));
     return row('Projected depositor APR', frag, 'card-row-strong');
@@ -561,7 +569,7 @@
       cfg.vaults.forEach(function (v) {
         var mounts = renderCardShell(v);
         grid.appendChild(mounts.card);
-        mounts.rows.appendChild(row('Status', 'connecting to public RPC…'));
+        mounts.rows.appendChild(row('Status', el('span', 'state', 'connecting to public RPC…')));
         cards.push({ vaultCfg: v, mounts: mounts });
       });
       refreshCards();
