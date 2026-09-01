@@ -42,7 +42,7 @@
     'the same formula. LP seed and target vault TVL are the ratified GO/NO-GO pins. This is a projection, not ' +
     'a promise: fee income varies with swap activity, each depositor dilutes the same income, the harvester ' +
     'LP is not yet deployed (the ratified seed pin is used), the pool owner can change the protocol cut, and ' +
-    'TVL is read at page-load time (the documented phase-0 approximation). Raw evidence: docs/ops/phase0/pool-apr.md.';
+    'TVL is read at page-load time (the documented phase-0 approximation). Full methodology: the APR methodology doc in the docs tab (docs/public/methodology.md).';
 
   // ------------------------------------------------------------------
   // PURE: net multiplier / cut from slot0 feeProtocol nibbles.

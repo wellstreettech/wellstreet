@@ -210,7 +210,7 @@
       maxLogs: 20000,
       yearSeconds: 365 * 86400,
       phase0Baseline: {
-        source: 'docs/ops/phase0/pool-apr.md §4.2 (median of Tue–Thu 14:00–16:00 UTC windows, 2026-08-25..27)',
+        source: 'median of Tue–Thu 14:00–16:00 UTC windows, 2026-08-25..27 (full methodology: docs tab, APR methodology)',
         pool: '0xDDCBBa3666f578E3F09516f21Ff85BFee859AB5e',
         feeTier: 500,
         netAprPct: 70.87,           // median net of the decoded 1/4-per-side cut
@@ -247,6 +247,7 @@
         { id: 'not-guaranteed',  title: 'What is not guaranteed', file: 'not-guaranteed.md' },
         { id: 'risk-disclosure', title: 'Risk disclosure',        file: 'risk-disclosure.md' },
         { id: 'run-it-yourself', title: 'Run it yourself',        file: 'run-it-yourself.md' },
+        { id: 'methodology',     title: 'APR methodology',        file: 'methodology.md' },
         { id: 'tokenomics',      title: 'Tokenomics',             file: 'tokenomics.md' }
       ]
     },

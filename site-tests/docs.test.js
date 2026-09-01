@@ -156,12 +156,12 @@ test('renderMarkdown handles null/undefined and CRLF line endings', () => {
 // These tests pin the index to the files that actually exist in docs/public/
 // so the tab can never silently list phantom pages again.
 
-test('docs index lists exactly the 6 published docs', () => {
-  assert.strictEqual(config.docs.index.length, 6);
+test('docs index lists exactly the 7 published docs', () => {
+  assert.strictEqual(config.docs.index.length, 7);
   assert.deepStrictEqual(
     config.docs.index.map(function (d) { return d.id; }),
     ['compliance', 'guarantees', 'not-guaranteed',
-     'risk-disclosure', 'run-it-yourself', 'tokenomics']
+     'risk-disclosure', 'run-it-yourself', 'methodology', 'tokenomics']
   );
 });
 

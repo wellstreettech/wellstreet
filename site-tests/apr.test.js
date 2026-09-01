@@ -156,8 +156,11 @@ test('projectDepositorApr carries the required label and the methodology-linked 
   near(p.lpShareOfVaultTvl, 0.138, 1e-12);
 });
 
-test('METHODOLOGY_FOOTNOTE exists and points at the phase-0 evidence file', () => {
-  assert.ok(apr.METHODOLOGY_FOOTNOTE.indexOf('docs/ops/phase0/pool-apr.md') !== -1);
+test('METHODOLOGY_FOOTNOTE exists and points at the public methodology doc', () => {
+  assert.ok(apr.METHODOLOGY_FOOTNOTE.indexOf('docs/ops') === -1,
+    'rendered footnote must not cite a private evidence path');
+  assert.ok(apr.METHODOLOGY_FOOTNOTE.indexOf('methodology') !== -1,
+    'rendered footnote must reference the public methodology doc');
   assert.ok(apr.METHODOLOGY_FOOTNOTE.length > 200);
 });
 
