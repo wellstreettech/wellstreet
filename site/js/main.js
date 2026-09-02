@@ -269,6 +269,37 @@
         ? flagNode(true, 'deployed — yield phase live')
         : flagNode(false, 'awaiting on-chain deploy — yield phase not started'),
       'ledger-row-strong'));
+
+    // Hero chips (WS-HERO-CHIPS-V10): decorative duplicates of the rows above.
+    renderChipsLive(price, tvlUsd);
+  }
+
+  // ------------------------------------------------------------------
+  // Hero chips (WS-HERO-CHIPS-V10): ens.domains-style scatter around the
+  // hero, carrying REAL figures from the same pipeline snapshots the
+  // ledger consumes — no new RPC calls, no new fetch hosts (D8). Live
+  // chips degrade to label-only form (value span left empty) when a read
+  // fails; the static chips render unconditionally in index.html. The
+  // container is aria-hidden there: every chip figure is a decorative
+  // duplicate of a value the ledger/cards already expose. The value
+  // spans carry static ids (chip-price / chip-tvl / chip-apr) registered
+  // in the render test's static-ID registry.
+  // ------------------------------------------------------------------
+  function setChipValue(id, text) {
+    var n = $(id);
+    if (!n) { return; }
+    n.textContent = text || '';
+  }
+
+  function renderChipsLive(price, tvlUsd) {
+    // SPY USD price — the Chainlink feed read this same pass already made
+    // (the pool's slot0 ratio itself stays in the ledger row above).
+    setChipValue('chip-price',
+      price && price.usd != null && isFinite(price.usd) ? '$' + price.usd.toFixed(2) : '');
+    // Pool TVL in USD — the derivation deriveApr already computes and hands
+    // to the ledger (tvlWeth x pool-derived WETH price); no recompute here.
+    setChipValue('chip-tvl',
+      tvlUsd !== null && tvlUsd !== undefined && isFinite(tvlUsd) ? fmtUsd(tvlUsd) : '');
   }
 
   function aprRow(apr) {
@@ -341,6 +372,9 @@
 
     function publish(apr) {
       state.apr = apr;
+      // V10 chip: the published projection's depositor figure (label-only when absent)
+      setChipValue('chip-apr',
+        apr.depositorAprPct != null ? '~' + fmtPct(apr.depositorAprPct, 1) : '');
       var rows = mounts.rows;
       var strong = rows.querySelector('.card-row-strong');
       var prev = rows.querySelector('[data-apr-input]');

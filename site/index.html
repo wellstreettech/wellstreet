@@ -78,6 +78,25 @@
           <rect x="424" y="40" width="32" height="32" fill="rgba(13,107,79,0.10)"/>
           <rect x="40" y="40" width="16" height="16" fill="rgba(13,107,79,0.14)"/>
         </svg>
+        <!-- Floating live-data chips (WS-HERO-CHIPS-V10): ens.domains-style
+             scatter carrying REAL pipeline figures instead of decoration. The
+             live chips (SPY / TVL / APR) are filled by js/main.js from the same
+             reads the ledger already consumes — zero new fetch hosts (D8) — and
+             degrade to label-only form when a read fails; the static chips
+             (ws-SPY, 90/10 split, RH · 4663) always render. The container is
+             aria-hidden: every chip figure is a decorative duplicate of a value
+             the ledger and cards already expose. Chips sit in the hero's outer
+             gutters and padding bands so they never overlap the headline, and
+             .hero's overflow:hidden clips them — they can never create
+             horizontal scroll at any width. -->
+        <div class="hero-chips" aria-hidden="true">
+          <span class="hero-chip hero-chip--green hero-chip--price"><span class="hero-chip-label">SPY</span><span class="hero-chip-val" id="chip-price"></span></span>
+          <span class="hero-chip hero-chip--ink hero-chip--tvl"><span class="hero-chip-label">TVL</span><span class="hero-chip-val" id="chip-tvl"></span></span>
+          <span class="hero-chip hero-chip--warn hero-chip--apr"><span class="hero-chip-label">APR</span><span class="hero-chip-val" id="chip-apr"></span><span class="hero-chip-suffix">projected</span></span>
+          <span class="hero-chip hero-chip--tan hero-chip--share"><span class="hero-chip-label">ws-SPY</span></span>
+          <span class="hero-chip hero-chip--ink hero-chip--split"><span class="hero-chip-label">90/10 split</span></span>
+          <span class="hero-chip hero-chip--tan hero-chip--chain"><span class="hero-chip-label">RH · 4663</span></span>
+        </div>
         <div class="wrap">
           <h1>Yield vaults for <span class="punch">tokenized stocks</span>.<br>Checkable, not sellable.</h1>
           <p class="lede">

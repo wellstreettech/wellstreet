@@ -125,17 +125,28 @@ pre code { background: none; border: none; padding: var(--space-0); }
 
 /* ---------- hero ---------- */
 .hero { border-bottom: 2px solid var(--line); }
-.hero .wrap { padding-top: var(--space-56); padding-bottom: var(--space-48); }
+/* V10 hero whitespace (ens-style breathing room): the wrap centers its stack
+   within >=80vh on desktop, so the headline/lede/panel get air above and below
+   regardless of content height. Mobile (<=640px) keeps the compact padding
+   band — the stacked ledger already fills the viewport there. */
+.hero .wrap {
+  padding-top: var(--space-56);
+  padding-bottom: var(--space-48);
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 .hero h1 {
   font-family: var(--serif); /* V1 editorial-ledger display — R2 re-typed to the ens.domains display register */
   font-size: clamp(2.5rem, 7.8vw, 6.25rem);
   font-weight: 400;
   line-height: 0.96;
-  margin: 0 0 18px 0;
+  margin: 0 0 26px 0; /* V10: larger gap headline -> lede */
   letter-spacing: -0.035em;
 }
-.hero h1 .punch { color: var(--accent); }
-.hero .lede { max-width: 46rem; font-size: var(--step-13); margin: 0 0 26px 0; color: var(--ink-soft); }
+.hero h1 .punch { color: var(--accent-punch); } /* V10: punch word steps up to the more saturated protocol green */
+.hero .lede { max-width: 60ch; font-size: var(--step-13); margin: 0 0 34px 0; color: var(--ink-soft); } /* V10: ~60ch measure + larger gap to the ledger panel */
 .hero-facts { display: flex; flex-wrap: wrap; gap: 0; border: 2px solid var(--line); background: var(--paper-2); }
 .hero-fact { flex: 1 1 200px; padding: var(--space-14) var(--space-16); border-right: 2px solid var(--line); min-width: 180px; }
 .hero-fact:last-child { border-right: none; }
@@ -442,7 +453,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 /* ledger card — hero-facts anatomy (2px hard borders, no radius, no shadow:
    it is a data/ledger element, not a chrome card) */
 .hero-ledger {
-  margin: 0 0 26px;
+  margin: 36px 0 40px; /* V10: panel sits lower — bigger air from the lede, and pushes hero-facts/chain-badge down with it (spacing only; nothing hidden) */
   max-width: 46rem;
   border: 2px solid var(--line);
   background: var(--paper-raised);
@@ -495,3 +506,132 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
     transition: none !important;
   }
 }
+
+/* ============================================================
+   WS-HERO-CHIPS-V10 (2026-09-02) — floating live-data hero chips,
+   ens.domains-style scatter carrying REAL pipeline figures. The
+   chips CONSUME the reads js/main.js already fetches for the
+   ledger/cards (pool slot0 snapshot, Chainlink feed, the derived
+   USD TVL, the published APR projection) — zero new fetches, zero
+   new hosts (D8). Live chips degrade to label-only form when a
+   read fails (empty value span); static chips always render.
+   Chips are aria-hidden decorative duplicates of figures the
+   ledger already exposes. They live in the hero's outer gutters
+   and its own padding bands — never over the headline — and .hero's
+   overflow:hidden clips them, so they can never create horizontal
+   scroll at any width.
+   ============================================================ */
+
+:root {
+  /* V10 color temperature: the punch green steps one notch more saturated
+     toward ens's vivid green (same hue family — identity intact); the chip
+     palette below reuses ONLY existing token hues. No new hue enters. */
+  --accent-punch: #0b7f56;
+}
+
+.hero-chips {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 0;               /* above the motif (later in DOM), below .wrap (z-index 1) */
+  pointer-events: none;     /* only the chips themselves take hover */
+}
+
+.hero-chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;                 /* ens pill */
+  font-family: var(--mono);
+  font-size: var(--step-2);
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;   /* data figures — V2 discipline */
+  pointer-events: auto;
+  transform: translate(var(--chip-tx, 0px), 0) rotate(var(--chip-rot, 0deg));
+  animation:
+    ws-hero-chip-in 480ms ease-out var(--chip-in-delay, 0ms) backwards,
+    ws-hero-chip-float var(--chip-float-dur, 8s) ease-in-out var(--chip-float-delay, 0s) infinite;
+  transition: translate var(--motion), scale var(--motion);
+}
+
+.hero-chip::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  background: currentColor;   /* ens's square anchor-dot motif */
+  opacity: 0.9;
+}
+
+/* hover lift + slight scale via the standalone translate/scale properties —
+   they compose with (rather than fight) the transform float animation */
+.hero-chip:hover { translate: 0 -4px; scale: 1.045; }
+
+/* degraded live chip = label-only form (value span stays empty until JS fills it) */
+.hero-chip-val:empty { display: none; }
+.hero-chip-suffix { opacity: 0.78; }
+
+/* V10 chip palette — four solid pills from the site's own tokens:
+   accent green / ink / warm tan (--line-dotted family) / honest burgundy (--warn) */
+.hero-chip--green { background: var(--accent);      color: var(--paper); }
+.hero-chip--ink   { background: var(--ink);         color: var(--paper); }
+.hero-chip--tan   { background: var(--line-dotted); color: var(--ink); }
+.hero-chip--warn  { background: var(--warn);        color: var(--paper); }
+
+/* positions — mobile first (<=640px): two small corner chips inside the hero's
+   own top padding band (wrap padding-top is 36px there); the rest stay hidden */
+.hero-chip--price { top: 8px;  left: 10px;  --chip-rot: -2deg;  --chip-in-delay: 60ms;  --chip-float-delay: 0s;   --chip-float-dur: 7.5s; }
+.hero-chip--share { top: 8px;  right: 10px; --chip-rot: 1.7deg; --chip-in-delay: 140ms; --chip-float-delay: .9s; --chip-float-dur: 8.5s; }
+.hero-chip--chain,
+.hero-chip--tvl,
+.hero-chip--apr,
+.hero-chip--split { display: none; }
+
+@media (min-width: 641px) {
+  .hero-chip { font-size: var(--step-4); padding: 6px 13px; }
+  /* tablet: three chips across the top padding band (wrap padding-top 56px);
+     the centered chip rides --chip-tx so the float keyframes keep it centered */
+  .hero-chip--chain { display: inline-flex; top: 12px; left: 50%; --chip-tx: -50%; --chip-rot: -1.4deg; --chip-in-delay: 220ms; --chip-float-delay: 1.7s; --chip-float-dur: 6.5s; }
+}
+
+@media (min-width: 1280px) {
+  /* full ens scatter: gutters are >=130px wide at this breakpoint and the wrap's
+     content column starts >=150px from either edge, so no chip ever crosses the
+     headline, ledger, or facts; gutter chips ride % bands of the hero's height */
+  .hero-chip--tvl   { display: inline-flex; top: 40%; right: 12px; --chip-rot: 2.2deg;  --chip-in-delay: 300ms; --chip-float-delay: 2.4s; --chip-float-dur: 9.5s; }
+  .hero-chip--apr   { display: inline-flex; top: 60%; right: 16px; --chip-rot: -1.2deg; --chip-in-delay: 380ms; --chip-float-delay: 3.1s; --chip-float-dur: 8s; }
+  .hero-chip--split { display: inline-flex; top: 66%; left: 12px;  --chip-rot: 2.5deg;  --chip-in-delay: 460ms; --chip-float-delay: 3.8s; --chip-float-dur: 7s; }
+  .hero-chip--price { top: 138px; left: 12px; }
+  .hero-chip--share { top: 14px; right: 22px; }
+  .hero-chip--chain { top: 14px; left: 16px; --chip-tx: 0px; }
+}
+
+@keyframes ws-hero-chip-float {
+  0%, 100% { transform: translate(var(--chip-tx, 0px), 0) rotate(var(--chip-rot, 0deg)) translateY(0); }
+  50%      { transform: translate(var(--chip-tx, 0px), 0) rotate(var(--chip-rot, 0deg)) translateY(-6px); }
+}
+@keyframes ws-hero-chip-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* scoped reduced-motion pairing for the V10 chips (non-negotiable pairing with
+   every animation this block ships; the global guard above remains authoritative) */
+@media (prefers-reduced-motion: reduce) {
+  .hero-chip {
+    animation: none !important;
+    transition: none !important;
+    translate: none !important;
+    scale: none !important;
+  }
+}
+
+/* V10 color temperature, part 2: section indices get their own accent-tint
+   rotation (decorative mono numerals — the adjacent h2 carries the meaning;
+   data-element hard borders, disclosures, and the paper/ink base untouched) */
+#vaults .index  { color: var(--accent-punch); }
+#deposit .index { color: #6f6a54; }  /* warm tan-dark — the tan family stepped down for contrast on paper */
+#docs .index    { color: var(--warn); }
