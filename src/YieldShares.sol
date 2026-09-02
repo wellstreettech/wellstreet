@@ -6,6 +6,7 @@ import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.so
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /// @title YieldShares — ERC-4626 vault wrapping a tokenized stock token on Robinhood
 ///        Chain (4663). Vault #1 wraps SPY; the share token is "Wellstreet SPY" /
@@ -132,6 +133,26 @@ contract YieldShares is ERC4626, ReentrancyGuard {
     function unaccountedAssets() external view returns (uint256) {
         uint256 balance = IERC20(asset()).balanceOf(address(this));
         return balance > _totalAssetsStored ? balance - _totalAssetsStored : 0;
+    }
+
+    /// @notice On-chain backing coverage: the vault's raw asset balance scaled against
+    ///         the accounted figure, in 1e18 fixed point. `== 1e18` is exact cover;
+    ///         `> 1e18` is unaccounted excess (donations, uncredited yield); `< 1e18`
+    ///         surfaces the F-04b issuer-burn under-coverage state (the currently
+    ///         silent state where `unaccountedAssets()` reads 0) — redemptions are
+    ///         still served from the remaining balance and late redeemers revert.
+    ///         Read-only observability: adds no state, no auth surface, no storage
+    ///         layout change. Anyone can check the worst risk themselves.
+    /// @dev Degenerate-safe: `totalAssets() == 0` returns 1e18 (no accounted liability
+    ///      = fully covered) — never divides by zero, mirroring unaccountedAssets()'s
+    ///      F-04b graceful-degradation form above (_totalAssetsStored starts at 0, so
+    ///      the empty vault is a reachable state). The scaling uses full-precision
+    ///      mulDiv rather than a raw `balance * 1e18`, so a hostile huge-balance state
+    ///      cannot overflow-revert this view.
+    function backingCoverage() external view returns (uint256) {
+        uint256 ta = _totalAssetsStored;
+        if (ta == 0) return 1e18;
+        return Math.mulDiv(IERC20(asset()).balanceOf(address(this)), 1e18, ta);
     }
 
     /// @dev Virtual share offset applied to the ERC-4626 conversion math (anti

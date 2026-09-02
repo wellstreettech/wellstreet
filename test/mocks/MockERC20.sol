@@ -168,3 +168,89 @@ contract MockToggleableFeeOnTransferToken is MockERC20 {
         return true;
     }
 }
+/// @notice Mock token whose transfers RETURN FALSE without reverting (ERC-20
+///         non-compliance). Used by the invariant battery to prove a false-returning
+///         token can neither move vault accounting (SafeERC20 reverts on the false
+///         return) nor reach the LP principal. Reserved for the deposit-rejection and
+///         hostile-inertness invariants — NEVER fed to invariant_RedeemNeverTrapped
+///         (token-level censorship is out of that invariant's scope by pin).
+contract MockFalseReturnToken is MockERC20 {
+    constructor() MockERC20("False Return", "FALSE") {}
+
+    function transfer(address, uint256) external override returns (bool) {
+        return false; // silently fails — the compliant caller must treat this as a failure
+    }
+
+    function transferFrom(address, address, uint256) external override returns (bool) {
+        return false;
+    }
+}
+
+/// @notice Mock token that calls back into a configured target (the vault under test)
+///         from inside transfer/transferFrom — models a reentrant hostile token. The
+///         callback REVERTS (the vault's ReentrancyGuard blocks it) and the mock
+///         propagates the failure, so every money-path entry through this token reverts.
+///         Same invariant scoping as MockFalseReturnToken (never RedeemNeverTrapped).
+contract MockReentrantToken is MockERC20 {
+    address public callbackTarget;
+
+    constructor() MockERC20("Reentrant", "REENT") {}
+
+    function setCallbackTarget(address target) external {
+        callbackTarget = target;
+    }
+
+    function transfer(address to, uint256 amount) external override returns (bool) {
+        _reenter();
+        return _transfer(msg.sender, to, amount);
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external override returns (bool) {
+        uint256 allowed = allowance[from][msg.sender];
+        if (allowed != type(uint256).max) {
+            allowance[from][msg.sender] = allowed - amount;
+        }
+        _reenter();
+        return _transfer(from, to, amount);
+    }
+
+    function _reenter() internal {
+        if (callbackTarget != address(0)) {
+            // Re-enter a GUARDED vault path (redeem -> _withdraw carries the
+            // ReentrancyGuard): inside a deposit the guard holds and this reverts,
+            // which propagates and reverts the whole transfer.
+            (bool ok,) = callbackTarget.call(
+                abi.encodeWithSignature("redeem(uint256,address,address)", 0, address(this), address(this))
+            );
+            require(ok, "reentrant callback failed (guard held)");
+        }
+    }
+}
+
+/// @notice Mock token with an issuer-style BLOCKLIST that reverts transfers touching a
+///         blocked account (sender or receiver). Used by the invariant battery's
+///         deposit-rejection group — the blocklist is TOKEN-level censorship, out of
+///         the standard-asset RedeemNeverTrapped scope by pin.
+contract MockBlacklistToken is MockERC20 {
+    mapping(address => bool) public blocked;
+
+    constructor() MockERC20("Blacklist", "BLIST") {}
+
+    function setBlocked(address who, bool yes) external {
+        blocked[who] = yes;
+    }
+
+    function transfer(address to, uint256 amount) external override returns (bool) {
+        require(!blocked[msg.sender] && !blocked[to], "blocked");
+        return _transfer(msg.sender, to, amount);
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external override returns (bool) {
+        require(!blocked[from] && !blocked[to] && !blocked[msg.sender], "blocked");
+        uint256 allowed = allowance[from][msg.sender];
+        if (allowed != type(uint256).max) {
+            allowance[from][msg.sender] = allowed - amount;
+        }
+        return _transfer(from, to, amount);
+    }
+}

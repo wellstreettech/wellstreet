@@ -72,7 +72,10 @@
              composition — never a broken element. -->
         <video id="hero-video" class="hero-video" autoplay muted loop playsinline preload="metadata" aria-hidden="true" tabindex="-1">
           <source src="videos/hero-desktop.mp4" type="video/mp4" media="(min-width: 641px)">
-          <source src="videos/hero-mobile.mp4" type="video/mp4" media="(max-width: 640px)">
+          <!-- mobile: video REMOVED per user direction (2026-09-02) — ≤640px shows the
+               static dark hero (motif + chips + type); no mobile source, no poster,
+               no video bytes on the phone. The source-error path flips is-dead →
+               the static composition. hero-mobile.mp4 stays in the repo unused. -->
         </video>
         <!-- Brand motif (WS-HERO-V9): the og.png visual language (green grid +
              quarter-turn track/rounded-elbow motifs on cream) as pure inline SVG —

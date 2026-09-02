@@ -39,6 +39,17 @@ These losses hit treasury capital only — never depositor assets. That is struc
 
 The cost of the design is real and disclosed: the protocol's own capital can shrink, and the treasury can remove or rebalance the position only through the 48-hour timelock.
 
+## No peg defense — for $WELL or for ws-SPY
+
+The protocol runs **no algorithmic peg defense and no market-intervention
+mechanism, now or planned** — no protocol-owned trading operation, no price floor,
+no buyback-against-decline program beyond the pad's automated buyback leg, and no
+discretionary market ops behind the single proposer key. $WELL's only accrual is
+the pons buyback stream (a market mechanism, not a defense policy); ws-SPY is
+price-anchored by instant burn-for-underlying redemption arbitrage — anyone can
+arbitrage a premium or discount, and the protocol itself will never trade to
+defend a price. If a price moves, the protocol's only action is disclosure.
+
 ## Owner controls are single-keyed
 
 - The treasury timelock has **a single proposer key** — the Wellstreet deployer EOA. Execution after the 48-hour delay is open to anyone, but only that key can start a proposal, and therefore only that key can schedule any owner action. The openness this project claims — open source, MIT, permissionlessly forkable — is a claim about the code, not the keys; the concentration above is real and disclosed.

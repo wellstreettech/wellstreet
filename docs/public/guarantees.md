@@ -37,6 +37,16 @@ Deposits can be paused. Withdrawals and redemptions cannot be — there is no pa
 
 One caveat that belongs in the same sentence: the underlying stock token can itself be paused by its issuer, which freezes all transfers for everyone, including the vault. During an issuer pause, redemption is permitted by our contracts but cannot execute, because the underlying token transfer reverts. Details: [risk-disclosure.md](risk-disclosure.md).
 
+## 6b. Check the worst risk yourself: backing coverage
+
+Anyone can read the vault's backing at any block, with no permission and no API:
+call `backingCoverage()` on the vault. It returns the vault's actual asset balance
+scaled against its accounted deposits, in 1e18 fixed point:
+
+- `= 1e18` — exact cover (the normal state: the vault holds every accounted asset);
+- `> 1e18` — the vault holds more than accounted (donations and not-yet-credited yield sit as unaccounted excess nobody can claim);
+- `< 1e18` — the accounted figure exceeds the balance, which today can only happen if the issuer burns tokens held by the vault (the [admin burn](risk-disclosure.md)). Redemptions are still served from the remaining balance until it is exhausted; late redeemers' transfers revert. The vault does not hide this state — it is readable on-chain the moment it exists.
+
 ## 7. Harvest is permissionless
 
 `harvest()` can be called by anyone. The caller receives a tip of 0.1% of the harvested proceeds, deducted from the protocol share — not from depositor yield, and not 0.1% of the protocol share. There is no keeper dependency: if nobody harvests, fees accrue in the LP position until someone does.

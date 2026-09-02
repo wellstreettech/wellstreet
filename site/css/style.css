@@ -374,6 +374,12 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    V3: mobile keeps its section navigation — the header reflows so the nav
    anchors sit as a compact strip under the brand row instead of being hidden. */
 @media (max-width: 640px) {
+  /* V9-user revision (2026-09-02): NO video and NO poster on mobile — the hero is
+     the static dark composition (motif SVG + chips + type). Plain #000 kills the
+     poster background on mobile; .hero-video is also hidden (its desktop-only
+     source cannot match here, and the is-dead path hides the element). */
+  .hero { background: #000; }
+  .hero-video { display: none; }
   .site-header .wrap { flex-direction: column; align-items: flex-start; gap: 8px; padding-top: var(--space-12); padding-bottom: var(--space-12); }
   .hero .wrap { padding-top: var(--space-36); padding-bottom: var(--space-32); }
   .hero-facts { flex-direction: column; gap: 10px; } /* pre-existing 400px clip fix (V1-adjacent): facts stack */

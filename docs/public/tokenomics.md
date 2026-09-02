@@ -28,6 +28,8 @@ $WELL carries no creator trade tax (`creatorTaxBps = 0`): the creator share come
 
 The exact buyback mechanics (burn versus treasury custody, execution timing) are confirmed from the pad's verified hook source before launch and recorded in the launch transaction; this page is updated with the confirmed mechanics at that point.
 
+**No peg defense.** The buyback leg is the only accrual mechanism, and it is not a price-defense policy: the protocol runs no algorithmic peg defense for $WELL (or for ws-SPY), holds no market-intervention mandate, and will not trade to defend any price — now or planned. See [not-guaranteed.md](not-guaranteed.md).
+
 ## The vault fee split, concretely
 
 Of every unit of yield the harvester pushes into the vault:

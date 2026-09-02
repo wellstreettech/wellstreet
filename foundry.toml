@@ -21,3 +21,12 @@ robinhood = "https://rpc.mainnet.chain.robinhood.com"
 
 [etherscan]
 robinhood = { key = "none", url = "https://robinhoodchain.blockscout.com/api", chain = 4663 }
+
+# Stateful invariant battery (test/invariants/). P3-only hunk: NO fs_permissions
+# change — the battery never writes files. If the battery's wall time exceeds ~240s
+# (CI's 10-minute forge job also runs the live-RPC fork suites), the pre-authorized
+# in-goal fallback is runs=64 depth=200.
+[invariant]
+runs = 256
+depth = 500
+fail_on_revert = false

@@ -18,6 +18,16 @@ The pool protocol cut is not assumed. It is decoded live from the pool's slot0
 feeProtocol word at calculation time, so a change made on chain is picked up by
 the next calculation rather than silently ignored.
 
+**What the pool net fee APR does not subtract:** LP arbitrage losses (LVR — the
+value an LP position loses to arbitrageurs as the pool price trails an external
+reference price). The measured pool net fee APR is net of the pool's protocol
+cut ONLY. The harvester LP principal is treasury capital, excluded from
+depositor accounting, and it is that capital — not depositor assets — that
+bears these losses; depositor fee yield is unaffected, but the
+`(harvester LP value ÷ target vault TVL)` leverage term above silently decays
+as the principal shrinks. The quantified loss side is disclosed as a risk
+figure in [risk-disclosure.md](risk-disclosure.md).
+
 ## Every input, and where it comes from
 
 - **Gross fee APR** — a live, client-side sample of recent Swap events from the
