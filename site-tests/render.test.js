@@ -34,7 +34,9 @@ function matchesSelector(el, sel) {
     const v = el.attrs[attr[1]];
     return attr[2] === undefined ? v !== undefined : v === attr[2];
   }
-  return false;
+  // bare tag selector (e.g. source): a real DOM matches by tag name — the hero
+  // video error rider needs el.querySelector('source') to find the stub child
+  return el.tagName === String(sel).toUpperCase();
 }
 
 function collect(root, sel, out) {
@@ -95,20 +97,49 @@ global.document = {
 };
 
 // pre-register the static ids the page's HTML would provide (attached to body,
-// exactly where they live in index.html)
+// exactly where they live in index.html) — 32 ids post-add (2026-09-02 rebaseline,
+// was 31; the added entry is the wallet-picker static box, registered for the
+// resource-gate.test.js REGISTRY RIDER — the queried-union delta vs this registry)
+// + hero video entry (WSV-HERO-VIDEO-LOCK registry add) -> 33 ids; the array body
+// stays comment-free: resource-gate.test.js JSON-parses the bracket span verbatim
+// + stat-tvl / stat-price / stat-split entries (WSV-STATS-REAL-FOOTER registry add)
+// -> 36 in-array ids; stat-apr is registered separately below (its cell carries a
+// static 'projected' marker child, mirroring index.html's chip-apr + suffix
+// structure — the registered node is the VALUE span, filled by main.js's
+// setStatValue, whose textContent must mirror chip-apr exactly)
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge', 'vault-grid', 'vaults-updated',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
  'doc-tabs', 'doc-pane', 'footer-year', 'trademark-note', 'apr-footnote-text',
  'apr-footnote', 'vaults', 'deposit', 'docs',
  'hero-ledger', 'hero-ledger-state', 'hero-ledger-rows',
- 'chip-price', 'chip-tvl', 'chip-apr'].forEach(function (id) {
+ 'chip-price', 'chip-tvl', 'chip-apr',
+ 'wallet-picker', 'hero-video',
+ 'stat-tvl', 'stat-price', 'stat-split'].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');
     node.setAttribute('id', id);
     global.document.body.appendChild(node);
   }
 });
+
+// stat-apr (WSV-STATS-REAL-FOOTER): registered as the VALUE span inside a cell
+// that also carries the static 'projected' marker — index.html static markup this
+// stub never loads, so the registration recreates the structure assertions need
+// (same shape as the chip-apr value span + hero-chip-suffix pair at index.html).
+if (!REGISTRY['stat-apr']) {
+  const aprCell = makeEl('div');
+  aprCell.className = 'stat-cell';
+  const aprVal = makeEl('span');
+  aprVal.className = 'stat-value';
+  aprVal.setAttribute('id', 'stat-apr');
+  aprCell.appendChild(aprVal);
+  const aprMarker = makeEl('span');
+  aprMarker.className = 'stat-marker';
+  aprMarker.textContent = 'projected';
+  aprCell.appendChild(aprMarker);
+  global.document.body.appendChild(aprCell);
+}
 
 // ---------------- deterministic JSON-RPC mock (the "public RPC") ----------------
 const SPY = config.tokens.spy.address.toLowerCase();
@@ -318,4 +349,76 @@ test('rpc failover fired only through the configured endpoints under mock transp
   const out = await c.call('eth_chainId', []);
   assert.strictEqual(out, '0x1237');
   assert.ok(calls.indexOf(config.rpc.endpoints[1]) !== -1, 'secondary endpoint used');
+});
+
+// -------- hero background video riders (WSV-HERO-VIDEO-LOCK: registry-stub driven, no network) --------
+
+test('hero video: reduced motion hides it to the static composition (pause + no autoplay)', () => {
+  const stub = global.document.getElementById('hero-video');
+  const originalMatchMedia = global.window.matchMedia;
+  let paused = false;
+  stub.pause = function () { paused = true; };
+  stub.autoplay = true;
+  stub.classList.remove('is-dead');
+  global.window.matchMedia = function (query) {
+    return { matches: String(query).indexOf('prefers-reduced-motion') !== -1 };
+  };
+  try {
+    global.WS.heroVideo.init(stub);
+  } finally {
+    if (originalMatchMedia === undefined) { delete global.window.matchMedia; }
+    else { global.window.matchMedia = originalMatchMedia; }
+  }
+  assert.ok(paused, 'pause() called on the video element (CSS cannot pause video)');
+  assert.strictEqual(stub.autoplay, false, 'autoplay disabled');
+  assert.ok(stub.classList.contains('is-dead'), 'is-dead added — hide-to-static');
+});
+
+test('hero video: a failed source child marks it dead with no matchMedia stub needed', () => {
+  const stub = global.document.getElementById('hero-video');
+  stub.classList.remove('is-dead');
+  const sourceStub = makeEl('source');
+  stub.appendChild(sourceStub);
+  global.WS.heroVideo.init(stub); // the error attach is unconditional
+  const handlers = sourceStub.listeners.error;
+  assert.ok(Array.isArray(handlers) && handlers.length > 0, 'error listener attached to the source child');
+  handlers[0](); // source-element errors do not bubble to <video>
+  assert.ok(stub.classList.contains('is-dead'), 'is-dead added on source error');
+});
+
+// -------- stats band riders (WSV-STATS-REAL-FOOTER: real figures, chip mirror, pure easing) --------
+
+test('stats band renders real pipeline figures, mirroring the hero chips byte-for-byte', async () => {
+  await settle(60);
+  // stat-price: the Chainlink read the same pass already made (mock pins $770.27)
+  assert.strictEqual(REGISTRY['stat-price'].textContent, '$770.27');
+  // stat-tvl === chip-tvl (byte-for-byte mirror) and non-empty
+  assert.ok(REGISTRY['chip-tvl'].textContent !== '', 'chip-tvl filled from live data');
+  assert.strictEqual(REGISTRY['stat-tvl'].textContent, REGISTRY['chip-tvl'].textContent);
+  assert.ok(REGISTRY['stat-tvl'].textContent !== '', 'stat-tvl non-empty');
+  // stat-apr === chip-apr, carries '~' and '%'
+  assert.strictEqual(REGISTRY['stat-apr'].textContent, REGISTRY['chip-apr'].textContent);
+  assert.ok(REGISTRY['stat-apr'].textContent.indexOf('~') !== -1, 'apr carries ~');
+  assert.ok(REGISTRY['stat-apr'].textContent.indexOf('%') !== -1, 'apr carries %');
+  // the stat-apr cell keeps its static 'projected' marker child
+  const marker = REGISTRY['stat-apr'].parentNode.querySelector('.stat-marker');
+  assert.ok(marker, 'projected marker present in the stat-apr cell');
+  assert.strictEqual(marker.textContent, 'projected');
+  // stat-split: ratified constant rendered from config (depositor share + chain id)
+  const split = REGISTRY['stat-split'].textContent;
+  assert.ok(split.indexOf('90') !== -1 && split.indexOf(String(config.chain.id)) !== -1,
+    'split cell shows depositor share + chain id, got: ' + split);
+});
+
+test('WS.stats.easeOutCubic: pure easing math (f(0)=0, f(1)=1, f(0.5)=0.875, monotone)', () => {
+  const e = global.WS.stats.easeOutCubic;
+  assert.strictEqual(e(0), 0);
+  assert.strictEqual(e(1), 1);
+  assert.ok(Math.abs(e(0.5) - 0.875) <= 1e-9, 'e(0.5) === 0.875 +/-1e-9, got ' + e(0.5));
+  let prev = -Infinity;
+  for (let i = 0; i <= 100; i++) {
+    const v = e(i / 100);
+    assert.ok(v >= prev, 'non-decreasing at sample ' + i);
+    prev = v;
+  }
 });

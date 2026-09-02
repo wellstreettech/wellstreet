@@ -294,12 +294,129 @@
   function renderChipsLive(price, tvlUsd) {
     // SPY USD price — the Chainlink feed read this same pass already made
     // (the pool's slot0 ratio itself stays in the ledger row above).
-    setChipValue('chip-price',
-      price && price.usd != null && isFinite(price.usd) ? '$' + price.usd.toFixed(2) : '');
+    // Each figure is computed ONCE and written to BOTH the chip and the stats
+    // band (WSV-STATS-REAL-FOOTER) — the band's value spans mirror the chips
+    // byte-for-byte, same fill semantics ('' when absent), same published value.
+    var priceText = price && price.usd != null && isFinite(price.usd)
+      ? '$' + price.usd.toFixed(2) : '';
     // Pool TVL in USD — the derivation deriveApr already computes and hands
     // to the ledger (tvlWeth x pool-derived WETH price); no recompute here.
-    setChipValue('chip-tvl',
-      tvlUsd !== null && tvlUsd !== undefined && isFinite(tvlUsd) ? fmtUsd(tvlUsd) : '');
+    var tvlText = tvlUsd !== null && tvlUsd !== undefined && isFinite(tvlUsd)
+      ? fmtUsd(tvlUsd) : '';
+    setChipValue('chip-price', priceText);
+    setChipValue('chip-tvl', tvlText);
+    setStatValue('stat-price', priceText);
+    setStatValue('stat-tvl', tvlText);
+  }
+
+  // ------------------------------------------------------------------
+  // Stats band (WSV-STATS-REAL-FOOTER): a 4-cell count-up band under the
+  // hero carrying REAL pipeline figures. Three of the four cells are filled
+  // through the SAME snapshot flow as the hero chips (renderChipsLive above
+  // for SPY USD price + pool TVL in USD; publish() inside deriveApr for the
+  // published depositor APR projection) — the stat-* value spans mirror the
+  // chip-* spans byte-for-byte. The fourth cell (90/10 + chain) is a ratified
+  // economic constant rendered ONCE at init from cfg.economics/cfg.chain.id
+  // and never animated: counting it up would imply a live reading that does
+  // not exist. Degrade honestly: when a read fails the value span stays ''
+  // — never 0-as-fake. The reveal path needs IntersectionObserver +
+  // requestAnimationFrame + matchMedia; when ANY of the three is unavailable
+  // (the render-test stub ships none of them) or prefers-reduced-motion
+  // matches, finals are written synchronously via textContent and the path
+  // never throws. The easing fn is exposed pure as WS.stats.easeOutCubic
+  // (same namespaced-seam pattern as WS.heroVideo / WS.rpc / WS.wallet).
+  // ------------------------------------------------------------------
+  var STAT_IDS = ['stat-tvl', 'stat-price', 'stat-apr'];   // animated three ONLY
+  var STAT_ANIM_BASE_MS = 1500;
+  var STAT_ANIM_STEP_MS = 80;
+  var STAT_STAGGER_BASE_MS = 480;
+  var STAT_STAGGER_STEP_MS = 90;
+  var statState = {};   // id -> { value, revealed }
+
+  function statsCanAnimate() {
+    if (typeof window === 'undefined') { return false; }
+    if (typeof window.IntersectionObserver !== 'function') { return false; }
+    if (typeof window.requestAnimationFrame !== 'function') { return false; }
+    if (typeof window.matchMedia !== 'function') { return false; }
+    try {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return false; }
+    } catch (e) { return false; }
+    return true;
+  }
+
+  function setStatValue(id, text) {
+    var n = $(id);
+    if (!n) { return; }
+    var st = statState[id] || (statState[id] = { value: '', revealed: false });
+    st.value = text || '';
+    // Guard path (no IO/rAF/matchMedia, reduced motion, or already revealed):
+    // write the final figure synchronously — the honest value or '', never 0.
+    if (!statsCanAnimate() || st.revealed) { n.textContent = st.value; }
+  }
+
+  // PURE: easeOutCubic — the count-up easing (no DOM, exposed for tests).
+  function easeOutCubic(t) {
+    var x = t < 0 ? 0 : (t > 1 ? 1 : t);
+    return 1 - Math.pow(1 - x, 3);
+  }
+  WS.stats = { easeOutCubic: easeOutCubic };
+
+  // Split a rendered figure into its countable parts ('~70.9%' -> '~' + 70.9
+  // + '%' with 1 decimal). Anything unparseable counts as not-countable and
+  // renders its final text as-is.
+  function splitStatFigure(text) {
+    var m = /^([^0-9]*)([0-9][0-9,]*(?:\.[0-9]+)?)([\s\S]*)$/.exec(text);
+    if (!m) { return null; }
+    var num = Number(m[2].replace(/,/g, ''));
+    if (!isFinite(num)) { return null; }
+    var decimals = m[2].indexOf('.') === -1 ? 0 : (m[2].length - m[2].indexOf('.') - 1);
+    return { prefix: m[1], num: num, decimals: decimals, suffix: m[3] };
+  }
+
+  function fmtStatNumber(num, decimals) {
+    return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
+
+  // ONE count-up reveal path. Runs once per stat (reveal marks all three
+  // revealed, so later 60s refreshes write finals directly via setStatValue).
+  function animateStat(id, idx) {
+    var n = $(id);
+    var st = statState[id];
+    if (!n || !st) { return; }
+    var fig = splitStatFigure(st.value);
+    if (!fig) { n.textContent = st.value; return; }   // nothing countable: final as-is
+    var dur = STAT_ANIM_BASE_MS + idx * STAT_ANIM_STEP_MS;
+    var delay = STAT_STAGGER_BASE_MS + idx * STAT_STAGGER_STEP_MS;
+    var start = null;
+    function frame(now) {
+      if (start === null) { start = now + delay; }
+      var t = (now - start) / dur;
+      if (t < 0) { t = 0; }
+      if (t >= 1) { n.textContent = st.value; return; }   // final byte-for-byte
+      n.textContent = fig.prefix + fmtStatNumber(fig.num * easeOutCubic(t), fig.decimals) + fig.suffix;
+      window.requestAnimationFrame(frame);
+    }
+    window.requestAnimationFrame(frame);
+  }
+
+  function armStatsReveal() {
+    if (!statsCanAnimate()) { return; }   // guard path: setStatValue already wrote finals
+    var band = document.body.querySelector('.stat-band');
+    if (!band) { return; }
+    var fired = false;
+    var io = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (!entries[i].isIntersecting || fired) { continue; }
+        fired = true;                    // once
+        io.disconnect();
+        for (var k = 0; k < STAT_IDS.length; k++) {
+          var st = statState[STAT_IDS[k]] || (statState[STAT_IDS[k]] = { value: '', revealed: false });
+          st.revealed = true;
+        }
+        for (var j = 0; j < STAT_IDS.length; j++) { animateStat(STAT_IDS[j], j); }
+      }
+    }, { threshold: 0.25 });
+    io.observe(band);
   }
 
   function aprRow(apr) {
@@ -372,9 +489,12 @@
 
     function publish(apr) {
       state.apr = apr;
-      // V10 chip: the published projection's depositor figure (label-only when absent)
-      setChipValue('chip-apr',
-        apr.depositorAprPct != null ? '~' + fmtPct(apr.depositorAprPct, 1) : '');
+      // V10 chip + WSV-STATS-REAL-FOOTER band: the published projection's
+      // depositor figure, computed once, mirrored byte-for-byte in both
+      // (label-only '' when absent).
+      var aprText = apr.depositorAprPct != null ? '~' + fmtPct(apr.depositorAprPct, 1) : '';
+      setChipValue('chip-apr', aprText);
+      setStatValue('stat-apr', aprText);
       var rows = mounts.rows;
       var strong = rows.querySelector('.card-row-strong');
       var prev = rows.querySelector('[data-apr-input]');
@@ -695,6 +815,48 @@
     sections.forEach(function (sec) { io.observe(sec); });
   }
 
+  // ---------- hero background video (WSV-HERO-VIDEO-LOCK) ----------
+  // Namespaced seam (WS.heroVideo, same pattern as WS.rpc / WS.wallet) so the
+  // render-test registry stub can drive init directly. The stylesheet's
+  // prefers-reduced-motion guard nullifies animations ONLY — it cannot stop
+  // <video autoplay> — so the pause is JS, feature-detected exactly like
+  // initScrollSpy's IntersectionObserver guard. Outcomes:
+  //   reduce (G6 hide-to-static) / saveData (G3) -> pause + autoplay=false +
+  //     is-dead: the hero's own background composition shows, never a frozen frame
+  //   source/el 'error' -> is-dead (source-element errors do NOT bubble to
+  //     <video>, so BOTH get the listener; the attach is UNCONDITIONAL — outside
+  //     the matchMedia guard — and source-null-safe: the test registry stub is a
+  //     bare div with no source child)
+  // matchMedia unavailable -> the hide branch simply never fires; nothing throws.
+  WS.heroVideo = {
+    init: function (el) {
+      if (!el) { return; }
+      var onDead = function () {
+        if (el.classList) { el.classList.add('is-dead'); }
+      };
+      if (typeof el.addEventListener === 'function') { el.addEventListener('error', onDead); }
+      var src = (el && typeof el.querySelector === 'function') ? el.querySelector('source') : null;
+      if (src && typeof src.addEventListener === 'function') { src.addEventListener('error', onDead); }
+      var hide = false;
+      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+        try {
+          hide = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
+        } catch (err) { hide = false; }
+      }
+      if (!hide) {
+        try {
+          hide = typeof navigator !== 'undefined' && !!navigator.connection &&
+            navigator.connection.saveData === true; // G3: strongest mobile-cost bound
+        } catch (err2) { hide = false; }
+      }
+      if (hide) {
+        if (typeof el.pause === 'function') { el.pause(); }
+        el.autoplay = false;
+        onDead();
+      }
+    }
+  };
+
   // ------------------------------------------------------------------
   // init
   // ------------------------------------------------------------------
@@ -711,6 +873,18 @@
     if (fn) { fn.textContent = WS.apr.METHODOLOGY_FOOTNOTE; }
     var wc = $('widget-chain');
     if (wc) { wc.textContent = 'expects chain ' + cfg.chain.id + ' (' + cfg.chain.name + ')'; }
+
+    // stats band (WSV-STATS-REAL-FOOTER): the 90/10 + chain cell is a ratified
+    // economic constant — final value rendered ONCE from config (never
+    // hardcoded), never animated; a count-up would imply a live reading that
+    // does not exist. The animated three arm their reveal separately.
+    var split = $('stat-split');
+    if (split) {
+      var econ = cfg.economics;
+      split.textContent = (100 - econ.protocolFeeBpsInitial / 100) + '/' +
+        (econ.protocolFeeBpsInitial / 100) + ' · chain ' + cfg.chain.id;
+    }
+    armStatsReveal();
 
     // rpc client (retry + failover per the CORS-find mitigation)
     state.client = WS.rpc.createRpcClient({
@@ -753,6 +927,11 @@
     }
 
     renderWidgetState();
+
+    // hero background video (WSV-HERO-VIDEO-LOCK) — after the widget wiring,
+    // before initDocs(); initScrollSpy's section list stays untouched
+    WS.heroVideo.init($('hero-video'));
+
     initDocs();
     initScrollSpy();
   }

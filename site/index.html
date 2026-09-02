@@ -14,10 +14,11 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://wellstreet.tech/og.png">
-  <meta name="theme-color" content="#f6f4ec">
-  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
   <title>Wellstreet — yield vaults for tokenized stocks</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%232ec27e'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-size='34' font-weight='bold' text-anchor='middle' fill='%23000000'%3EW%3C/text%3E%3C/svg%3E">
 </head>
 <body>
   <noscript>
@@ -58,6 +59,21 @@
     <main>
       <!-- ============ HERO ============ -->
       <section class="hero" id="top">
+        <!-- Hero background video (WSV-HERO-VIDEO-LOCK): SELF-HOSTED site/videos/
+             assets, relative paths (IPFS-safe, zero third-party dependency — the
+             reference's CloudFront URL was REJECTED at the gate). One <source> per
+             viewport at the stylesheet's own 640/641 breakpoint. autoplay muted loop
+             playsinline per the reference; preload="metadata" only bounds the
+             blocked/hidden paths (under autoplay the browser buffers for playback —
+             the operative mobile-cost bounds are the saveData guard and the
+             reduced-motion hide path, both JS in main.js because CSS cannot pause
+             video). Decorative: aria-hidden + tabindex="-1", pointer-events none,
+             z-index 0 below .wrap. A source error degrades the hero to its static
+             composition — never a broken element. -->
+        <video id="hero-video" class="hero-video" autoplay muted loop playsinline preload="metadata" aria-hidden="true" tabindex="-1">
+          <source src="videos/hero-desktop.mp4" type="video/mp4" media="(min-width: 641px)">
+          <source src="videos/hero-mobile.mp4" type="video/mp4" media="(max-width: 640px)">
+        </video>
         <!-- Brand motif (WS-HERO-V9): the og.png visual language (green grid +
              quarter-turn track/rounded-elbow motifs on cream) as pure inline SVG —
              zero image files, zero network requests, IPFS-safe. Purely decorative:
@@ -68,15 +84,15 @@
         <svg class="hero-motif" viewBox="0 0 520 520" aria-hidden="true" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="ws-motif-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-              <path d="M32 0H0V32" fill="none" stroke="rgba(13,107,79,0.09)" stroke-width="1"/>
+              <path d="M32 0H0V32" fill="none" stroke="rgba(46,194,126,0.09)" stroke-width="1"/>
             </pattern>
           </defs>
           <rect width="520" height="520" fill="url(#ws-motif-grid)"/>
-          <path d="M472 56H248a56 56 0 0 1-56 56v176" fill="none" stroke="rgba(13,107,79,0.22)" stroke-width="10" stroke-linecap="round"/>
-          <path d="M48 472h104a44 44 0 0 0 44-44v-92" fill="none" stroke="rgba(13,107,79,0.14)" stroke-width="8" stroke-linecap="round"/>
-          <circle cx="192" cy="312" r="7" fill="rgba(13,107,79,0.25)"/>
-          <rect x="424" y="40" width="32" height="32" fill="rgba(13,107,79,0.10)"/>
-          <rect x="40" y="40" width="16" height="16" fill="rgba(13,107,79,0.14)"/>
+          <path d="M472 56H248a56 56 0 0 1-56 56v176" fill="none" stroke="rgba(46,194,126,0.22)" stroke-width="10" stroke-linecap="round"/>
+          <path d="M48 472h104a44 44 0 0 0 44-44v-92" fill="none" stroke="rgba(46,194,126,0.14)" stroke-width="8" stroke-linecap="round"/>
+          <circle cx="192" cy="312" r="7" fill="rgba(46,194,126,0.25)"/>
+          <rect x="424" y="40" width="32" height="32" fill="rgba(46,194,126,0.10)"/>
+          <rect x="40" y="40" width="16" height="16" fill="rgba(46,194,126,0.14)"/>
         </svg>
         <!-- Floating live-data chips (WS-HERO-CHIPS-V10): ens.domains-style
              scatter carrying REAL pipeline figures instead of decoration. The
@@ -143,6 +159,44 @@
             </div>
           </div>
           <div id="chain-badge" class="muted" style="margin-top:14px" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- ============ STATS BAND (WSV-STATS-REAL-FOOTER) ============
+           Count-up stats band carrying REAL pipeline figures — the same values
+           the hero chips show (SPY USD price, pool TVL in USD, the published
+           depositor APR projection), written by js/main.js through the same
+           snapshot flow; zero new fetch hosts. The 90/10 split + chain cell is
+           a ratified economic constant rendered once from js/config.js and
+           never counted up. The container is aria-hidden (hero-chips
+           precedent): every figure is a duplicate of a value the hero ledger
+           and vault cards already expose accessibly. Glyphs are the design
+           reference's display-font character set (< % * #). -->
+      <section class="stat-band" aria-hidden="true">
+        <div class="wrap">
+          <div class="stat-grid">
+            <div class="stat-cell">
+              <span class="stat-glyph">&lt;</span>
+              <span class="stat-value" id="stat-tvl"></span>
+              <span class="stat-label">Pool TVL, live</span>
+            </div>
+            <div class="stat-cell">
+              <span class="stat-glyph">*</span>
+              <span class="stat-value" id="stat-price"></span>
+              <span class="stat-label">SPY USD (Chainlink)</span>
+            </div>
+            <div class="stat-cell">
+              <span class="stat-glyph">%</span>
+              <span class="stat-value" id="stat-apr"></span>
+              <span class="stat-label">Depositor APR</span>
+              <span class="stat-marker">projected</span>
+            </div>
+            <div class="stat-cell">
+              <span class="stat-glyph">#</span>
+              <span class="stat-value" id="stat-split"></span>
+              <span class="stat-label">Depositor / protocol split</span>
+            </div>
+          </div>
         </div>
       </section>
 

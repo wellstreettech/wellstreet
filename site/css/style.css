@@ -11,19 +11,24 @@
    ============================================================ */
 
 :root {
-  --paper: #f6f4ec;
-  --paper-2: #efecdf;
-  --ink: #17191d;
-  --ink-soft: #4c4f55;
-  --line: #17191d;
-  --accent: #0d6b4f;      /* deep protocol green — live/positive */
-  --accent-ink: #ffffff;
-  --warn: #a33a24;        /* honest red — warnings, blocked, unavailable */
-  --code-bg: #e9e5d6;
+  --paper: #000000;
+  --paper-2: #17171a;
+  --ink: #ffffff;
+  --ink-soft: #8e8e8e;
+  --line: rgba(255,255,255,0.4);
+  --accent: #2ec27e;      /* deep protocol green — live/positive */
+  --accent-ink: #000000;
+  --warn: #e0654a;        /* honest red — warnings, blocked, unavailable */
+  --code-bg: #131316;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --serif: "EB Garamond", Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-display: "Doto", var(--mono);   /* display/stat glyph face (WSV-FONTS self-host); fallback = existing mono stack */
   --motion: 140ms ease;   /* V6: one shared motion token — deliberately small */
+  --ws-trust-size: clamp(36px, 4.5vw, 42px);
+  --ws-trust-bg: #28282a;
+  --ws-trust-border: rgba(255, 255, 255, 0.4);
+  --ws-trust-text: #c4c2c3;
 }
 
 /* Self-hosted OFL webfonts (R2, user-approved): display serif + text sans, both
@@ -39,6 +44,13 @@
 @font-face {
   font-family: "Inter";
   src: url('../fonts/inter-latin-var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Doto";
+  src: url('../fonts/doto-var.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -147,11 +159,42 @@ pre code { background: none; border: none; padding: var(--space-0); }
 }
 .hero h1 .punch { color: var(--accent-punch); } /* V10: punch word steps up to the more saturated protocol green */
 .hero .lede { max-width: 60ch; font-size: var(--step-13); margin: 0 0 34px 0; color: var(--ink-soft); } /* V10: ~60ch measure + larger gap to the ledger panel */
-.hero-facts { display: flex; flex-wrap: wrap; gap: 0; border: 2px solid var(--line); background: var(--paper-2); }
-.hero-fact { flex: 1 1 200px; padding: var(--space-14) var(--space-16); border-right: 2px solid var(--line); min-width: 180px; }
-.hero-fact:last-child { border-right: none; }
-.hero-fact .k { display: block; font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
-.hero-fact .v { font-weight: 700; font-variant-numeric: tabular-nums; }
+.hero-facts {
+  /* honest trust row — the reference's ring/pill treatment on the four existing hero facts;
+     the fabricated enterprise-logos row and its icon-font CDN host are rejected — no icon
+     CDN ever enters this site. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  justify-content: flex-start;
+}
+.hero-fact {
+  flex: 0 1 auto;
+  padding: var(--space-14) var(--space-16);
+  position: relative;
+  border: 1px solid var(--ws-trust-border);
+  background: var(--ws-trust-bg);
+  border-radius: 999px;
+  margin-left: calc(var(--ws-trust-size) * -0.42);
+  min-width: 0;
+}
+.hero-fact .k {
+  display: block;
+  font-family: var(--mono);
+  font-size: var(--step-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ws-trust-text);
+}
+.hero-fact .v {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+}
+.hero-fact:nth-child(2) { z-index: 2; }
+.hero-fact:nth-child(3) { z-index: 3; }
+.hero-fact:nth-child(4) { z-index: 4; }
+.hero-fact:first-child { margin-left: 0; }
 
 /* ---------- sections ---------- */
 section.block { border-bottom: 2px solid var(--line); }
@@ -333,9 +376,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 @media (max-width: 640px) {
   .site-header .wrap { flex-direction: column; align-items: flex-start; gap: 8px; padding-top: var(--space-12); padding-bottom: var(--space-12); }
   .hero .wrap { padding-top: var(--space-36); padding-bottom: var(--space-32); }
-  .hero-facts { flex-direction: column; } /* pre-existing 400px clip fix (V1-adjacent): facts stack */
-  .hero-fact { border-right: none; border-bottom: 2px solid var(--line); min-width: 0; }
-  .hero-fact:last-child { border-bottom: none; }
+  .hero-facts { flex-direction: column; gap: 10px; } /* pre-existing 400px clip fix (V1-adjacent): facts stack */
+  /* trust-row mobile: overlap reset */
+  .hero-fact { margin-left: 0; min-width: 0; }
   .card-row { flex-direction: column; gap: 2px; }
   .row-value { text-align: left; }
   /* R2: the docs tab strip stays ONE row on mobile — swipeable, snap-aligned */
@@ -358,14 +401,14 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    declarations stay literal by design (D14 retention). ---------- */
 :root {
   /* color aliases (existing hex values, named) */
-  --paper-raised: #fbfaf5;
-  --paper-pending: #f8f5ea;
-  --warn-bg: #f8e9e3;
-  --accent-visited: #0a5540;
-  --accent-hover: #0a5940;
-  --line-dotted: #b9b4a3;
-  --footer-muted: #cfcabb;
-  --footer-faint: #b7b2a2;
+  --paper-raised: #131316;
+  --paper-pending: #101014;
+  --warn-bg: #2a1512;
+  --accent-visited: #27a86c;
+  --accent-hover: #3ad18e;
+  --line-dotted: #4a4a4e; /* opaque — DUAL-USE token: dotted borders AND .hero-chip--tan background under the V10 "four solid pills" comment; a translucent value would composite the tan chip over the hero video layer once the WSV hero goal lands; white chip text ≈ 8.9:1 */
+  --footer-muted: #3c3c40;
+  --footer-faint: #6a6a70;
   /* space scale (px, value-named) */
   --space-0: 0;
   --space-2: 2px;
@@ -417,8 +460,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
      reference value; a second-accent role is deliberately NOT assigned to it. */
   --radius-base: 4px;
   --radius-soft: 12px;
-  --shadow-soft: 0 20px 28px rgba(14, 61, 104, 0.06);
-  --shadow-soft-hover: 0 24px 40px rgba(14, 61, 104, 0.1);
+  --shadow-soft: 0 20px 28px rgba(0,0,0,0.55);
+  --shadow-soft-hover: 0 24px 40px rgba(0,0,0,0.7);
   --ink-deep: #011A25;
 }
 
@@ -526,7 +569,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   /* V10 color temperature: the punch green steps one notch more saturated
      toward ens's vivid green (same hue family — identity intact); the chip
      palette below reuses ONLY existing token hues. No new hue enters. */
-  --accent-punch: #0b7f56;
+  --accent-punch: #3fe396;
 }
 
 .hero-chips {
@@ -633,5 +676,110 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    rotation (decorative mono numerals — the adjacent h2 carries the meaning;
    data-element hard borders, disclosures, and the paper/ink base untouched) */
 #vaults .index  { color: var(--accent-punch); }
-#deposit .index { color: #6f6a54; }  /* warm tan-dark — the tan family stepped down for contrast on paper */
+#deposit .index { color: #d6d1c0; }  /* warm tan-light — the tan family stepped up for contrast on the dark paper */
 #docs .index    { color: var(--warn); }
+
+/* ============================================================
+   WSV-HERO-VIDEO-LOCK (2026-09-02) — full-bleed hero background
+   video. Self-hosted site/videos/ assets (relative paths, IPFS-safe,
+   zero third-party dependency — the CloudFront URL was REJECTED at
+   the gate). The <video> is the FIRST child of .hero: absolute
+   inset 0 at z-index 0, below .hero .wrap (z-index 1, byte-frozen),
+   exactly like the motif layer it precedes in the DOM. NO palette
+   values are defined here — the dark surface is the dark-token
+   goal's (one palette owner). is-dead (reduced-motion / saveData /
+   source error — JS-driven in main.js, because CSS cannot pause
+   video) reveals the hero's own background composition instead.
+   ============================================================ */
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* fallback state: the hero degrades to its static composition —
+   the reference's own pre-play design */
+.hero-video.is-dead { display: none; }
+
+/* ============================================================
+   WSV-STATS-REAL-FOOTER (2026-09-02) — count-up stats band as the
+   bottom band of the first viewport: 4 cells (2x2 at <=720px,
+   max-width 920px), each a display-font glyph -> counting value ->
+   muted label, carrying REAL pipeline figures written by js/main.js
+   through the same snapshot flow the hero chips use (zero new fetch
+   hosts). The 90/10 + chain cell renders once from config and is
+   never animated (a ratified constant is not a measurement).
+   Every var() below carries a MANDATORY literal fallback: an
+   undefined var() silently invalidates the declaration at
+   computed-value time — invisible text on the video surface,
+   undetectable by the suite. Token names re-pinned at dispatch to
+   the LANDED dark-token contract (:root :13-33: --ink #ffffff is
+   the reference's "Inter white"; --ink-soft #8e8e8e is the
+   reference's muted label color; --font-display is the Doto
+   display/stat glyph face). No CSS animation ships here: the
+   count-up is JS rAF, guarded by main.js's matchMedia consult
+   (CSS cannot stop a rAF loop); the page-level
+   prefers-reduced-motion guard above stays authoritative.
+   ============================================================ */
+.stat-band {
+  border-bottom: 2px solid var(--line, rgba(255, 255, 255, 0.4));
+  background: var(--paper, #000000);
+}
+.stat-band .wrap {
+  padding-top: var(--space-28, 28px);
+  padding-bottom: var(--space-32, 32px);
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-24, 24px);
+  max-width: 920px;
+  margin: 0 auto;
+}
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 4px);
+}
+.stat-glyph {
+  font-family: var(--font-display, "Doto", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: clamp(22px, 3vw, 33px);
+  line-height: 1;
+  color: var(--accent, #2ec27e);
+}
+.stat-value {
+  font-family: var(--sans, "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
+  font-size: clamp(18px, 2.2vw, 26px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink, #ffffff);
+  min-height: 1.2em;
+}
+.stat-label {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: clamp(11px, 1.2vw, 12.5px);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft, #8e8e8e);
+}
+.stat-marker {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: var(--space-2, 2px);
+  padding: var(--space-2, 2px) var(--space-8, 8px);
+  border: 1px solid var(--accent, #2ec27e);
+  border-radius: 999px;
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-1, 0.68rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent, #2ec27e);
+}
+@media (max-width: 720px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
