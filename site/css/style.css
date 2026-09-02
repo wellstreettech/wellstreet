@@ -410,3 +410,88 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   --shadow-soft-hover: 0 24px 40px rgba(14, 61, 104, 0.1);
   --ink-deep: #011A25;
 }
+
+/* ============================================================
+   WS-HERO-V9 (2026-09-01) — hero live-data ledger + brand motif.
+   The ledger CONSUMES the vault-card pipeline's already-fetched
+   snapshots (no new RPC calls, no new fetch hosts — D8); the motif
+   is the og.png visual language (green grid + quarter-turn tracks on
+   cream) as INLINE SVG in index.html — zero image files, zero network
+   requests, IPFS-safe. Ledger anatomy follows the hero-facts identity:
+   hard 2px borders on data elements, serif labels, mono tabular
+   figures. No animation ships in this section; the shared
+   prefers-reduced-motion guard above stays authoritative, and a
+   scoped guard below re-nullifies the new surfaces' pulse states.
+   ============================================================ */
+
+/* motif: behind the hero type (z-index below .wrap), clipped by the hero —
+   it can never create horizontal scroll at any width */
+.hero { position: relative; overflow: hidden; }
+.hero .wrap { position: relative; z-index: 1; }
+.hero-motif {
+  position: absolute;
+  top: -24px;
+  right: -36px;
+  width: min(46vw, 520px);
+  height: auto;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ledger card — hero-facts anatomy (2px hard borders, no radius, no shadow:
+   it is a data/ledger element, not a chrome card) */
+.hero-ledger {
+  margin: 0 0 26px;
+  max-width: 46rem;
+  border: 2px solid var(--line);
+  background: var(--paper-raised);
+}
+.hero-ledger-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: var(--space-10) var(--space-14);
+  background: var(--paper-2);
+  border-bottom: 2px solid var(--line);
+}
+.hero-ledger-title { font-family: var(--mono); font-size: var(--step-3); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); }
+.hero-ledger-state { font-family: var(--mono); font-size: var(--step-2); text-align: right; }
+.hero-ledger-state.flag-ok { color: var(--accent); }
+.hero-ledger-state.flag-warn { color: var(--warn); }
+.hero-ledger-rows { font-variant-numeric: tabular-nums; }
+.ledger-row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 14px;
+  padding: var(--space-10) var(--space-14);
+  border-bottom: 2px solid var(--line);
+  font-size: var(--step-9);
+}
+.ledger-row:last-child { border-bottom: none; }
+.ledger-k { font-family: var(--serif); font-size: var(--step-11); color: var(--ink); flex: 0 0 auto; }
+.ledger-v { text-align: right; font-family: var(--mono); font-size: var(--step-8); word-break: break-word; font-variant-numeric: tabular-nums; color: var(--ink); }
+.ledger-v .muted { font-size: var(--step-2); }
+.ledger-row-strong .ledger-v strong { color: var(--accent); font-size: var(--step-10); }
+.hero-ledger-note {
+  margin: 0;
+  padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14);
+  font-size: var(--step-4);
+  color: var(--ink-soft);
+  border-top: 2px solid var(--line);
+}
+
+@media (max-width: 640px) {
+  /* panel stacks under the hero lede, full measure; motif shrinks + fades */
+  .hero-ledger { max-width: none; }
+  .ledger-row { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .ledger-v { text-align: left; }
+  .hero-motif { width: 72vw; top: -12px; right: -48px; opacity: 0.7; }
+}
+
+/* scoped reduced-motion pairing for the WS-HERO-V9 surfaces: the ledger's
+   connecting-state pulse and any motif motion are nullified for users who
+   ask for less motion (the global guard above already covers the page —
+   this keeps the new components guarded even if that one is ever edited) */
+@media (prefers-reduced-motion: reduce) {
+  .hero-ledger .state, .hero-motif {
+    animation: none !important;
+    transition: none !important;
+  }
+}

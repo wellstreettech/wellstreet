@@ -58,6 +58,26 @@
     <main>
       <!-- ============ HERO ============ -->
       <section class="hero" id="top">
+        <!-- Brand motif (WS-HERO-V9): the og.png visual language (green grid +
+             quarter-turn track/rounded-elbow motifs on cream) as pure inline SVG —
+             zero image files, zero network requests, IPFS-safe. Purely decorative:
+             aria-hidden, layered BEHIND the type (z-index below .wrap), clipped by
+             .hero overflow so it can never create horizontal scroll. Ships with no
+             animation; the stylesheet's prefers-reduced-motion guard stays
+             authoritative for the whole page either way. -->
+        <svg class="hero-motif" viewBox="0 0 520 520" aria-hidden="true" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="ws-motif-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+              <path d="M32 0H0V32" fill="none" stroke="rgba(13,107,79,0.09)" stroke-width="1"/>
+            </pattern>
+          </defs>
+          <rect width="520" height="520" fill="url(#ws-motif-grid)"/>
+          <path d="M472 56H248a56 56 0 0 1-56 56v176" fill="none" stroke="rgba(13,107,79,0.22)" stroke-width="10" stroke-linecap="round"/>
+          <path d="M48 472h104a44 44 0 0 0 44-44v-92" fill="none" stroke="rgba(13,107,79,0.14)" stroke-width="8" stroke-linecap="round"/>
+          <circle cx="192" cy="312" r="7" fill="rgba(13,107,79,0.25)"/>
+          <rect x="424" y="40" width="32" height="32" fill="rgba(13,107,79,0.10)"/>
+          <rect x="40" y="40" width="16" height="16" fill="rgba(13,107,79,0.14)"/>
+        </svg>
         <div class="wrap">
           <h1>Yield vaults for <span class="punch">tokenized stocks</span>.<br>Checkable, not sellable.</h1>
           <p class="lede">
@@ -65,6 +85,26 @@
             chain&nbsp;4663) in open-source ERC-4626 vaults and routes liquidity-pool fee income to depositors.
             MIT-licensed and unaudited — the docs are written to be checkable against the code, not to sell anything.
           </p>
+          <!-- Hero live ledger (WS-HERO-V9): real on-chain numbers beside the pitch.
+               It CONSUMES the vault-card pipeline's already-fetched reads in js/main.js
+               (same public RPC endpoints, same batching/failover, zero new fetch hosts
+               — the D8 serverless-clean rule). This static skeleton renders the honest
+               connecting state; js/main.js fills live values or row-level
+               "unavailable (RPC)" states when a read fails — never a fabricated number. -->
+          <aside class="hero-ledger" id="hero-ledger" aria-label="Live on-chain ledger: SPY / WETH pool and vault state">
+            <div class="hero-ledger-head">
+              <span class="hero-ledger-title">Live ledger</span>
+              <span class="hero-ledger-state" id="hero-ledger-state" aria-live="polite">connecting to public RPC…</span>
+            </div>
+            <div class="hero-ledger-rows" id="hero-ledger-rows">
+              <div class="ledger-row"><span class="ledger-k">SPY / WETH (pool slot0)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
+              <div class="ledger-row"><span class="ledger-k">Pool TVL (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
+              <div class="ledger-row"><span class="ledger-k">Pool protocol cut (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
+              <div class="ledger-row"><span class="ledger-k">Vault fee split</span><span class="ledger-v">90% depositors / 10% protocol (timelock-settable, hard-capped at 20%)</span></div>
+              <div class="ledger-row"><span class="ledger-k">Vault state</span><span class="ledger-v">awaiting on-chain deploy — yield phase not started</span></div>
+            </div>
+            <p class="hero-ledger-note">Every figure above is read by your browser straight from public RPC nodes — no backend, no keys. When a read fails, the row says so instead of estimating.</p>
+          </aside>
           <div class="hero-facts">
             <div class="hero-fact">
               <span class="k">Who holds the keys</span>

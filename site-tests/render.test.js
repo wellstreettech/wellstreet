@@ -100,7 +100,8 @@ global.document = {
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
  'doc-tabs', 'doc-pane', 'footer-year', 'trademark-note', 'apr-footnote-text',
- 'apr-footnote', 'vaults', 'deposit', 'docs'].forEach(function (id) {
+ 'apr-footnote', 'vaults', 'deposit', 'docs',
+ 'hero-ledger', 'hero-ledger-state', 'hero-ledger-rows'].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');
     node.setAttribute('id', id);

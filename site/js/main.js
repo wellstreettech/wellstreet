@@ -190,6 +190,87 @@
     return row('Vault contract', frag);
   }
 
+  // ------------------------------------------------------------------
+  // Hero live ledger (WS-HERO-V9): a compact editorial-ledger panel under
+  // the hero lede. It CONSUMES the vault-card pipeline's already-fetched
+  // snapshots (pool slot0 / balances / Chainlink feed — the same
+  // config.rpc.endpoints, batching and failover; no new RPC calls, no new
+  // hosts, D8) and degrades row-by-row exactly like the cards: honest
+  // "unavailable (RPC)" states, never fabricated numbers. The USD TVL
+  // figure is the one deriveApr already derives — passed in, not recomputed.
+  // ------------------------------------------------------------------
+  function ledgerRow(label, valueNode, cls) {
+    var r = el('div', 'ledger-row' + (cls ? ' ' + cls : ''));
+    r.appendChild(el('span', 'ledger-k', label));
+    var v = el('span', 'ledger-v');
+    if (typeof valueNode === 'string' || typeof valueNode === 'number') { v.textContent = valueNode; }
+    else if (valueNode) { v.appendChild(valueNode); }
+    r.appendChild(v);
+    return r;
+  }
+
+  function renderLedger(pool, price, tvlUsd) {
+    var rowsBox = $('hero-ledger-rows');
+    if (!rowsBox) { return; }
+    var chip = $('hero-ledger-state');
+    if (chip) {
+      chip.className = 'hero-ledger-state ' + (pool ? 'flag flag-ok' : 'flag flag-warn');
+      chip.textContent = pool ? 'live · chain ' + cfg.chain.id
+        : 'rpc unreachable — honest states shown, never estimates';
+    }
+    rowsBox.textContent = '';
+
+    // 1. SPY / WETH price, live from the pool's own slot0 (token0 = WETH,
+    //    token1 = SPY, so the decoded pool price is SPY-per-WETH; SPY quoted
+    //    in WETH is its reciprocal).
+    var spyWeth = pool && pool.priceToken1PerToken0 && pool.priceToken1PerToken0 > 0
+      ? 1 / pool.priceToken1PerToken0 : null;
+    rowsBox.appendChild(ledgerRow('SPY / WETH (pool slot0)',
+      spyWeth ? el('strong', null, spyWeth.toFixed(4) + ' WETH')
+              : el('span', 'state', 'unavailable (RPC)')));
+
+    // 2. Pool TVL — the same live tvlToken0 figure the vault cards show
+    //    (WETH units), with the pipeline's USD derivation when it has landed.
+    var tvlNode = document.createDocumentFragment();
+    if (pool && pool.tvlToken0) {
+      tvlNode.appendChild(el('strong', null, pool.tvlToken0.toFixed(2) + ' WETH'));
+      if (tvlUsd !== null && tvlUsd !== undefined && isFinite(tvlUsd)) {
+        tvlNode.appendChild(el('span', 'muted', '  ·  ≈ ' + fmtUsd(tvlUsd)));
+      }
+    } else {
+      tvlNode.appendChild(el('span', 'state', 'unavailable (RPC)'));
+    }
+    rowsBox.appendChild(ledgerRow('Pool TVL (live)', tvlNode));
+
+    // 3. Protocol cut — decoded LIVE from slot0's feeProtocol word (the same
+    //    decode the cards render; consumed, not re-fetched).
+    var cutNode;
+    if (pool && pool.cut) {
+      var c = pool.cut;
+      var cf = document.createDocumentFragment();
+      cf.appendChild(el('span', null, (c.cutFraction * 100).toFixed(0) + '% of swap fees per side'));
+      cf.appendChild(el('span', 'muted', '  ·  slot0 (' + c.token0N + ',' + c.token1N + ') — LPs keep ' + (c.netMultiplier * 100).toFixed(0) + '%'));
+      cutNode = cf;
+    } else {
+      cutNode = el('span', 'state', 'unavailable (RPC)');
+    }
+    rowsBox.appendChild(ledgerRow('Pool protocol cut (live)', cutNode));
+
+    // 4. The 90/10 fee split — static ratified economics (js/config.js is the
+    //    single source of truth; matches the hero fact above the fold).
+    var econ = cfg.economics;
+    rowsBox.appendChild(ledgerRow('Vault fee split',
+      (100 - econ.protocolFeeBpsInitial / 100) + '% depositors / ' + (econ.protocolFeeBpsInitial / 100) +
+      '% protocol (timelock-settable, hard-capped at ' + (econ.maxFeeBps / 100) + '%)'));
+
+    // 5. Vault state — the honest pending pipeline (never a fake number)
+    rowsBox.appendChild(ledgerRow('Vault state',
+      WS.vault.isDeployed(vaultCfg().vault)
+        ? flagNode(true, 'deployed — yield phase live')
+        : flagNode(false, 'awaiting on-chain deploy — yield phase not started'),
+      'ledger-row-strong'));
+  }
+
   function aprRow(apr) {
     if (!apr) { return row('Projected depositor APR', el('span', 'state', 'computing…'), 'card-row-strong'); }
     var frag = document.createDocumentFragment();
@@ -232,6 +313,10 @@
     var price = await priceP;
 
     state.pool = pool;
+
+    // hero ledger (WS-HERO-V9): first paint from the same snapshot the cards
+    // just rendered; the USD TVL lands via deriveApr below.
+    renderLedger(pool, price, null);
 
     mounts.rows.textContent = '';
     mounts.rows.appendChild(vaultStatusRow(vaultCfg));
@@ -278,6 +363,7 @@
     var priceP = pool && pool.priceToken1PerToken0 ? pool.priceToken1PerToken0 : null;
     var wethUsd = (spyUsd && priceP) ? priceP * spyUsd : null;
     var tvlUsd = (tvlWeth && wethUsd) ? tvlWeth * wethUsd : null;
+    renderLedger(pool, price, tvlUsd); // hero ledger consumes the pipeline's USD TVL
 
     var live = null;
     if (tvlWeth && pool) {
