@@ -480,7 +480,12 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 
 /* motif: behind the hero type (z-index below .wrap), clipped by the hero —
    it can never create horizontal scroll at any width */
-.hero { position: relative; overflow: hidden; }
+.hero { position: relative; overflow: hidden;
+  /* V9-poster: dark still from the hero video shown whenever the video is
+     hidden (is-dead: reduced-motion / saveData / source error) — the hero
+     keeps its visual on every path instead of collapsing to bare black.
+     The playing video renders ABOVE this; when is-dead hides it, this shows. */
+  background: #000 url("../videos/hero-poster.jpg") center / cover no-repeat; }
 .hero .wrap { position: relative; z-index: 1; }
 .hero-motif {
   position: absolute;
