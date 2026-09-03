@@ -2,8 +2,13 @@
  * Wellstreet site — apr.js
  * Depositor APR derived CLIENT-SIDE from live pool data. Honest voice throughout:
  *
- *   projected depositor APR =
- *       pool_net_fee_APR × (harvester_LP_TVL / target_vault_TVL) × (1 − protocol_fee)
+ *   projected depositor APR =                                    (RATIFIED 2026-09-03)
+ *       pool_net_fee_APR × (L_pos / L_pool) × (pool_TVL / vault_TVL) × 0.9
+ *
+ *   — the liquidity-share form of the 2026-09-03 GO/NO-GO gate
+ *   (docs/internal/GO_NO_GO_PACKET_2026-09-03.md §3; the 0.9 leg is the
+ *   1 − protocol_fee with the initial 1000 bps). The superseded 2026-08-30
+ *   TVL-share form (LP_TVL / vault_TVL) is retired.
  *
  *   pool_net_fee_APR = gross fee APR from the pool's OWN Swap events
  *                      × (1 − protocol cut), where the cut is decoded LIVE from the
@@ -34,15 +39,20 @@
   var LABEL = 'projected, methodology-linked';
 
   var METHODOLOGY_FOOTNOTE =
-    'Projected depositor APR = pool net fee APR × (harvester LP value ÷ target vault TVL) × (1 − protocol fee). ' +
+    'Projected depositor APR = pool net fee APR × (L_pos ÷ L_pool) × (pool TVL ÷ vault TVL) × (1 − protocol fee) — ' +
+    'the liquidity-share form ratified at the 2026-09-03 GO/NO-GO gate. ' +
     'The pool net fee APR input is derived client-side from the pool\'s own Swap events over a recent window ' +
     '(two-sided volume per the ratified sampling protocol; the protocol cut is read live from the pool\'s ' +
     'slot0 feeProtocol word). When live sampling is unavailable, the labeled phase-0 measured baseline ' +
-    '(median of Tue–Thu 14:00–16:00 UTC windows, 2026-08-25..27, net of the decoded 1/4-per-side cut) feeds ' +
-    'the same formula. LP seed and target vault TVL are the ratified GO/NO-GO pins. This is a projection, not ' +
-    'a promise: fee income varies with swap activity, each depositor dilutes the same income, the harvester ' +
-    'LP is not yet deployed (the ratified seed pin is used), the pool owner can change the protocol cut, and ' +
-    'TVL is read at page-load time (the documented phase-0 approximation). Full methodology: the APR methodology doc in the docs tab (docs/public/methodology.md).';
+    '(median of the ratified 2h weekday-peak windows, 2026-08-25..27, net of the decoded 1/4-per-side cut: ' +
+    '40.310%/yr) feeds the same formula. The liquidity share (L_pos ÷ L_pool), the pool-TVL basis and the ' +
+    'launch-era vault TVL expectation are the ratified GO/NO-GO pins: full-range at launch, LP seed 1% of ' +
+    'pool TVL, vault TVL ≈ $58k launch expectation, depositor-APR floor 0.10%/yr at full-range. This is a ' +
+    'projection, not a promise: fee income varies with swap activity, each depositor dilutes the same income, ' +
+    'the harvester LP is not yet deployed (the ratified seed pin is used), the pool owner can change the ' +
+    'protocol cut, and TVL is read at page-load time (the documented phase-0 approximation). At full-range ' +
+    'with realistic vault TVL the projection is basis points — stated plainly, never spectacularized. ' +
+    'Full methodology: the APR methodology doc in the docs tab (docs/public/methodology.md).';
 
   // ------------------------------------------------------------------
   // PURE: net multiplier / cut from slot0 feeProtocol nibbles.
@@ -70,12 +80,16 @@
     return (feeToken0 / tvlToken0) * (YEAR / windowSeconds) * 100;
   }
 
-  // PURE: depositor APR (%) — the product figure.
-  function depositorAprPct(poolNetAprPct, lpTvlUsd, targetVaultTvlUsd, protocolFeeBps) {
+  // PURE: depositor APR (%) — the product figure. RATIFIED liquidity-share form
+  // (2026-09-03 GO/NO-GO gate §3): pool_net × (L_pos/L_pool) × (pool_TVL/vault_TVL)
+  // × (1 − protocol_fee). `liquidityShare` is L_pos/L_pool as a fraction; the
+  // pool_TVL/vault_TVL leg arrives pre-derived (poolTvlOverVaultTvl) so this
+  // function stays a pure multiplication of declared inputs.
+  function depositorAprPct(poolNetAprPct, liquidityShare, poolTvlOverVaultTvl, protocolFeeBps) {
     if (poolNetAprPct === null || poolNetAprPct === undefined) { return null; }
-    if (!(targetVaultTvlUsd > 0)) { return null; }
-    var share = (lpTvlUsd || 0) / targetVaultTvlUsd;
-    return poolNetAprPct * share * (1 - (protocolFeeBps || 0) / 10000);
+    if (poolTvlOverVaultTvl === null || poolTvlOverVaultTvl === undefined || !(poolTvlOverVaultTvl > 0)) { return null; }
+    var share = liquidityShare || 0;
+    return poolNetAprPct * share * poolTvlOverVaultTvl * (1 - (protocolFeeBps || 0) / 10000);
   }
 
   // ------------------------------------------------------------------
@@ -254,19 +268,26 @@
 
   // ------------------------------------------------------------------
   // The full depositor chain from any pool-net input (live or labeled baseline).
+  // Consumes the ratified pins (config.aprPins): liquidityShareFullRange ×
+  // (poolTvlWethBasis × wethUsdContextAnchor) / targetVaultTvlUsd — every leg a
+  // declared pin, nothing derived here beyond the declared division.
   // ------------------------------------------------------------------
   function projectDepositorApr(poolNetAprPct, pins, economics) {
+    var poolTvlUsdBasis = (pins.poolTvlWethBasis || 0) * (pins.wethUsdContextAnchor || 0);
+    var poolTvlOverVaultTvl = (pins.targetVaultTvlUsd > 0) ? poolTvlUsdBasis / pins.targetVaultTvlUsd : null;
     var depositor = depositorAprPct(
       poolNetAprPct,
-      pins.lpSeedUsd,
-      pins.targetVaultTvlUsd,
+      pins.liquidityShareFullRange,
+      poolTvlOverVaultTvl,
       economics.protocolFeeBpsInitial
     );
     return {
       label: LABEL,
       poolNetAprPct: poolNetAprPct,
-      lpTvlUsd: pins.lpSeedUsd,
-      lpShareOfVaultTvl: (pins.lpSeedUsd || 0) / (pins.targetVaultTvlUsd || 1),
+      liquidityShare: pins.liquidityShareFullRange,
+      lpSeedPctOfPool: pins.lpSeedPctOfPool,
+      poolTvlUsdBasis: poolTvlUsdBasis,
+      poolTvlOverVaultTvl: poolTvlOverVaultTvl,
       targetVaultTvlUsd: pins.targetVaultTvlUsd,
       protocolFeeBps: economics.protocolFeeBpsInitial,
       depositorAprPct: depositor

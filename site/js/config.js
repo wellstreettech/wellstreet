@@ -181,17 +181,33 @@
     },
 
     // ------------------------------------------------------------------
-    // APR projection pins — ratified at the USER GO/NO-GO gate (DECISIONS D11, 2026-08-30):
-    //   LP seed 1.0% of pool TVL ≈ $6.9k (treasury-owned, bears IL, excluded from
-    //   depositor accounting) · target vault TVL $50k · depositor-APR floor 2.0%.
-    // The projection formula: pool_net_APR × (harvester_LP_TVL / target_vault_TVL)
-    //   × (1 − protocol_fee). NEVER a hardcoded pool-level APR as "the yield".
+    // APR projection pins — RE-PINNED to the ratified 2026-09-03 GO/NO-GO gate
+    // (docs/internal/GO_NO_GO_PACKET_2026-09-03.md §3 + GATE OUTCOME; supersedes
+    // the 2026-08-30 D11 TVL-share pins). Ratified formula (liquidity-share form):
+    //   depositor APR = pool_net_rate × (L_pos/L_pool) × (pool_TVL / vault_TVL) × 0.9
+    //   lpSeedPctOfPool — LP seed 1% of pool TVL (pin 2; treasury-owned, bears IL,
+    //     excluded from depositor accounting).
+    //   poolTvlWethBasis + wethUsdContextAnchor — the 482.77 WETH 2026-09-02 pool-TVL
+    //     basis and the $2,389.47 WETH/USD context anchor (GO packet §1, context only)
+    //     → the ≈$1.154M pool-TVL input. A derivation input ONLY, never a rendered figure.
+    //   liquidityShareFullRange — L_pos/L_pool at the 1% seed, full-range 0.0369%
+    //     (fork probe lp-intervention.md; 0.0184% at the 0.5% seed).
+    //   targetVaultTvlUsd — launch-era vault TVL expectation $58k: the ceiling at
+    //     which the ratified floor clears at full-range (pin 3's own framing).
+    //   depositorAprFloorPct — 0.10%/yr at full-range (pin 3; was 2.0 under D11).
+    //   poolFloorNetAprPct — the derived pool floor 3.542%/yr
+    //     = max(2.0%, σ̂²/8, LVR_sim) (GO packet §1/§2, pool-lvr.md §1.7; was 2.0).
+    // NEVER a hardcoded pool-level APR as "the yield"; the depositor figure renders
+    //   ONLY in the published "~X% projected, methodology-linked" register.
     // ------------------------------------------------------------------
     aprPins: {
-      lpSeedUsd: 6900,
-      targetVaultTvlUsd: 50000,
-      depositorAprFloorPct: 2.0,
-      poolFloorNetAprPct: 2.0
+      lpSeedPctOfPool: 1.0,
+      poolTvlWethBasis: 482.77,
+      wethUsdContextAnchor: 2389.47,
+      liquidityShareFullRange: 0.000369,
+      targetVaultTvlUsd: 58000,
+      depositorAprFloorPct: 0.10,
+      poolFloorNetAprPct: 3.542
     },
 
     // ------------------------------------------------------------------
@@ -210,10 +226,13 @@
       maxLogs: 20000,
       yearSeconds: 365 * 86400,
       phase0Baseline: {
-        source: 'median of Tue–Thu 14:00–16:00 UTC windows, 2026-08-25..27 (full methodology: docs tab, APR methodology)',
+        // Re-pinned 2026-09-03 to the ratified pool-net median 40.310%/yr
+        // (GO/NO-GO packet §1, pool-lvr.md §1.4: windows 32.595 / 40.310 / 49.514 %/yr;
+        // the MAX window is forbidden and never used — median-of-windows only).
+        source: 'median of the ratified 2h weekday-peak windows, 2026-08-25..27 (pool-lvr.md §1.4; full methodology: docs tab, APR methodology)',
         pool: '0xDDCBBa3666f578E3F09516f21Ff85BFee859AB5e',
         feeTier: 500,
-        netAprPct: 70.87,           // median net of the decoded 1/4-per-side cut
+        netAprPct: 40.310,          // ratified median, net of the decoded 1/4-per-side cut
         protocolCutN: 4,
         measured: true
       }

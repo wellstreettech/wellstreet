@@ -855,3 +855,388 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   transition: opacity var(--t-slow) var(--ease-enter), transform var(--t-slow) var(--ease-enter);
 }
 .ws-reveal.ws-reveal-in { opacity: 1; transform: translateY(0); }
+
+/* ============================================================
+   WS-WOW-BATCH (2026-09-03) — the eight spectacular packages of
+   docs/internal/WOW_UPGRADES_2026-09-03.md, one sequenced batch.
+   Every effect is diff-driven from the EXISTING snapshot fan-out in
+   js/main.js (zero new fetches, zero new hosts — D8); every
+   animation below is compositor-friendly (transform / opacity /
+   stroke-dashoffset / background-color on small elements) and is
+   paired with the scoped prefers-reduced-motion guard at the end of
+   this block (the global guard above remains authoritative).
+   DEPTH NOT DUPLICATION: nothing here adds a new surface for the
+   four published figures — WOW-1 extends the existing band, the
+   rest reveal or react to what the pipeline already shows.
+   ============================================================ */
+
+/* ---- WOW-1 — Doto live tape: the stat band as a terminal strip.
+   A re-roll on change (JS, main.js setStatValue) + a ▲/▼/– delta
+   tick that blinks ~1.2s beside the figure that moved, then one
+   soft settle-pulse of the band per changed cycle. The projection
+   cell carries NO tick and is never re-rolled (it is a projection,
+   not a live reading); the split cell is a ratified constant. */
+.stat-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8, 8px);
+  min-width: 0;
+}
+.stat-tick {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-4, 0.78125rem);
+  min-width: 1.1em;
+  opacity: 0;
+}
+.stat-tick:not(:empty) { animation: ws-tick-blink 1.2s var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) forwards; }
+@keyframes ws-tick-blink {
+  0% { opacity: 1; }
+  55% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.stat-tick--up { color: var(--accent-punch, #3fe396); }
+.stat-tick--down { color: var(--warn, #e0654a); }
+.stat-tick--flat { color: var(--ink-soft, #8e8e8e); }
+.stat-band--settle .stat-grid { animation: ws-band-settle 600ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 1; }
+@keyframes ws-band-settle {
+  0% { opacity: 0.72; transform: translateY(2px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- WOW-7 — chain-pulse: the page visibly breathes with the chain.
+   Ledger rows whose published value changed between cycles get a
+   one-beat background flash (accent up / warn down) that decays in
+   ~600ms, with the ▲/▼ glyph as the non-color channel; the "live
+   on-chain reads" stamp pulses once per successful cycle (heartbeat)
+   and dims after a failed one; the ledger's connecting chip breathes
+   while connecting (is-connecting, removed when a real state lands). */
+.ledger-row.delta-up { animation: ws-delta-up 600ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1; }
+.ledger-row.delta-down { animation: ws-delta-down 600ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1; }
+@keyframes ws-delta-up {
+  0% { background-color: rgba(46, 194, 126, 0.16); }
+  100% { background-color: transparent; }
+}
+@keyframes ws-delta-down {
+  0% { background-color: rgba(224, 101, 74, 0.16); }
+  100% { background-color: transparent; }
+}
+.ledger-row.delta-up::after {
+  content: ' ▲';
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-1, 0.6875rem);
+  color: var(--accent, #2ec27e);
+}
+.ledger-row.delta-down::after {
+  content: ' ▼';
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-1, 0.6875rem);
+  color: var(--warn, #e0654a);
+}
+#vaults-updated.heartbeat {
+  color: var(--accent, #2ec27e);
+  animation: ws-heartbeat 900ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1;
+}
+#vaults-updated.heartbeat-dim { color: var(--ink-soft, #8e8e8e); }
+@keyframes ws-heartbeat {
+  0% { opacity: 0.55; }
+  100% { opacity: 1; }
+}
+.hero-ledger-state.is-connecting {
+  animation: ws-state-pulse 1.8s var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) infinite;
+}
+
+/* ---- WOW-4 — video pulse: the hero film breathes with the tape.
+   One ~350ms brightness swell per REAL price/TVL delta, cooldown of
+   one refresh (JS), desktop + motion-enabled cohort only by
+   construction (mobile ≤640px has no video; reduced-motion hides
+   it). Never fires without a real delta — a random pulse would be
+   fake liveness. Transform-free: filter + opacity only. */
+#hero-video.video-pulse { animation: ws-video-pulse 350ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1; }
+@keyframes ws-video-pulse {
+  0% { filter: brightness(1); opacity: 1; }
+  40% { filter: brightness(1.18); opacity: 0.96; }
+  100% { filter: brightness(1); opacity: 1; }
+}
+
+/* ---- WOW-8 — ledger stamp: one data-carrying verification accent.
+   The hero ledger's value cell stamps the NAME of the read that just
+   verified (✓ slot0 / ✓ balances) via data-stamp, held for a beat,
+   then faded. If a design pass ever strips the read name from the
+   content, kill the package — the stamp MUST carry data. */
+.ledger-v.ledger-stamp::after {
+  content: '✓ ' attr(data-stamp);
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-1, 0.6875rem);
+  color: var(--accent, #2ec27e);
+  margin-left: var(--space-8, 8px);
+  animation: ws-stamp-fade 900ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) forwards;
+}
+@keyframes ws-stamp-fade {
+  0% { opacity: 1; }
+  55% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---- WOW-2 — live money-flow diagram: deposit → pool → vault.
+   Node figures are HTML bound by main.js to the published pipeline
+   reads; the aria-hidden inline SVG carries three dash-flow paths
+   whose SPEED is class-bucketed from the published pool net rate
+   (a ratio encoding — never an APR rendered as a velocity number).
+   Pre-deploy the vault node is schematic (dashed) and the
+   deposit→pool leg runs static; the isDeployed seam flips it live.
+   The 90/10 split is geometry (the split bar), not a caption. */
+.flow-figure {
+  position: relative;
+  border-bottom: 2px solid var(--line, rgba(255, 255, 255, 0.4));
+  background: var(--paper-raised, #131316);
+  overflow: hidden;
+  margin: 0;
+}
+.flow-figure .wrap {
+  position: relative;
+  padding-top: var(--space-28, 28px);
+  padding-bottom: var(--space-28, 28px);
+}
+.flow-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.flow-path {
+  fill: none;
+  stroke: var(--accent, #2ec27e);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+  opacity: 0.7;
+}
+.flow-path--cut { stroke: var(--ink-soft, #8e8e8e); }
+.flow-rate-fast .flow-path { animation: ws-flow 1.6s linear infinite; }
+.flow-rate-mid .flow-path { animation: ws-flow 3.2s linear infinite; }
+.flow-rate-slow .flow-path { animation: ws-flow 6.4s linear infinite; }
+/* schematic pre-deploy: the deposit→pool leg runs static until the
+   isDeployed seam flips the figure live (flow-live set by main.js) */
+.flow-figure:not(.flow-live) .flow-path--in { animation: none; opacity: 0.35; }
+@keyframes ws-flow {
+  to { stroke-dashoffset: -24; }
+}
+.flow-nodes {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-20, 20px);
+}
+.flow-node {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 6px);
+  min-width: 0;
+  border: 2px solid var(--line, rgba(255, 255, 255, 0.4));
+  background: var(--paper, #000000);
+  padding: var(--space-14, 14px);
+}
+.flow-node-k {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-1, 0.6875rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft, #8e8e8e);
+}
+.flow-node-v {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-8, 0.875rem);
+  color: var(--ink, #ffffff);
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
+.flow-node-sub { font-size: var(--step-4, 0.78125rem); color: var(--ink-soft, #8e8e8e); }
+.flow-node--schematic { border-style: dashed; background: var(--paper-pending, #101014); }
+.flow-node--live { border-color: var(--accent, #2ec27e); }
+.flow-split {
+  display: flex;
+  height: 8px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.4));
+}
+.flow-split-dep { flex: 0 0 90%; background: var(--accent, #2ec27e); }
+.flow-split-prot { flex: 1; background: var(--paper-2, #17171a); }
+.flow-yield {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-6, 0.84375rem);
+  color: var(--accent, #2ec27e);
+}
+.flow-caption {
+  margin-top: var(--space-16, 16px);
+  font-size: var(--step-4, 0.78125rem);
+  color: var(--ink-soft, #8e8e8e);
+}
+.flow-caption-note { display: block; max-width: 72ch; }
+@media (max-width: 720px) {
+  .flow-svg { display: none; }
+  .flow-nodes { grid-template-columns: 1fr; }
+}
+
+/* ---- WOW-6 — deposit simulator: inputs + dilution dramatized, the
+   projection region STATIC (consumes the published string verbatim;
+   moving the slider never moves the rate). The bar is the ratified
+   formula's INPUT share (size ÷ live pool TVL), transform-only. */
+.apr-sim {
+  margin-top: var(--space-24, 24px);
+  border: 2px solid var(--line, rgba(255, 255, 255, 0.4));
+  background: var(--paper-raised, #131316);
+  padding: var(--space-16, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12, 12px);
+}
+.sim-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-12, 12px);
+  flex-wrap: wrap;
+}
+.sim-title { font-family: var(--serif, Georgia, serif); font-size: var(--step-13, 1.125rem); }
+.sim-note {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-1, 0.6875rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft, #8e8e8e);
+}
+.sim-slider-label {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-1, 0.6875rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft, #8e8e8e);
+}
+#sim-slider {
+  width: 100%;
+  min-height: 44px;   /* money-path mobile ergonomics floor */
+  accent-color: var(--accent, #2ec27e);
+  background: transparent;
+  font-size: var(--step-11, 1rem);
+}
+.sim-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-16, 16px);
+}
+.sim-region {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 6px);
+  min-width: 0;
+  border: 1px dotted var(--line-dotted, #4a4a4e);
+  padding: var(--space-12, 12px);
+}
+.sim-region-k {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-1, 0.6875rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft, #8e8e8e);
+}
+.sim-region-v {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-11, 1rem);
+  color: var(--ink, #ffffff);
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
+.sim-region-sub { font-size: var(--step-4, 0.78125rem); color: var(--ink-soft, #8e8e8e); }
+.sim-region--static .sim-region-v { color: var(--ink-soft, #8e8e8e); }
+.sim-bar {
+  display: block;
+  height: 10px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.4));
+  background: var(--paper, #000000);
+}
+.sim-bar-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--accent, #2ec27e);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  transition: transform var(--t-base, 200ms) var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.sim-bar-fill[data-empty] { opacity: 0.25; }
+@media (max-width: 720px) {
+  .sim-grid { grid-template-columns: 1fr; }
+}
+
+/* ---- WOW-5 — scroll choreography (additive-only): the hero ledger's
+   rows settle top-to-bottom on first view (its own scroll-reveal
+   class, armed ONLY by main.js — no-JS never sees the hidden state),
+   staggered with the craft wave's easing family. The section-head +
+   panel coverage reuses the landed .ws-reveal primitive. */
+.scroll-reveal .ledger-row {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--t-slow, 320ms) var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)),
+              transform var(--t-slow, 320ms) var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.scroll-reveal .ledger-row:nth-child(1) { transition-delay: 0ms; }
+.scroll-reveal .ledger-row:nth-child(2) { transition-delay: 70ms; }
+.scroll-reveal .ledger-row:nth-child(3) { transition-delay: 140ms; }
+.scroll-reveal .ledger-row:nth-child(4) { transition-delay: 210ms; }
+.scroll-reveal.scroll-reveal-in .ledger-row { opacity: 1; transform: translateY(0); }
+/* per-region stagger tokens for the WOW-2 figure's nodes under the
+   same armed-reveal discipline (classes added by main.js only) */
+.flow-figure.ws-reveal .flow-node {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity var(--t-slow, 320ms) var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)),
+              transform var(--t-slow, 320ms) var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.flow-figure.ws-reveal .flow-node:nth-child(1) { transition-delay: 0ms; }
+.flow-figure.ws-reveal .flow-node:nth-child(2) { transition-delay: 80ms; }
+.flow-figure.ws-reveal .flow-node:nth-child(3) { transition-delay: 160ms; }
+.flow-figure.ws-reveal.ws-reveal-in .flow-node { opacity: 1; transform: translateY(0); }
+
+/* ---- WOW-3 — launch-flip: the one-time pending→live beat. Pure CSS
+   transitions/animations triggered by the single body.launch-flip
+   class (JS sets it ONLY off a real false→true isDeployed transition,
+   once per browsing session — never simulated, never pre-played);
+   staggered per region via animation-delay; the stats band's settle
+   flash ends it. Reduced motion: the state swap is instant (the wow
+   is the state change, not the motion). */
+body.launch-flip .hero-ledger { animation: ws-flip-in 640ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 60ms both; }
+body.launch-flip .stat-band .stat-grid {
+  animation: ws-flip-in 640ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 120ms both,
+             ws-band-settle 600ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 900ms 1;
+}
+body.launch-flip .flow-figure { animation: ws-flip-in 640ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 180ms both; }
+body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 240ms both; }
+@keyframes ws-flip-in {
+  0% { opacity: 0.55; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- scoped reduced-motion pairing for EVERY animation this block
+   ships (the global guard above already covers the page; this keeps
+   the new surfaces guarded even if that one is ever edited). Under
+   reduced motion: the tape tick shows statically, the stamp stays
+   visible (data-carrying), the state swap is instant, the bar jumps. */
+@media (prefers-reduced-motion: reduce) {
+  .stat-tick, .stat-band--settle .stat-grid,
+  .ledger-row.delta-up, .ledger-row.delta-down,
+  #vaults-updated.heartbeat, .hero-ledger-state.is-connecting,
+  #hero-video.video-pulse,
+  .flow-rate-fast .flow-path, .flow-rate-mid .flow-path, .flow-rate-slow .flow-path,
+  .flow-figure:not(.flow-live) .flow-path--in,
+  .ledger-v.ledger-stamp::after,
+  .sim-bar-fill,
+  .scroll-reveal .ledger-row, .flow-figure.ws-reveal .flow-node,
+  body.launch-flip .hero-ledger, body.launch-flip .stat-band .stat-grid,
+  body.launch-flip .flow-figure, body.launch-flip .vault-card {
+    animation: none !important;
+    transition: none !important;
+  }
+  .stat-tick:not(:empty) { opacity: 1; }
+  .ledger-v.ledger-stamp::after { opacity: 0.9; }
+  .scroll-reveal .ledger-row, .flow-figure.ws-reveal .flow-node { opacity: 1; transform: none; }
+  .sim-bar-fill { transition: none; }
+}

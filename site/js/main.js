@@ -59,7 +59,9 @@
     pool: null,          // live pool snapshot
     apr: null,           // last APR derivation
     vaultDeployed: false,
-    lastUpdated: null    // timestamp of the last successful card refresh
+    lastUpdated: null,   // timestamp of the last successful card refresh
+    snap: null,          // {priceUsd, tvlWeth} — this cycle's snapshot (WOW-4 diff)
+    prevDeployed: undefined // previous isDeployed reading (WOW-3 launch-flip key)
   };
 
   var cards = [];        // {vaultCfg, mounts} — refreshed on the live-refresh loop
@@ -88,11 +90,21 @@
 
   async function refreshCards() {
     if (flowPending || !anyVisible() || !state.client) { return; }
+    var prevSnap = state.snap ? { priceUsd: state.snap.priceUsd, tvlWeth: state.snap.tvlWeth } : null;
     for (var i = 0; i < cards.length; i++) {
       await loadVaultData(cards[i].vaultCfg, cards[i].mounts);
     }
     state.lastUpdated = Date.now();
     updateStamp();
+    // WOW-7 chain-pulse: the stamp pulses once per successful cycle and dims
+    // when the cycle's pool read failed (a dimmed heartbeat reads "not live",
+    // never broken). First cycle is a real cycle — the heartbeat may fire;
+    // the DELTA flashes below are the path that must skip the first render.
+    pulseStamp(!!state.pool);
+    // WOW-4 video pulse: one breath per REAL price/TVL delta, cooldown of one
+    // refresh; prevSnap === null on the first cycle = no pulse (never fake).
+    maybeVideoPulse(prevSnap !== null && !!state.snap &&
+      (prevSnap.priceUsd !== state.snap.priceUsd || prevSnap.tvlWeth !== state.snap.tvlWeth));
   }
 
   function startTimers() {
@@ -225,9 +237,11 @@
     //    in WETH is its reciprocal).
     var spyWeth = pool && pool.priceToken1PerToken0 && pool.priceToken1PerToken0 > 0
       ? 1 / pool.priceToken1PerToken0 : null;
-    rowsBox.appendChild(ledgerRow('SPY / WETH (pool slot0)',
+    var rPrice = ledgerRow('SPY / WETH (pool slot0)',
       spyWeth ? el('strong', null, spyWeth.toFixed(4) + ' WETH')
-              : el('span', 'state', 'unavailable (RPC)')));
+              : el('span', 'state', 'unavailable (RPC)'));
+    rowsBox.appendChild(rPrice);
+    if (spyWeth) { stampRow(rPrice, 'slot0'); }   // WOW-8: names the read that verified
 
     // 2. Pool TVL — the same live tvlToken0 figure the vault cards show
     //    (WETH units), with the pipeline's USD derivation when it has landed.
@@ -240,7 +254,9 @@
     } else {
       tvlNode.appendChild(el('span', 'state', 'unavailable (RPC)'));
     }
-    rowsBox.appendChild(ledgerRow('Pool TVL (live)', tvlNode));
+    var rTvl = ledgerRow('Pool TVL (live)', tvlNode);
+    rowsBox.appendChild(rTvl);
+    if (pool && pool.tvlToken0) { stampRow(rTvl, 'balances'); }
 
     // 3. Protocol cut — decoded LIVE from slot0's feeProtocol word (the same
     //    decode the cards render; consumed, not re-fetched).
@@ -254,7 +270,21 @@
     } else {
       cutNode = el('span', 'state', 'unavailable (RPC)');
     }
-    rowsBox.appendChild(ledgerRow('Pool protocol cut (live)', cutNode));
+    var rCut = ledgerRow('Pool protocol cut (live)', cutNode);
+    rowsBox.appendChild(rCut);
+    if (pool && pool.cut) { stampRow(rCut, 'slot0'); }
+
+    // WOW-7 chain-pulse: one-beat delta flashes on rows whose published value
+    // changed since the previous cycle (first render never flashes).
+    applyLedgerDeltas(rowsBox, {
+      spyWeth: spyWeth,
+      tvl: pool && pool.tvlToken0 ? pool.tvlToken0 : null,
+      cut: pool && pool.cut ? pool.cut.cutFraction : null
+    });
+
+    // WOW-2 money-flow: the figure's nodes consume the same snapshot (no new reads).
+    setFlowPool(pool);
+    setFlowVaultState(WS.vault.isDeployed(vaultCfg().vault));
 
     // 4. Vault state — the honest pending pipeline (never a fake number).
     //    (R3 IMP-4 fact dedup: the ledger's static fee-split row was removed —
@@ -304,6 +334,10 @@
     setChipValue('chip-tvl', tvlText);
     setStatValue('stat-price', priceText);
     setStatValue('stat-tvl', tvlText);
+    // WOW-6 sim: the dilution bar's live-TV leg is this same published USD TVL
+    // (consumed, never recomputed); the sim block re-renders its honest states.
+    simState.tvlUsd = (tvlUsd !== null && tvlUsd !== undefined && isFinite(tvlUsd)) ? tvlUsd : null;
+    renderSim();
   }
 
   // ------------------------------------------------------------------
@@ -345,10 +379,21 @@
     var n = $(id);
     if (!n) { return; }
     var st = statState[id] || (statState[id] = { value: '', revealed: false });
+    var prev = st.value;
     st.value = text || '';
     // Guard path (no IO/rAF/matchMedia, reduced motion, or already revealed):
     // write the final figure synchronously — the honest value or '', never 0.
     if (!statsCanAnimate() || st.revealed) { n.textContent = st.value; }
+    // WOW-1 tape: on a REVEALED live cell whose published value CHANGED between
+    // refreshes, re-roll the digits and blink a ▲/▼/– delta tick. The published
+    // projection cell (stat-apr) and the ratified-constant split cell are NOT in
+    // TAPE_TICK_IDS — excluded from the re-roll forever (a tick would imply a
+    // live reading that does not exist).
+    if (st.revealed && TAPE_TICK_IDS[id] && text !== prev && statsCanAnimate()) {
+      animateStat(id, STAT_IDS.indexOf(id));
+      showTapeTick(id, prev, text);
+      pulseBandSettle();
+    }
   }
 
   // PURE: easeOutCubic — the count-up easing (no DOM, exposed for tests).
@@ -416,6 +461,273 @@
     io.observe(band);
   }
 
+  // ==================================================================
+  // WOW layer (WS-WOW-BATCH, WOW_UPGRADES_2026-09-03) — eight packages,
+  // one diff-driven voice. Every effect consumes the EXISTING snapshot
+  // fan-out (state.snap / statState / publish()) — zero new fetches,
+  // zero new hosts (D8); zero quantities recomputed. Pure helpers are
+  // exposed as WS.wow for the unit battery (same namespaced-seam
+  // pattern as WS.stats / WS.heroVideo).
+  // ==================================================================
+
+  // ---- WOW-1 tape: the two LIVE cells only (projection + split excluded) ----
+  var TAPE_TICK_IDS = { 'stat-tvl': 'stat-tick-tvl', 'stat-price': 'stat-tick-price' };
+  var tapeTimers = {};
+  var bandSettleTimer = null;
+
+  // PURE: the sign glyph of a published-figure change ('▲' | '▼' | '–' | '').
+  // Empty unless BOTH figures parse — a first fill is not a change.
+  function tickGlyph(prev, next) {
+    var a = splitStatFigure(prev || '');
+    var b = splitStatFigure(next || '');
+    if (!a || !b) { return ''; }
+    if (b.num > a.num) { return '▲'; }
+    if (b.num < a.num) { return '▼'; }
+    return '–';
+  }
+
+  function showTapeTick(id, prev, next) {
+    var tick = $(TAPE_TICK_IDS[id]);
+    if (!tick) { return; }
+    var glyph = tickGlyph(prev, next);
+    tick.textContent = glyph;
+    tick.className = 'stat-tick' + (glyph === '▲' ? ' stat-tick--up' : glyph === '▼' ? ' stat-tick--down' : glyph === '–' ? ' stat-tick--flat' : '');
+    if (typeof setTimeout !== 'function') { return; }
+    if (tapeTimers[id] && typeof clearTimeout === 'function') { clearTimeout(tapeTimers[id]); }
+    tapeTimers[id] = setTimeout(function () { tick.textContent = ''; }, 1200);
+    if (typeof tapeTimers[id].unref === 'function') { tapeTimers[id].unref(); }
+  }
+
+  // One soft settle-pulse of the band per changed cycle (class remove/re-add
+  // restarts the CSS animation).
+  function pulseBandSettle() {
+    var band = document.body.querySelector('.stat-band');
+    if (!band || !band.classList || typeof setTimeout !== 'function') { return; }
+    band.classList.remove('stat-band--settle');
+    if (bandSettleTimer && typeof clearTimeout === 'function') { clearTimeout(bandSettleTimer); }
+    bandSettleTimer = setTimeout(function () { band.classList.add('stat-band--settle'); }, 30);
+    if (typeof bandSettleTimer.unref === 'function') { bandSettleTimer.unref(); }
+  }
+
+  // ---- shared motion gate: the accepted matchMedia guard form (STUB RIDER) ----
+  function motionAllowed() {
+    if (typeof window === 'undefined') { return false; }
+    if (typeof window.matchMedia === 'function') {
+      try {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches !== true;
+      } catch (e) { return false; }
+    }
+    return false;   // no matchMedia (the render-test stub cohort): no motion
+  }
+
+  // ---- WOW-7 chain-pulse: delta classes on the ledger rows + stamp heartbeat ----
+  var prevLedgerSnap = null;
+  var stampTimer = null;
+
+  // Diff-driven, first-render-safe: prevLedgerSnap === null on the first render
+  // → no classes (no fake "change" on load). Rows are rebuilt every cycle, so
+  // the one-shot animation plays on fresh elements only.
+  function applyLedgerDeltas(rowsBox, snap) {
+    var rows = rowsBox.children || [];
+    var prev = prevLedgerSnap;
+    prevLedgerSnap = { spyWeth: snap.spyWeth, tvl: snap.tvl, cut: snap.cut };
+    if (!prev || !rows.length) { return; }
+    var pairs = [['spyWeth', rows[0]], ['tvl', rows[1]], ['cut', rows[2]]];
+    for (var i = 0; i < pairs.length; i++) {
+      var rowEl = pairs[i][1];
+      if (!rowEl || !rowEl.classList) { continue; }
+      var p = prev[pairs[i][0]];
+      var v = snap[pairs[i][0]];
+      if (p === null || p === undefined || v === null || v === undefined) { continue; }
+      rowEl.classList.remove('delta-up', 'delta-down');
+      if (v > p) { rowEl.classList.add('delta-up'); }
+      else if (v < p) { rowEl.classList.add('delta-down'); }
+    }
+  }
+
+  function pulseStamp(ok) {
+    var n = $('vaults-updated');
+    if (!n || !n.classList || typeof setTimeout !== 'function') { return; }
+    n.classList.remove('heartbeat', 'heartbeat-dim');
+    if (stampTimer && typeof clearTimeout === 'function') { clearTimeout(stampTimer); }
+    stampTimer = setTimeout(function () { n.classList.add(ok ? 'heartbeat' : 'heartbeat-dim'); }, 30);
+    if (typeof stampTimer.unref === 'function') { stampTimer.unref(); }
+  }
+
+  // ---- WOW-4 video pulse: one breath per real delta, cooldown of one refresh ----
+  var pulseCycle = 0;
+  var lastPulseCycle = -2;
+  var videoPulseTimer = null;
+
+  function maybeVideoPulse(changed) {
+    pulseCycle++;
+    if (!changed) { return; }
+    if (pulseCycle - lastPulseCycle <= 1) { return; }   // breathe at most every other cycle
+    if (!motionAllowed()) { return; }                   // reduced-motion cohort: never mounts
+    var v = $('hero-video');
+    if (!v || !v.classList || v.classList.contains('is-dead')) { return; }   // dead-path no-op
+    lastPulseCycle = pulseCycle;
+    v.classList.remove('video-pulse');
+    if (typeof setTimeout !== 'function') { return; }
+    if (videoPulseTimer && typeof clearTimeout === 'function') { clearTimeout(videoPulseTimer); }
+    videoPulseTimer = setTimeout(function () { v.classList.add('video-pulse'); }, 30);
+    if (typeof videoPulseTimer.unref === 'function') { videoPulseTimer.unref(); }
+    videoPulseTimer = setTimeout(function () { v.classList.remove('video-pulse'); }, 1000);
+    if (typeof videoPulseTimer.unref === 'function') { videoPulseTimer.unref(); }
+  }
+
+  // ---- WOW-8 ledger stamp: the value cell names the read that verified ----
+  function stampRow(rowEl, readName) {
+    if (!rowEl) { return; }
+    var v = rowEl.querySelector ? rowEl.querySelector('.ledger-v') : null;
+    var t = v || rowEl;
+    if (!t.setAttribute) { return; }
+    t.setAttribute('data-stamp', readName);
+    if (t.classList) { t.classList.add('ledger-stamp'); }
+  }
+
+  // ---- WOW-2 money-flow: HTML nodes bound to the published pipeline reads ----
+  // PURE: flow-speed bucket from the PUBLISHED pool net rate (a ratio encoding
+  // via class — never an APR rendered as a velocity number). Unknown → null
+  // (paths render static: honest absence, never a fake pace).
+  function flowRateClass(ratePct) {
+    if (ratePct === null || ratePct === undefined || !isFinite(ratePct) || ratePct <= 0) { return null; }
+    if (ratePct >= 40) { return 'flow-rate-fast'; }
+    if (ratePct >= 10) { return 'flow-rate-mid'; }
+    return 'flow-rate-slow';
+  }
+
+  function setFlowRate(ratePct) {
+    var fig = document.body.querySelector('.flow-figure');
+    if (!fig || !fig.classList) { return; }
+    fig.classList.remove('flow-rate-fast', 'flow-rate-mid', 'flow-rate-slow');
+    var cls = flowRateClass(ratePct);
+    if (cls) { fig.classList.add(cls); }
+  }
+
+  function setFlowPool(pool) {
+    var tvl = $('flow-pool-tvl');
+    if (tvl) { tvl.textContent = pool && pool.tvlToken0 ? pool.tvlToken0.toFixed(2) + ' WETH' : 'unavailable (RPC)'; }
+    var cut = $('flow-cut');
+    if (cut) {
+      cut.textContent = pool && pool.cut
+        ? 'protocol cut ' + (pool.cut.cutFraction * 100).toFixed(0) + '% per side (live slot0 (' + pool.cut.token0N + ',' + pool.cut.token1N + '))'
+        : 'protocol cut — unavailable (RPC)';
+    }
+  }
+
+  function setFlowVaultState(deployed) {
+    var node = document.body.querySelector('.flow-node--vault');
+    if (node && node.classList) {
+      node.classList.remove('flow-node--schematic', 'flow-node--live');
+      node.classList.add(deployed ? 'flow-node--live' : 'flow-node--schematic');
+    }
+    var fig = document.body.querySelector('.flow-figure');
+    if (fig && fig.classList) {
+      if (deployed) { fig.classList.add('flow-live'); } else { fig.classList.remove('flow-live'); }
+    }
+    var v = $('flow-vault-state');
+    if (v) {
+      v.textContent = deployed
+        ? 'deployed — yield phase live'
+        : 'awaiting on-chain deploy — yield phase not started';
+    }
+  }
+
+  function setFlowYield(text) {
+    var n = $('flow-yield');
+    if (n) { n.textContent = text || ''; }
+  }
+
+  // ---- WOW-3 launch-flip: the one-time pending→live beat ----
+  // PURE: fires ONLY on a real false→true transition, never pre-played, and
+  // only when this browsing session has not seen the flip yet.
+  function launchFlipShouldAnimate(prevDeployed, deployed, sessionSeen) {
+    return deployed === true && prevDeployed === false && sessionSeen !== true;
+  }
+
+  var launchFlipPlayed = false;
+
+  function maybeLaunchFlip(deployed) {
+    var prev = state.prevDeployed;
+    state.prevDeployed = deployed;
+    if (launchFlipPlayed || prev === undefined) { return; }
+    var seen = false;
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        seen = sessionStorage.getItem('ws-launch-flip') === '1';
+      }
+    } catch (e) { seen = false; }   // sessionless browsers: the flag guard degrades, never throws
+    if (!launchFlipShouldAnimate(prev, deployed, seen)) { return; }
+    launchFlipPlayed = true;
+    try {
+      if (typeof sessionStorage !== 'undefined') { sessionStorage.setItem('ws-launch-flip', '1'); }
+    } catch (e2) { /* storage refused: the flip still plays this page-view only */ }
+    if (typeof document !== 'undefined' && document.body && document.body.classList) {
+      document.body.classList.add('launch-flip');
+    }
+  }
+
+  /* WOW-6 SIM BEGIN — deposit simulator (WOW_UPGRADES_2026-09-03). Interaction-only
+     path (no fetch): the ONLY math between these markers is the illustrative
+     division of two quantities the page already displays — your size ÷ live pool
+     TVL, the ratified formula's INPUT share. No APR pins, no yield recompute, no
+     reference to the site's APR modules below this line — site-tests/wow.test.js
+     enforces this source-slice gate forever. The projection region is filled
+     OUTSIDE this block from the publish fan-out string verbatim (the writer
+     function lives above) and never moves with the slider. */
+  var simState = { size: 5000, tvlUsd: null };
+
+  // PURE: the dilution INPUT as a percentage of live pool TVL (null when the
+  // live read is absent — never a fabricated share).
+  function simSharePct(sizeUsd, tvlUsd) {
+    if (!(sizeUsd > 0) || tvlUsd === null || tvlUsd === undefined || !isFinite(tvlUsd) || !(tvlUsd > 0)) { return null; }
+    return (sizeUsd / tvlUsd) * 100;
+  }
+
+  function renderSim() {
+    var size = $('sim-size');
+    if (size) { size.textContent = '$' + Math.round(simState.size).toLocaleString('en-US'); }
+    var shareEl = $('sim-share');
+    var bar = $('sim-bar-fill');
+    var share = simSharePct(simState.size, simState.tvlUsd);
+    if (shareEl) {
+      shareEl.textContent = share === null
+        ? 'pool TVL unavailable — the dilution input needs the live read'
+        : (share < 0.01 ? '<0.01' : share.toFixed(2)) + '% of pool TVL';
+    }
+    if (bar) {
+      bar.setAttribute('style', 'transform: scaleX(' + (share === null ? 0 : Math.min(1, share / 100)) + ')');
+      if (share === null) { bar.setAttribute('data-empty', 'true'); }
+      else if (bar.removeAttribute) { bar.removeAttribute('data-empty'); }
+    }
+  }
+
+  function initDepositSim() {
+    renderSim();
+    var slider = $('sim-slider');
+    if (!slider || typeof slider.addEventListener !== 'function') { return; }
+    slider.addEventListener('input', function () {
+      var v = Number(slider.value);
+      simState.size = isFinite(v) && v > 0 ? v : simState.size;
+      renderSim();
+    });
+  }
+  /* WOW-6 SIM END */
+
+  function setSimProjection(aprText) {
+    var n = $('sim-projection');
+    if (n && aprText) { n.textContent = aprText; }
+  }
+
+  // Test seam: the honesty-critical helpers, pure and unit-battery-consumable.
+  WS.wow = {
+    tickGlyph: tickGlyph,
+    flowRateClass: flowRateClass,
+    simSharePct: simSharePct,
+    launchFlipShouldAnimate: launchFlipShouldAnimate
+  };
+
   function aprRow(apr) {
     if (!apr) { return row('Projected depositor APR', el('span', 'state', 'computing…'), 'card-row-strong'); }
     var frag = document.createDocumentFragment();
@@ -458,6 +770,11 @@
     var price = await priceP;
 
     state.pool = pool;
+    // WOW-4 diff snapshot: the two live quantities the tape/video pulse react to.
+    state.snap = {
+      priceUsd: price && price.usd != null && isFinite(price.usd) ? price.usd : null,
+      tvlWeth: pool && pool.tvlToken0 ? pool.tvlToken0 : null
+    };
 
     // hero ledger (WS-HERO-V9): first paint from the same snapshot the cards
     // just rendered; the USD TVL lands via deriveApr below.
@@ -492,6 +809,13 @@
       var aprText = apr.depositorAprPct != null ? '~' + fmtPct(apr.depositorAprPct, 1) : '';
       setChipValue('chip-apr', aprText);
       setStatValue('stat-apr', aprText);
+      // WOW-2/WOW-6: the flow diagram's terminal label and the sim's static
+      // projection region consume the SAME published string byte-for-byte —
+      // never recomputed, never spectacularized.
+      setFlowYield(aprText);
+      setSimProjection(aprText);
+      // WOW-2: the dash-flow pace buckets from the PUBLISHED pool net rate.
+      setFlowRate(apr.poolNetAprPct);
       var rows = mounts.rows;
       var strong = rows.querySelector('.card-row-strong');
       var prev = rows.querySelector('[data-apr-input]');
@@ -560,6 +884,10 @@
     var v = vaultCfg();
     var deployed = WS.vault.isDeployed(v.vault);
     state.vaultDeployed = deployed;
+    // WOW-3 launch-flip: keyed STRICTLY off the real isDeployed seam — the
+    // pending→live choreography fires only on a genuine false→true transition
+    // observed while the page is open (never simulated, never pre-played).
+    maybeLaunchFlip(deployed);
 
     var connectBtn = $('btn-connect');
     var amountInput = $('dep-amount');
@@ -826,11 +1154,25 @@
     var heads = document.body.querySelectorAll('.block-head');
     for (var i = 0; i < heads.length; i++) { targets.push(heads[i]); }
     for (var c = 0; c < cards.length; c++) { targets.push(cards[c].mounts.card); }
+    // WOW-5 scroll choreography (ADDITIVE-ONLY): broaden the armed coverage to
+    // the remaining panels — the band, the flow figure, the sim, the footnote.
+    // No section restructure, no copy edits: the reveal only re-times what the
+    // static page already shows, and the classes are added HERE (by JS) so
+    // no-JS and no-IO environments never see a hidden state.
+    var panels = document.body.querySelectorAll('.stat-band, .flow-figure, .apr-sim');
+    for (var p = 0; p < panels.length; p++) { targets.push(panels[p]); }
+    var footnote = $('apr-footnote');
+    if (footnote) { targets.push(footnote); }
+    // The hero ledger's rows settle in a top-to-bottom cascade on first view
+    // (its own class + per-row stagger tokens in the stylesheet).
+    var ledgerRows = $('hero-ledger-rows');
+    if (ledgerRows && ledgerRows.classList) { ledgerRows.classList.add('scroll-reveal'); }
     if (!targets.length) { return; }
     var io = new IntersectionObserver(function (entries) {
       for (var k = 0; k < entries.length; k++) {
         if (entries[k].isIntersecting && entries[k].target.classList) {
           entries[k].target.classList.add('ws-reveal-in');
+          entries[k].target.classList.add('scroll-reveal-in');
           io.unobserve(entries[k].target);
         }
       }
@@ -890,6 +1232,15 @@
     // year stamp
     var y = $('footer-year');
     if (y) { y.textContent = String(new Date().getFullYear()); }
+
+    // WOW-7: the ledger's state chip breathes while connecting; renderLedger's
+    // first real state write replaces the class wholesale — the chip goes still.
+    var chip = $('hero-ledger-state');
+    if (chip && chip.classList) { chip.classList.add('is-connecting'); }
+
+    // WOW-6 deposit simulator: static regions render once (the projection region
+    // stays '—' until the publish fan-out fills it verbatim).
+    initDepositSim();
 
     // honesty lines
     var tm = $('trademark-note');

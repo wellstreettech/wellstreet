@@ -107,6 +107,9 @@ global.document = {
 // static 'projected' marker child, mirroring index.html's chip-apr + suffix
 // structure — the registered node is the VALUE span, filled by main.js's
 // setStatValue, whose textContent must mirror chip-apr exactly)
+// + WS-WOW-BATCH (2026-09-03) registry add -> 50 in-array ids: stat-tape (the
+// band's tape id), the two tape ticks, the money-flow figure + its four bound
+// node ids, and the deposit-simulator block + its five control/region ids.
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge', 'vault-grid', 'vaults-updated',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
@@ -115,7 +118,11 @@ global.document = {
  'hero-ledger', 'hero-ledger-state', 'hero-ledger-rows',
  'chip-price', 'chip-tvl', 'chip-apr',
  'wallet-picker', 'hero-video',
- 'stat-tvl', 'stat-price', 'stat-split'].forEach(function (id) {
+ 'stat-tvl', 'stat-price', 'stat-split',
+ 'stat-tape', 'stat-tick-tvl', 'stat-tick-price',
+ 'flow-diagram', 'flow-pool-tvl', 'flow-cut', 'flow-vault-state', 'flow-yield',
+ 'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection'
+].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');
     node.setAttribute('id', id);
@@ -421,4 +428,32 @@ test('WS.stats.easeOutCubic: pure easing math (f(0)=0, f(1)=1, f(0.5)=0.875, mon
     assert.ok(v >= prev, 'non-decreasing at sample ' + i);
     prev = v;
   }
+});
+
+// -------- WS-WOW-BATCH riders (2026-09-03: money-flow binding + sim projection verbatim) --------
+
+test('WOW-2 money-flow: nodes bind the same published pipeline reads (schematic pre-deploy)', async () => {
+  await settle(120);
+  // pool TVL node: the live figure the ledger already shows (WETH units)
+  assert.ok(REGISTRY['flow-pool-tvl'].textContent.indexOf('WETH') !== -1,
+    'flow pool TVL bound from the pool snapshot, got: ' + REGISTRY['flow-pool-tvl'].textContent);
+  // cut node: the live-decoded slot0 cut
+  assert.ok(REGISTRY['flow-cut'].textContent.indexOf('slot0') !== -1,
+    'flow cut bound from the live slot0 decode, got: ' + REGISTRY['flow-cut'].textContent);
+  // vault node: the site's own schematic register pre-deploy (never a fake state).
+  // (The node-class toggle is DOM-nesting-dependent and the registry stub holds
+  // bare nodes — the honest-register TEXT is the assertable state here.)
+  assert.ok(REGISTRY['flow-vault-state'].textContent.indexOf('awaiting on-chain deploy') !== -1,
+    'flow vault node renders the honest pending register pre-deploy');
+});
+
+test('WOW-6 simulator: the projection region consumes the published string verbatim (never recomputed)', async () => {
+  await settle(120);
+  // byte-for-byte: sim-projection === chip-apr === stat-apr (the publish fan-out)
+  assert.strictEqual(REGISTRY['sim-projection'].textContent, REGISTRY['chip-apr'].textContent,
+    'sim projection is the published "~X% projected" string, verbatim');
+  assert.ok(REGISTRY['sim-projection'].textContent.indexOf('~') === 0,
+    'the projection carries the ~ register');
+  // the default illustrative size renders
+  assert.strictEqual(REGISTRY['sim-size'].textContent, '$5,000');
 });

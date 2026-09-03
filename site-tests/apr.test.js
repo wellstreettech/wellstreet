@@ -132,28 +132,46 @@ test('computeWindowAprFromLogs: incomplete retrieval / bad price excludes the wi
 });
 
 // ---------------- depositor chain (the PRODUCT figure) ----------------
-test('depositorAprPct at the ratified GO/NO-GO pins reproduces the recorded ~8.8% projection', () => {
-  // D11: pool_net 70.87% x (LP seed $6.9k / target vault TVL $50k) x (1 - 10%) ~ 8.8%
-  // Exact: 70.87 x 0.138 x 0.9 = 8.802054% (the D11 record rounds to ~8.8%).
-  const d = apr.depositorAprPct(70.87, config.aprPins.lpSeedUsd, config.aprPins.targetVaultTvlUsd, config.economics.protocolFeeBpsInitial);
-  near(d, 70.87 * 0.138 * 0.9, 1e-9);
-  near(d, 8.802054, 1e-4);
+test('depositorAprPct at the RATIFIED 2026-09-03 GO/NO-GO pins reproduces the recorded ~0.27% projection', () => {
+  // Ratified liquidity-share form (GO packet §3): pool_net 40.310% × (L_pos/L_pool
+  // 0.0369% at the 1% seed, full-range) × (pool TVL ÷ vault TVL) × 0.9, with the
+  // pool-TVL basis 482.77 WETH × $2,389.47 context anchor ≈ $1.154M and the
+  // launch-era vault TVL expectation $58k (pin 3's clearing ceiling).
+  // Exact: 40.310 × 0.000369 × ((482.77 × 2389.47) / 58000) × 0.9 = 0.26625…%
+  // — the GO packet's scenario table rounds the same cell to 0.267%.
+  const ratio = (config.aprPins.poolTvlWethBasis * config.aprPins.wethUsdContextAnchor) / config.aprPins.targetVaultTvlUsd;
+  const d = apr.depositorAprPct(
+    config.aprMethodology.phase0Baseline.netAprPct,
+    config.aprPins.liquidityShareFullRange,
+    ratio,
+    config.economics.protocolFeeBpsInitial);
+  near(d, 40.310 * 0.000369 * ratio * 0.9, 1e-12);
+  near(d, 0.2663, 5e-4);
+  near(d, 0.267, 1e-3);   // the GO packet's rounded scenario-table cell
+  // the ratified floor clears at the launch-era expectation: 0.2663 >= 0.10 %/yr
+  assert.ok(d >= config.aprPins.depositorAprFloorPct,
+    'full-range 1% seed at $58k vault TVL clears the 0.10%/yr floor');
 });
 
-test('depositorAprPct: zero LP seed -> zero projection (honest, never fabricated)', () => {
-  assert.strictEqual(apr.depositorAprPct(70.87, 0, 50000, 1000), 0);
-  assert.strictEqual(apr.depositorAprPct(70.87, null, 50000, 1000), 0);
-  assert.strictEqual(apr.depositorAprPct(null, 6900, 50000, 1000), null);
+test('depositorAprPct: zero liquidity share -> zero projection (honest, never fabricated)', () => {
+  assert.strictEqual(apr.depositorAprPct(40.310, 0, 19.889, 1000), 0);
+  assert.strictEqual(apr.depositorAprPct(40.310, null, 19.889, 1000), 0);
+  assert.strictEqual(apr.depositorAprPct(null, 0.000369, 19.889, 1000), null);
+  assert.strictEqual(apr.depositorAprPct(40.310, 0.000369, null, 1000), null);
+  assert.strictEqual(apr.depositorAprPct(40.310, 0.000369, 0, 1000), null);
 });
 
 test('projectDepositorApr carries the required label and the methodology-linked inputs', () => {
-  const p = apr.projectDepositorApr(70.87, config.aprPins, config.economics);
+  const p = apr.projectDepositorApr(config.aprMethodology.phase0Baseline.netAprPct, config.aprPins, config.economics);
   assert.strictEqual(p.label, 'projected, methodology-linked');
-  assert.strictEqual(p.poolNetAprPct, 70.87);
-  assert.strictEqual(p.lpTvlUsd, 6900);
-  assert.strictEqual(p.targetVaultTvlUsd, 50000);
+  assert.strictEqual(p.poolNetAprPct, 40.310);
+  assert.strictEqual(p.liquidityShare, 0.000369);
+  assert.strictEqual(p.lpSeedPctOfPool, 1.0);
+  assert.strictEqual(p.targetVaultTvlUsd, 58000);
   assert.strictEqual(p.protocolFeeBps, 1000);
-  near(p.lpShareOfVaultTvl, 0.138, 1e-12);
+  near(p.poolTvlUsdBasis, 482.77 * 2389.47, 1e-9);
+  near(p.poolTvlOverVaultTvl, (482.77 * 2389.47) / 58000, 1e-12);
+  near(p.depositorAprPct, 0.2663, 5e-4);
 });
 
 test('METHODOLOGY_FOOTNOTE exists and points at the public methodology doc', () => {

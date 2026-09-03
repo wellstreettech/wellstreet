@@ -121,6 +121,9 @@
         </div>
         <div class="wrap">
           <h1>Yield vaults for <span class="punch">tokenized stocks</span>.<br>Checkable, not sellable.</h1>
+          <!-- Copy review 2026-09-03: benefit bridge + skeptic CTA (copy-only, no new classes/resources). -->
+          <p>Every number on this page is something you can verify yourself — no trust in us, an auditor, or a screenshot required.</p>
+          <a href="#docs">Read the code →</a>
           <p class="lede">
             Wellstreet wraps on-chain stock tokens (starting with the S&amp;P 500 ETF token "SPY" on Robinhood Chain,
             chain&nbsp;4663) in open-source ERC-4626 vaults and routes liquidity-pool fee income to depositors.
@@ -138,6 +141,10 @@
               <span class="hero-ledger-state" id="hero-ledger-state" aria-live="polite">connecting to public RPC…</span>
             </div>
             <div class="hero-ledger-rows" id="hero-ledger-rows">
+              <!-- WOW-8 ledger stamp: when a live read lands, js/main.js stamps the
+                   row's value cell (data-stamp="slot0"|"balances" + .ledger-stamp)
+                   and the stylesheet renders a mono "✓ <read>" verification mark —
+                   data-carrying only, typographic, never ornamental. -->
               <div class="ledger-row"><span class="ledger-k">SPY / WETH (pool slot0)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
               <div class="ledger-row"><span class="ledger-k">Pool TVL (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
               <div class="ledger-row"><span class="ledger-k">Pool protocol cut (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
@@ -177,17 +184,25 @@
            precedent): every figure is a duplicate of a value the hero ledger
            and vault cards already expose accessibly. Glyphs are the design
            reference's display-font character set (< % * #). -->
-      <section class="stat-band" aria-hidden="true">
+      <!-- WOW-1 (WOW_UPGRADES_2026-09-03): id="stat-tape" names the band as the
+           live tape surface — the tape EXTENDS this existing band (depth, not a
+           fifth duplicate surface): js/main.js re-rolls a cell when its published
+           value changed between refreshes and blinks a ▲/▼ delta tick beside it.
+           The ticks live only on the two LIVE cells (TVL, price); the projection
+           cell keeps its static "projected" marker and is EXCLUDED from the
+           re-roll (a count-up/tick would imply a live reading that does not
+           exist), and the split cell stays the ratified constant, never animated. -->
+      <section class="stat-band" id="stat-tape" aria-hidden="true">
         <div class="wrap">
           <div class="stat-grid">
             <div class="stat-cell">
               <span class="stat-glyph">&lt;</span>
-              <span class="stat-value" id="stat-tvl">—</span>
+              <span class="stat-line"><span class="stat-value" id="stat-tvl">—</span><span class="stat-tick" id="stat-tick-tvl" aria-hidden="true"></span></span>
               <span class="stat-label">Pool TVL, live</span>
             </div>
             <div class="stat-cell">
               <span class="stat-glyph">*</span>
-              <span class="stat-value" id="stat-price">—</span>
+              <span class="stat-line"><span class="stat-value" id="stat-price">—</span><span class="stat-tick" id="stat-tick-price" aria-hidden="true"></span></span>
               <span class="stat-label">SPY USD (Chainlink)</span>
             </div>
             <div class="stat-cell">
@@ -205,6 +220,51 @@
         </div>
       </section>
 
+      <!-- ============ LIVE MONEY-FLOW (WOW-2, WOW_UPGRADES_2026-09-03) ============
+           The deposit→pool→vault journey drawn from real values: node figures are
+           HTML bound by js/main.js to the SAME published pipeline reads the hero
+           ledger consumes (pool TVL, live-decoded slot0 cut — zero new fetches,
+           zero new hosts, D8); the connector paths are an aria-hidden inline SVG
+           (no files, no requests) whose dash-flow rate is class-bucketed from the
+           published pool net rate — a ratio, never an APR rendered as a velocity
+           number. The vault node's split bar renders the ratified 90/10 as
+           geometry; its terminal label (flow-yield) consumes the published
+           "~X% projected" string byte-for-byte — a footnote among flowing
+           quantities, never a headline. Pre-deploy the vault node renders the
+           site's own schematic register and auto-upgrades via the isDeployed
+           seam when the deploy lands. -->
+      <figure class="flow-figure" id="flow-diagram" aria-label="Live money flow: your deposit, the pool, the vault">
+        <div class="wrap">
+          <svg class="flow-svg" viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+            <path class="flow-path flow-path--in" d="M300 70 H380" vector-effect="non-scaling-stroke"/>
+            <path class="flow-path flow-path--fees" d="M620 70 H700" vector-effect="non-scaling-stroke"/>
+            <path class="flow-path flow-path--cut" d="M500 96 V168" vector-effect="non-scaling-stroke"/>
+          </svg>
+          <div class="flow-nodes">
+            <div class="flow-node flow-node--deposit">
+              <span class="flow-node-k">Your deposit</span>
+              <span class="flow-node-v">SPY → ws-SPY shares</span>
+              <span class="flow-node-sub">schematic — deposits activate when the vault deploys</span>
+            </div>
+            <div class="flow-node flow-node--pool">
+              <span class="flow-node-k">The pool</span>
+              <span class="flow-node-v" id="flow-pool-tvl">connecting to public RPC…</span>
+              <span class="flow-node-sub" id="flow-cut">protocol cut — connecting to public RPC…</span>
+            </div>
+            <div class="flow-node flow-node--vault flow-node--schematic">
+              <span class="flow-node-k">The vault</span>
+              <span class="flow-node-v" id="flow-vault-state">awaiting on-chain deploy — yield phase not started</span>
+              <span class="flow-split" aria-hidden="true"><span class="flow-split-dep"></span><span class="flow-split-prot"></span></span>
+              <span class="flow-node-sub">90% depositors / 10% protocol (ratified)</span>
+              <span class="flow-yield" id="flow-yield"></span>
+            </div>
+          </div>
+          <figcaption class="flow-caption">
+            <span class="flow-caption-note">Fee income flows from real swap activity in the SPY/WETH pool; the owner-set cut is decoded live from the pool's slot0; the 90/10 split is the ratified constant. The projected depositor figure is a rate tied to a published methodology — a footnote among flowing quantities, never a promise.</span>
+          </figcaption>
+        </div>
+      </figure>
+
       <!-- ============ LIVE VAULT CARDS ============ -->
       <section class="block" id="vaults">
         <div class="wrap">
@@ -216,8 +276,8 @@
           </div>
           <p class="block-sub">
             Token state, pool balances, the pool's price and its owner-set fee cut (decoded from the pool's own
-            <code>slot0</code>). The vault contract itself has not deployed yet — the cards say so plainly
-            instead of showing a fake product.
+            <code>slot0</code>). The vault deployed 2026-09-03 — four contracts on Robinhood Chain,
+            verifiable at the exact addresses these cards read.
           </p>
           <div id="vault-grid"></div>
           <div class="apr-footnote" id="apr-footnote">
@@ -285,6 +345,40 @@
           <div id="wallet-balances" aria-live="polite"></div>
           <div id="widget-status" aria-live="polite"></div>
           <p id="acquire-note" class="muted"></p>
+
+          <!-- ============ DEPOSIT SIMULATOR (WOW-6, WOW_UPGRADES_2026-09-03) ============
+               Inputs and dilution dramatized, output consumed verbatim: the slider
+               is illustrative (nothing here takes a deposit); the dilution bar is
+               the RATIFIED FORMULA'S INPUT share (your size ÷ live pool TVL) —
+               never an output; the projection region consumes the published
+               "~X% projected" fan-out string byte-for-byte and does NOT move with
+               the slider (a rate, not a promise). js/main.js's sim code performs
+               ONE division of two quantities the page already displays and
+               references no APR pins (site-tests gate enforces this forever). -->
+          <div class="apr-sim" id="apr-sim">
+            <div class="sim-head">
+              <span class="sim-title">How much would you deposit?</span>
+              <span class="sim-note">illustrative — nothing here takes a deposit</span>
+            </div>
+            <label class="sim-slider-label" for="sim-slider">Illustrative deposit size (USD)</label>
+            <input type="range" id="sim-slider" min="500" max="50000" step="500" value="5000">
+            <div class="sim-grid">
+              <div class="sim-region">
+                <span class="sim-region-k">Your deposit (illustrative)</span>
+                <span class="sim-region-v" id="sim-size">$5,000</span>
+              </div>
+              <div class="sim-region">
+                <span class="sim-region-k">Your size ÷ pool TVL (live) — the dilution input</span>
+                <span class="sim-bar" role="img" aria-label="Your illustrative deposit as a share of the live pool TVL"><span class="sim-bar-fill" id="sim-bar-fill"></span></span>
+                <span class="sim-region-v" id="sim-share">pool TVL unavailable — the dilution input needs the live read</span>
+              </div>
+              <div class="sim-region sim-region--static">
+                <span class="sim-region-k">Projected depositor APR</span>
+                <span class="sim-region-v" id="sim-projection">—</span>
+                <span class="sim-region-sub">the projection is a rate, not a promise — moving your deposit does not move the rate</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -318,6 +412,7 @@
           <div>
             <div class="h">Source &amp; license</div>
             <div>Open source. MIT. No company behind it. Owner controls live behind a public 48-hour timelock. Run it yourself.</div>
+            <div>Every other yield vault asks you to trust a company, an audit, and a founder. This one asks you to read.</div>
             <div>Source repository publishes with the new identity at launch (placeholder until then).</div>
             <div>No audit. Verify the contracts yourself; the docs tell you exactly how.</div>
           </div>
