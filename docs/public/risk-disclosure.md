@@ -82,10 +82,10 @@ The vault, harvester, and timelock are new contracts with no operating history a
 
 ## Key risk — who can do what, with which keys
 
-- The treasury timelock has **a single proposer key**: the Wellstreet deployer EOA. Only that key can schedule owner actions (fee changes within the cap, deposit pause, pause-role grants, treasury movements). Execution after the 48-hour delay is permissionless. That concentration is real, and the openness this project claims — open source, MIT, permissionlessly forkable — is a claim about the code, not about the keys.
-- The same EOA holds a function-limited **pause-only authority** over deposits, revocable by the timelock.
+- The treasury timelock's proposer is a **2-of-3 Safe multisig**: two of the three owner keys must sign to schedule owner actions (fee changes within the cap, deposit pause, pause-role grants, treasury movements). Execution after the 48-hour delay is permissionless. The three keys are held by **one operator** on separate devices — one person, three keys, disclosed. No single key can act alone, but a single person controls the operator set, and the openness this project claims — open source, MIT, permissionlessly forkable — is a claim about the code, not about the keys. If one key is compromised, the two uncompromised keys rotate owners through the Safe itself; a single compromised signature never reaches the threshold.
+- A separate EOA holds a function-limited **pause-only authority** over deposits, revocable by the timelock.
 - `MAX_FEE_BPS` (20%) is the **only structural bound** on fee escalation.
-- That one EOA is therefore a total-compromise point: vault owner, treasury proposer, pause authority, token-launch creator wallet, LP seeder. The deployer key is required to be moved to a hardware wallet (or documented cold storage) before launch — until that happens and is documented, treat every privileged capability above as attached to a hot key. See [compliance.md](compliance.md).
+- The deployer EOA remains a compromise point for its remaining roles (pause authority, LP seeding, the token-launch initial buy), and the $WELL creator fee wallet is the Safe itself. The deployer key is required to be moved to a hardware wallet (or documented cold storage) before launch, and the three operator keys live on three separate devices — until that happens and is documented, treat every privileged capability above as attached to hot keys. See [compliance.md](compliance.md).
 
 ## Jurisdictional posture
 

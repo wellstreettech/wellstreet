@@ -19,18 +19,18 @@ $WELL holders receive no distributions. The automated buyback leg funded by the 
 
 Stated plainly, without the usual softening:
 
-- The treasury timelock has **a single proposer key** — the Wellstreet deployer EOA. Only that key can schedule an owner action. Execution after the 48-hour delay is open to anyone, but scheduling is not. One key can and does control the protocol's schedule of owner actions, and this project does not pretend otherwise.
-- The same EOA holds a **function-limited pause-only authority** over deposits (it can pause deposits and do nothing else privileged). The timelock can revoke it.
+- The treasury timelock's proposer is a **2-of-3 Safe multisig**: two of the three owner keys must sign before anything can be scheduled. The three keys are held by **one operator** on separate devices — disclosed plainly, because multiple keys are NOT multiple parties. No single key can schedule an owner action alone, but a single person does control the operator set, and this project does not pretend otherwise. Execution after the 48-hour delay is open to anyone; scheduling is not.
+- The **pause-only authority** is a separate key: it can pause deposits and do nothing else privileged, and the timelock can revoke it.
 - `MAX_FEE_BPS` (20%) is the **only structural bound** on fee escalation. Keeping the fee at 10% is a governance commitment, not a code guarantee.
-- Everything the timelock does is public and waits 48 hours: proposals are visible on-chain, and any address can execute them after the delay.
+- Everything the timelock does is public and waits 48 hours: proposals are visible on-chain, and any address can execute them after the delay. If one of the three operator keys is compromised, the two uncompromised keys rotate owners through the Safe itself — a single compromised key never reaches the threshold.
 
-The decentralization this project claims is about the code, not the keys: fully open source, MIT-licensed, permissionlessly forkable, and runnable by anyone from their own key ([run-it-yourself.md](run-it-yourself.md)). Control, by contrast, is concentrated in the keys described above — and that is disclosed here rather than dressed up, because a decentralization claim that contradicts the visible on-chain code would be worthless.
+The decentralization this project claims is about the code, not the keys: fully open source, MIT-licensed, permissionlessly forkable, and runnable by anyone from their own key ([run-it-yourself.md](run-it-yourself.md)). Control, by contrast, is concentrated in the keys described above — one operator — and that is disclosed here rather than dressed up, because a decentralization claim that contradicts the visible on-chain code would be worthless.
 
 ## Deployer key custody
 
-One key currently embodies: vault owner, treasury timelock proposer, pause authority, $WELL creator fee wallet, harvester LP seeder, and the token-launch initial-buy wallet. That is a single point of total failure.
+At launch, two roles that would otherwise sit on the deployer key move to the 2-of-3 Safe: the treasury timelock proposer, and the $WELL creator fee wallet (the creator fee stream accrues to the multisig). The deployer EOA still embodies: the pause authority, the harvester LP seeding, the token-launch initial-buy wallet, and gas/ops duties — a single point of failure for those capabilities.
 
-**Commitment: the deployer key moves to a hardware wallet (or an equivalent documented cold-storage procedure) before launch.** Until that move is done and documented, treat every privileged capability above as attached to a hot key, and act accordingly.
+**Commitment: the deployer key moves to a hardware wallet (or an equivalent documented cold-storage procedure) before launch, and the three Safe operator keys live on three separate devices (hardware preferred).** Until those moves are done and documented, treat every privileged capability above as attached to hot keys, and act accordingly.
 
 ## Jurisdiction
 

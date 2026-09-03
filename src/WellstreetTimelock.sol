@@ -5,11 +5,17 @@ pragma solidity 0.8.28;
 ///        controls (vault fee, deposit pause policy, pause-role revocation, harvester
 ///        wiring, LP-position custody).
 /// @notice Clean-room implementation (no governance framework dependency). Trust model,
-///         disclosed on purpose: a SINGLE proposer key (the Wellstreet deployer EOA)
-///         with an OPEN executor — anyone can execute a queued call once its delay has
-///         elapsed. The 48-hour window is a public detection window, not prevention:
-///         every queued call is visible on-chain (CallQueued event) for the whole delay
-///         before it can land. Never represent this as "no single key can act alone".
+///         disclosed on purpose: a 2-of-3 Safe multisig proposer (three keys, one
+///         operator — disclosed plainly; multiple keys are NOT multiple parties) with an
+///         OPEN executor — anyone can execute a queued call once its delay has elapsed.
+///         The proposer is immutable and there is no setProposer, so the Safe multisig
+///         must exist BEFORE timelock deployment (a post-deployment handover would
+///         require redeploying the timelock). The 48-hour window is a public detection
+///         window, not prevention: every queued call is visible on-chain (CallQueued
+///         event) for the whole delay before it can land. Key-compromise response: the
+///         two uncompromised keys rotate owners via a Safe self-call (removeOwner/
+///         addOwner) — a single compromised key's signature never reaches the 2-of-3
+///         threshold.
 ///
 /// Flow:
 ///   1. The proposer queues (target, value, data, salt) — id = hashCall(...).
@@ -20,7 +26,8 @@ contract WellstreetTimelock {
     ///         deployment can never ship a shorter window than the announced commitment.
     uint256 public constant MIN_DELAY = 48 hours;
 
-    /// @notice The only address that can queue or cancel calls (the Wellstreet deployer EOA).
+    /// @notice The only address that can queue or cancel calls (the 2-of-3 Safe
+    ///         multisig proxy — three keys, one operator).
     address public immutable proposer;
 
     /// @notice Seconds a queued call must wait before it can be executed.
@@ -48,7 +55,8 @@ contract WellstreetTimelock {
     error NotReady(bytes32 id, uint256 readyAt);
     error ExecutionFailed(bytes32 id);
 
-    /// @param proposer_ The single proposer (Wellstreet deployer EOA).
+    /// @param proposer_ The 2-of-3 Safe multisig proposer (three keys, one operator —
+    ///                  must exist before deployment; the proposer is immutable).
     /// @param delay_    The queue delay; must be >= MIN_DELAY (48h).
     constructor(address proposer_, uint256 delay_) {
         if (proposer_ == address(0)) revert ZeroAddress();

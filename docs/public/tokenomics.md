@@ -22,6 +22,8 @@ $WELL launches on the pons launchpad (ponsfamily.com) on Robinhood Chain (chain 
 
 $WELL carries no creator trade tax (`creatorTaxBps = 0`): the creator share comes from the fee split, not from a tax on trades.
 
+The creator fee wallet is the protocol's **2-of-3 Safe multisig** (three keys, one operator — see [compliance.md](compliance.md)): the creator fee stream accrues to multisig custody, not to a single key.
+
 ## What $WELL holders actually receive
 
 **Nothing is distributed to $WELL holders.** No dividends, no staking rewards, no fee routing to holder wallets. The buyback leg reduces circulating supply (buy-and-burn per the pad's launch parameters), so holders benefit — if at all — through scarcity and price. That is a market outcome, not a payment. A buyback is not a dividend and confers no entitlement of any kind.
@@ -60,7 +62,7 @@ No team allocation and no foundation treasury: the only protocol-owned capital i
 | Launch supply | 1,000,000,000 |
 | Launch fee (paid to the pad) | 0.0005 ETH |
 | Creator trade tax | 0 |
-| Creator fee wallet | Published at launch |
+| Creator fee wallet | The 2-of-3 Safe multisig (address published at launch) |
 | Contract address | `PENDING_DEPLOY` — not launched |
 
 ## What is promised

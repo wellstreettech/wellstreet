@@ -10,6 +10,7 @@ import {WellstreetTimelock} from "../src/WellstreetTimelock.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {MockPositionManager} from "./mocks/MockPositionManager.sol";
 import {MockRouter, MockQuoter} from "./mocks/MockSwaps.sol";
+import {MockProposer} from "./mocks/MockProposer.sol";
 
 /// @notice Verifies the exact wiring sequence script/Deploy.s.sol performs
 ///         (timelock -> factory -> vault -> harvester -> queued setHarvester), then
@@ -52,7 +53,11 @@ contract DeployWiringTest is Test {
         assertEq(harvester.poolFee(), 500);
         assertEq(harvester.treasury(), address(timelock));
 
-        // 5. setHarvester is timelock-only: queue it like the script does.
+        // 5. setHarvester is timelock-only. Under the Safe-proposer posture the deploy
+        //    script no longer queues it (the deployer EOA is not the proposer); the
+        //    initial queue is a post-deploy operator step through the 2-of-3 Safe. The
+        //    queue/execute mechanics are verified here with the EOA proposer standing
+        //    in (the contract-as-proposer shape is the second scenario below).
         vm.prank(proposer);
         bytes32 id = timelock.queue(
             vault, 0, abi.encodeCall(YieldShares.setHarvester, (address(harvester))), bytes32(0)
@@ -83,5 +88,42 @@ contract DeployWiringTest is Test {
         vm.prank(makeAddr("anyone"));
         harvester.sweepToTreasury();
         assertEq(spy.balanceOf(address(timelock)), 297.198e18); // treasury custody
+    }
+
+    /// @notice Second scenario (W11 launch posture): the proposer is a CONTRACT, not an
+    ///         EOA. The timelock's proposer is just an address — any contract can hold
+    ///         the role, which is what makes the 2-of-3 Safe multisig (a contract) a
+    ///         valid proposer. The real Safe flow is measured against live bytecode in
+    ///         test/fork/SafeFork.t.sol; this pins the contract-as-proposer semantics
+    ///         without Safe infrastructure.
+    function test_proposerIsContract_contractQueues_eoaReverts() public {
+        MockProposer proposerContract = new MockProposer();
+        WellstreetTimelock timelock = new WellstreetTimelock(address(proposerContract), 172800);
+        proposerContract.setTimelock(address(timelock));
+
+        // queue() FROM the contract succeeds: the mock's internal call carries
+        // msg.sender = the contract, so onlyProposer passes. The queued call targets a
+        // plain codeless address so its later permissionless execution succeeds.
+        (address target, bytes32 salt) = (makeAddr("harmless-target"), bytes32(uint256(1)));
+        bytes32 id = proposerContract.queue(target, 0, hex"", salt);
+        assertEq(id, timelock.hashCall(target, 0, hex"", salt));
+        assertEq(timelock.readyAt(id), block.timestamp + 48 hours);
+
+        // The 48h window holds for a contract proposer too.
+        vm.expectRevert(abi.encodeWithSelector(WellstreetTimelock.NotReady.selector, id, block.timestamp + 48 hours));
+        vm.prank(makeAddr("anyone"));
+        timelock.execute(target, 0, hex"", salt);
+
+        // After the delay anyone executes the queued call (permissionless executor).
+        vm.warp(block.timestamp + 48 hours);
+        vm.prank(makeAddr("anyone"));
+        timelock.execute(target, 0, hex"", salt);
+        assertEq(timelock.readyAt(id), 0);
+
+        // A plain EOA cannot queue — NotProposer names the rejected caller.
+        address eoa = makeAddr("plain-eoa");
+        vm.prank(eoa);
+        vm.expectRevert(abi.encodeWithSelector(WellstreetTimelock.NotProposer.selector, eoa));
+        timelock.queue(target, 0, hex"", bytes32(uint256(2)));
     }
 }
