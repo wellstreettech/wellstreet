@@ -18,7 +18,10 @@
   <meta name="color-scheme" content="dark">
   <title>Wellstreet — yield vaults for tokenized stocks</title>
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%232ec27e'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-size='34' font-weight='bold' text-anchor='middle' fill='%23000000'%3EW%3C/text%3E%3C/svg%3E">
+  <!-- R3 IMP-11: favicon rebuilt to match the masthead plate — square --paper-2
+       fill, 2px --line border, serif W (EB Garamond with Georgia fallback; the
+       favicon context cannot load webfonts). Inline data-URI, zero new files. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2317171a'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%23ffffff' stroke-opacity='0.4' stroke-width='2'/%3E%3Ctext x='32' y='45' font-family='EB Garamond,Georgia,serif' font-size='38' text-anchor='middle' fill='%23ffffff'%3EW%3C/text%3E%3C/svg%3E">
 </head>
 <body>
   <noscript>
@@ -138,7 +141,6 @@
               <div class="ledger-row"><span class="ledger-k">SPY / WETH (pool slot0)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
               <div class="ledger-row"><span class="ledger-k">Pool TVL (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
               <div class="ledger-row"><span class="ledger-k">Pool protocol cut (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
-              <div class="ledger-row"><span class="ledger-k">Vault fee split</span><span class="ledger-v">90% depositors / 10% protocol (timelock-settable, hard-capped at 20%)</span></div>
               <div class="ledger-row"><span class="ledger-k">Vault state</span><span class="ledger-v">awaiting on-chain deploy — yield phase not started</span></div>
             </div>
             <p class="hero-ledger-note">Every figure above is read by your browser straight from public RPC nodes — no backend, no keys. When a read fails, the row says so instead of estimating.</p>
@@ -161,7 +163,7 @@
               <span class="v">None. Read the invariants and the threat model instead.</span>
             </div>
           </div>
-          <div id="chain-badge" class="muted" style="margin-top:14px" aria-live="polite"></div>
+          <div id="chain-badge" class="muted mt-16" aria-live="polite"></div>
         </div>
       </section>
 
@@ -180,17 +182,17 @@
           <div class="stat-grid">
             <div class="stat-cell">
               <span class="stat-glyph">&lt;</span>
-              <span class="stat-value" id="stat-tvl"></span>
+              <span class="stat-value" id="stat-tvl">—</span>
               <span class="stat-label">Pool TVL, live</span>
             </div>
             <div class="stat-cell">
               <span class="stat-glyph">*</span>
-              <span class="stat-value" id="stat-price"></span>
+              <span class="stat-value" id="stat-price">—</span>
               <span class="stat-label">SPY USD (Chainlink)</span>
             </div>
             <div class="stat-cell">
               <span class="stat-glyph">%</span>
-              <span class="stat-value" id="stat-apr"></span>
+              <span class="stat-value" id="stat-apr">—</span>
               <span class="stat-label">Depositor APR</span>
               <span class="stat-marker">projected</span>
             </div>
@@ -213,9 +215,9 @@
             <span class="muted" id="vaults-updated">live on-chain reads</span>
           </div>
           <p class="block-sub">
-            Everything below is fetched live by this page: token state, pool balances, the pool's price and its
-            owner-set fee cut (decoded from the pool's own <code>slot0</code>). The vault contract itself has not
-            deployed yet — the cards say so plainly instead of showing a fake product.
+            Token state, pool balances, the pool's price and its owner-set fee cut (decoded from the pool's own
+            <code>slot0</code>). The vault contract itself has not deployed yet — the cards say so plainly
+            instead of showing a fake product.
           </p>
           <div id="vault-grid"></div>
           <div class="apr-footnote" id="apr-footnote">
@@ -276,7 +278,7 @@
             </div>
           </div>
 
-          <div class="btn-row" style="margin-top:20px">
+          <div class="btn-row mt-20">
             <button type="button" class="btn btn-primary" id="btn-connect">Connect wallet</button>
           </div>
           <div id="wallet-picker" hidden></div>

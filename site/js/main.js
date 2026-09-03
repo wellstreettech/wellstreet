@@ -256,14 +256,11 @@
     }
     rowsBox.appendChild(ledgerRow('Pool protocol cut (live)', cutNode));
 
-    // 4. The 90/10 fee split — static ratified economics (js/config.js is the
-    //    single source of truth; matches the hero fact above the fold).
-    var econ = cfg.economics;
-    rowsBox.appendChild(ledgerRow('Vault fee split',
-      (100 - econ.protocolFeeBpsInitial / 100) + '% depositors / ' + (econ.protocolFeeBpsInitial / 100) +
-      '% protocol (timelock-settable, hard-capped at ' + (econ.maxFeeBps / 100) + '%)'));
-
-    // 5. Vault state — the honest pending pipeline (never a fake number)
+    // 4. Vault state — the honest pending pipeline (never a fake number).
+    //    (R3 IMP-4 fact dedup: the ledger's static fee-split row was removed —
+    //    it duplicated the hero-fact pill verbatim. The split's canonical
+    //    verbal statement lives in the hero-facts row; the stat band keeps
+    //    its terse 90/10 + chain display cell.)
     rowsBox.appendChild(ledgerRow('Vault state',
       WS.vault.isDeployed(vaultCfg().vault)
         ? flagNode(true, 'deployed — yield phase live')
@@ -815,6 +812,34 @@
     sections.forEach(function (sec) { io.observe(sec); });
   }
 
+  // ---------------- scroll reveal (R3 IMP-3) ----------------
+  // One reveal primitive: static section heads + vault cards fade-up 12px once
+  // at --t-slow when they enter the viewport. Armed ONLY here (the .ws-reveal
+  // class is added by this function) — no-JS and no-IntersectionObserver
+  // environments never see the hidden state, so the static page renders fully
+  // visible exactly as before. Reduced motion is handled in CSS: the global
+  // guard nullifies the transition, so the class swap is an instant appear.
+  // Opacity/translate only — the reveal cannot restate or mask content.
+  function initReveal() {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) { return; }
+    var targets = [];
+    var heads = document.body.querySelectorAll('.block-head');
+    for (var i = 0; i < heads.length; i++) { targets.push(heads[i]); }
+    for (var c = 0; c < cards.length; c++) { targets.push(cards[c].mounts.card); }
+    if (!targets.length) { return; }
+    var io = new IntersectionObserver(function (entries) {
+      for (var k = 0; k < entries.length; k++) {
+        if (entries[k].isIntersecting && entries[k].target.classList) {
+          entries[k].target.classList.add('ws-reveal-in');
+          io.unobserve(entries[k].target);
+        }
+      }
+    }, { threshold: 0.15 });
+    for (var t = 0; t < targets.length; t++) {
+      if (targets[t].classList) { targets[t].classList.add('ws-reveal'); io.observe(targets[t]); }
+    }
+  }
+
   // ---------- hero background video (WSV-HERO-VIDEO-LOCK) ----------
   // Namespaced seam (WS.heroVideo, same pattern as WS.rpc / WS.wallet) so the
   // render-test registry stub can drive init directly. The stylesheet's
@@ -934,6 +959,7 @@
 
     initDocs();
     initScrollSpy();
+    initReveal();   // R3 IMP-3: after the cards render — arms .ws-reveal on section heads + vault cards
   }
 
   if (document.readyState === 'loading') {

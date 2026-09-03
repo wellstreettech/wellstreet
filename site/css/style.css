@@ -24,7 +24,16 @@
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --serif: "EB Garamond", Georgia, "Iowan Old Style", "Times New Roman", serif;
   --font-display: "Doto", var(--mono);   /* display/stat glyph face (WSV-FONTS self-host); fallback = existing mono stack */
-  --motion: 140ms ease;   /* V6: one shared motion token — deliberately small */
+  /* motion (R3 IMP-3): one expo family, three durations — timing design instead
+     of a single 140ms ease. --motion stays the fast tick alias (V6 role, now
+     re-curved); surfaces move at --t-base; the scroll reveal runs --t-slow.
+     The pulse/float loops ride the symmetric --ease-loop. Nothing bounces. */
+  --t-fast: 120ms;
+  --t-base: 200ms;
+  --t-slow: 320ms;
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);  /* expo-out — entrances, hovers, reveals */
+  --ease-loop: cubic-bezier(0.65, 0, 0.35, 1);  /* symmetric — designed curve for the loops */
+  --motion: var(--t-fast) var(--ease-enter);
   --ws-trust-size: clamp(36px, 4.5vw, 42px);
   --ws-trust-bg: #28282a;
   --ws-trust-border: rgba(255, 255, 255, 0.4);
@@ -58,6 +67,14 @@
 
 * { box-sizing: border-box; }
 
+/* R3 IMP-11: brand selection color (was the default UA blue on a green/black brand) */
+::selection { background: rgba(46,194,126,0.35); color: #ffffff; }
+
+/* R3 IMP-10: progressive enhancement — headline orphans rebalance where
+   text-wrap: balance is supported; unsupported browsers ignore it. The h1
+   MARKUP is a byte-frozen copy anchor, so the hard <br> stays (no hero-br). */
+h1 { text-wrap: balance; }
+
 html, body {
   margin: 0;
   padding: var(--space-0);
@@ -73,7 +90,7 @@ a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px
 a:visited { color: var(--accent-visited); }
 a, button, input, [tabindex] { outline: 2px solid transparent; outline-offset: 2px; }
 a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline-color: var(--accent); }
-code { font-family: var(--mono); background: var(--code-bg); padding: var(--space-0) var(--space-4); border: 1px solid var(--line); font-size: var(--step-18); }
+code { font-family: var(--mono); background: var(--code-bg); padding: var(--space-0) var(--space-4); border: 1px solid var(--line); font-size: var(--step-8); }
 pre { background: var(--code-bg); border: 2px solid var(--line); padding: var(--space-12); overflow-x: auto; }
 pre code { background: none; border: none; padding: var(--space-0); }
 
@@ -91,24 +108,24 @@ pre code { background: none; border: none; padding: var(--space-0); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-16);
   padding-top: var(--space-14);
   padding-bottom: var(--space-14);
 }
-.brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: var(--ink); }
+.brand { display: flex; align-items: baseline; gap: var(--space-10); text-decoration: none; color: var(--ink); }
 .brand-word {
   font-family: var(--serif); /* serif masthead — editorial-ledger V1 */
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  font-size: var(--step-14);
+  font-size: var(--step-13);
   border: 2px solid var(--line);
   padding: var(--space-2) var(--space-10);
   background: var(--paper-2);
 }
-.brand-tag { font-family: var(--mono); font-size: var(--step-3); color: var(--ink-soft); text-transform: uppercase; }
-.site-nav { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
-.site-nav a { color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: var(--step-5); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid transparent; padding: var(--space-4) var(--space-0); transition: border-bottom-color var(--motion), color var(--motion); }
+.brand-tag { font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); text-transform: uppercase; }
+.site-nav { display: flex; flex-wrap: wrap; gap: var(--space-10) var(--space-16); align-items: center; }
+.site-nav a { color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid transparent; padding: var(--space-4) var(--space-0); transition: border-bottom-color var(--motion), color var(--motion); }
 .site-nav a:hover { border-bottom-color: var(--line); }
 /* R2 header CTA — honest conversion affordance (copy reused verbatim from the footer;
    targets the #docs section, never the pre-deploy deposit widget). Specificity-bearing
@@ -116,11 +133,11 @@ pre code { background: none; border: none; padding: var(--space-0); }
 .site-nav a.nav-cta {
   background: var(--ink); color: var(--paper);
   border-bottom: none;
-  border-radius: 999px; min-height: 38px;
+  border-radius: var(--radius); min-height: 38px;
   padding: var(--space-6) var(--space-16);
-  font-family: var(--mono); font-size: var(--step-5); text-transform: uppercase; letter-spacing: 0.06em;
+  font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.06em;
   line-height: 1; display: inline-flex; align-items: center; text-decoration: none;
-  transition: background-color var(--motion);
+  transition: background-color var(--t-base) var(--ease-enter);
 }
 .site-nav a.nav-cta:hover { background: var(--ink-soft); }
 .site-nav a.active { border-bottom-color: var(--ink); }
@@ -130,10 +147,10 @@ pre code { background: none; border: none; padding: var(--space-0); }
   border-bottom: 2px solid var(--warn);
   background: var(--warn-bg);
   color: var(--ink);
-  font-size: var(--step-7);
+  font-size: var(--step-6);
 }
 .jurisdiction-banner .wrap { padding-top: var(--space-10); padding-bottom: var(--space-10); }
-.jurisdiction-banner .disclosure { font-family: var(--mono); display: block; margin-top: 4px; }
+.jurisdiction-banner .disclosure { font-family: var(--mono); display: block; margin-top: var(--space-4); }
 
 /* ---------- hero ---------- */
 .hero { border-bottom: 2px solid var(--line); }
@@ -154,11 +171,11 @@ pre code { background: none; border: none; padding: var(--space-0); }
   font-size: clamp(2.5rem, 7.8vw, 6.25rem);
   font-weight: 400;
   line-height: 0.96;
-  margin: 0 0 26px 0; /* V10: larger gap headline -> lede */
+  margin: 0 0 var(--space-24) 0; /* V10: larger gap headline -> lede */
   letter-spacing: -0.035em;
 }
 .hero h1 .punch { color: var(--accent-punch); } /* V10: punch word steps up to the more saturated protocol green */
-.hero .lede { max-width: 60ch; font-size: var(--step-13); margin: 0 0 34px 0; color: var(--ink-soft); } /* V10: ~60ch measure + larger gap to the ledger panel */
+.hero .lede { max-width: 60ch; font-size: var(--step-15); margin: 0 0 var(--space-32) 0; color: var(--ink-soft); } /* R3 IMP-8: the lede takes the 20px role (display register vs the 16px body) */
 .hero-facts {
   /* honest trust row — the reference's ring/pill treatment on the four existing hero facts;
      the fabricated enterprise-logos row and its icon-font CDN host are rejected — no icon
@@ -174,14 +191,14 @@ pre code { background: none; border: none; padding: var(--space-0); }
   position: relative;
   border: 1px solid var(--ws-trust-border);
   background: var(--ws-trust-bg);
-  border-radius: 999px;
+  border-radius: var(--radius);
   margin-left: calc(var(--ws-trust-size) * -0.42);
   min-width: 0;
 }
 .hero-fact .k {
   display: block;
   font-family: var(--mono);
-  font-size: var(--step-2);
+  font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ws-trust-text);
@@ -198,9 +215,14 @@ pre code { background: none; border: none; padding: var(--space-0); }
 
 /* ---------- sections ---------- */
 section.block { border-bottom: 2px solid var(--line); }
-section.block .wrap { padding-top: var(--space-44); padding-bottom: var(--space-48); }
-.block-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; }
-.block-head .index { font-family: var(--mono); color: var(--accent); font-weight: 700; font-size: var(--step-7); letter-spacing: 0.22em; } /* V1: section numbers promoted */
+/* R3 IMP-6: anchored sections clear the 68px sticky header on nav jumps
+   (68px bar + 16px breathing); in-pane doc headings get the same so the
+   docs TOC deep links land their heading below the bar. */
+section.block, .hero { scroll-margin-top: 84px; }
+#doc-pane [id] { scroll-margin-top: 84px; }
+section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-48); } /* R3 IMP-13: blocks standardize 64/48 — more air reads more expensive at zero cost */
+.block-head { display: flex; align-items: baseline; gap: var(--space-14); margin-bottom: var(--space-8); }
+.block-head .index { font-family: var(--mono); color: var(--accent); font-weight: 700; font-size: var(--step-6); letter-spacing: 0.22em; } /* V1: section numbers promoted */
 .block-head h2 {
   margin: 0;
   font-family: var(--serif); /* V1 editorial-ledger display */
@@ -209,20 +231,20 @@ section.block .wrap { padding-top: var(--space-44); padding-bottom: var(--space-
   font-size: var(--step-21);
 }
 .block-head .spacer { flex: 1; }
-.block-sub { color: var(--ink-soft); margin: -10px 0 22px 0; max-width: 52rem; }
+.block-sub { color: var(--ink-soft); margin: 0 0 var(--space-24); max-width: 52rem; }
 
 /* ---------- vault cards ---------- */
-#vault-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-.vault-card { border: 2px solid var(--line); background: var(--paper-raised); display: flex; flex-direction: column; transition: box-shadow var(--motion); border-radius: var(--radius-soft); box-shadow: var(--shadow-soft); }
+#vault-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-20); }
+.vault-card { border: 2px solid var(--line); background: var(--paper-raised); display: flex; flex-direction: column; transition: box-shadow var(--t-base) var(--ease-enter); border-radius: var(--radius-soft); box-shadow: var(--shadow-soft); }
 .vault-card:hover { box-shadow: var(--shadow-soft-hover); }
 .card-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-10); flex-wrap: wrap;
   border-bottom: 2px solid var(--line); padding: var(--space-12) var(--space-14); background: var(--paper-2);
 }
 .card-title { margin: 0; font-size: var(--step-13); text-transform: uppercase; letter-spacing: 0.04em; }
-.share-symbol { font-family: var(--mono); font-size: var(--step-5); border: 1px solid var(--line); padding: var(--space-2) var(--space-8); background: var(--paper); }
+.share-symbol { font-family: var(--mono); font-size: var(--step-4); border: 1px solid var(--line); padding: var(--space-2) var(--space-8); background: var(--paper); }
 .card-rows { padding: var(--space-6) var(--space-14); font-variant-numeric: tabular-nums; } /* V2: aligned data figures */
-.card-row { display: flex; justify-content: space-between; gap: 14px; padding: var(--space-9) var(--space-0); border-bottom: 1px dotted var(--line-dotted); font-size: var(--step-10); }
+.card-row { display: flex; justify-content: space-between; gap: var(--space-14); padding: var(--space-9) var(--space-0); border-bottom: 1px dotted var(--line-dotted); font-size: var(--step-8); }
 .card-row:last-child { border-bottom: none; }
 .row-label { color: var(--ink-soft); flex: 0 0 auto; }
 .row-value { text-align: right; font-family: var(--mono); font-size: var(--step-8); word-break: break-word; font-variant-numeric: tabular-nums; }
@@ -236,13 +258,13 @@ section.block .wrap { padding-top: var(--space-44); padding-bottom: var(--space-
 .flag .flag-glyph { display: inline-block; min-width: 1.2em; text-align: center; }
 .flag-ok .flag-glyph { color: var(--accent); }
 .flag-warn .flag-glyph { color: var(--warn); }
-.muted { color: var(--ink-soft); font-size: var(--step-19); }
+.muted { color: var(--ink-soft); font-size: var(--step-6); }
 
 .apr-footnote {
-  margin-top: 18px; border: 2px solid var(--line); border-left-width: 8px;
+  margin-top: var(--space-16); border: 2px solid var(--line); border-left-width: 8px;
   background: var(--paper-2); padding: var(--space-12) var(--space-16); font-size: var(--step-6); color: var(--ink-soft);
 }
-.apr-footnote .lbl { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step-3); color: var(--ink); display: block; margin-bottom: 4px; }
+.apr-footnote .lbl { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step-1); color: var(--ink); display: block; margin-bottom: var(--space-4); }
 
 /* ---------- vault-card pending state (V4) — pre-deploy, EVERY card is pending:
    render it as intentional scaffolding, not an unfinished page ---------- */
@@ -254,69 +276,71 @@ section.block .wrap { padding-top: var(--space-44); padding-bottom: var(--space-
 }
 
 /* ---------- widget ---------- */
-.widget-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-.panel { border: 2px solid var(--line); background: var(--paper-raised); transition: box-shadow var(--motion); border-radius: var(--radius-soft); box-shadow: var(--shadow-soft); }
+.widget-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-20); }
+.panel { border: 2px solid var(--line); background: var(--paper-raised); transition: box-shadow var(--t-base) var(--ease-enter); border-radius: var(--radius-soft); box-shadow: var(--shadow-soft); }
 .panel:hover { box-shadow: var(--shadow-soft-hover); }
-.panel-head { border-bottom: 2px solid var(--line); background: var(--paper-2); padding: var(--space-10) var(--space-14); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.panel-head { border-bottom: 2px solid var(--line); background: var(--paper-2); padding: var(--space-10) var(--space-14); display: flex; justify-content: space-between; align-items: center; gap: var(--space-10); }
 .panel-head h3 { margin: 0; font-size: var(--step-11); text-transform: uppercase; letter-spacing: 0.05em; }
 .panel-body { padding: var(--space-14); }
-.field label { display: block; font-family: var(--mono); font-size: var(--step-3); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin-bottom: 6px; }
+.field label { display: block; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin-bottom: var(--space-6); }
 .field input[type="text"], .field input[type="number"] {
-  width: 100%; padding: var(--space-10); font-family: var(--mono); font-size: var(--step-12); /* 16px: below this iOS Safari auto-zooms on focus */
+  width: 100%; padding: var(--space-10); font-family: var(--mono); font-size: var(--step-11); /* 16px: below this iOS Safari auto-zooms on focus */
   border: 2px solid var(--line); background: var(--paper); color: var(--ink);
 }
 .field input:disabled { background: var(--paper-2); color: var(--ink-soft); }
-.field + .field { margin-top: 12px; }
-.btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.field + .field { margin-top: var(--space-12); }
+.btn-row { display: flex; gap: var(--space-10); margin-top: var(--space-14); flex-wrap: wrap; }
 button.btn {
-  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--step-5);
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--step-4);
   padding: var(--space-10) var(--space-16); border: 2px solid var(--line); background: var(--paper); color: var(--ink);
-  cursor: pointer; transition: background-color var(--motion), color var(--motion), outline-color var(--motion);
-  border-radius: var(--radius-base); /* soft ens treatment: buttons carry the base radius, cards the 12px soft radius */
+  cursor: pointer; transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter);
+  border-radius: var(--radius); /* R3 IMP-7: the action class unifies on the pill — same geometry as the nav CTA 40px away */
   min-height: 44px; /* money-path mobile ergonomics — ens.domains action targets measure 52px @400 / 72px @1280; 44 = platform floor; NOT an a11y-compliance claim */
 }
 button.btn:hover:not(:disabled) { background: var(--paper-2); }
 button.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 button.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--ink); }
 button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
-#widget-status { margin-top: 16px; padding: var(--space-10) var(--space-12); border: 2px solid var(--line); background: var(--paper-2); font-size: var(--step-7); min-height: 40px; word-break: break-all; }
-#wallet-balances { margin-top: 10px; font-family: var(--mono); font-size: var(--step-5); color: var(--ink-soft); }
-#acquire-note { margin: 14px 0 0 0; font-size: var(--step-5); color: var(--ink-soft); }
-.tx-link { margin-left: 10px; font-family: var(--mono); font-size: var(--step-4); }
+#widget-status { margin-top: var(--space-16); padding: var(--space-10) var(--space-12); border: 2px solid var(--line); background: var(--paper-2); font-size: var(--step-6); min-height: 40px; word-break: break-all; }
+#wallet-balances { margin-top: var(--space-10); font-family: var(--mono); font-size: var(--step-4); color: var(--ink-soft); }
+#acquire-note { margin: var(--space-14) 0 0 0; font-size: var(--step-4); color: var(--ink-soft); }
+.tx-link { margin-left: var(--space-10); font-family: var(--mono); font-size: var(--step-4); }
 
 /* wallet picker (eip-6963 multi-wallet) + noscript note */
-#wallet-picker { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+#wallet-picker { margin-top: var(--space-12); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-10); }
 #wallet-picker[hidden] { display: none; }
 #wallet-picker .picker-label { font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
-.noscript-note { padding-top: var(--space-16); padding-bottom: var(--space-16); font-size: var(--step-9); color: var(--ink-soft); border-bottom: 2px solid var(--line); }
+.noscript-note { padding-top: var(--space-16); padding-bottom: var(--space-16); font-size: var(--step-8); color: var(--ink-soft); border-bottom: 2px solid var(--line); }
 
 /* ---------- docs ---------- */
 .doc-tabs { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 2px solid var(--line); }
 .doc-tab {
   font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.05em;
   padding: var(--space-9) var(--space-14); background: var(--paper-2); border: 2px solid var(--line); border-bottom: none;
-  margin-right: 6px; cursor: pointer; color: var(--ink-soft);
-  transition: background-color var(--motion), color var(--motion), outline-color var(--motion);
+  margin-right: var(--space-6); cursor: pointer; color: var(--ink-soft);
+  transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter);
   min-height: 44px; /* money-path mobile ergonomics — ens.domains action targets measure 52px @400 / 72px @1280; 44 = platform floor; NOT an a11y-compliance claim */
 }
 .doc-tab.active { background: var(--ink); color: var(--paper); }
 .doc-tab:hover:not(.active) { background: var(--paper); color: var(--ink); }
 /* V8: the doc pane reads as a document — measure-limited, serif headers, mono code */
 #doc-pane { border: 2px solid var(--line); border-top: none; background: var(--paper-raised); padding: var(--space-22) var(--space-24); min-height: 220px; max-width: 72ch; }
-#doc-pane[aria-busy="true"] { color: var(--ink-soft); font-family: var(--mono); font-size: var(--step-7); }
+#doc-pane[aria-busy="true"] { color: var(--ink-soft); font-family: var(--mono); font-size: var(--step-6); }
 #doc-pane h1, #doc-pane h2, #doc-pane h3 {
   text-transform: none; letter-spacing: 0;
   font-family: var(--serif); /* V1 stack in the docs pane */
 }
-#doc-pane h1 { font-size: var(--step-16); border-bottom: 2px solid var(--line); padding-bottom: var(--space-8); } /* per-doc title as document header */
-#doc-pane pre { border: 2px solid var(--line); background: var(--code-bg); padding: var(--space-12); overflow-x: auto; font-size: var(--step-7); }
+#doc-pane h1 { font-size: var(--step-21); border-bottom: 2px solid var(--line); padding-bottom: var(--space-8); } /* per-doc title as document header — display rung (R3: was step-16, which collapsed into the 20px role) */
+#doc-pane h2 { font-size: var(--step-15); } /* R3 IMP-11: one display bump so a ~2,000px document has headings you can skim by */
+#doc-pane h3 { font-size: var(--step-13); } /* R3: formalized on the scale (was the browser-default 1.17em) */
+#doc-pane pre { border: 2px solid var(--line); background: var(--code-bg); padding: var(--space-12); overflow-x: auto; font-size: var(--step-6); }
 #doc-pane .table-wrap { overflow-x: auto; }
-#doc-pane table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: var(--step-9); }
+#doc-pane table { border-collapse: collapse; width: 100%; margin: var(--space-12) 0; font-size: var(--step-8); }
 #doc-pane th, #doc-pane td { border: 1px solid var(--line); padding: var(--space-6) var(--space-10); text-align: left; }
 #doc-pane th { background: var(--paper-2); font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; }
-#doc-pane blockquote { border-left: 6px solid var(--line); margin: 12px 0; padding: var(--space-4) var(--space-14); background: var(--paper-2); }
+#doc-pane blockquote { border-left: 6px solid var(--line); margin: var(--space-12) 0; padding: var(--space-4) var(--space-14); background: var(--paper-2); }
 /* V5: the docs "Not published yet." empty state gets the same honest-state treatment */
-.doc-missing { color: var(--ink-soft); font-size: var(--step-9); border: 2px solid var(--line); background: var(--paper-2); padding: var(--space-14) var(--space-16); }
+.doc-missing { color: var(--ink-soft); font-size: var(--step-8); border: 2px solid var(--line); background: var(--paper-2); padding: var(--space-14) var(--space-16); }
 /* R2 docs proof-nav: on-page TOC (deep-linkable headings) + code copy buttons.
    Chrome styling only — the data/ledger surfaces inside the pane keep hard borders. */
 .doc-toc {
@@ -330,7 +354,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .code-copy {
   font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.06em;
   padding: var(--space-2) var(--space-8); border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-soft);
-  cursor: pointer; transition: background-color var(--motion), color var(--motion);
+  cursor: pointer; transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter);
   margin-top: var(--space-2);
 }
 .code-copy:hover { color: var(--ink); background: var(--paper); }
@@ -340,9 +364,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    aria-busy loading state; the pulse ships WITH its prefers-reduced-motion nullification. */
 .state, #doc-pane[aria-busy="true"] {
   font-family: var(--mono);
-  font-size: var(--step-7);
+  font-size: var(--step-6);
   color: var(--ink-soft);
-  animation: ws-state-pulse 1.8s ease-in-out infinite;
+  animation: ws-state-pulse 1.8s var(--ease-loop) infinite;
 }
 @keyframes ws-state-pulse {
   0%, 100% { opacity: 1; }
@@ -350,17 +374,21 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 
 /* ---------- footer ---------- */
-.site-footer { background: var(--ink); color: var(--paper); }
-.site-footer .wrap { padding-top: var(--space-28); padding-bottom: var(--space-34); }
-.site-footer a { color: var(--paper); }
-.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; font-size: var(--step-6); }
-.footer-grid .h { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step-3); margin-bottom: 6px; color: var(--footer-muted); }
-.footer-fine { margin-top: 20px; font-size: var(--step-3); color: var(--footer-faint); }
+/* R3 IMP-2: the footer joins the identity — deep-ink surface via the
+   --ink-deep token (defined but referenced by zero selectors before this pass;
+   the white --ink flip was a 284px un-owned color event closing a black site).
+   No benchmark ships a light footer on a dark site. */
+.site-footer { background: var(--ink-deep); color: var(--ink); }
+.site-footer .wrap { padding-top: var(--space-40); padding-bottom: var(--space-48); } /* R3 IMP-13: footer verticals join the 40/48 pair */
+.site-footer a { color: var(--ink); }
+.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-20); font-size: var(--step-6); }
+.footer-grid .h { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step-1); margin-bottom: var(--space-6); color: var(--footer-muted); }
+.footer-fine { margin-top: var(--space-20); font-size: var(--step-1); color: var(--footer-faint); }
 
 /* ---------- geo block page ---------- */
 .geo-block-page { max-width: 760px; margin: 8vh auto; padding: 0 20px; }
 .geo-block-card { border: 2px solid var(--line); background: #fbfaf5; }
-.geo-block-head { border-bottom: 2px solid var(--line); background: var(--warn); color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.geo-block-head { border-bottom: 2px solid var(--line); background: var(--warn); color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-12); }
 .geo-block-head .code { font-family: var(--mono); font-size: 2rem; font-weight: 800; }
 .geo-block-body { padding: 22px 24px; }
 .geo-block-body h1 { margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.04em; font-size: 1.3rem; }
@@ -380,12 +408,12 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
      source cannot match here, and the is-dead path hides the element). */
   .hero { background: #000; }
   .hero-video { display: none; }
-  .site-header .wrap { flex-direction: column; align-items: flex-start; gap: 8px; padding-top: var(--space-12); padding-bottom: var(--space-12); }
+  .site-header .wrap { flex-direction: column; align-items: flex-start; gap: var(--space-8); padding-top: var(--space-12); padding-bottom: var(--space-12); }
   .hero .wrap { padding-top: var(--space-36); padding-bottom: var(--space-32); }
-  .hero-facts { flex-direction: column; gap: 10px; } /* pre-existing 400px clip fix (V1-adjacent): facts stack */
+  .hero-facts { flex-direction: column; gap: var(--space-10); } /* pre-existing 400px clip fix (V1-adjacent): facts stack */
   /* trust-row mobile: overlap reset */
   .hero-fact { margin-left: 0; min-width: 0; }
-  .card-row { flex-direction: column; gap: 2px; }
+  .card-row { flex-direction: column; gap: var(--space-2); }
   .row-value { text-align: left; }
   /* R2: the docs tab strip stays ONE row on mobile — swipeable, snap-aligned */
   .doc-tabs { flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; }
@@ -413,8 +441,12 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   --accent-visited: #27a86c;
   --accent-hover: #3ad18e;
   --line-dotted: #4a4a4e; /* opaque — DUAL-USE token: dotted borders AND .hero-chip--tan background under the V10 "four solid pills" comment; a translucent value would composite the tan chip over the hero video layer once the WSV hero goal lands; white chip text ≈ 8.9:1 */
-  --footer-muted: #3c3c40;
-  --footer-faint: #6a6a70;
+  /* R3 IMP-2: footer text re-pointed into the dark family on --ink-deep #011A25
+     (was tuned for the white footer). WCAG on #011A25: #a8a8ae = 7.5:1,
+     #8e8e8e = 5.4:1 — both clear AA. The audit's #5a5a60 example measured
+     2.6:1 and was rejected by the contrast re-run. */
+  --footer-muted: #a8a8ae;
+  --footer-faint: #8e8e8e;
   /* space scale (px, value-named) */
   --space-0: 0;
   --space-2: 2px;
@@ -433,30 +465,26 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   --space-32: 32px;
   --space-34: 34px;
   --space-36: 36px;
+  --space-40: 40px;
   --space-44: 44px;
   --space-48: 48px;
   --space-56: 56px;
-  /* type scale (1:1 aliases, canonical order step-1..step-21) */
-  --step-1: 0.68rem;
-  --step-2: 0.7rem;
-  --step-3: 0.72rem;
-  --step-4: 0.78rem;
-  --step-5: 0.8rem;
-  --step-6: 0.82rem;
-  --step-7: 0.85rem;
-  --step-8: 0.88rem;
-  --step-9: 0.9rem;
-  --step-10: 0.92rem;
-  --step-11: 0.95rem;
-  --step-12: 1rem;
-  --step-13: 1.05rem;
-  --step-14: 1.15rem;
-  --step-15: 1.3rem;
-  --step-16: 1.55rem;
-  --step-17: 2rem;
-  --step-18: 0.92em;
-  --step-19: 0.82em;
-  --step-20: clamp(2rem, 4.8vw, 3.3rem);
+  --space-64: 64px;
+  /* type scale (R3 IMP-1: 21 steps collapsed to 7 text roles + 2 display clamps —
+     the sub-perceptual clusters (0.02–0.7px apart) are merged and the em/rem
+     split is resolved by re-denomination: every role is a fixed rem value, so
+     nothing resizes with its parent anymore). Each merged role keeps its LOWEST
+     step number as the canonical token; retired siblings: 2,3,5,7,9,10,12,14,
+     16,17,18,19. Consumption sites were re-pointed in the same pass. New text
+     MUST pick one of these roles — a new token needs a written justification. */
+  --step-1: 0.6875rem;   /* 11px — micro labels (was step-1/2/3) */
+  --step-4: 0.78125rem;  /* 12.5px — chrome/nav labels (was step-4/5) */
+  --step-6: 0.84375rem;  /* 13.5px — small text (was step-6/7, step-19 .muted) */
+  --step-8: 0.875rem;    /* 14px — data/values + code (was step-8/9/10, step-18) */
+  --step-11: 1rem;       /* 16px — body (was step-11/12) */
+  --step-13: 1.125rem;   /* 18px — card/panel heads (was step-13/14) */
+  --step-15: 1.25rem;    /* 20px — lede/display-small (was step-15/16/17) */
+  --step-20: clamp(2rem, 4.8vw, 3.3rem);    /* display rungs — unchanged (IMP-1) */
   --step-21: clamp(1.35rem, 2.6vw, 1.7rem);
   /* layout */
   --wrap-max: 1020px;
@@ -464,7 +492,11 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
      the soft radius + diffuse shadow; every data/ledger element (tables, code blocks,
      stat rows, hero facts) keeps its hard 2px border. --ink-deep is the ens INK
      reference value; a second-accent role is deliberately NOT assigned to it. */
-  --radius-base: 4px;
+  /* R3 IMP-7: exactly THREE radii on the page — 0 (data/ledger surfaces),
+     var(--radius) 999px (every interactive action + tag pill), --radius-soft
+     12px (cards only, the D15 taste split). --radius-base (4px buttons) is
+     retired: the action class unifies on the pill. */
+  --radius: 999px;
   --radius-soft: 12px;
   --shadow-soft: 0 20px 28px rgba(0,0,0,0.55);
   --shadow-soft-hover: 0 24px 40px rgba(0,0,0,0.7);
@@ -507,33 +539,33 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 /* ledger card — hero-facts anatomy (2px hard borders, no radius, no shadow:
    it is a data/ledger element, not a chrome card) */
 .hero-ledger {
-  margin: 36px 0 40px; /* V10: panel sits lower — bigger air from the lede, and pushes hero-facts/chain-badge down with it (spacing only; nothing hidden) */
+  margin: var(--space-32) 0 var(--space-40); /* V10: panel sits lower — bigger air from the lede, and pushes hero-facts/chain-badge down with it (spacing only; nothing hidden) */
   max-width: 46rem;
   border: 2px solid var(--line);
   background: var(--paper-raised);
 }
 .hero-ledger-head {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-12);
   padding: var(--space-10) var(--space-14);
   background: var(--paper-2);
   border-bottom: 2px solid var(--line);
 }
-.hero-ledger-title { font-family: var(--mono); font-size: var(--step-3); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); }
-.hero-ledger-state { font-family: var(--mono); font-size: var(--step-2); text-align: right; }
+.hero-ledger-title { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); }
+.hero-ledger-state { font-family: var(--mono); font-size: var(--step-1); text-align: right; }
 .hero-ledger-state.flag-ok { color: var(--accent); }
 .hero-ledger-state.flag-warn { color: var(--warn); }
 .hero-ledger-rows { font-variant-numeric: tabular-nums; }
 .ledger-row {
-  display: flex; justify-content: space-between; align-items: baseline; gap: 14px;
+  display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-14);
   padding: var(--space-10) var(--space-14);
   border-bottom: 2px solid var(--line);
-  font-size: var(--step-9);
+  font-size: var(--step-8);
 }
 .ledger-row:last-child { border-bottom: none; }
 .ledger-k { font-family: var(--serif); font-size: var(--step-11); color: var(--ink); flex: 0 0 auto; }
 .ledger-v { text-align: right; font-family: var(--mono); font-size: var(--step-8); word-break: break-word; font-variant-numeric: tabular-nums; color: var(--ink); }
-.ledger-v .muted { font-size: var(--step-2); }
-.ledger-row-strong .ledger-v strong { color: var(--accent); font-size: var(--step-10); }
+.ledger-v .muted { font-size: var(--step-1); }
+.ledger-row-strong .ledger-v strong { color: var(--accent); font-size: var(--step-8); }
 .hero-ledger-note {
   margin: 0;
   padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14);
@@ -545,9 +577,13 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 @media (max-width: 640px) {
   /* panel stacks under the hero lede, full measure; motif shrinks + fades */
   .hero-ledger { max-width: none; }
-  .ledger-row { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .ledger-row { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
   .ledger-v { text-align: left; }
   .hero-motif { width: 72vw; top: -12px; right: -48px; opacity: 0.7; }
+  /* V9-user revision: this block sits AFTER the .hero poster rule (:483) so it
+     wins the cascade — mobile keeps NO poster and NO video: plain #000 + motif */
+  .hero { background: #000; }
+  .hero-video { display: none; }
 }
 
 /* scoped reduced-motion pairing for the WS-HERO-V9 surfaces: the ledger's
@@ -594,11 +630,11 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   position: absolute;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 5px 12px;
-  border-radius: 999px;                 /* ens pill */
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-12);
+  border-radius: var(--radius);          /* ens pill */
   font-family: var(--mono);
-  font-size: var(--step-2);
+  font-size: var(--step-1);
   letter-spacing: 0.03em;
   line-height: 1.2;
   white-space: nowrap;
@@ -606,9 +642,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   pointer-events: auto;
   transform: translate(var(--chip-tx, 0px), 0) rotate(var(--chip-rot, 0deg));
   animation:
-    ws-hero-chip-in 480ms ease-out var(--chip-in-delay, 0ms) backwards,
-    ws-hero-chip-float var(--chip-float-dur, 8s) ease-in-out var(--chip-float-delay, 0s) infinite;
-  transition: translate var(--motion), scale var(--motion);
+    ws-hero-chip-in 480ms var(--ease-enter) var(--chip-in-delay, 0ms) backwards,
+    ws-hero-chip-float var(--chip-float-dur, 8s) var(--ease-loop) var(--chip-float-delay, 0s) infinite;
+  transition: translate var(--t-base) var(--ease-enter), scale var(--t-base) var(--ease-enter);
 }
 
 .hero-chip::before {
@@ -645,7 +681,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .hero-chip--split { display: none; }
 
 @media (min-width: 641px) {
-  .hero-chip { font-size: var(--step-4); padding: 6px 13px; }
+  .hero-chip { font-size: var(--step-4); padding: var(--space-6) var(--space-12); }
   /* tablet: three chips across the top padding band (wrap padding-top 56px);
      the centered chip rides --chip-tx so the float keyframes keep it centered */
   .hero-chip--chain { display: inline-flex; top: 12px; left: 50%; --chip-tx: -50%; --chip-rot: -1.4deg; --chip-in-delay: 220ms; --chip-float-delay: 1.7s; --chip-float-dur: 6.5s; }
@@ -784,9 +820,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   margin-top: var(--space-2, 2px);
   padding: var(--space-2, 2px) var(--space-8, 8px);
   border: 1px solid var(--accent, #2ec27e);
-  border-radius: 999px;
+  border-radius: var(--radius, 999px);
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-1, 0.68rem);
+  font-size: var(--step-1, 0.6875rem);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--accent, #2ec27e);
@@ -794,3 +830,28 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 @media (max-width: 720px) {
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ============================================================
+   WSV-POLISH-R3 (2026-09-02) — design-studio audit improvement pass.
+   (a) spacing utilities (IMP-5): token aliases replacing the two inline
+       style="" debris sites in index.html (#chain-badge, connect-wallet
+       btn-row). Declared AFTER the component rules so they win the cascade
+       at equal specificity (.btn-row's own margin-top included).
+   (b) scroll-reveal primitive (IMP-3): .ws-reveal is ARMED ONLY by
+       js/main.js (initReveal) — no-JS and no-IntersectionObserver
+       environments never see the hidden state; the static page renders
+       fully visible exactly as before. The global prefers-reduced-motion
+       guard above nullifies the transition, so the class swap is an
+       instant appear for users who ask for less motion. Opacity + 12px
+       translate only: the reveal cannot restate or mask content
+       (honesty guard, audit §6).
+   ============================================================ */
+.mt-16 { margin-top: var(--space-16); }
+.mt-20 { margin-top: var(--space-20); }
+
+.ws-reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity var(--t-slow) var(--ease-enter), transform var(--t-slow) var(--ease-enter);
+}
+.ws-reveal.ws-reveal-in { opacity: 1; transform: translateY(0); }

@@ -47,8 +47,11 @@ const PALETTE = [
   ['--accent-visited', '#27a86c'],
   ['--accent-hover', '#3ad18e'],
   ['--line-dotted', '#4a4a4e'],
-  ['--footer-muted', '#3c3c40'],
-  ['--footer-faint', '#6a6a70'],
+  // R3 IMP-2 (2026-09-02): footer text re-pointed into the dark family on
+  // --ink-deep #011A25 — #a8a8ae = 7.5:1, #8e8e8e = 5.4:1, both AA-clear
+  // (the white-footer values #3c3c40/#6a6a70 died with the footer flip fix)
+  ['--footer-muted', '#a8a8ae'],
+  ['--footer-faint', '#8e8e8e'],
   ['--accent-punch', '#3fe396'],
   ['--shadow-soft', '0 20px 28px rgba(0,0,0,0.55)'],
   ['--shadow-soft-hover', '0 24px 40px rgba(0,0,0,0.7)'],
