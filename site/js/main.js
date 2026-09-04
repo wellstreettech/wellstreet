@@ -194,8 +194,13 @@
     // stylesheet against .vault-card--pending).
     // re-pinned 2026-09-04: config flipped to deployed addresses — the keeper rides
     // the live card too (the deployed vault is empty; the empty card is its state).
+    // WS-OG-PERF (2026-09-04): compressed keeper variant + explicit width/height
+    // (CLS discipline — the JS-appended img never shifts layout), same treatment
+    // as the statically-wired keepers in index.html.
     var cert = el('img', 'asset-certificate');
-    cert.setAttribute('src', 'img/certificate.png');
+    cert.setAttribute('src', 'img/compressed/certificate.png');
+    cert.setAttribute('width', '240');
+    cert.setAttribute('height', '129');
     cert.setAttribute('alt', '');
     cert.setAttribute('aria-hidden', 'true');
     cert.setAttribute('loading', 'lazy');

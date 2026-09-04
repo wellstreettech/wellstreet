@@ -305,3 +305,60 @@ test('STUB RIDER: files using IntersectionObserver/matchMedia carry an accepted 
   // on exactly the files whose guard style it has not seen.
   assert.ok(ioUsers >= 1, 'at least one IntersectionObserver user was scanned');
 });
+
+// ---------------- MIRROR SITE-PATH RIDER (WS-SKILL-MIRROR, 2026-09-04) ----------------
+// site/skills/wellstreet-vaults.md is the agent-discoverable SITE mirror of the
+// canonical skills/wellstreet-vaults/SKILL.md (served at /skills/wellstreet-vaults.md).
+// It enters this gate as a PINNED site path: the index.html pointer to it is a
+// RELATIVE href (relative URLs PASS the scanner by classification — IPFS-safe per
+// the docs-link precedent), and the mirror's bytes are pinned to the canonical
+// skill: ONE markdown header line (never an HTML comment), then the canonical
+// bytes verbatim. The operator re-copies the mirror fresh at build time — this
+// rider fails loudly if the served copy ever drifts from the canonical skill.
+test('MIRROR SITE-PATH RIDER: site/skills/wellstreet-vaults.md mirrors the canonical skill byte-for-byte (modulo the one header line)', () => {
+  const mirrorPath = path.join(SITE_DIR, 'skills', 'wellstreet-vaults.md');
+  const canonicalPath = path.join(SITE_DIR, '..', 'skills', 'wellstreet-vaults', 'SKILL.md');
+  assert.ok(fs.existsSync(mirrorPath),
+    'site/skills/wellstreet-vaults.md exists (the served mirror path)');
+  assert.ok(fs.existsSync(canonicalPath),
+    'skills/wellstreet-vaults/SKILL.md exists (the canonical skill)');
+  const mirror = fs.readFileSync(mirrorPath, 'utf8');
+  const canonical = fs.readFileSync(canonicalPath, 'utf8');
+  const mirrorLines = mirror.split('\n');
+  assert.ok(mirrorLines.length >= 2,
+    'the mirror carries the one header line + the canonical body');
+  assert.ok(mirrorLines[0].indexOf('<!--') === -1,
+    'the mirror header line is markdown text, not an HTML comment');
+  assert.strictEqual(mirrorLines.slice(1).join('\n'), canonical,
+    'mirror bytes after the ONE header line equal the canonical SKILL.md ' +
+    'byte-for-byte (re-copy fresh at build time — the repository copy is truth)');
+  // the site pointer to the mirror is a RELATIVE href — never a fabricated absolute URL
+  const indexHtml = fs.readFileSync(path.join(SITE_DIR, 'index.html'), 'utf8');
+  assert.ok(indexHtml.indexOf('href="skills/wellstreet-vaults.md"') !== -1,
+    'index.html carries the relative mirror href skills/wellstreet-vaults.md');
+  assert.ok(/https?:\/\/[^"']*skills\/wellstreet-vaults\.md/.test(indexHtml) === false,
+    'no fabricated absolute mirror URL in static markup (the mirror stays relative)');
+});
+
+// ---------------- COMPRESSED-KEEPER RIDER (WS-OG-PERF, 2026-09-04) ----------------
+// The statically-wired design-kit keepers serve their compressed variants from
+// site/img/compressed/ (byte-different files, same visual — transfer-weight pass).
+// They enter this gate as RELATIVE self-hosted paths (PASS by classification, the
+// docs/font precedent); this rider pins the count and their relative verdict so a
+// future edit cannot quietly move a keeper to an absolute/external URL or drop the
+// compressed variant. (The JS-appended certificate keeper is pinned in
+// render.test.js / agent-first.test.js — this gate scans HTML/CSS off disk only.)
+test('COMPRESSED-KEEPER RIDER: the four statically-wired keepers ship compressed + relative', () => {
+  const keeperRefs = scanSite().filter(function (x) {
+    return x.channel === 'src' && String(x.url).indexOf('img/compressed/') === 0;
+  });
+  const urls = keeperRefs.map(function (x) { return x.url; }).sort();
+  assert.deepStrictEqual(urls, [
+    'img/compressed/curve-stroke.png',
+    'img/compressed/hand-magnify.png',
+    'img/compressed/hand-point.png',
+    'img/compressed/hand-press.png',
+  ], 'exactly the four compressed keeper srcs are shipped, no more, no fewer');
+  assert.ok(keeperRefs.every(function (x) { return x.verdict === 'pass' && x.kind === 'relative'; }),
+    'every compressed keeper reference is a relative self-hosted path');
+});

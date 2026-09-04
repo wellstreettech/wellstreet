@@ -58,11 +58,11 @@ function countOccurrences(haystack, needle) {
 // every moving surface ships its static pair in the same change).
 //   [file, css class, moving?]
 const ASSET_MOTION = [
-  ['img/hand-point.png', 'asset-point', false],       // hero ledger edge — static by design (index.html comment)
-  ['img/hand-press.png', 'asset-press', true],        // dips ~6px on #btn-deposit hover/focus
-  ['img/hand-magnify.png', 'asset-magnify', true],    // one sweep per refresh cycle, motionAllowed()-gated
-  ['img/curve-stroke.png', 'asset-draw', true],       // clip-path draw-on, IO-armed only
-  ['img/certificate.png', 'asset-certificate', false] // vault-card keeper (appended by main.js) — static
+  ['img/compressed/hand-point.png', 'asset-point', false],       // hero ledger edge — static by design (index.html comment)
+  ['img/compressed/hand-press.png', 'asset-press', true],        // dips ~6px on #btn-deposit hover/focus
+  ['img/compressed/hand-magnify.png', 'asset-magnify', true],    // one sweep per refresh cycle, motionAllowed()-gated
+  ['img/compressed/curve-stroke.png', 'asset-draw', true],       // clip-path draw-on, IO-armed only
+  ['img/compressed/certificate.png', 'asset-certificate', false] // vault-card keeper (appended by main.js) — static
 ];
 
 // ---------------- (a) agent-first section ----------------
@@ -101,12 +101,15 @@ test('(b) every referenced site/img asset is declared with its motion pairing', 
   // + the stylesheet); style.css carries only a prose comment mention (no real
   // URL) — a real url(../img/...) landing later must be declared here too.
   const referenced = new Set();
-  const re = /img\/[A-Za-z0-9._-]+/g;
+  // WS-OG-PERF (2026-09-04): subdirectory-aware — keepers serve from img/compressed/,
+  // so the token class includes '/' to capture the FULL path (a mid-path '/' would
+  // otherwise truncate img/compressed/hand-point.png to a phantom 'img/compressed').
+  const re = /img\/[A-Za-z0-9._/-]+/g;
   for (const src of [html, css].concat(JS_FILES.map((n) => jsSources[n]))) {
     let m;
     while ((m = re.exec(src)) !== null) { referenced.add(m[0]); }
   }
-  assert.ok(referenced.has('img/hand-point.png') && referenced.has('img/certificate.png'),
+  assert.ok(referenced.has('img/compressed/hand-point.png') && referenced.has('img/compressed/certificate.png'),
     'the derivation actually sees the shipped references (sanity)');
   const declared = new Set(ASSET_MOTION.map((a) => a[0]));
   const unknown = Array.from(referenced).filter((f) => !declared.has(f));

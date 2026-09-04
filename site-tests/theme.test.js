@@ -248,7 +248,10 @@ test('(f) frozen copy strings present exactly once each (contains-checks)', () =
   const frozen = [
     'Yield vaults for <span class="punch">tokenized stocks</span>.<br><span class="quiet">Checkable, not sellable.</span>',
     'open-source ERC-4626 vaults and routes liquidity-pool fee income to depositors.',
-    'No audit. Every number on this page is read by your browser straight from public chain nodes.',
+    // WS-OG-PERF (2026-09-04): the meta description was re-locked to the ratified
+    // one-sentence form — the old "No audit. Every number on this page …" meta
+    // string is superseded (the og:description short variant below stays pinned).
+    'Yield vaults for tokenized stocks on Robinhood Chain. Checkable, not sellable — every number verifiable on-chain.',
     'No audit. Every number is read by your browser straight from public chain nodes.',
     '1 · Approve',
     '2 · Deposit',

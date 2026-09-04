@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Wellstreet — open-source ERC-4626 yield vaults for tokenized stocks on Robinhood Chain (chain 4663). No audit. Every number on this page is read by your browser straight from public chain nodes.">
+  <meta name="description" content="Yield vaults for tokenized stocks on Robinhood Chain. Checkable, not sellable — every number verifiable on-chain.">
   <meta property="og:title" content="Wellstreet — yield vaults for tokenized stocks">
   <meta property="og:description" content="Open-source ERC-4626 vaults wrapping tokenized stocks on Robinhood Chain (chain 4663). No audit. Every number is read by your browser straight from public chain nodes.">
   <meta property="og:type" content="website">
@@ -144,7 +144,7 @@
                  self-hosted relative path (zero new origins), purely decorative
                  (aria-hidden, alt=""). Static asset — no motion on this one; hidden
                  <=640px so the stacked card keeps its full measure. -->
-            <img class="asset-point" src="img/hand-point.png" alt="" aria-hidden="true" loading="lazy">
+            <img class="asset-point" src="img/compressed/hand-point.png" width="460" height="259" alt="" aria-hidden="true" loading="lazy">
           </aside>
           <!-- STRATTON-LEDGER-CARD (component a): the mint-ticket product card — a
                SECOND hero card, deliberately coexisting with .hero-ledger above
@@ -338,7 +338,7 @@
                        while #btn-deposit is hovered/focused (120ms transform, the
                        button-visually-depresses pairing from the MOTION MENU), with a
                        prefers-reduced-motion static pair in the stylesheet. -->
-                  <img class="asset-press" src="img/hand-press.png" alt="" aria-hidden="true" loading="lazy">
+                  <img class="asset-press" src="img/compressed/hand-press.png" width="220" height="124" alt="" aria-hidden="true" loading="lazy">
                 </div>
               </div>
             </div>
@@ -446,7 +446,7 @@
                  check-it-yourself motif (design-kit keeper, self-hosted, decorative).
                  Motion: one sweep while a vault re-read is in flight (hooked to the
                  existing refresh cycle in js/main.js), reduced-motion = static. -->
-            <img class="asset-magnify" id="asset-magnify" src="img/hand-magnify.png" alt="" aria-hidden="true" loading="lazy">
+            <img class="asset-magnify" id="asset-magnify" src="img/compressed/hand-magnify.png" width="300" height="166" alt="" aria-hidden="true" loading="lazy">
           </div>
           <p class="block-sub">
             The honest-docs set: how the vault works, what can go wrong, and the exact methodology behind every
@@ -463,7 +463,7 @@
            js/main.js's IntersectionObserver so no-JS environments always see the
            full static stroke; reduced-motion = static). Decorative: aria-hidden. -->
       <div class="curve-divider" aria-hidden="true">
-        <img class="asset-draw" src="img/curve-stroke.png" alt="" loading="lazy">
+        <img class="asset-draw" src="img/compressed/curve-stroke.png" width="1280" height="720" alt="" loading="lazy">
       </div>
 
       <!-- ============ AGENT-FIRST (WS-ASSET-WIRE, 2026-09-04) ============
@@ -471,7 +471,12 @@
            surface is the canonical agent skill in the repository. The href is the
            relative repo path today; js/main.js upgrades it to the published
            repository path the moment cfg.branding.repoUrl lands (it is
-           PENDING_IDENTITY until identity ops — never a fabricated URL). -->
+           PENDING_IDENTITY until identity ops — never a fabricated URL).
+           WS-SKILL-MIRROR (2026-09-04): the section also points at the SITE
+           mirror, site/skills/wellstreet-vaults.md — served at
+           /skills/wellstreet-vaults.md with a RELATIVE href (IPFS-safe, docs-link
+           precedent). The mirror pointer stays relative forever; only the repo
+           pointer is repoUrl-upgraded by main.js. -->
       <section class="block" id="agents">
         <div class="wrap">
           <div class="block-head">
@@ -483,7 +488,9 @@
           <p class="block-sub">
             There is no dashboard to log into: the vault is plain ERC-4626 with public reads, and the
             canonical agent skill lives in the repository at
-            <a id="agents-skill-link" href="skills/wellstreet-vaults/SKILL.md">skills/wellstreet-vaults/SKILL.md</a> —
+            <a id="agents-skill-link" href="skills/wellstreet-vaults/SKILL.md">skills/wellstreet-vaults/SKILL.md</a>
+            — mirrored on this site at
+            <a id="agents-skill-mirror-link" href="skills/wellstreet-vaults.md">skills/wellstreet-vaults.md</a> —
             keyless reads, the approve/deposit/redeem flows, and the fail-closed rules an agent is held to.
             Same contracts. Same rules. Your agent reads the skill and runs the vault.
           </p>

@@ -110,6 +110,9 @@ global.document = {
 // + WS-ASSET-WIRE (2026-09-04) registry add -> 53 in-array ids: the agent-first
 // section (agents + its skill link, queried by main.js's repoUrl upgrade seam)
 // and the magnify-hand img (queried by the refresh-cycle sweep hook).
+// + WS-SKILL-MIRROR (2026-09-04) registry add: agents-skill-mirror-link — the
+// agent-first section's SITE mirror pointer (static page id, never JS-queried;
+// its href stays relative forever — only the repo pointer is repoUrl-upgraded).
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge', 'vault-grid', 'vaults-updated',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
@@ -123,7 +126,7 @@ global.document = {
  'flow-diagram', 'flow-pool-tvl', 'flow-cut', 'flow-vault-state', 'flow-yield',
  'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
  'mint-backed', 'inv-stat', 'invariants',
- 'agents', 'agents-skill-link', 'asset-magnify'
+ 'agents', 'agents-skill-link', 'agents-skill-mirror-link', 'asset-magnify'
 ].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');
@@ -480,8 +483,12 @@ test('WS-ASSET-WIRE: the vault card carries the certificate keeper (decorative, 
   assert.ok(grid, 'vault grid rendered');
   const cert = grid.querySelector('.asset-certificate');
   assert.ok(cert, 'the vault card carries the certificate img');
-  assert.strictEqual(cert.getAttribute('src'), 'img/certificate.png',
-    'certificate src is the relative self-hosted path');
+  assert.strictEqual(cert.getAttribute('src'), 'img/compressed/certificate.png',
+    'certificate src is the relative self-hosted compressed path (WS-OG-PERF)');
+  assert.strictEqual(cert.getAttribute('width'), '240',
+    'certificate carries an explicit width (CLS discipline, JS-appended img)');
+  assert.strictEqual(cert.getAttribute('height'), '129',
+    'certificate carries an explicit height (CLS discipline, JS-appended img)');
   assert.strictEqual(cert.getAttribute('alt'), '', 'certificate is decorative (empty alt)');
   assert.strictEqual(cert.getAttribute('aria-hidden'), 'true', 'certificate is aria-hidden');
 });
@@ -497,12 +504,40 @@ test('WS-ASSET-WIRE: agent-first section ships the honest skill pointer + the ex
   assert.ok(html.indexOf('id="agents"') !== -1, 'agents section present');
   assert.ok(html.indexOf('href="skills/wellstreet-vaults/SKILL.md"') !== -1,
     'the relative repo path is the shipped href');
+  // WS-SKILL-MIRROR (2026-09-04): the SITE mirror pointer ships BESIDE the repo
+  // pointer — relative href (IPFS-safe, docs-link precedent) to the byte-mirror
+  // served at /skills/wellstreet-vaults.md; both pointers stay.
+  assert.ok(html.indexOf('href="skills/wellstreet-vaults.md"') !== -1,
+    'the local site mirror href ships beside the repo pointer');
+  assert.ok(html.indexOf('id="agents-skill-mirror-link"') !== -1,
+    'the mirror pointer is its own anchor (the repo pointer is untouched)');
   assert.ok(/https?:\/\/[^"']*skills\/wellstreet-vaults/.test(html) === false,
     'no fabricated absolute skill URL in static markup (repoUrl is PENDING_IDENTITY)');
   // the four statically-wired keepers (the certificate is JS-appended, pinned above)
-  ['img/hand-point.png', 'img/hand-press.png', 'img/hand-magnify.png', 'img/curve-stroke.png']
+  // WS-OG-PERF (2026-09-04): keepers serve the compressed variants and each img tag
+  // carries explicit width/height (CLS discipline) + loading="lazy" — pinned per tag.
+  ['img/compressed/hand-point.png', 'img/compressed/hand-press.png',
+   'img/compressed/hand-magnify.png', 'img/compressed/curve-stroke.png']
     .forEach(function (src) {
       assert.ok(html.indexOf('src="' + src + '"') !== -1, 'keeper asset wired: ' + src);
+      const tagRe = new RegExp('<img[^>]*src="' + src.replace(/\./g, '\\.') + '"[^>]*>');
+      const tag = tagRe.exec(html);
+      assert.ok(tag, 'keeper img tag found: ' + src);
+      assert.ok(/\bwidth="\d+" /.test(tag[0]) && /\bheight="\d+"/.test(tag[0]),
+        'keeper carries explicit width/height: ' + src);
+      assert.ok(/loading="lazy"/.test(tag[0]), 'keeper is lazy-loaded: ' + src);
+    });
+  // the compressed variants exist on disk with the SAME intrinsic dimensions as the
+  // uncompressed keepers (byte-different, same visual — spot-verified at display size)
+  [['hand-point.png', 460, 259], ['hand-press.png', 220, 124],
+   ['hand-magnify.png', 300, 166], ['curve-stroke.png', 1280, 720]]
+    .forEach(function ([name, w, h]) {
+      const p = path2.join(__dirname, '..', 'site', 'img', 'compressed', name);
+      assert.ok(fs2.existsSync(p), 'compressed keeper exists on disk: img/compressed/' + name);
+      const buf = fs2.readFileSync(p);
+      // PNG IHDR: width @ offset 16, height @ offset 20 (big-endian)
+      assert.strictEqual(buf.readUInt32BE(16), w, 'compressed ' + name + ' intrinsic width');
+      assert.strictEqual(buf.readUInt32BE(20), h, 'compressed ' + name + ' intrinsic height');
     });
 });
 
