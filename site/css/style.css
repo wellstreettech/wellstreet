@@ -404,10 +404,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 @media (max-width: 640px) {
   /* V9-user revision (2026-09-02): NO video and NO poster on mobile — the hero is
      the static dark composition (motif SVG + chips + type). Plain #000 kills the
-     poster background on mobile; .hero-video is also hidden (its desktop-only
-     source cannot match here, and the is-dead path hides the element). */
+     poster and video removed from mobile per user direction (2026-09-02):
+     the mobile hero is the static dark composition — motif + chips + type. */
   .hero { background: #000; }
-  .hero-video { display: none; }
   .site-header .wrap { flex-direction: column; align-items: flex-start; gap: var(--space-8); padding-top: var(--space-12); padding-bottom: var(--space-12); }
   .hero .wrap { padding-top: var(--space-36); padding-bottom: var(--space-32); }
   .hero-facts { flex-direction: column; gap: var(--space-10); } /* pre-existing 400px clip fix (V1-adjacent): facts stack */
@@ -519,11 +518,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 /* motif: behind the hero type (z-index below .wrap), clipped by the hero —
    it can never create horizontal scroll at any width */
 .hero { position: relative; overflow: hidden;
-  /* V9-poster: dark still from the hero video shown whenever the video is
-     hidden (is-dead: reduced-motion / saveData / source error) — the hero
-     keeps its visual on every path instead of collapsing to bare black.
-     The playing video renders ABOVE this; when is-dead hides it, this shows. */
-  background: #000 url("../videos/hero-poster.jpg") center / cover no-repeat; }
+  background: #000; }
 .hero .wrap { position: relative; z-index: 1; }
 .hero-motif {
   position: absolute;
@@ -583,7 +578,6 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   /* V9-user revision: this block sits AFTER the .hero poster rule (:483) so it
      wins the cascade — mobile keeps NO poster and NO video: plain #000 + motif */
   .hero { background: #000; }
-  .hero-video { display: none; }
 }
 
 /* scoped reduced-motion pairing for the WS-HERO-V9 surfaces: the ledger's
@@ -726,31 +720,6 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 #deposit .index { color: #d6d1c0; }  /* warm tan-light — the tan family stepped up for contrast on the dark paper */
 #docs .index    { color: var(--warn); }
 
-/* ============================================================
-   WSV-HERO-VIDEO-LOCK (2026-09-02) — full-bleed hero background
-   video. Self-hosted site/videos/ assets (relative paths, IPFS-safe,
-   zero third-party dependency — the CloudFront URL was REJECTED at
-   the gate). The <video> is the FIRST child of .hero: absolute
-   inset 0 at z-index 0, below .hero .wrap (z-index 1, byte-frozen),
-   exactly like the motif layer it precedes in the DOM. NO palette
-   values are defined here — the dark surface is the dark-token
-   goal's (one palette owner). is-dead (reduced-motion / saveData /
-   source error — JS-driven in main.js, because CSS cannot pause
-   video) reveals the hero's own background composition instead.
-   ============================================================ */
-.hero-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* fallback state: the hero degrades to its static composition —
-   the reference's own pre-play design */
-.hero-video.is-dead { display: none; }
 
 /* ============================================================
    WSV-STATS-REAL-FOOTER (2026-09-02) — count-up stats band as the
@@ -951,12 +920,6 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    construction (mobile ≤640px has no video; reduced-motion hides
    it). Never fires without a real delta — a random pulse would be
    fake liveness. Transform-free: filter + opacity only. */
-#hero-video.video-pulse { animation: ws-video-pulse 350ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1; }
-@keyframes ws-video-pulse {
-  0% { filter: brightness(1); opacity: 1; }
-  40% { filter: brightness(1.18); opacity: 0.96; }
-  100% { filter: brightness(1); opacity: 1; }
-}
 
 /* ---- WOW-8 — ledger stamp: one data-carrying verification accent.
    The hero ledger's value cell stamps the NAME of the read that just
@@ -1224,7 +1187,6 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
   .stat-tick, .stat-band--settle .stat-grid,
   .ledger-row.delta-up, .ledger-row.delta-down,
   #vaults-updated.heartbeat, .hero-ledger-state.is-connecting,
-  #hero-video.video-pulse,
   .flow-rate-fast .flow-path, .flow-rate-mid .flow-path, .flow-rate-slow .flow-path,
   .flow-figure:not(.flow-live) .flow-path--in,
   .ledger-v.ledger-stamp::after,

@@ -117,7 +117,7 @@ global.document = {
  'apr-footnote', 'vaults', 'deposit', 'docs',
  'hero-ledger', 'hero-ledger-state', 'hero-ledger-rows',
  'chip-price', 'chip-tvl', 'chip-apr',
- 'wallet-picker', 'hero-video',
+ 'wallet-picker',
  'stat-tvl', 'stat-price', 'stat-split',
  'stat-tape', 'stat-tick-tvl', 'stat-tick-price',
  'flow-diagram', 'flow-pool-tvl', 'flow-cut', 'flow-vault-state', 'flow-yield',
@@ -358,40 +358,6 @@ test('rpc failover fired only through the configured endpoints under mock transp
   assert.ok(calls.indexOf(config.rpc.endpoints[1]) !== -1, 'secondary endpoint used');
 });
 
-// -------- hero background video riders (WSV-HERO-VIDEO-LOCK: registry-stub driven, no network) --------
-
-test('hero video: reduced motion hides it to the static composition (pause + no autoplay)', () => {
-  const stub = global.document.getElementById('hero-video');
-  const originalMatchMedia = global.window.matchMedia;
-  let paused = false;
-  stub.pause = function () { paused = true; };
-  stub.autoplay = true;
-  stub.classList.remove('is-dead');
-  global.window.matchMedia = function (query) {
-    return { matches: String(query).indexOf('prefers-reduced-motion') !== -1 };
-  };
-  try {
-    global.WS.heroVideo.init(stub);
-  } finally {
-    if (originalMatchMedia === undefined) { delete global.window.matchMedia; }
-    else { global.window.matchMedia = originalMatchMedia; }
-  }
-  assert.ok(paused, 'pause() called on the video element (CSS cannot pause video)');
-  assert.strictEqual(stub.autoplay, false, 'autoplay disabled');
-  assert.ok(stub.classList.contains('is-dead'), 'is-dead added — hide-to-static');
-});
-
-test('hero video: a failed source child marks it dead with no matchMedia stub needed', () => {
-  const stub = global.document.getElementById('hero-video');
-  stub.classList.remove('is-dead');
-  const sourceStub = makeEl('source');
-  stub.appendChild(sourceStub);
-  global.WS.heroVideo.init(stub); // the error attach is unconditional
-  const handlers = sourceStub.listeners.error;
-  assert.ok(Array.isArray(handlers) && handlers.length > 0, 'error listener attached to the source child');
-  handlers[0](); // source-element errors do not bubble to <video>
-  assert.ok(stub.classList.contains('is-dead'), 'is-dead added on source error');
-});
 
 // -------- stats band riders (WSV-STATS-REAL-FOOTER: real figures, chip mirror, pure easing) --------
 

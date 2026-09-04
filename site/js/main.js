@@ -101,10 +101,6 @@
     // never broken). First cycle is a real cycle — the heartbeat may fire;
     // the DELTA flashes below are the path that must skip the first render.
     pulseStamp(!!state.pool);
-    // WOW-4 video pulse: one breath per REAL price/TVL delta, cooldown of one
-    // refresh; prevSnap === null on the first cycle = no pulse (never fake).
-    maybeVideoPulse(prevSnap !== null && !!state.snap &&
-      (prevSnap.priceUsd !== state.snap.priceUsd || prevSnap.tvlWeth !== state.snap.tvlWeth));
   }
 
   function startTimers() {
@@ -557,24 +553,6 @@
   // ---- WOW-4 video pulse: one breath per real delta, cooldown of one refresh ----
   var pulseCycle = 0;
   var lastPulseCycle = -2;
-  var videoPulseTimer = null;
-
-  function maybeVideoPulse(changed) {
-    pulseCycle++;
-    if (!changed) { return; }
-    if (pulseCycle - lastPulseCycle <= 1) { return; }   // breathe at most every other cycle
-    if (!motionAllowed()) { return; }                   // reduced-motion cohort: never mounts
-    var v = $('hero-video');
-    if (!v || !v.classList || v.classList.contains('is-dead')) { return; }   // dead-path no-op
-    lastPulseCycle = pulseCycle;
-    v.classList.remove('video-pulse');
-    if (typeof setTimeout !== 'function') { return; }
-    if (videoPulseTimer && typeof clearTimeout === 'function') { clearTimeout(videoPulseTimer); }
-    videoPulseTimer = setTimeout(function () { v.classList.add('video-pulse'); }, 30);
-    if (typeof videoPulseTimer.unref === 'function') { videoPulseTimer.unref(); }
-    videoPulseTimer = setTimeout(function () { v.classList.remove('video-pulse'); }, 1000);
-    if (typeof videoPulseTimer.unref === 'function') { videoPulseTimer.unref(); }
-  }
 
   // ---- WOW-8 ledger stamp: the value cell names the read that verified ----
   function stampRow(rowEl, readName) {
@@ -1184,45 +1162,6 @@
 
   // ---------- hero background video (WSV-HERO-VIDEO-LOCK) ----------
   // Namespaced seam (WS.heroVideo, same pattern as WS.rpc / WS.wallet) so the
-  // render-test registry stub can drive init directly. The stylesheet's
-  // prefers-reduced-motion guard nullifies animations ONLY — it cannot stop
-  // <video autoplay> — so the pause is JS, feature-detected exactly like
-  // initScrollSpy's IntersectionObserver guard. Outcomes:
-  //   reduce (G6 hide-to-static) / saveData (G3) -> pause + autoplay=false +
-  //     is-dead: the hero's own background composition shows, never a frozen frame
-  //   source/el 'error' -> is-dead (source-element errors do NOT bubble to
-  //     <video>, so BOTH get the listener; the attach is UNCONDITIONAL — outside
-  //     the matchMedia guard — and source-null-safe: the test registry stub is a
-  //     bare div with no source child)
-  // matchMedia unavailable -> the hide branch simply never fires; nothing throws.
-  WS.heroVideo = {
-    init: function (el) {
-      if (!el) { return; }
-      var onDead = function () {
-        if (el.classList) { el.classList.add('is-dead'); }
-      };
-      if (typeof el.addEventListener === 'function') { el.addEventListener('error', onDead); }
-      var src = (el && typeof el.querySelector === 'function') ? el.querySelector('source') : null;
-      if (src && typeof src.addEventListener === 'function') { src.addEventListener('error', onDead); }
-      var hide = false;
-      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-        try {
-          hide = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
-        } catch (err) { hide = false; }
-      }
-      if (!hide) {
-        try {
-          hide = typeof navigator !== 'undefined' && !!navigator.connection &&
-            navigator.connection.saveData === true; // G3: strongest mobile-cost bound
-        } catch (err2) { hide = false; }
-      }
-      if (hide) {
-        if (typeof el.pause === 'function') { el.pause(); }
-        el.autoplay = false;
-        onDead();
-      }
-    }
-  };
 
   // ------------------------------------------------------------------
   // init
@@ -1306,7 +1245,6 @@
 
     // hero background video (WSV-HERO-VIDEO-LOCK) — after the widget wiring,
     // before initDocs(); initScrollSpy's section list stays untouched
-    WS.heroVideo.init($('hero-video'));
 
     initDocs();
     initScrollSpy();
