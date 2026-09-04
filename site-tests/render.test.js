@@ -34,9 +34,6 @@ function matchesSelector(el, sel) {
     const v = el.attrs[attr[1]];
     return attr[2] === undefined ? v !== undefined : v === attr[2];
   }
-  // bare tag selector (e.g. source): a real DOM matches by tag name — the hero
-  // video error rider needs el.querySelector('source') to find the stub child
-  return el.tagName === String(sel).toUpperCase();
 }
 
 function collect(root, sel, out) {
@@ -110,6 +107,9 @@ global.document = {
 // + WS-WOW-BATCH (2026-09-03) registry add -> 50 in-array ids: stat-tape (the
 // band's tape id), the two tape ticks, the money-flow figure + its four bound
 // node ids, and the deposit-simulator block + its five control/region ids.
+// + WS-ASSET-WIRE (2026-09-04) registry add -> 53 in-array ids: the agent-first
+// section (agents + its skill link, queried by main.js's repoUrl upgrade seam)
+// and the magnify-hand img (queried by the refresh-cycle sweep hook).
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge', 'vault-grid', 'vaults-updated',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
@@ -121,7 +121,9 @@ global.document = {
  'stat-tvl', 'stat-price', 'stat-split',
  'stat-tape', 'stat-tick-tvl', 'stat-tick-price',
  'flow-diagram', 'flow-pool-tvl', 'flow-cut', 'flow-vault-state', 'flow-yield',
- 'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection'
+ 'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
+ 'mint-backed', 'inv-stat', 'invariants',
+ 'agents', 'agents-skill-link', 'asset-magnify'
 ].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');
@@ -153,6 +155,7 @@ const SPY = config.tokens.spy.address.toLowerCase();
 const WETH = config.tokens.weth.address.toLowerCase();
 const POOL = config.pools.spyWeth500.address.toLowerCase();
 const FEED = config.priceFeeds.spyUsd.proxies[0].toLowerCase();
+const VAULT = config.vaults[0].vault.toLowerCase();
 
 const LATEST = 50193408;
 const BLOCK_TS_BASE = 1788000000;
@@ -226,6 +229,12 @@ function ethCallResult(to, data) {
       hexWord(nowSec - 3600) +
       hexWord('18446744073709551728');
   }
+  if (toL === VAULT && sel === abi.selectorOf('backingCoverage()')) {
+    // re-pinned 2026-09-04: config flipped to deployed addresses — the coverage seam
+    // now reads the REAL vault address; the mock serves 1e18 (an empty vault's exact
+    // cover, the deployed-but-empty state).
+    return '0x' + hexWord('1000000000000000000');
+  }
   return '0x'; // empty result (honest "unavailable" path if hit)
 }
 
@@ -296,7 +305,9 @@ test('page renders fully from mocked live RPC data (serverless-clean)', async ()
   assert.ok(text.indexOf('fee tier 0.05%') !== -1, 'pool fee tier (live) rendered');
   assert.ok(text.indexOf('TVL') !== -1, 'pool TVL rendered');
   assert.ok(text.indexOf('75%') !== -1, 'LP net multiplier (75%) from live slot0 rendered');
-  assert.ok(text.indexOf('pending deploy') !== -1, 'honest pending-deploy state rendered');
+  // re-pinned 2026-09-04: config flipped to deployed addresses — the honest deployed
+  // register renders (deployed flag + the real contract address), never a pending tag
+  assert.ok(text.indexOf('deployed · ') !== -1, 'honest deployed vault state rendered');
   assert.ok(text.indexOf('not paused') !== -1, 'underlying pause state (live) rendered');
 
   // APR chain: live sample -> labeled projection
@@ -398,7 +409,7 @@ test('WS.stats.easeOutCubic: pure easing math (f(0)=0, f(1)=1, f(0.5)=0.875, mon
 
 // -------- WS-WOW-BATCH riders (2026-09-03: money-flow binding + sim projection verbatim) --------
 
-test('WOW-2 money-flow: nodes bind the same published pipeline reads (schematic pre-deploy)', async () => {
+test('WOW-2 money-flow: nodes bind the same published pipeline reads', async () => {
   await settle(120);
   // pool TVL node: the live figure the ledger already shows (WETH units)
   assert.ok(REGISTRY['flow-pool-tvl'].textContent.indexOf('WETH') !== -1,
@@ -406,11 +417,13 @@ test('WOW-2 money-flow: nodes bind the same published pipeline reads (schematic 
   // cut node: the live-decoded slot0 cut
   assert.ok(REGISTRY['flow-cut'].textContent.indexOf('slot0') !== -1,
     'flow cut bound from the live slot0 decode, got: ' + REGISTRY['flow-cut'].textContent);
-  // vault node: the site's own schematic register pre-deploy (never a fake state).
+  // vault node: the site's own honest register (never a fake state).
   // (The node-class toggle is DOM-nesting-dependent and the registry stub holds
   // bare nodes — the honest-register TEXT is the assertable state here.)
-  assert.ok(REGISTRY['flow-vault-state'].textContent.indexOf('awaiting on-chain deploy') !== -1,
-    'flow vault node renders the honest pending register pre-deploy');
+  // re-pinned 2026-09-04: config flipped to deployed addresses — the node binds the
+  // site's honest deployed register.
+  assert.ok(REGISTRY['flow-vault-state'].textContent.indexOf('deployed — yield phase live') !== -1,
+    'flow vault node renders the honest deployed register');
 });
 
 test('WOW-6 simulator: the projection region consumes the published string verbatim (never recomputed)', async () => {
@@ -422,4 +435,73 @@ test('WOW-6 simulator: the projection region consumes the published string verba
     'the projection carries the ~ register');
   // the default illustrative size renders
   assert.strictEqual(REGISTRY['sim-size'].textContent, '$5,000');
+});
+
+// -------- STRATTON-LEDGER-CARD (2026-09-04: mint ticket + invariants seam) --------
+
+test('STRATTON-LEDGER-CARD: BACKED cell renders the live coverage read under the deployed config (one seam)', async () => {
+  await settle(120);
+  // re-pinned 2026-09-04: config flipped to deployed addresses — the seam now reads
+  // the REAL vault address (the mock serves backingCoverage() = 1e18, an empty
+  // vault's exact cover) and publishes the formatted percentage to BOTH cells.
+  assert.strictEqual(REGISTRY['mint-backed'].textContent, '100.0%',
+    'mint-backed shows the live coverage read, got: ' + REGISTRY['mint-backed'].textContent);
+  // single seam: the invariants-section stat mirrors the mint-card cell byte-for-byte
+  assert.strictEqual(REGISTRY['inv-stat'].textContent, REGISTRY['mint-backed'].textContent,
+    'inv-stat === mint-backed (one published string, two cells)');
+});
+
+// -------- WS-ASSET-WIRE (2026-09-04: design-kit keepers + motion + agent-first) --------
+
+test('WS-ASSET-WIRE: the vault card carries the certificate keeper (decorative, self-hosted)', async () => {
+  await settle(120);
+  // re-pinned 2026-09-04: config flipped to deployed addresses — the keeper rides the
+  // live card too (the deployed vault is empty); the decorative attributes pin holds.
+  const grid = REGISTRY['vault-grid'];
+  assert.ok(grid, 'vault grid rendered');
+  const cert = grid.querySelector('.asset-certificate');
+  assert.ok(cert, 'the vault card carries the certificate img');
+  assert.strictEqual(cert.getAttribute('src'), 'img/certificate.png',
+    'certificate src is the relative self-hosted path');
+  assert.strictEqual(cert.getAttribute('alt'), '', 'certificate is decorative (empty alt)');
+  assert.strictEqual(cert.getAttribute('aria-hidden'), 'true', 'certificate is aria-hidden');
+});
+
+test('WS-ASSET-WIRE: agent-first section ships the honest skill pointer + the exact deadpan line (static source)', () => {
+  const fs2 = require('node:fs');
+  const path2 = require('node:path');
+  const html = fs2.readFileSync(path2.join(__dirname, '..', 'site', 'index.html'), 'utf8');
+  assert.ok(html.indexOf('Operated by agents.') !== -1, 'two-tone headline line 2 present');
+  assert.ok(html.indexOf('Same contracts. Same rules. Your agent reads the skill and runs the vault.') !== -1,
+    'the exact honest agent-first line present');
+  assert.ok(html.indexOf('skills/wellstreet-vaults/SKILL.md') !== -1, 'canonical skill path present');
+  assert.ok(html.indexOf('id="agents"') !== -1, 'agents section present');
+  assert.ok(html.indexOf('href="skills/wellstreet-vaults/SKILL.md"') !== -1,
+    'the relative repo path is the shipped href');
+  assert.ok(/https?:\/\/[^"']*skills\/wellstreet-vaults/.test(html) === false,
+    'no fabricated absolute skill URL in static markup (repoUrl is PENDING_IDENTITY)');
+  // the four statically-wired keepers (the certificate is JS-appended, pinned above)
+  ['img/hand-point.png', 'img/hand-press.png', 'img/hand-magnify.png', 'img/curve-stroke.png']
+    .forEach(function (src) {
+      assert.ok(html.indexOf('src="' + src + '"') !== -1, 'keeper asset wired: ' + src);
+    });
+});
+
+test('WS-ASSET-WIRE: the skill-link upgrade seam is state-agnostic (repoUrl-driven, never fabricated)', async () => {
+  await settle(120);
+  const link = REGISTRY['agents-skill-link'];
+  assert.ok(link, 'skill link registered');
+  const href = link.getAttribute('href');
+  const repoUrl = config.branding && config.branding.repoUrl;
+  if (typeof repoUrl === 'string' && repoUrl.indexOf('https://') === 0) {
+    assert.ok(href && href.indexOf(repoUrl) === 0 && href.indexOf('/skills/wellstreet-vaults/SKILL.md') !== -1,
+      'href upgraded to the published repository path, got: ' + href);
+  } else {
+    // The stub never loads index.html, so this node carries no static href —
+    // the assertable contract under PENDING_IDENTITY is that the writer left
+    // the link untouched (nothing fabricated). The static relative href itself
+    // is pinned by the static-source test above.
+    assert.ok(!href || href.indexOf('https://') !== 0,
+      'no fabricated absolute href under a non-published repoUrl, got: ' + href);
+  }
 });

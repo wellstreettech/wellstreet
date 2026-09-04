@@ -167,3 +167,51 @@ test('yield-seam: the projection label register survives the re-pin untouched', 
   assert.ok(apr.METHODOLOGY_FOOTNOTE.indexOf('0.10%/yr') !== -1, 'the ratified floor is stated plainly');
   assert.ok(apr.METHODOLOGY_FOOTNOTE.indexOf('40.310%/yr') !== -1, 'the ratified pool median is stated plainly');
 });
+
+// ---------------- LAUNCH-FACT-RECONCILE: the launch fact is single-sourced ----------------
+// BYTE-ONLY source gate: fs-reads the site files, never evaluates live config/vault
+// state (a committed isDeployed assert would red CI the day the on-chain state
+// changes — the state check lives in the dispatch-time STATE PROBE instead).
+// QUOTED-LITERAL counting is mandatory: the short literal is a strict SUBSTRING of
+// the long one, so naive substring counting miscounts a CORRECT build.
+test('launch fact single-sourced: one quoted literal per state, statics byte-equal to the constant', () => {
+  const indexSrc = fs.readFileSync(path.join(__dirname, '..', 'site', 'index.html'), 'utf8');
+
+  // (a) each state literal occurs exactly once in main.js as a QUOTED literal
+  assert.strictEqual((mainSrc.match(/'awaiting on-chain deploy'/g) || []).length, 1,
+    'pendingShort quoted exactly once (it is a strict substring of the long form — quote-counting is mandatory)');
+  assert.strictEqual((mainSrc.match(/'awaiting on-chain deploy — yield phase not started'/g) || []).length, 1,
+    'the long pending literal quoted exactly once (inside LAUNCH_FACT)');
+  assert.strictEqual((mainSrc.match(/'deployed — yield phase live'/g) || []).length, 1,
+    'the deployed literal quoted exactly once (inside LAUNCH_FACT)');
+  assert.strictEqual((mainSrc.match(/'The vault is not yet on-chain[^']*'/g) || []).length, 1,
+    'prosePending quoted exactly once');
+  assert.strictEqual((mainSrc.match(/'The vault is on-chain[^']*'/g) || []).length, 1,
+    'proseDeployed quoted exactly once');
+
+  // (b) BYTE-ONLY index.html pins (re-pinned 2026-09-04: Branch B in force — the
+  // config carries the deployed addresses, so the statics carry the deployed
+  // register and the superseded dated prose is gone)
+  assert.strictEqual((indexSrc.match(/deploy\(ed|s\) 20\d\d/g) || []).length, 0,
+    'index.html never hard-dates the deploy fact');
+  assert.strictEqual((indexSrc.match(/awaiting on-chain deploy — yield phase not started/g) || []).length, 0,
+    'the pending long string occurs 0 times in the statics (Branch B)');
+  assert.strictEqual((indexSrc.match(/deployed — yield phase live/g) || []).length, 2,
+    'exactly the two statics (hero-ledger vault row + flow node) carry the deployed register');
+
+  // (c) the writer + its NULL-GUARD exist in main.js (this battery's DOM stub
+  // returns null for EVERY id — init() must not throw)
+  assert.ok(mainSrc.indexOf('vaults-launch-fact') !== -1, 'the launch-fact writer is wired');
+  assert.ok(/var n = \$\('vaults-launch-fact'\);\s*if \(n\)/.test(mainSrc),
+    'the writer is NULL-guarded (if (n) adjacent to the vaults-launch-fact lookup)');
+
+  // (d) the ACTUAL single-source invariant: the static span text is byte-equal to the
+  // proseDeployed value parsed out of the LAUNCH_FACT constant — the two necessary
+  // copies (static first paint/noscript + JS constant) must never re-split.
+  const constMatch = mainSrc.match(/proseDeployed:\s*'([^']*)'/);
+  assert.ok(constMatch, 'proseDeployed parsed out of LAUNCH_FACT in main.js');
+  const spanMatch = indexSrc.match(/id="vaults-launch-fact">([^<]*)<\/span>/);
+  assert.ok(spanMatch, 'the static launch-fact span is present in index.html');
+  assert.strictEqual(spanMatch[1], constMatch[1],
+    'the static span text is byte-equal to proseDeployed');
+});

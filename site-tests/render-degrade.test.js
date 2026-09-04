@@ -35,8 +35,6 @@ function matchesSelector(el, sel) {
     const v = el.attrs[attr[1]];
     return attr[2] === undefined ? v !== undefined : v === attr[2];
   }
-  // bare tag selector (kept in lockstep with render.test.js's stub)
-  return el.tagName === String(sel).toUpperCase();
 }
 
 function collect(root, sel, out) {
@@ -99,8 +97,9 @@ global.document = {
  'apr-footnote', 'vaults', 'deposit', 'docs',
  'hero-ledger', 'hero-ledger-state', 'hero-ledger-rows',
  'chip-price', 'chip-tvl', 'chip-apr',
- 'wallet-picker', 'hero-video',
- 'stat-tvl', 'stat-price', 'stat-split'].forEach(function (id) {
+ 'wallet-picker',
+ 'stat-tvl', 'stat-price', 'stat-split',
+ 'mint-backed', 'inv-stat', 'invariants'].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');
     node.setAttribute('id', id);
@@ -158,4 +157,14 @@ test('stats band degrades honestly under total RPC failure (never 0-as-fake)', a
   // the stat-apr cell keeps its static 'projected' marker child
   const marker = REGISTRY['stat-apr'].parentNode.querySelector('.stat-marker');
   assert.ok(marker && marker.textContent === 'projected', 'projected marker present');
+  // STRATTON-LEDGER-CARD: the coverage seam degrades to the honest failure string
+  // (re-pinned 2026-09-04: config flipped to deployed addresses — the read IS
+  // attempted against the real vault address and reports the failure when the RPC is
+  // down; never a fabricated figure), identical in both cells (one seam).
+  for (let i = 0; i < 150 && REGISTRY['mint-backed'].textContent === ''; i++) { await settle(100); }
+  const failedCoverage = 'unavailable (RPC)';
+  assert.strictEqual(REGISTRY['mint-backed'].textContent, failedCoverage,
+    'mint-backed degrades to the honest failure string, got: ' + REGISTRY['mint-backed'].textContent);
+  assert.strictEqual(REGISTRY['inv-stat'].textContent, failedCoverage,
+    'inv-stat degrades to the honest failure string (single seam)');
 });

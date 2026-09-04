@@ -89,11 +89,11 @@
       weth: '0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73',
       swapRouter02: '0xCaf681a66D020601342297493863E78C959E5cb2',   // verified live (exactInputSingle observed)
       quoterV2: '0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7',
-      // NOT DEPLOYED YET — honest placeholders. Any UI consumer must render
-      // "pending deploy" and disable write flows. Never substitute a real-looking hex.
-      vaultFactory: PENDING_DEPLOY,
-      treasuryTimelock: PENDING_DEPLOY,
-      harvester: PENDING_DEPLOY
+      // DEPLOYED 2026-09-03 (F-01 broadcast, tx-verified; see docs/ops/phase0 + the
+      // audit record). Addresses verified on-chain vs Blockscout + live eth_call.
+      vaultFactory: '0x07446D9807F90eD7ED177Ab63597e8BB4D96428f',
+      treasuryTimelock: '0xD55bA510533dc5a250b4D6d49Ee825113DD69342',
+      harvester: '0xe6c4502cfe17E99475a1B9C8511F47ea38a8A996'
     },
 
     tokens: {
@@ -141,15 +141,15 @@
 
     // ------------------------------------------------------------------
     // Vault registry (frontend view of the protocol). Vault #1 = SPY (ratified at the
-    // GO/NO-GO gate). `vault` is PENDING_DEPLOY until the contracts package lands —
-    // every consumer renders the honest pending state for it.
+    // GO/NO-GO gate). DEPLOYED 2026-09-03 — the address below is the live vault from
+    // the F-01 broadcast, verified on-chain vs Blockscout before pinning.
     // ------------------------------------------------------------------
     vaults: [
       {
         id: 'ws-spy',
         displayName: 'Wellstreet SPY',
         shareSymbol: 'ws-SPY',
-        vault: PENDING_DEPLOY,
+        vault: '0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01',
         asset: '0x117cc2133c37b721f49de2a7a74833232b3b4c0c',
         pool: 'spyWeth500',
         chainlinkFeed: 'spyUsd'

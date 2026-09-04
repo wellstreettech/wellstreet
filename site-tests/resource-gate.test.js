@@ -16,34 +16,26 @@ const path = require('node:path');
 
 const SITE_DIR = path.join(__dirname, '..', 'site');
 
-// ---------------- HOST_ALLOWLIST — exactly 5 hosts, PRE-SEEDED (LOCKED ANSWER Q1) ----
+// ---------------- HOST_ALLOWLIST — exactly 1 host, PRE-SEEDED (LOCKED ANSWER Q1) ----
 // Every entry cites WHY it exists. Adding a host = an explicit, documented decision
 // (the entry AND the reason land in the RE-PIN ADDENDUM in the same commit).
 const HOST_ALLOWLIST = [
   // og:url / og:image / twitter:image — site/index.html :10/:12/:16 at 5c7d791
   // (og:image absolute-URL precedent: crawler-consumed, not page-loaded — V7)
   'wellstreet.tech',
-  // design-ref background video — VIBE repo docs/inventory/DESIGN_REFERENCE_VIDEO_LANDING_2026-09-02.md:27
-  // (read-only citation; that doc lives OUTSIDE this repo). NOTE: the batch's ASSET
-  // DECISION (FIX MAP 2026-09-02) pins the hero video SELF-HOSTED at site/videos/, so
-  // this entry is the reserved seed of the REJECTED CloudFront branch — remove it in
-  // the same commit if the hotlink branch is never taken.
-  'd8j0ntlcm91z4.cloudfront.net',
-  // design-ref :38 (Google Fonts CSS)
-  'fonts.googleapis.com',
-  // design-ref :42 (OnlineWebFonts CSS). Seeding db.onlinewebfonts.com is NOT approval
-  // of the BubbledotICG-FinePos hotlink — licensing/stability remains the tension-5
-  // USER GATE; if the hotlink is rejected, the goal that lands the self-hosted font
-  // removes this entry in the same commit.
-  'db.onlinewebfonts.com',
-  // design-ref :48 (cdnjs CSS)
-  'cdnjs.cloudflare.com'
 ];
 
 // Rider exception list. LOCKED ANSWER Q2 registers the one missing id (wallet-picker)
 // via the render.test.js registry add, so this rider ships EXCEPTION-FREE. Any future
 // entry needs a documented reason here AND in the RE-PIN ADDENDUM.
-const PINNED_EXCEPTIONS = [];
+const PINNED_EXCEPTIONS = [
+  // LAUNCH-FACT-RECONCILE (2026-09-04): #vaults-launch-fact is written by main.js's
+  // NULL-GUARDED launch-fact writer. The LOCKED design keeps the id OUT of every stub
+  // REGISTRY (render/render-degrade/wow) so the null-guard path stays the compliant
+  // one — a registered stub node would mask the guard the wow battery must exercise.
+  // Reason mirrored in VISUAL_IMPROVEMENTS_v11.md → RE-PIN ADDENDUM.
+  'vaults-launch-fact',
+];
 
 // Files consuming a SHARED guard helper carry no guard literal of their own (the
 // helper's file carries the literal) — list such CONSUMER files here to avoid false

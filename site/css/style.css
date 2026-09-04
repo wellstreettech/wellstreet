@@ -11,19 +11,19 @@
    ============================================================ */
 
 :root {
-  --paper: #000000;
-  --paper-2: #17171a;
-  --ink: #ffffff;
-  --ink-soft: #8e8e8e;
-  --line: rgba(255,255,255,0.4);
-  --accent: #2ec27e;      /* deep protocol green — live/positive */
-  --accent-ink: #000000;
-  --warn: #e0654a;        /* honest red — warnings, blocked, unavailable */
-  --code-bg: #131316;
+  --paper: #EDE9DC;       /* light-paper flip (2026-09-04): ratified cream substrate */
+  --paper-2: #E4DFD1;
+  --ink: #1C1A15;         /* freshly authored dark ink (not a dark-era leaver value) */
+  --ink-soft: #5C584C;
+  --line: #C8C1AD;
+  --accent: #00A86B;      /* ratified green — FILL role: buttons/blocks/tags/strokes/chips/CTA */
+  --accent-ink: #1C1A15;  /* dark text on #00A86B fills — 5.6:1 */
+  --accent-text: #0d6b4f; /* NEW: accent-as-TEXT hue, 5.4:1 on --paper — #00A86B itself is 2.5:1 on cream and never renders as text */
+  --warn: #a33a24;        /* honest deep red — warnings, blocked, unavailable (4.9:1 on --paper-2) */
+  --code-bg: #E0D9C9;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --serif: "EB Garamond", Georgia, "Iowan Old Style", "Times New Roman", serif;
-  --font-display: "Doto", var(--mono);   /* display/stat glyph face (WSV-FONTS self-host); fallback = existing mono stack */
   /* motion (R3 IMP-3): one expo family, three durations — timing design instead
      of a single 140ms ease. --motion stays the fast tick alias (V6 role, now
      re-curved); surfaces move at --t-base; the scroll reveal runs --t-slow.
@@ -35,9 +35,9 @@
   --ease-loop: cubic-bezier(0.65, 0, 0.35, 1);  /* symmetric — designed curve for the loops */
   --motion: var(--t-fast) var(--ease-enter);
   --ws-trust-size: clamp(36px, 4.5vw, 42px);
-  --ws-trust-bg: #28282a;
-  --ws-trust-border: rgba(255, 255, 255, 0.4);
-  --ws-trust-text: #c4c2c3;
+  --ws-trust-bg: #F4F0E4;
+  --ws-trust-border: #C8C1AD;
+  --ws-trust-text: #5C584C;
 }
 
 /* Self-hosted OFL webfonts (R2, user-approved): display serif + text sans, both
@@ -57,22 +57,17 @@
   font-style: normal;
   font-display: swap;
 }
-@font-face {
-  font-family: "Doto";
-  src: url('../fonts/doto-var.ttf') format('truetype');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
 
 * { box-sizing: border-box; }
 
 /* R3 IMP-11: brand selection color (was the default UA blue on a green/black brand) */
-::selection { background: rgba(46,194,126,0.35); color: #ffffff; }
+::selection { background: rgba(0,168,107,0.35); color: var(--ink); }
 
 /* R3 IMP-10: progressive enhancement — headline orphans rebalance where
    text-wrap: balance is supported; unsupported browsers ignore it. The h1
-   MARKUP is a byte-frozen copy anchor, so the hard <br> stays (no hero-br). */
+   MARKUP was byte-frozen through WS-COPY-DIFFERENTIATION; the 2026-09-04
+   two-tone re-pin (span.quiet wrap) is the sanctioned exception — the
+   tagline text and the hard <br> still never change. */
 h1 { text-wrap: balance; }
 
 html, body {
@@ -86,7 +81,7 @@ html, body {
 
 body[data-geo-blocked="true"] { background: var(--paper); }
 
-a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; transition: color var(--motion), outline-color var(--motion); }
+a { color: var(--accent-text); text-decoration: underline; text-underline-offset: 2px; transition: color var(--motion), outline-color var(--motion); }
 a:visited { color: var(--accent-visited); }
 a, button, input, [tabindex] { outline: 2px solid transparent; outline-offset: 2px; }
 a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline-color: var(--accent); }
@@ -153,7 +148,13 @@ pre code { background: none; border: none; padding: var(--space-0); }
 .jurisdiction-banner .disclosure { font-family: var(--mono); display: block; margin-top: var(--space-4); }
 
 /* ---------- hero ---------- */
-.hero { border-bottom: 2px solid var(--line); }
+/* hatched band separator (WS-LEDGER-STRUCTURE P1): the plain bottom rule becomes a
+   diagonal-stripe hatch — border-image paints the gradient into the border area
+   (slice 8 = the 8px border width, so the strip renders true 45deg stripes).
+   Tokens only; the transparent fallback keeps no plain line on engines without
+   border-image. One gradient declaration per boundary — .hero and section.block
+   stay two separate rule blocks. */
+.hero { border-bottom: 8px solid transparent; border-image: repeating-linear-gradient(45deg, var(--line) 0 4px, transparent 4px 8px) 8; }
 /* V10 hero whitespace (ens-style breathing room): the wrap centers its stack
    within >=80vh on desktop, so the headline/lede/panel get air above and below
    regardless of content height. Mobile (<=640px) keeps the compact padding
@@ -175,6 +176,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
   letter-spacing: -0.035em;
 }
 .hero h1 .punch { color: var(--accent-punch); } /* V10: punch word steps up to the more saturated protocol green */
+.hero h1 .quiet { color: var(--ink-soft); } /* two-tone deadpan: line 2 recedes, the joke reads quieter than the claim */
 .hero .lede { max-width: 60ch; font-size: var(--step-15); margin: 0 0 var(--space-32) 0; color: var(--ink-soft); } /* R3 IMP-8: the lede takes the 20px role (display register vs the 16px body) */
 .hero-facts {
   /* honest trust row — the reference's ring/pill treatment on the four existing hero facts;
@@ -206,7 +208,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
 .hero-fact .v {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #ffffff;
+  color: var(--ink);
 }
 .hero-fact:nth-child(2) { z-index: 2; }
 .hero-fact:nth-child(3) { z-index: 3; }
@@ -214,7 +216,9 @@ pre code { background: none; border: none; padding: var(--space-0); }
 .hero-fact:first-child { margin-left: 0; }
 
 /* ---------- sections ---------- */
-section.block { border-bottom: 2px solid var(--line); }
+/* hatched band separator (WS-LEDGER-STRUCTURE P1): same hatch as .hero — each
+   boundary is its own rule block with its own gradient declaration. */
+section.block { border-bottom: 8px solid transparent; border-image: repeating-linear-gradient(45deg, var(--line) 0 4px, transparent 4px 8px) 8; }
 /* R3 IMP-6: anchored sections clear the 68px sticky header on nav jumps
    (68px bar + 16px breathing); in-pane doc headings get the same so the
    docs TOC deep links land their heading below the bar. */
@@ -222,7 +226,7 @@ section.block, .hero { scroll-margin-top: 84px; }
 #doc-pane [id] { scroll-margin-top: 84px; }
 section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-48); } /* R3 IMP-13: blocks standardize 64/48 — more air reads more expensive at zero cost */
 .block-head { display: flex; align-items: baseline; gap: var(--space-14); margin-bottom: var(--space-8); }
-.block-head .index { font-family: var(--mono); color: var(--accent); font-weight: 700; font-size: var(--step-6); letter-spacing: 0.22em; } /* V1: section numbers promoted */
+.block-head .index { font-family: var(--mono); color: var(--accent-text); font-weight: 700; font-size: var(--step-6); letter-spacing: 0.22em; } /* V1: section numbers promoted — accent-as-TEXT rides --accent-text on light paper */
 .block-head h2 {
   margin: 0;
   font-family: var(--serif); /* V1 editorial-ledger display */
@@ -248,11 +252,11 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
 .card-row:last-child { border-bottom: none; }
 .row-label { color: var(--ink-soft); flex: 0 0 auto; }
 .row-value { text-align: right; font-family: var(--mono); font-size: var(--step-8); word-break: break-word; font-variant-numeric: tabular-nums; }
-.card-row-strong .row-value strong { color: var(--accent); font-size: var(--step-13); }
+.card-row-strong .row-value strong { color: var(--accent-text); font-size: var(--step-13); }
 .card-note { margin: 0; padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14); font-size: var(--step-4); color: var(--ink-soft); border-top: 1px dotted var(--line-dotted); }
 
 .flag { font-family: var(--mono); font-size: var(--step-6); }
-.flag-ok { color: var(--accent); }
+.flag-ok { color: var(--accent-text); }
 .flag-warn { color: var(--warn); }
 /* V2: the ●/△ status glyphs are aligned (fixed advance) so multi-line flags keep their column */
 .flag .flag-glyph { display: inline-block; min-width: 1.2em; text-align: center; }
@@ -301,6 +305,32 @@ button.btn:hover:not(:disabled) { background: var(--paper-2); }
 button.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 button.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--ink); }
 button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+/* hero CTA pair (WS-LEDGER-STRUCTURE P3, ascetic-degen reference): ONE solid + ONE
+   outlined anchor. Geometry mirrors button.btn above (mono, uppercase, 2px border,
+   44px min-height). These are <a> elements, so both classes explicitly override the
+   global a / a:visited rules — text-decoration none and token colors, visited
+   included. Hover states are PER-CLASS on purpose (never a shared comma-joined
+   hover rule): the solid shifts its fill (the button.btn:hover vocabulary), the
+   outline fills toward its border token. */
+.cta-row { display: flex; flex-wrap: wrap; gap: var(--space-10); margin-top: var(--space-16); }
+.cta-solid {
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--step-4);
+  padding: var(--space-10) var(--space-16); border: 2px solid var(--ink); background: var(--ink); color: var(--paper);
+  text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; border-radius: var(--radius); cursor: pointer;
+  transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter);
+}
+.cta-solid:visited { color: var(--paper); text-decoration: none; }
+.cta-solid:hover { background: var(--paper-2); color: var(--ink); }
+.cta-outline {
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--step-4);
+  padding: var(--space-10) var(--space-16); border: 2px solid var(--ink); background: transparent; color: var(--ink);
+  text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; border-radius: var(--radius); cursor: pointer;
+  transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter);
+}
+.cta-outline:visited { color: var(--ink); text-decoration: none; }
+.cta-outline:hover { background: var(--ink); color: var(--paper); }
 #widget-status { margin-top: var(--space-16); padding: var(--space-10) var(--space-12); border: 2px solid var(--line); background: var(--paper-2); font-size: var(--step-6); min-height: 40px; word-break: break-all; }
 #wallet-balances { margin-top: var(--space-10); font-family: var(--mono); font-size: var(--step-4); color: var(--ink-soft); }
 #acquire-note { margin: var(--space-14) 0 0 0; font-size: var(--step-4); color: var(--ink-soft); }
@@ -374,16 +404,21 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 
 /* ---------- footer ---------- */
-/* R3 IMP-2: the footer joins the identity — deep-ink surface via the
-   --ink-deep token (defined but referenced by zero selectors before this pass;
-   the white --ink flip was a 284px un-owned color event closing a black site).
-   No benchmark ships a light footer on a dark site. */
+/* R3 IMP-2: the footer joins the identity via the --ink-deep token — which the
+   light-paper flip (2026-09-04) re-pinned into the paper family, so the footer
+   renders ink-on-paper like every other band. */
 .site-footer { background: var(--ink-deep); color: var(--ink); }
 .site-footer .wrap { padding-top: var(--space-40); padding-bottom: var(--space-48); } /* R3 IMP-13: footer verticals join the 40/48 pair */
 .site-footer a { color: var(--ink); }
-.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-20); font-size: var(--step-6); }
-.footer-grid .h { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step-1); margin-bottom: var(--space-6); color: var(--footer-muted); }
-.footer-fine { margin-top: var(--space-20); font-size: var(--step-1); color: var(--footer-faint); }
+/* ledger-grid footer (WS-LEDGER-STRUCTURE P2, ascetic-degen reference): the
+   borderless auto-fit grid becomes a hard 1px-bordered ledger table — the grid
+   paints var(--line) beneath a 1px gap so every cell edge shares one hairline,
+   and each column (.footer-col, class-only markup addition) sits on the footer
+   surface. Existing tokens only (--line / --footer-muted); no new token. */
+.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; border: 1px solid var(--line); background: var(--line); font-size: var(--step-6); }
+.footer-col { background: var(--ink-deep); padding: var(--space-14); }
+.footer-grid .h { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step-1); margin-bottom: var(--space-6); color: var(--footer-muted); border: 1px solid var(--footer-muted); padding: var(--space-6) var(--space-8); }
+.footer-fine { margin-top: var(--space-20); font-size: var(--step-1); color: var(--footer-faint); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; } /* P4: mono metadata edge — mirrors the .h precedent (uppercase + tracking, not small-caps) */
 
 /* ---------- geo block page ---------- */
 .geo-block-page { max-width: 760px; margin: 8vh auto; padding: 0 20px; }
@@ -402,13 +437,14 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    V3: mobile keeps its section navigation — the header reflows so the nav
    anchors sit as a compact strip under the brand row instead of being hidden. */
 @media (max-width: 640px) {
-  /* V9-user revision (2026-09-02): NO video and NO poster on mobile — the hero is
-     the static dark composition (motif SVG + chips + type). Plain #000 kills the
-     poster and video removed from mobile per user direction (2026-09-02):
-     the mobile hero is the static dark composition — motif + chips + type. */
-  .hero { background: #000; }
+  /* V9-user revision (2026-09-02): the mobile hero is the static
+     composition (motif SVG + chips + type) — the light-paper flip (2026-09-04)
+     re-pins the explicit background to var(--paper). */
+  .hero { background: var(--paper); }
   .site-header .wrap { flex-direction: column; align-items: flex-start; gap: var(--space-8); padding-top: var(--space-12); padding-bottom: var(--space-12); }
   .hero .wrap { padding-top: var(--space-36); padding-bottom: var(--space-32); }
+  /* hero CTA pair (WS-LEDGER-STRUCTURE P3): the two CTAs stack full-width */
+  .cta-row { flex-direction: column; align-items: stretch; }
   .hero-facts { flex-direction: column; gap: var(--space-10); } /* pre-existing 400px clip fix (V1-adjacent): facts stack */
   /* trust-row mobile: overlap reset */
   .hero-fact { margin-left: 0; min-width: 0; }
@@ -434,18 +470,18 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    declarations stay literal by design (D14 retention). ---------- */
 :root {
   /* color aliases (existing hex values, named) */
-  --paper-raised: #131316;
-  --paper-pending: #101014;
-  --warn-bg: #2a1512;
-  --accent-visited: #27a86c;
-  --accent-hover: #3ad18e;
-  --line-dotted: #4a4a4e; /* opaque — DUAL-USE token: dotted borders AND .hero-chip--tan background under the V10 "four solid pills" comment; a translucent value would composite the tan chip over the hero video layer once the WSV hero goal lands; white chip text ≈ 8.9:1 */
-  /* R3 IMP-2: footer text re-pointed into the dark family on --ink-deep #011A25
-     (was tuned for the white footer). WCAG on #011A25: #a8a8ae = 7.5:1,
-     #8e8e8e = 5.4:1 — both clear AA. The audit's #5a5a60 example measured
-     2.6:1 and was rejected by the contrast re-run. */
-  --footer-muted: #a8a8ae;
-  --footer-faint: #8e8e8e;
+  --paper-raised: #F3EFE3;
+  --paper-pending: #E7E2D4;
+  --warn-bg: #EFD9D1;
+  --accent-visited: #3A6B58;
+  --accent-hover: #0FB879;
+  --line-dotted: #AFA892; /* opaque — dotted-border role only: the light-paper flip SPLIT the old dual-use (the tan chip background moved to --chip-tan below), so a translucent value here would just soften the dotted hairlines */
+  --chip-tan: #D9CFB4;    /* NEW (split from --line-dotted): .hero-chip--tan pill background; chip text stays var(--ink) ≈ 11.2:1 */
+  /* Light-paper flip (2026-09-04): the footer rides --ink-deep re-pinned into
+     the paper family — ink-on-paper footer. WCAG on the #E2DCCB footer surface:
+     #4E4939 = 6.6:1, #615C4C = 4.9:1 — both clear AA. */
+  --footer-muted: #4E4939;
+  --footer-faint: #615C4C;
   /* space scale (px, value-named) */
   --space-0: 0;
   --space-2: 2px;
@@ -497,9 +533,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
      retired: the action class unifies on the pill. */
   --radius: 999px;
   --radius-soft: 12px;
-  --shadow-soft: 0 20px 28px rgba(0,0,0,0.55);
-  --shadow-soft-hover: 0 24px 40px rgba(0,0,0,0.7);
-  --ink-deep: #011A25;
+  --shadow-soft: 0 20px 28px rgba(28, 26, 21, 0.10);
+  --shadow-soft-hover: 0 24px 40px rgba(28, 26, 21, 0.16);
+  --ink-deep: #E2DCCB; /* light-paper flip: footer band surface, re-pinned into the paper family */
 }
 
 /* ============================================================
@@ -518,7 +554,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 /* motif: behind the hero type (z-index below .wrap), clipped by the hero —
    it can never create horizontal scroll at any width */
 .hero { position: relative; overflow: hidden;
-  background: #000; }
+  background: var(--paper); }
 .hero .wrap { position: relative; z-index: 1; }
 .hero-motif {
   position: absolute;
@@ -547,7 +583,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 .hero-ledger-title { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); }
 .hero-ledger-state { font-family: var(--mono); font-size: var(--step-1); text-align: right; }
-.hero-ledger-state.flag-ok { color: var(--accent); }
+.hero-ledger-state.flag-ok { color: var(--accent-text); }
 .hero-ledger-state.flag-warn { color: var(--warn); }
 .hero-ledger-rows { font-variant-numeric: tabular-nums; }
 .ledger-row {
@@ -560,7 +596,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .ledger-k { font-family: var(--serif); font-size: var(--step-11); color: var(--ink); flex: 0 0 auto; }
 .ledger-v { text-align: right; font-family: var(--mono); font-size: var(--step-8); word-break: break-word; font-variant-numeric: tabular-nums; color: var(--ink); }
 .ledger-v .muted { font-size: var(--step-1); }
-.ledger-row-strong .ledger-v strong { color: var(--accent); font-size: var(--step-8); }
+.ledger-row-strong .ledger-v strong { color: var(--accent-text); font-size: var(--step-8); }
 .hero-ledger-note {
   margin: 0;
   padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14);
@@ -569,15 +605,81 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   border-top: 2px solid var(--line);
 }
 
+/* ---------- STRATTON-LEDGER-CARD: mint ticket + invariants section ----------
+   Stratton-grammar transfer (DESIGN_REFERENCE_ASCETIC_DEGEN_2026-09-04.md items 5+6):
+   the ledger-card anatomy (1px-bordered panel, mono small-cap label rows, ink
+   callout, definition-level disclosure) re-used by both the hero .mint-card
+   (index.html co-class .ledger-card) and the #invariants section below. Static
+   components — zero motion, zero new @media, zero new custom properties,
+   token-only. Rows reuse the .ledger-row/.ledger-v anatomy: the
+   ≤640px stacking rules in the media block below are genuinely inherited, not
+   re-implemented. The callout is token-inverted: white-box-in-dark today,
+   ink-callout-on-paper after any future carrier flip. */
+.mint-card {
+  margin: var(--space-24) 0 var(--space-32);
+  max-width: 46rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.mint-card-tag {
+  display: inline-block;
+  margin: var(--space-12) var(--space-12) var(--space-8) var(--space-12);
+  padding: var(--space-2) var(--space-6);
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: var(--step-1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+.mint-card .ledger-k { font-family: var(--mono); } /* mono small-cap labels per the reference grammar — row anatomy otherwise inherited */
+.mint-card-callout {
+  margin: var(--space-12);
+  padding: var(--space-12) var(--space-14);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: var(--step-4);
+  line-height: 1.5;
+}
+#invariants .quiet { color: var(--ink-soft); } /* two-tone headline: line 2 recedes (same treatment as .hero h1 .quiet) */
+.inv-dl { margin: var(--space-24) 0; border-top: 1px solid var(--line); }
+.inv-dl-row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-14);
+  padding: var(--space-10) 0;
+  border-bottom: 1px solid var(--line);
+}
+.inv-dt { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); flex: 0 0 auto; }
+.inv-dd { margin: 0; text-align: right; font-family: var(--mono); font-size: var(--step-8); font-variant-numeric: tabular-nums; word-break: break-word; color: var(--ink); }
+.inv-card {
+  max-width: 46rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: var(--space-14);
+}
+.inv-tag {
+  display: inline-block;
+  padding: var(--space-2) var(--space-6);
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: var(--step-1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+.inv-card h3 { margin: var(--space-10) 0 var(--space-6); font-family: var(--mono); font-size: var(--step-6); text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); }
+.inv-stat-line { margin: 0; font-family: var(--mono); font-size: var(--step-6); color: var(--ink); word-break: break-word; font-variant-numeric: tabular-nums; }
+.inv-disclosure { margin-top: var(--space-12); padding: var(--space-12); background: var(--code-bg); font-size: var(--step-4); color: var(--ink-soft); }
+
 @media (max-width: 640px) {
   /* panel stacks under the hero lede, full measure; motif shrinks + fades */
   .hero-ledger { max-width: none; }
   .ledger-row { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
   .ledger-v { text-align: left; }
   .hero-motif { width: 72vw; top: -12px; right: -48px; opacity: 0.7; }
-  /* V9-user revision: this block sits AFTER the .hero poster rule (:483) so it
-     wins the cascade — mobile keeps NO poster and NO video: plain #000 + motif */
-  .hero { background: #000; }
+  /* V9-user revision: this block sits AFTER the earlier mobile .hero rule so it
+     wins the cascade — the light-paper flip preserves the block ORDER */
+  .hero { background: var(--paper); }
 }
 
 /* scoped reduced-motion pairing for the WS-HERO-V9 surfaces: the ledger's
@@ -607,10 +709,11 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    ============================================================ */
 
 :root {
-  /* V10 color temperature: the punch green steps one notch more saturated
-     toward ens's vivid green (same hue family — identity intact); the chip
-     palette below reuses ONLY existing token hues. No new hue enters. */
-  --accent-punch: #3fe396;
+  /* V10 color temperature, light-paper flip (2026-09-04): the punch direction
+     INVERTS — DEEPEST/most-saturated step of the hue family, because punch is
+     h1 TEXT on cream (the dark-era brightest-tint rule would put ~1.5:1 text
+     on the new paper); the chip palette below reuses ONLY existing token hues. */
+  --accent-punch: #006B45;
 }
 
 .hero-chips {
@@ -659,10 +762,12 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .hero-chip-suffix { opacity: 0.78; }
 
 /* V10 chip palette — four solid pills from the site's own tokens:
-   accent green / ink / warm tan (--line-dotted family) / honest burgundy (--warn) */
-.hero-chip--green { background: var(--accent);      color: var(--paper); }
+   accent green / ink / warm tan (--chip-tan, split from --line-dotted by the
+   light-paper flip) / honest deep red (--warn). The green pill's label rides
+   --accent-ink: cream-on-green measures 2.5:1 on the ratified fill, ink-on-green 5.6:1. */
+.hero-chip--green { background: var(--accent);      color: var(--accent-ink); }
 .hero-chip--ink   { background: var(--ink);         color: var(--paper); }
-.hero-chip--tan   { background: var(--line-dotted); color: var(--ink); }
+.hero-chip--tan   { background: var(--chip-tan);    color: var(--ink); }
 .hero-chip--warn  { background: var(--warn);        color: var(--paper); }
 
 /* positions — mobile first (<=640px): two small corner chips inside the hero's
@@ -717,7 +822,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    rotation (decorative mono numerals — the adjacent h2 carries the meaning;
    data-element hard borders, disclosures, and the paper/ink base untouched) */
 #vaults .index  { color: var(--accent-punch); }
-#deposit .index { color: #d6d1c0; }  /* warm tan-light — the tan family stepped up for contrast on the dark paper */
+#deposit .index { color: var(--ink); }  /* light-paper flip: ink numeral like the other section indices (token, no literal) */
 #docs .index    { color: var(--warn); }
 
 
@@ -731,19 +836,18 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    never animated (a ratified constant is not a measurement).
    Every var() below carries a MANDATORY literal fallback: an
    undefined var() silently invalidates the declaration at
-   computed-value time — invisible text on the video surface,
+   computed-value time — invisible text on the stat band,
    undetectable by the suite. Token names re-pinned at dispatch to
-   the LANDED dark-token contract (:root :13-33: --ink #ffffff is
-   the reference's "Inter white"; --ink-soft #8e8e8e is the
-   reference's muted label color; --font-display is the Doto
-   display/stat glyph face). No CSS animation ships here: the
+   the LANDED light-token contract (--ink #1C1A15 is the ink on
+   paper; --ink-soft #5C584C is the muted label color; --mono is
+   the stat glyph face). No CSS animation ships here: the
    count-up is JS rAF, guarded by main.js's matchMedia consult
    (CSS cannot stop a rAF loop); the page-level
    prefers-reduced-motion guard above stays authoritative.
    ============================================================ */
 .stat-band {
-  border-bottom: 2px solid var(--line, rgba(255, 255, 255, 0.4));
-  background: var(--paper, #000000);
+  border-bottom: 2px solid var(--line, #C8C1AD);
+  background: var(--paper, #EDE9DC);
 }
 .stat-band .wrap {
   padding-top: var(--space-28, 28px);
@@ -762,10 +866,10 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   gap: var(--space-4, 4px);
 }
 .stat-glyph {
-  font-family: var(--font-display, "Doto", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: clamp(22px, 3vw, 33px);
   line-height: 1;
-  color: var(--accent, #2ec27e);
+  color: var(--accent-text, #0d6b4f);
 }
 .stat-value {
   font-family: var(--sans, "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
@@ -773,7 +877,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-weight: 600;
   letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
-  color: var(--ink, #ffffff);
+  color: var(--ink, #1C1A15);
   min-height: 1.2em;
 }
 .stat-label {
@@ -781,20 +885,20 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-size: clamp(11px, 1.2vw, 12.5px);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--ink-soft, #8e8e8e);
+  color: var(--ink-soft, #5C584C);
 }
 .stat-marker {
   display: inline-block;
   align-self: flex-start;
   margin-top: var(--space-2, 2px);
   padding: var(--space-2, 2px) var(--space-8, 8px);
-  border: 1px solid var(--accent, #2ec27e);
+  border: 1px solid var(--accent, #00a86b);
   border-radius: var(--radius, 999px);
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1, 0.6875rem);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent, #2ec27e);
+  color: var(--accent-text, #0d6b4f);
 }
 @media (max-width: 720px) {
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -839,7 +943,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    rest reveal or react to what the pipeline already shows.
    ============================================================ */
 
-/* ---- WOW-1 — Doto live tape: the stat band as a terminal strip.
+/* ---- WOW-1 — live tape: the stat band as a terminal strip.
    A re-roll on change (JS, main.js setStatValue) + a ▲/▼/– delta
    tick that blinks ~1.2s beside the figure that moved, then one
    soft settle-pulse of the band per changed cycle. The projection
@@ -863,9 +967,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   55% { opacity: 1; }
   100% { opacity: 0; }
 }
-.stat-tick--up { color: var(--accent-punch, #3fe396); }
-.stat-tick--down { color: var(--warn, #e0654a); }
-.stat-tick--flat { color: var(--ink-soft, #8e8e8e); }
+.stat-tick--up { color: var(--accent-punch, #006B45); }
+.stat-tick--down { color: var(--warn, #a33a24); }
+.stat-tick--flat { color: var(--ink-soft, #5C584C); }
 .stat-band--settle .stat-grid { animation: ws-band-settle 600ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 1; }
 @keyframes ws-band-settle {
   0% { opacity: 0.72; transform: translateY(2px); }
@@ -882,30 +986,30 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .ledger-row.delta-up { animation: ws-delta-up 600ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1; }
 .ledger-row.delta-down { animation: ws-delta-down 600ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1; }
 @keyframes ws-delta-up {
-  0% { background-color: rgba(46, 194, 126, 0.16); }
+  0% { background-color: rgba(0, 168, 107, 0.16); }
   100% { background-color: transparent; }
 }
 @keyframes ws-delta-down {
-  0% { background-color: rgba(224, 101, 74, 0.16); }
+  0% { background-color: rgba(163, 58, 36, 0.16); }
   100% { background-color: transparent; }
 }
 .ledger-row.delta-up::after {
   content: ' ▲';
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1, 0.6875rem);
-  color: var(--accent, #2ec27e);
+  color: var(--accent-text, #0d6b4f);
 }
 .ledger-row.delta-down::after {
   content: ' ▼';
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1, 0.6875rem);
-  color: var(--warn, #e0654a);
+  color: var(--warn, #a33a24);
 }
 #vaults-updated.heartbeat {
-  color: var(--accent, #2ec27e);
+  color: var(--accent-text, #0d6b4f);
   animation: ws-heartbeat 900ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1;
 }
-#vaults-updated.heartbeat-dim { color: var(--ink-soft, #8e8e8e); }
+#vaults-updated.heartbeat-dim { color: var(--ink-soft, #5C584C); }
 @keyframes ws-heartbeat {
   0% { opacity: 0.55; }
   100% { opacity: 1; }
@@ -913,13 +1017,6 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .hero-ledger-state.is-connecting {
   animation: ws-state-pulse 1.8s var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) infinite;
 }
-
-/* ---- WOW-4 — video pulse: the hero film breathes with the tape.
-   One ~350ms brightness swell per REAL price/TVL delta, cooldown of
-   one refresh (JS), desktop + motion-enabled cohort only by
-   construction (mobile ≤640px has no video; reduced-motion hides
-   it). Never fires without a real delta — a random pulse would be
-   fake liveness. Transform-free: filter + opacity only. */
 
 /* ---- WOW-8 — ledger stamp: one data-carrying verification accent.
    The hero ledger's value cell stamps the NAME of the read that just
@@ -930,7 +1027,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   content: '✓ ' attr(data-stamp);
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1, 0.6875rem);
-  color: var(--accent, #2ec27e);
+  color: var(--accent-text, #0d6b4f);
   margin-left: var(--space-8, 8px);
   animation: ws-stamp-fade 900ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) forwards;
 }
@@ -950,8 +1047,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    The 90/10 split is geometry (the split bar), not a caption. */
 .flow-figure {
   position: relative;
-  border-bottom: 2px solid var(--line, rgba(255, 255, 255, 0.4));
-  background: var(--paper-raised, #131316);
+  border-bottom: 2px solid var(--line, #C8C1AD);
+  background: var(--paper-raised, #F3EFE3);
   overflow: hidden;
   margin: 0;
 }
@@ -969,12 +1066,12 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 .flow-path {
   fill: none;
-  stroke: var(--accent, #2ec27e);
+  stroke: var(--accent, #00a86b);
   stroke-width: 2;
   stroke-dasharray: 6 6;
   opacity: 0.7;
 }
-.flow-path--cut { stroke: var(--ink-soft, #8e8e8e); }
+.flow-path--cut { stroke: var(--ink-soft, #5C584C); }
 .flow-rate-fast .flow-path { animation: ws-flow 1.6s linear infinite; }
 .flow-rate-mid .flow-path { animation: ws-flow 3.2s linear infinite; }
 .flow-rate-slow .flow-path { animation: ws-flow 6.4s linear infinite; }
@@ -995,8 +1092,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   flex-direction: column;
   gap: var(--space-6, 6px);
   min-width: 0;
-  border: 2px solid var(--line, rgba(255, 255, 255, 0.4));
-  background: var(--paper, #000000);
+  border: 2px solid var(--line, #C8C1AD);
+  background: var(--paper, #EDE9DC);
   padding: var(--space-14, 14px);
 }
 .flow-node-k {
@@ -1004,34 +1101,34 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-size: var(--step-1, 0.6875rem);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--ink-soft, #8e8e8e);
+  color: var(--ink-soft, #5C584C);
 }
 .flow-node-v {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-8, 0.875rem);
-  color: var(--ink, #ffffff);
+  color: var(--ink, #1C1A15);
   font-variant-numeric: tabular-nums;
   word-break: break-word;
 }
-.flow-node-sub { font-size: var(--step-4, 0.78125rem); color: var(--ink-soft, #8e8e8e); }
-.flow-node--schematic { border-style: dashed; background: var(--paper-pending, #101014); }
-.flow-node--live { border-color: var(--accent, #2ec27e); }
+.flow-node-sub { font-size: var(--step-4, 0.78125rem); color: var(--ink-soft, #5C584C); }
+.flow-node--schematic { border-style: dashed; background: var(--paper-pending, #E7E2D4); }
+.flow-node--live { border-color: var(--accent, #00a86b); }
 .flow-split {
   display: flex;
   height: 8px;
-  border: 1px solid var(--line, rgba(255, 255, 255, 0.4));
+  border: 1px solid var(--line, #C8C1AD);
 }
-.flow-split-dep { flex: 0 0 90%; background: var(--accent, #2ec27e); }
-.flow-split-prot { flex: 1; background: var(--paper-2, #17171a); }
+.flow-split-dep { flex: 0 0 90%; background: var(--accent, #00a86b); }
+.flow-split-prot { flex: 1; background: var(--paper-2, #E4DFD1); }
 .flow-yield {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-6, 0.84375rem);
-  color: var(--accent, #2ec27e);
+  color: var(--accent-text, #0d6b4f);
 }
 .flow-caption {
   margin-top: var(--space-16, 16px);
   font-size: var(--step-4, 0.78125rem);
-  color: var(--ink-soft, #8e8e8e);
+  color: var(--ink-soft, #5C584C);
 }
 .flow-caption-note { display: block; max-width: 72ch; }
 @media (max-width: 720px) {
@@ -1045,8 +1142,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    formula's INPUT share (size ÷ live pool TVL), transform-only. */
 .apr-sim {
   margin-top: var(--space-24, 24px);
-  border: 2px solid var(--line, rgba(255, 255, 255, 0.4));
-  background: var(--paper-raised, #131316);
+  border: 2px solid var(--line, #C8C1AD);
+  background: var(--paper-raised, #F3EFE3);
   padding: var(--space-16, 16px);
   display: flex;
   flex-direction: column;
@@ -1065,19 +1162,19 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-size: var(--step-1, 0.6875rem);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--ink-soft, #8e8e8e);
+  color: var(--ink-soft, #5C584C);
 }
 .sim-slider-label {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1, 0.6875rem);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--ink-soft, #8e8e8e);
+  color: var(--ink-soft, #5C584C);
 }
 #sim-slider {
   width: 100%;
   min-height: 44px;   /* money-path mobile ergonomics floor */
-  accent-color: var(--accent, #2ec27e);
+  accent-color: var(--accent, #00a86b);
   background: transparent;
   font-size: var(--step-11, 1rem);
 }
@@ -1091,7 +1188,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   flex-direction: column;
   gap: var(--space-6, 6px);
   min-width: 0;
-  border: 1px dotted var(--line-dotted, #4a4a4e);
+  border: 1px dotted var(--line-dotted, #AFA892);
   padding: var(--space-12, 12px);
 }
 .sim-region-k {
@@ -1099,28 +1196,28 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-size: var(--step-1, 0.6875rem);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--ink-soft, #8e8e8e);
+  color: var(--ink-soft, #5C584C);
 }
 .sim-region-v {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-11, 1rem);
-  color: var(--ink, #ffffff);
+  color: var(--ink, #1C1A15);
   font-variant-numeric: tabular-nums;
   word-break: break-word;
 }
-.sim-region-sub { font-size: var(--step-4, 0.78125rem); color: var(--ink-soft, #8e8e8e); }
-.sim-region--static .sim-region-v { color: var(--ink-soft, #8e8e8e); }
+.sim-region-sub { font-size: var(--step-4, 0.78125rem); color: var(--ink-soft, #5C584C); }
+.sim-region--static .sim-region-v { color: var(--ink-soft, #5C584C); }
 .sim-bar {
   display: block;
   height: 10px;
-  border: 1px solid var(--line, rgba(255, 255, 255, 0.4));
-  background: var(--paper, #000000);
+  border: 1px solid var(--line, #C8C1AD);
+  background: var(--paper, #EDE9DC);
 }
 .sim-bar-fill {
   display: block;
   height: 100%;
   width: 100%;
-  background: var(--accent, #2ec27e);
+  background: var(--accent, #00a86b);
   transform-origin: 0 50%;
   transform: scaleX(0);
   transition: transform var(--t-base, 200ms) var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1));
@@ -1201,4 +1298,96 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
   .ledger-v.ledger-stamp::after { opacity: 0.9; }
   .scroll-reveal .ledger-row, .flow-figure.ws-reveal .flow-node { opacity: 1; transform: none; }
   .sim-bar-fill { transition: none; }
+}
+
+/* ============================================================
+   WS-ASSET-WIRE (2026-09-04) — design-kit asset wiring + motion.
+   The user-ratified halftone-dithered keepers (site/img/, copied +
+   resized from docs/internal/design-kit/): sleeve-point hand at the
+   hero ledger card edge, magnify-hand in the Docs header, press-hand
+   beside the deposit button, one curve-stroke section divider, and
+   the certificate in the vault pending card (that img is appended by
+   js/main.js's pending-card shell). All decorative (aria-hidden or
+   alt=""), self-hosted relative paths, token-only colors.
+   Motion per the MOTION MENU: transform/clip-path only, every moving
+   surface with a prefers-reduced-motion static pair in this same
+   change (no-preference gating + an explicit reduce block). */
+#agents .quiet { color: var(--ink-soft); } /* two-tone headline: line 2 recedes (same treatment as .hero h1 .quiet) */
+.hero-ledger { position: relative; }  /* anchor for the overlapping point-hand */
+.asset-point {
+  position: absolute;
+  /* floats above the card's top-right corner, fingertip dipping over the edge —
+     the ratified draft composition; the arm/sleeve occupies the hero's empty
+     upper-right gutter (the lede/CTA stack is left-aligned), so no copy is
+     occluded. px offsets follow the .hero-motif precedent. */
+  top: -104px;
+  right: -12px;
+  width: clamp(140px, 18vw, 230px);
+  height: auto;
+  pointer-events: none;
+}
+.asset-magnify {
+  width: clamp(88px, 11vw, 150px);
+  height: auto;
+  align-self: center;
+  flex: 0 0 auto;
+  pointer-events: none;
+}
+.asset-press {
+  width: clamp(64px, 8vw, 110px);
+  height: auto;
+  align-self: center;
+  flex: 0 0 auto;
+  margin-left: var(--space-4);
+  pointer-events: none;
+}
+.vault-card { position: relative; }  /* anchor for the certificate — re-pinned 2026-09-04: the keeper rides live cards too (deployed-but-empty state) */
+.asset-certificate {
+  position: absolute;
+  top: var(--space-12);
+  right: var(--space-12);
+  width: clamp(84px, 10vw, 120px);
+  height: auto;
+  opacity: 0.9;
+  pointer-events: none;
+}
+.curve-divider { display: flex; justify-content: center; padding: 0 var(--space-20); }
+.curve-divider .asset-draw { width: min(640px, 82vw); height: auto; }
+
+/* ---- asset motion (MOTION MENU): gated to prefers-reduced-motion: no-preference
+   so reduced-motion users get the static assets by construction; the reduce block
+   below restates the static pair belt-and-braces. Transform/clip-path only. */
+@media (prefers-reduced-motion: no-preference) {
+  /* press-hand dips ~6px while the deposit button is hovered/focused (120ms —
+     the button-visually-depresses pairing); #btn-deposit:hover ~ works because
+     the img follows the button inside the same .btn-row */
+  .asset-press { transition: transform var(--t-fast) var(--ease-enter); }
+  #btn-deposit:hover ~ .asset-press,
+  #btn-deposit:focus-visible ~ .asset-press { transform: translateY(6px); }
+  /* magnify-hand: one sweep while a vault re-read is in flight — the class is
+     added by js/main.js on the existing refresh cycle (the WOW-8/ledger-stamp
+     trigger), gated there by the shared motionAllowed() matchMedia guard */
+  .asset-magnify.asset-sweep { animation: asset-magnify-sweep 900ms var(--ease-enter) 1 both; }
+  /* curve divider: left-to-right draw-on on scroll-in — armed ONLY by
+     js/main.js's IntersectionObserver (no-JS = always the full static stroke) */
+  .asset-draw { transition: clip-path 900ms var(--ease-enter); }
+  .asset-draw.asset-draw-arm { clip-path: inset(0 100% 0 0); }
+  .asset-draw.asset-draw-in { clip-path: inset(0 0 0 0); }
+}
+@keyframes asset-magnify-sweep {
+  0% { transform: translateX(0) rotate(0deg); }
+  45% { transform: translateX(14px) rotate(6deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .asset-press { transition: none; transform: none; }
+  .asset-magnify.asset-sweep { animation: none; }
+  .asset-draw { clip-path: none; transition: none; }
+}
+
+/* mobile (<=640px): the hero point-hand hides so the stacked ledger card keeps
+   its full measure; the other keepers scale down via their clamps and need no
+   extra rule. */
+@media (max-width: 640px) {
+  .asset-point { display: none; }
 }

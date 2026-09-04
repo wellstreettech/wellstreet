@@ -80,6 +80,35 @@
     };
   }
 
+  // ---------------- backingCoverage (STRATTON-LEDGER-CARD) ----------------
+  // YieldShares.backingCoverage() returns ONE 1e18-fixed-point word: the vault's raw
+  // asset balance scaled against the accounted figure (deposits plus credited yield).
+  // ==1e18 exact cover · >1e18 unaccounted excess · an empty vault reads 1e18 (no
+  // accounted liability) · below 1.0 only after an issuer burn. Source of truth:
+  // src/YieldShares.sol:152 (verified on-chain view; this is the frontend seam only).
+
+  // PURE: decode the single return word. Honest null on empty/failed decode —
+  // never 0, never a fabricated figure (vault.js null-guard convention).
+  function decodeBackingCoverage(raw) {
+    var abi = root.WS.abi;
+    if (raw === null || raw === undefined) { return null; }
+    if (abi.wordCount(raw) < 1) { return null; }
+    return abi.decodeUint(raw, 0);
+  }
+
+  // PURE: 1e18-fixed-point word -> percentage string, one decimal, TRUNCATED toward
+  // zero (BigInt division truncates) — a 99.95%-covered vault reads "99.9%", never
+  // "100.0%". Never clamped, never rounded up: under-coverage is displayed honestly,
+  // and excess above 1.0 is shown as-is (199.9%, not capped at 100).
+  function formatCoveragePct(raw) {
+    var cov = decodeBackingCoverage(raw);
+    if (cov === null) { return null; }
+    var tenths = cov / 1000000000000000n;   // 1e15: integer tenths of a percent
+    var whole = tenths / 10n;
+    var frac = tenths % 10n;
+    return whole.toString() + '.' + frac.toString() + '%';
+  }
+
   // ---------------- live reads ----------------
 
   async function ethCall(client, to, data) {
@@ -212,6 +241,21 @@
     };
   }
 
+  // Live backingCoverage read (STRATTON-LEDGER-CARD). Returns the RAW response word
+  // (formatCoveragePct consumes it); honest null when the address is not deployed
+  // (the PENDING_DEPLOY branch NEVER issues the eth_call), the call fails, or the
+  // decode is empty — the caller renders "unavailable (RPC)", never a fabricated figure.
+  async function readBackingCoverage(client, vaultAddr) {
+    if (!isDeployed(vaultAddr)) { return null; }
+    var abi = root.WS.abi;
+    try {
+      var raw = await ethCall(client, vaultAddr, abi.selectorOf('backingCoverage()'));
+      return decodeBackingCoverage(raw) === null ? null : raw;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Factory registry — PENDING_DEPLOY until identity/deploy. Interface candidates are
   // documented deploy-prep verification items (see file header).
   async function readFactoryVaults(client, factoryAddr) {
@@ -271,6 +315,9 @@
     readPriceUsd: readPriceUsd,
     readPoolSnapshot: readPoolSnapshot,
     readFactoryVaults: readFactoryVaults,
-    readVaultSnapshot: readVaultSnapshot
+    readVaultSnapshot: readVaultSnapshot,
+    decodeBackingCoverage: decodeBackingCoverage,
+    formatCoveragePct: formatCoveragePct,
+    readBackingCoverage: readBackingCoverage
   };
 });

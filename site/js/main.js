@@ -12,6 +12,13 @@
   if (!WS || !WS.config) { return; }
   var cfg = WS.config;
 
+  // LAUNCH-FACT-RECONCILE (2026-09-04, Branch B): the launch fact is SINGLE-SOURCED.
+  // Each state literal below is the only quoted occurrence in this file — every
+  // consumer reads the constant, and the static span (#vaults-launch-fact in
+  // index.html) stays byte-equal to proseDeployed (wow.test.js pins both sides).
+  // Undated by design (a hard date in code goes stale) and carries no yield promise.
+  var LAUNCH_FACT = { pendingShort: 'awaiting on-chain deploy', pending: 'awaiting on-chain deploy — yield phase not started', deployed: 'deployed — yield phase live', prosePending: 'The vault is not yet on-chain — factory, timelock, harvester and vault land on Robinhood Chain; these cards read the pending state until then.', proseDeployed: 'The vault is on-chain — four contracts on Robinhood Chain, verifiable at the exact addresses these cards read.' };
+
   function $(id) { return document.getElementById(id); }
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -60,7 +67,7 @@
     apr: null,           // last APR derivation
     vaultDeployed: false,
     lastUpdated: null,   // timestamp of the last successful card refresh
-    snap: null,          // {priceUsd, tvlWeth} — this cycle's snapshot (WOW-4 diff)
+    snap: null,          // {priceUsd, tvlWeth} — this cycle's snapshot (diffed for the tape's tick glyphs)
     prevDeployed: undefined // previous isDeployed reading (WOW-3 launch-flip key)
   };
 
@@ -90,6 +97,9 @@
 
   async function refreshCards() {
     if (flowPending || !anyVisible() || !state.client) { return; }
+    // WS-ASSET-WIRE: the magnify-hand sweeps once while THIS re-read is in
+    // flight (the same per-cycle trigger family as the WOW-8 ledger stamp).
+    sweepMagnifier();
     var prevSnap = state.snap ? { priceUsd: state.snap.priceUsd, tvlWeth: state.snap.tvlWeth } : null;
     for (var i = 0; i < cards.length; i++) {
       await loadVaultData(cards[i].vaultCfg, cards[i].mounts);
@@ -140,8 +150,19 @@
     var sym = el('span', 'share-symbol', vaultCfg.shareSymbol);
     head.appendChild(title);
     head.appendChild(sym);
-    if (pending) { head.appendChild(el('span', 'pending-tag', 'awaiting on-chain deploy')); }
+    if (pending) { head.appendChild(el('span', 'pending-tag', LAUNCH_FACT.pendingShort)); }
     card.appendChild(head);
+    // WS-ASSET-WIRE: the share-certificate keeper marks the pending/empty card
+    // (decorative: aria-hidden; self-hosted relative path; styled in the
+    // stylesheet against .vault-card--pending).
+    // re-pinned 2026-09-04: config flipped to deployed addresses — the keeper rides
+    // the live card too (the deployed vault is empty; the empty card is its state).
+    var cert = el('img', 'asset-certificate');
+    cert.setAttribute('src', 'img/certificate.png');
+    cert.setAttribute('alt', '');
+    cert.setAttribute('aria-hidden', 'true');
+    cert.setAttribute('loading', 'lazy');
+    card.appendChild(cert);
     var rows = el('div', 'card-rows');
     card.appendChild(rows);
     var note = el('p', 'card-note');
@@ -289,8 +310,8 @@
     //    its terse 90/10 + chain display cell.)
     rowsBox.appendChild(ledgerRow('Vault state',
       WS.vault.isDeployed(vaultCfg().vault)
-        ? flagNode(true, 'deployed — yield phase live')
-        : flagNode(false, 'awaiting on-chain deploy — yield phase not started'),
+        ? flagNode(true, LAUNCH_FACT.deployed)
+        : flagNode(false, LAUNCH_FACT.pending),
       'ledger-row-strong'));
 
     // Hero chips (WS-HERO-CHIPS-V10): decorative duplicates of the rows above.
@@ -351,7 +372,7 @@
   // (the render-test stub ships none of them) or prefers-reduced-motion
   // matches, finals are written synchronously via textContent and the path
   // never throws. The easing fn is exposed pure as WS.stats.easeOutCubic
-  // (same namespaced-seam pattern as WS.heroVideo / WS.rpc / WS.wallet).
+  // (same namespaced-seam pattern as WS.rpc / WS.wallet).
   // ------------------------------------------------------------------
   var STAT_IDS = ['stat-tvl', 'stat-price', 'stat-apr'];   // animated three ONLY
   var STAT_ANIM_BASE_MS = 1500;
@@ -463,7 +484,7 @@
   // fan-out (state.snap / statState / publish()) — zero new fetches,
   // zero new hosts (D8); zero quantities recomputed. Pure helpers are
   // exposed as WS.wow for the unit battery (same namespaced-seam
-  // pattern as WS.stats / WS.heroVideo).
+  // pattern as WS.stats).
   // ==================================================================
 
   // ---- WOW-1 tape: the two LIVE cells only (projection + split excluded) ----
@@ -550,9 +571,21 @@
     if (typeof stampTimer.unref === 'function') { stampTimer.unref(); }
   }
 
-  // ---- WOW-4 video pulse: one breath per real delta, cooldown of one refresh ----
-  var pulseCycle = 0;
-  var lastPulseCycle = -2;
+  // ---- WS-ASSET-WIRE: the magnify-hand sweeps once while a vault re-read is in
+  // flight — hooked to the SAME per-cycle refresh trigger as the WOW-7 heartbeat,
+  // never to a value: a sweep is a "checking" gesture, not a signal about the
+  // data. Gated by the shared motionAllowed() matchMedia guard (reduced motion =
+  // static asset) and null-safe under every DOM stub. Re-trigger pattern mirrors
+  // pulseStamp (remove, re-add on a tick so the one-shot animation can replay). ----
+  var sweepTimer = null;
+  function sweepMagnifier() {
+    var n = $('asset-magnify');
+    if (!n || !n.classList || !motionAllowed() || typeof setTimeout !== 'function') { return; }
+    n.classList.remove('asset-sweep');
+    if (sweepTimer && typeof clearTimeout === 'function') { clearTimeout(sweepTimer); }
+    sweepTimer = setTimeout(function () { n.classList.add('asset-sweep'); }, 30);
+    if (typeof sweepTimer.unref === 'function') { sweepTimer.unref(); }
+  }
 
   // ---- WOW-8 ledger stamp: the value cell names the read that verified ----
   function stampRow(rowEl, readName) {
@@ -607,8 +640,8 @@
     var v = $('flow-vault-state');
     if (v) {
       v.textContent = deployed
-        ? 'deployed — yield phase live'
-        : 'awaiting on-chain deploy — yield phase not started';
+        ? LAUNCH_FACT.deployed
+        : LAUNCH_FACT.pending;
     }
   }
 
@@ -721,6 +754,29 @@
     return row('└ pool net fee APR (methodology input)', frag);
   }
 
+  // STRATTON-LEDGER-CARD: the mint-card BACKED row and the invariants-section live
+  // stat are ONE seam — this single fill point writes the IDENTICAL string into both
+  // cells (mirroring the stat-apr===chip-apr precedent). The PENDING_DEPLOY branch
+  // writes the wiring-truth string and NEVER issues the eth_call (isDeployed gate
+  // inside WS.vault.readBackingCoverage); a failed/undecodable live read renders
+  // "unavailable (RPC)" — never a fabricated figure, never a non-deployment claim.
+  var PENDING_COVERAGE_TEXT = 'awaiting address wiring — coverage goes live when the vault address is published';
+
+  function fillBackingCoverage(client, vCfg) {
+    var cells = [$('mint-backed'), $('inv-stat')];
+    function writeAll(t) {
+      cells.forEach(function (c) { if (c) { c.textContent = t; } });
+    }
+    if (!WS.vault.isDeployed(vCfg.vault)) { writeAll(PENDING_COVERAGE_TEXT); return; }
+    if (!client) { writeAll('unavailable (RPC)'); return; }
+    WS.vault.readBackingCoverage(client, vCfg.vault).then(function (raw) {
+      var pct = raw === null ? null : WS.vault.formatCoveragePct(raw);
+      writeAll(pct === null ? 'unavailable (RPC)' : pct);
+    }).catch(function () {
+      writeAll('unavailable (RPC)');
+    });
+  }
+
   async function loadVaultData(vaultCfg, mounts) {
     var client = state.client;
     if (!client) { return; }
@@ -748,11 +804,16 @@
     var price = await priceP;
 
     state.pool = pool;
-    // WOW-4 diff snapshot: the two live quantities the tape/video pulse react to.
+    // diff snapshot: the live quantities the tape's tick glyphs react to (refreshCards prevSnap).
     state.snap = {
       priceUsd: price && price.usd != null && isFinite(price.usd) ? price.usd : null,
       tvlWeth: pool && pool.tvlToken0 ? pool.tvlToken0 : null
     };
+
+    // STRATTON-LEDGER-CARD: single shared fill point for #mint-backed + #inv-stat —
+    // placed BEFORE the renderLedger branch split so both the no-USD first paint and
+    // the live branch leave the two cells identical.
+    fillBackingCoverage(client, vaultCfg);
 
     // hero ledger (WS-HERO-V9): first paint from the same snapshot the cards
     // just rendered; the USD TVL lands via deriveApr below.
@@ -1160,8 +1221,30 @@
     }
   }
 
-  // ---------- hero background video (WSV-HERO-VIDEO-LOCK) ----------
-  // Namespaced seam (WS.heroVideo, same pattern as WS.rpc / WS.wallet) so the
+  // ---------------- asset draw-on (WS-ASSET-WIRE) ----------------
+  // The curve-stroke divider reveals left-to-right on scroll-in (clip-path
+  // transition — the ink-laid-down feel on real dither pixels). Armed ONLY here
+  // (the .asset-draw-arm class is added by this function), so no-JS and
+  // no-IntersectionObserver environments always see the full static stroke.
+  // Reduced motion: the stylesheet's no-preference gating + reduce block make
+  // the armed state a no-op — the asset stays static and fully visible.
+  function initAssetDraw() {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) { return; }
+    var curves = document.body.querySelectorAll('.asset-draw');
+    if (!curves.length) { return; }
+    var io = new IntersectionObserver(function (entries) {
+      for (var k = 0; k < entries.length; k++) {
+        if (entries[k].isIntersecting && entries[k].target.classList) {
+          entries[k].target.classList.add('asset-draw-in');
+          entries[k].target.classList.remove('asset-draw-arm');
+          io.unobserve(entries[k].target);
+        }
+      }
+    }, { threshold: 0.25 });
+    for (var t = 0; t < curves.length; t++) {
+      if (curves[t].classList) { curves[t].classList.add('asset-draw-arm'); io.observe(curves[t]); }
+    }
+  }
 
   // ------------------------------------------------------------------
   // init
@@ -1188,6 +1271,13 @@
     if (fn) { fn.textContent = WS.apr.METHODOLOGY_FOOTNOTE; }
     var wc = $('widget-chain');
     if (wc) { wc.textContent = 'expects chain ' + cfg.chain.id + ' (' + cfg.chain.name + ')'; }
+
+    // LAUNCH-FACT-RECONCILE: the launch-fact span is state-driven off the SAME
+    // isDeployed seam the cards/ledger/flow read (the static first paint in
+    // index.html carries the same prose for noscript users). NULL-GUARDED —
+    // the wow-battery DOM stub returns null for every id; init() must not throw.
+    var n = $('vaults-launch-fact');
+    if (n) { n.textContent = WS.vault.isDeployed(cfg.vaults[0].vault) ? LAUNCH_FACT.proseDeployed : LAUNCH_FACT.prosePending; }
 
     // stats band (WSV-STATS-REAL-FOOTER): the 90/10 + chain cell is a ratified
     // economic constant — final value rendered ONCE from config (never
@@ -1243,12 +1333,25 @@
 
     renderWidgetState();
 
-    // hero background video (WSV-HERO-VIDEO-LOCK) — after the widget wiring,
-    // before initDocs(); initScrollSpy's section list stays untouched
-
     initDocs();
     initScrollSpy();
     initReveal();   // R3 IMP-3: after the cards render — arms .ws-reveal on section heads + vault cards
+    initAssetDraw();  // WS-ASSET-WIRE: arms the curve divider's scroll-in draw-on
+
+    // WS-ASSET-WIRE: the agent-first section's skill link ships pointing at the
+    // relative repository path; it upgrades to the published repository URL the
+    // moment cfg.branding.repoUrl lands (it is PENDING_IDENTITY until identity
+    // ops — the static relative href is the honest placeholder, never a
+    // fabricated URL, mirroring the pending-address convention).
+    var skillLink = $('agents-skill-link');
+    if (skillLink && skillLink.setAttribute) {
+      var repoUrl = cfg.branding && cfg.branding.repoUrl;
+      if (typeof repoUrl === 'string' && repoUrl.indexOf('https://') === 0) {
+        skillLink.setAttribute('href', repoUrl.replace(/\/+$/, '') + '/skills/wellstreet-vaults/SKILL.md');
+        skillLink.setAttribute('target', '_blank');
+        skillLink.setAttribute('rel', 'noopener');
+      }
+    }
   }
 
   if (document.readyState === 'loading') {

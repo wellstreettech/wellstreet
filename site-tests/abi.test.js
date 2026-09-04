@@ -139,5 +139,9 @@ test('sameAddress is case-insensitive; isAddress rejects junk', () => {
   );
   assert.strictEqual(abi.isAddress('0x117cc2133c37B721F49dE2A7a74833232B3B4C0C'), true);
   assert.strictEqual(abi.isAddress('not an address'), false);
-  assert.strictEqual(abi.isAddress(config.contracts.vaultFactory), false); // PENDING_DEPLOY placeholder
+  // re-pinned 2026-09-04: config flipped to deployed addresses — vaultFactory is a
+  // REAL address now (isAddress must accept it); the junk-rejection invariant stays
+  // pinned on the literal junk inputs (prose + wrong-length hex).
+  assert.strictEqual(abi.isAddress(config.contracts.vaultFactory), true); // deployed factory
+  assert.strictEqual(abi.isAddress('0x1234'), false); // wrong-length hex is still junk
 });

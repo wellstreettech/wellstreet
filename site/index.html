@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="color-scheme: light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,14 +14,14 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://wellstreet.tech/og.png">
-  <meta name="theme-color" content="#000000">
-  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#EDE9DC">
+  <meta name="color-scheme" content="light">
   <title>Wellstreet — yield vaults for tokenized stocks</title>
   <link rel="stylesheet" href="css/style.css">
   <!-- R3 IMP-11: favicon rebuilt to match the masthead plate — square --paper-2
        fill, 2px --line border, serif W (EB Garamond with Georgia fallback; the
        favicon context cannot load webfonts). Inline data-URI, zero new files. -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2317171a'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%23ffffff' stroke-opacity='0.4' stroke-width='2'/%3E%3Ctext x='32' y='45' font-family='EB Garamond,Georgia,serif' font-size='38' text-anchor='middle' fill='%23ffffff'%3EW%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23E4DFD1'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%231C1A15' stroke-opacity='0.4' stroke-width='2'/%3E%3Ctext x='32' y='45' font-family='EB Garamond,Georgia,serif' font-size='38' text-anchor='middle' fill='%231C1A15'%3EW%3C/text%3E%3C/svg%3E">
 </head>
 <body>
   <noscript>
@@ -72,15 +72,15 @@
         <svg class="hero-motif" viewBox="0 0 520 520" aria-hidden="true" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="ws-motif-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-              <path d="M32 0H0V32" fill="none" stroke="rgba(46,194,126,0.09)" stroke-width="1"/>
+              <path d="M32 0H0V32" fill="none" stroke="rgba(0,168,107,0.09)" stroke-width="1"/>
             </pattern>
           </defs>
           <rect width="520" height="520" fill="url(#ws-motif-grid)"/>
-          <path d="M472 56H248a56 56 0 0 1-56 56v176" fill="none" stroke="rgba(46,194,126,0.22)" stroke-width="10" stroke-linecap="round"/>
-          <path d="M48 472h104a44 44 0 0 0 44-44v-92" fill="none" stroke="rgba(46,194,126,0.14)" stroke-width="8" stroke-linecap="round"/>
-          <circle cx="192" cy="312" r="7" fill="rgba(46,194,126,0.25)"/>
-          <rect x="424" y="40" width="32" height="32" fill="rgba(46,194,126,0.10)"/>
-          <rect x="40" y="40" width="16" height="16" fill="rgba(46,194,126,0.14)"/>
+          <path d="M472 56H248a56 56 0 0 1-56 56v176" fill="none" stroke="rgba(0,168,107,0.22)" stroke-width="10" stroke-linecap="round"/>
+          <path d="M48 472h104a44 44 0 0 0 44-44v-92" fill="none" stroke="rgba(0,168,107,0.14)" stroke-width="8" stroke-linecap="round"/>
+          <circle cx="192" cy="312" r="7" fill="rgba(0,168,107,0.25)"/>
+          <rect x="424" y="40" width="32" height="32" fill="rgba(0,168,107,0.10)"/>
+          <rect x="40" y="40" width="16" height="16" fill="rgba(0,168,107,0.14)"/>
         </svg>
         <!-- Floating live-data chips (WS-HERO-CHIPS-V10): ens.domains-style
              scatter carrying REAL pipeline figures instead of decoration. The
@@ -102,10 +102,15 @@
           <span class="hero-chip hero-chip--tan hero-chip--chain"><span class="hero-chip-label">RH · 4663</span></span>
         </div>
         <div class="wrap">
-          <h1>Yield vaults for <span class="punch">tokenized stocks</span>.<br>Checkable, not sellable.</h1>
-          <!-- Copy review 2026-09-03: benefit bridge + skeptic CTA (copy-only, no new classes/resources). -->
+          <h1>Yield vaults for <span class="punch">tokenized stocks</span>.<br><span class="quiet">Checkable, not sellable.</span></h1>
+          <!-- Copy review 2026-09-03: benefit bridge + skeptic CTA. WS-LEDGER-STRUCTURE
+               (2026-09-04): the skeptic link became a two-CTA row — solid primary to
+               the deposit widget + outlined secondary to the docs. -->
           <p>Every number on this page is something you can verify yourself — no trust in us, an auditor, or a screenshot required.</p>
-          <a href="#docs">Read the code →</a>
+          <div class="cta-row">
+            <a class="cta-solid" href="#deposit">Deposit →</a>
+            <a class="cta-outline" href="#docs">Read the code →</a>
+          </div>
           <p class="lede">
             Wellstreet wraps on-chain stock tokens (starting with the S&amp;P 500 ETF token "SPY" on Robinhood Chain,
             chain&nbsp;4663) in open-source ERC-4626 vaults and routes liquidity-pool fee income to depositors.
@@ -130,9 +135,31 @@
               <div class="ledger-row"><span class="ledger-k">SPY / WETH (pool slot0)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
               <div class="ledger-row"><span class="ledger-k">Pool TVL (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
               <div class="ledger-row"><span class="ledger-k">Pool protocol cut (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
-              <div class="ledger-row"><span class="ledger-k">Vault state</span><span class="ledger-v">awaiting on-chain deploy — yield phase not started</span></div>
+              <div class="ledger-row"><span class="ledger-k">Vault state</span><span class="ledger-v">deployed — yield phase live</span></div>
             </div>
             <p class="hero-ledger-note">Every figure above is read by your browser straight from public RPC nodes — no backend, no keys. When a read fails, the row says so instead of estimating.</p>
+            <!-- WS-ASSET-WIRE (2026-09-04): sleeve-point hand from the user-ratified
+                 design kit (docs/internal/design-kit/), overlapping the ledger card's
+                 edge — the ratified draft composition. Halftone-dithered cutout,
+                 self-hosted relative path (zero new origins), purely decorative
+                 (aria-hidden, alt=""). Static asset — no motion on this one; hidden
+                 <=640px so the stacked card keeps its full measure. -->
+            <img class="asset-point" src="img/hand-point.png" alt="" aria-hidden="true" loading="lazy">
+          </aside>
+          <!-- STRATTON-LEDGER-CARD (component a): the mint-ticket product card — a
+               SECOND hero card, deliberately coexisting with .hero-ledger above
+               (transitional state per the COEXISTENCE PIN; the hero-recompose goal
+               owns any merge). Rows reuse the .ledger-row anatomy; #mint-backed is
+               the live BACKED cell filled by main.js's single coverage seam.
+               .ledger-card is the component's own co-class (the stratton
+               ledger-card anatomy: 1px border, mono label rows, outline tag). -->
+          <aside class="mint-card ledger-card" aria-label="Deposit facts">
+            <span class="mint-card-tag">MINT TICKET</span>
+            <div class="ledger-row"><span class="ledger-k">DEPOSIT</span><span class="ledger-v">SPY (on-chain stock token)</span></div>
+            <div class="ledger-row"><span class="ledger-k">SETTLED AT</span><span class="ledger-v">Robinhood Chain (chainId 4663)</span></div>
+            <div class="ledger-row"><span class="ledger-k">YOU RECEIVE</span><span class="ledger-v">ws-SPY shares — never rebased</span></div>
+            <div class="ledger-row"><span class="ledger-k">BACKED</span><span class="ledger-v" id="mint-backed">awaiting address wiring — coverage goes live when the vault address is published</span></div>
+            <div class="mint-card-callout">One token is one share. If the share value doubles, your tokens double. Nothing rebases.</div>
           </aside>
           <div class="hero-facts">
             <div class="hero-fact">
@@ -235,7 +262,7 @@
             </div>
             <div class="flow-node flow-node--vault flow-node--schematic">
               <span class="flow-node-k">The vault</span>
-              <span class="flow-node-v" id="flow-vault-state">awaiting on-chain deploy — yield phase not started</span>
+              <span class="flow-node-v" id="flow-vault-state">deployed — yield phase live</span>
               <span class="flow-split" aria-hidden="true"><span class="flow-split-dep"></span><span class="flow-split-prot"></span></span>
               <span class="flow-node-sub">90% depositors / 10% protocol (ratified)</span>
               <span class="flow-yield" id="flow-yield"></span>
@@ -258,8 +285,7 @@
           </div>
           <p class="block-sub">
             Token state, pool balances, the pool's price and its owner-set fee cut (decoded from the pool's own
-            <code>slot0</code>). The vault deployed 2026-09-03 — four contracts on Robinhood Chain,
-            verifiable at the exact addresses these cards read.
+            <code>slot0</code>) — the raw reads, not a summary of them. <span id="vaults-launch-fact">The vault is on-chain — four contracts on Robinhood Chain, verifiable at the exact addresses these cards read.</span>
           </p>
           <div id="vault-grid"></div>
           <div class="apr-footnote" id="apr-footnote">
@@ -298,6 +324,12 @@
                 <div class="btn-row">
                   <button type="button" class="btn" id="btn-approve" disabled>1 · Approve</button>
                   <button type="button" class="btn btn-primary" id="btn-deposit" disabled>2 · Deposit</button>
+                  <!-- WS-ASSET-WIRE (2026-09-04): press-hand beside the deposit button
+                       (design-kit keeper, self-hosted, decorative). Motion: dips ~6px
+                       while #btn-deposit is hovered/focused (120ms transform, the
+                       button-visually-depresses pairing from the MOTION MENU), with a
+                       prefers-reduced-motion static pair in the stylesheet. -->
+                  <img class="asset-press" src="img/hand-press.png" alt="" aria-hidden="true" loading="lazy">
                 </div>
               </div>
             </div>
@@ -364,21 +396,88 @@
         </div>
       </section>
 
+      <!-- ============ INVARIANTS (STRATTON-LEDGER-CARD, component b) ============
+           Stratton-grammar transfer (reference item 6): the checkable-docs voice as
+           a layout — the invariant stated two-tone, the mono-label definition list,
+           and the "Backing Invariant" card carrying the live on-chain measurement
+           (#inv-stat — SAME published string as #mint-backed, one seam) plus a
+           definition-level mechanism disclosure. Describes the mechanism; never a
+           promise. -->
+      <section class="block" id="invariants">
+        <div class="wrap">
+          <div class="block-head">
+            <span class="index">03</span>
+            <h2>One token is one share.<br><span class="quiet">Not one dollar.</span></h2>
+            <span class="spacer"></span>
+            <span class="muted">defined below — measured live on-chain</span>
+          </div>
+          <dl class="inv-dl">
+            <div class="inv-dl-row"><dt class="inv-dt">BALANCE</dt><dd class="inv-dd">1 share</dd></div>
+            <div class="inv-dl-row"><dt class="inv-dt">NEVER REBASES</dt><dd class="inv-dd">Never</dd></div>
+            <div class="inv-dl-row"><dt class="inv-dt">MINT / REDEEM ARB</dt><dd class="inv-dd">Multiple</dd></div>
+          </dl>
+          <div class="inv-card">
+            <span class="inv-tag">DEFINITION-LEVEL GUARANTEE</span>
+            <h3>Backing Invariant</h3>
+            <p class="inv-stat-line"><span id="inv-stat">awaiting address wiring — coverage goes live when the vault address is published</span></p>
+            <div class="inv-disclosure">coverage = the vault's raw asset balance divided by the accounted figure (deposits plus credited yield — harvest credits raise it without minting shares), readable on-chain via <code>backingCoverage()</code>; 1e18 = exact cover (an empty vault reads 1e18: no accounted liability); above 1e18 is unaccounted excess (donations/uncredited yield); below 1.0 only after an issuer burn; redemptions are served until the balance is exhausted.</div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ DOCS TAB ============ -->
       <section class="block" id="docs">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">03</span>
+            <span class="index">04</span>
             <h2>Docs</h2>
             <span class="spacer"></span>
             <span class="muted">markdown, rendered locally — no analytics, no tracking</span>
+            <!-- WS-ASSET-WIRE (2026-09-04): magnify-hand in the Docs header — the
+                 check-it-yourself motif (design-kit keeper, self-hosted, decorative).
+                 Motion: one sweep while a vault re-read is in flight (hooked to the
+                 existing refresh cycle in js/main.js), reduced-motion = static. -->
+            <img class="asset-magnify" id="asset-magnify" src="img/hand-magnify.png" alt="" aria-hidden="true" loading="lazy">
           </div>
           <p class="block-sub">
             The honest-docs set: how the vault works, what can go wrong, and the exact methodology behind every
-            number this page shows. Docs load from a relative path (IPFS-ready) and render in your browser.
+            number this page shows — written to be checked, not to be believed. Docs load from a relative path (IPFS-ready) and render in your browser.
           </p>
           <div id="doc-tabs"></div>
           <div id="doc-pane" role="tabpanel" tabindex="0"></div>
+        </div>
+      </section>
+
+      <!-- ============ CURVE DIVIDER (WS-ASSET-WIRE, 2026-09-04) ============
+           One section divider from the design-kit curve stroke — the "ink laid
+           down" reveal runs left-to-right on scroll-in (clip-path, armed ONLY by
+           js/main.js's IntersectionObserver so no-JS environments always see the
+           full static stroke; reduced-motion = static). Decorative: aria-hidden. -->
+      <div class="curve-divider" aria-hidden="true">
+        <img class="asset-draw" src="img/curve-stroke.png" alt="" loading="lazy">
+      </div>
+
+      <!-- ============ AGENT-FIRST (WS-ASSET-WIRE, 2026-09-04) ============
+           Two audiences, one site (design-ref MESSAGING SHIFT): the machine
+           surface is the canonical agent skill in the repository. The href is the
+           relative repo path today; js/main.js upgrades it to the published
+           repository path the moment cfg.branding.repoUrl lands (it is
+           PENDING_IDENTITY until identity ops — never a fabricated URL). -->
+      <section class="block" id="agents">
+        <div class="wrap">
+          <div class="block-head">
+            <span class="index">05</span>
+            <h2>Built for humans.<br><span class="quiet">Operated by agents.</span></h2>
+            <span class="spacer"></span>
+            <span class="muted">the machine surface is a skill file</span>
+          </div>
+          <p class="block-sub">
+            There is no dashboard to log into: the vault is plain ERC-4626 with public reads, and the
+            canonical agent skill lives in the repository at
+            <a id="agents-skill-link" href="skills/wellstreet-vaults/SKILL.md">skills/wellstreet-vaults/SKILL.md</a> —
+            keyless reads, the approve/deposit/redeem flows, and the fail-closed rules an agent is held to.
+            Same contracts. Same rules. Your agent reads the skill and runs the vault.
+          </p>
         </div>
       </section>
     </main>
@@ -386,19 +485,19 @@
     <footer class="site-footer">
       <div class="wrap">
         <div class="footer-grid">
-          <div>
+          <div class="footer-col">
             <div class="h">Protocol</div>
             <div>wellstreet.tech (canonical) · wellstreet.eth (ENS + IPFS mirror)</div>
             <div>Chain 4663 (Robinhood Chain) · ERC-4626 · Uniswap V3 fee harvesting</div>
           </div>
-          <div>
+          <div class="footer-col">
             <div class="h">Source &amp; license</div>
             <div>Open source. MIT. No company behind it. Owner controls live behind a public 48-hour timelock. Run it yourself.</div>
             <div>Every other yield vault asks you to trust a company, an audit, and a founder. This one asks you to read.</div>
             <div>Source repository publishes with the new identity at launch (placeholder until then).</div>
             <div>No audit. Verify the contracts yourself; the docs tell you exactly how.</div>
           </div>
-          <div>
+          <div class="footer-col">
             <div class="h">Honesty line</div>
             <div>Nothing on this page is an offer, a promise, or financial advice. Yield figures are projections
             tied to a published methodology and can go to zero with pool activity.</div>
