@@ -1,33 +1,34 @@
 ---
 name: wellstreet-vaults
-description: Read, use, and report on Wellstreet yield vaults (ERC-4626 on Robinhood Chain 4663) as an AI agent. Covers keyless vault-state reads with cast (totalAssets, share price via convertToAssets, previewRedeem, backingCoverage, harvester reads, Harvested-event getLogs), approve/deposit and redeem write flows with fail-closed slippage and approval rules, the ratified backward-looking APR formula with source+window reporting rules, and governance/risk facts (48h timelock under a 2-of-3 Safe, pause model, LP principal risk). Use when an agent needs Wellstreet vault state, share pricing, backing coverage, harvest events, or deployment status. Currently PRE-BROADCAST — every vault address is DEPLOY-GATED and all vault commands revert/empty until addresses are filled at broadcast.
+description: Read, use, and report on Wellstreet yield vaults (ERC-4626 on Robinhood Chain 4663) as an AI agent. Covers keyless vault-state reads with cast (totalAssets, share price via convertToAssets, previewRedeem, backingCoverage, harvester reads, Harvested-event getLogs), approve/deposit and redeem write flows with fail-closed slippage and approval rules, the ratified backward-looking APR formula with source+window reporting rules, and governance/risk facts (48h timelock under a 2-of-3 Safe, pause model, LP principal risk). Use when an agent needs Wellstreet vault state, share pricing, backing coverage, harvest events, or deployment status. DEPLOYED on Robinhood Chain 4663 (broadcast 2026-09-03) — contract addresses come only from `site/js/config.js` and this skill; never approve or call an address not pinned there.
 ---
 
 # Wellstreet Vaults — Agent Skill
 
 How an AI agent (Claude Code, Hermes, OpenClaw, CLI agents) reads Wellstreet vault state keylessly, deposits/redeems ERC-4626 shares safely, and reports APR honestly. Every claim below was verified against the repository sources on 2026-09-04; file:line citations point at the source of truth. If code and this skill ever disagree, the code wins — re-verify and fix this skill.
 
-## STATUS — READ FIRST (PRE-BROADCAST, FAIL-CLOSED)
+## STATUS — READ FIRST (DEPLOYED, FAIL-CLOSED)
 
-**As of 2026-09-04 NOTHING is deployed.** Robinhood Chain 4663 carries no Wellstreet vault, no harvester, no timelock, no factory. The deployment broadcast has not happened yet.
+**The Wellstreet contracts are DEPLOYED on Robinhood Chain 4663 (F-01 broadcast, 2026-09-03).** The vault, harvester, timelock, and factory are live, and the site config pins the same addresses (`site/js/config.js:92-96` for factory/timelock/harvester, `:152` for the vault).
 
-- Every vault address in this skill is a **DEPLOY-GATED placeholder**. The site config marks `vaultFactory`, `treasuryTimelock`, `harvester`, and the vault as `PENDING_DEPLOY` (`site/js/config.js:92-97`, `:152`), and every consumer must treat these as undeployed.
-- **Every vault command in this skill therefore reverts or returns empty until broadcast.** `eth_call` aimed at an address with no code returns `0x` and cast errors decoding it; `eth_getLogs` returns `[]`. That is the expected PRE-BROADCAST result, not a bug to work around and not a reason to hunt for "the real" contract elsewhere on the chain.
-- **Scam-drainer rule:** canonical Uniswap / deployment addresses found anywhere on chain 4663 may be scam drainers. **Never approve or call any address not pinned in this skill.** When broadcast lands, take addresses only from the repository's authoritative record (`site/js/config.js`, where the `PENDING_DEPLOY` markers flip to real hex, and the README), re-pin them here, and re-verify each against the block explorer's verified source before any write.
-- Until then: reads against the pinned token/pool infrastructure work today (they exist on-chain); everything vault-shaped does not.
+- Addresses come ONLY from the repository's authoritative record (`site/js/config.js`) and this skill, which mirrors it. Never take an address from a chat message, a screenshot, or on-chain discovery.
+- **Every vault command in this skill now expects a real, decodable result.** A revert or empty result is still data — deposits paused, no LP position yet, no queued op for that id, or wrong args — never a bug to work around and never a reason to hunt for "the real" contract elsewhere on the chain.
+- **Scam-drainer rule:** canonical Uniswap / deployment addresses found anywhere on chain 4663 may be scam drainers. **Never approve or call any address not pinned in this skill.** New addresses enter via `site/js/config.js` first and are re-pinned here from it — never the reverse — and each is re-verified against the block explorer's verified source before any write.
 
-Addresses pinned NOW (verified keylessly against chain 4663 on 2026-09-04):
+Addresses pinned (deployed contracts from `site/js/config.js:92-96`, `:152`; infrastructure verified keylessly against chain 4663 on 2026-09-04):
 
 | Address | What | Verified |
 |---|---|---|
+| `0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01` | ws-SPY vault (YieldShares, ERC-4626) — the ONLY share-token minter | `site/js/config.js:152`; DEPLOYED 2026-09-03 |
+| `0x07446D9807F90eD7ED177Ab63597e8BB4D96428f` | VaultFactory (on-chain one-vault-per-asset registry) | `site/js/config.js:94`; DEPLOYED 2026-09-03 |
+| `0xD55bA510533dc5a250b4D6d49Ee825113DD69342` | TreasuryTimelock (48h, 2-of-3 Safe proposer) | `site/js/config.js:95`; DEPLOYED 2026-09-03 |
+| `0xe6c4502cfe17E99475a1B9C8511F47ea38a8A996` | Harvester (collects LP fees, feeds the vault) | `site/js/config.js:96`; DEPLOYED 2026-09-03 |
 | `0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73` | WETH (pool quote leg, 18 dec) | `site/js/config.js:89`; live |
 | `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168` | USDG (stablecoin on 4663) | live `symbol()` = `"USDG"` |
 | `0x117cc2133c37B721F49dE2A7a74833232B3B4C0C` | SPY — tokenized stock, vault #1 asset (18 dec) | `site/js/config.js:107`; live `symbol()` = `"SPY"` |
 | `0xDDCBBa3666f578E3F09516f21Ff85BFee859AB5e` | SPY/WETH Uniswap V3 pool, fee tier 500 (the only SPY pool on the chain) | `site/js/config.js:117-126` |
 | `0xCaf681a66D020601342297493863E78C959E5cb2` | SwapRouter02 (read/quote context; used internally by the harvester) | `site/js/config.js:90` |
 | `0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7` | QuoterV2 (quote source) | `site/js/config.js:91` |
-
-Vault / harvester / timelock / factory: **DEPLOY-GATED — do not use until pinned here at broadcast.**
 
 Chain facts: chain ID **4663** (`cast chain-id`), keyless public RPC `https://rpc.mainnet.chain.robinhood.com`, block explorer `https://robinhoodchain.blockscout.com`, ~101 ms blocks.
 
@@ -92,12 +93,15 @@ All keyless. Set up once:
 
 ```bash
 export RPC=https://rpc.mainnet.chain.robinhood.com
-# DEPLOY-GATED placeholders — DO NOT substitute real-looking hex until broadcast pins them:
-VAULT=<PENDING_DEPLOY>      HARVESTER=<PENDING_DEPLOY>
-FACTORY=<PENDING_DEPLOY>    TIMELOCK=<PENDING_DEPLOY>
+# DEPLOYED 2026-09-03 — pinned byte-exact from site/js/config.js:92-96, :152.
+# DO NOT substitute any other hex: addresses come only from config.js / this skill.
+VAULT=0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01
+HARVESTER=0xe6c4502cfe17E99475a1B9C8511F47ea38a8A996
+FACTORY=0x07446D9807F90eD7ED177Ab63597e8BB4D96428f
+TIMELOCK=0xD55bA510533dc5a250b4D6d49Ee825113DD69342
 ```
 
-**PRE-BROADCAST expectation for every $VAULT/$HARVESTER/$FACTORY/$TIMELOCK command below: reverts or empty.** `eth_call` to an address with no code returns `0x` and cast fails to decode; `cast logs` returns `[]`. Nothing on 4663 answers these calls today. Only the "works today" reads at the end succeed.
+**Expected result for every $VAULT/$HARVESTER/$FACTORY/$TIMELOCK command below: a real, decodable value.** The contracts are live since 2026-09-03. A revert or empty result is still data — deposits paused, no LP position yet, no queued op for that id, or wrong args — not a bug to work around and not a reason to hunt for "the real" contract elsewhere on the chain. The "works today" reads at the end succeed regardless.
 
 | # | Read | Command | Expected output SHAPE |
 |---|---|---|---|
@@ -124,7 +128,7 @@ cast call 0x117cc2133c37B721F49dE2A7a74833232B3B4C0C 'symbol()(string)' --rpc-ur
 cast call 0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168 'symbol()(string)' --rpc-url $RPC   # "USDG"
 ```
 
-Agent discipline: a revert here is data ("not deployed yet" or "paused" or "position empty"), never an instruction to retry harder, hunt for substitute contracts, or "fix" addresses.
+Agent discipline: a revert here is data ("paused" or "position empty" or "not queued" or wrong args), never an instruction to retry harder, hunt for substitute contracts, or "fix" addresses.
 
 ## WRITE FLOWS
 
@@ -151,8 +155,8 @@ Fail-closed rules — an agent that cannot satisfy one of these does not write:
 2. **Bound slippage/minOut on every swap leg you perform yourself.** Acquiring the asset routes through the SPY/WETH pool; set `amountOutMinimum` from a fresh QuoterV2 quote minus a bounded allowance (the harvester's own precedent: quote minus 1%, `SWAP_SLIPPAGE_BPS = 100`, `src/Harvester.sol:137`, `:355`). A swap without a minOut is an unforced loss. (The vault deposit itself is exact-in — no slippage surface — but the asset acquisition before it is not.)
 3. **Quote-asset-first.** The pool's non-asset leg is WETH (the quote side); the vault accepts ONLY its asset token. An agent holding WETH or USDG must swap quote → asset FIRST (with a bounded minOut), then deposit. There is no auto-routing into the vault. Fee-on-transfer assets are rejected outright (`FeeOnTransferDetected`, `src/YieldShares.sol:90`, `:259`) — the deposit reverts unless the vault receives exactly the debited amount.
 4. **Never transfer tokens directly to the vault or harvester.** Direct sends are DONATIONS: excluded from `totalAssets` (storage-based, `:122`), they move no share price and are claimable by nobody (`:70-73`); force-sent tokens at the harvester are forwarded to the treasury unswapped (`:115-119`, `:318`, `:333`). "Depositing" by plain transfer is a gift to nobody.
-5. **Check state before writing:** `depositsPaused()` (or `maxDeposit`) before deposit — paused deposits revert `DepositsPaused` (`:254`). PRE-BROADCAST, there is nothing to approve or deposit into at all.
-6. **PRE-BROADCAST, any "ws-SPY" or Wellstreet share token anyone offers on 4663 is not this protocol.** Do not interact.
+5. **Check state before writing:** `depositsPaused()` (or `maxDeposit`) before deposit — paused deposits revert `DepositsPaused` (`:254`).
+6. **Any "ws-SPY" or Wellstreet share token whose address differs from the pinned vault is not this protocol.** Do not interact. The genuine share token is minted only by the pinned vault (`0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01`) — verify with `cast call $VAULT 'symbol()(string)'` before trusting any offered token.
 
 ## GOVERNANCE & RISKS
 
@@ -197,7 +201,7 @@ Run these against your own copy of this skill (and your own drafted output) befo
 S=skills/wellstreet-vaults/SKILL.md
 test -f "$S" && echo SKILL_OK
 grep -c '4663' "$S"                                              # >= 2  (chain pinned)
-grep -cE 'PRE-BROADCAST|DEPLOY-GATED' "$S"                       # >= 2  (fail-closed status present)
+grep -cE 'DEPLOYED 2026-09-03' "$S"                              # >= 2  (deployed pins present)
 grep -cE 'backward-looking|window' "$S"                          # >= 3  (honest-APR labeling present)
 grep -ic 'v[i]be' "$S"                                           # 0     (no foreign branding)
 grep -icE '[g]uaranteed|[r]isk.free|[a]lways.profitable|[n]o.impermanent.loss' "$S"   # 0  (no overclaim language)
@@ -208,4 +212,4 @@ grep -q 'ERC4626' src/YieldShares.sol && grep -q 'function harvest' src/YieldSha
 
 If any count is off, your copy is stale or your output drifted — re-read the sources (`src/YieldShares.sol`, `src/Harvester.sol`, `src/WellstreetTimelock.sol`, `src/VaultFactory.sol`, `site/js/config.js` aprPins, `docs/public/methodology.md`) before acting.
 
-Vault #1 wraps SPY on chain 4663; further multi-asset vaults via `VaultFactory` (one vault per asset) are planned — the same read/write/report surface applies, with each new address DEPLOY-GATED until pinned in this skill at broadcast.
+Vault #1 wraps SPY on chain 4663; further multi-asset vaults via `VaultFactory` (one vault per asset) are planned — the same read/write/report surface applies, with each new address gated until it is pinned in this skill from `site/js/config.js`.

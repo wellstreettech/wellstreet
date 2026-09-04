@@ -138,6 +138,43 @@
     return n;
   }
 
+  // ------------------------------------------------------------------
+  // WS-VAULT-FAMILY-GRID (2026-09-04): the vault card is a REPEATABLE TEMPLATE
+  // driven by cfg.vaults[] — one config entry = one card, zero code change per
+  // entry. Every per-card read resolves through THE ENTRY'S OWN config keys
+  // (vaultCfg.pool -> cfg.pools, vaultCfg.chainlinkFeed -> cfg.priceFeeds, the
+  // asset label via an ADDRESS match against cfg.tokens); nothing in the card
+  // path may hardcode a specific vault's pool/feed/token. Hero-level shared
+  // surfaces (chain badge, chips, stat band, hero ledger, flow diagram, sim,
+  // mint-ticket/invariant coverage cells, deposit widget, launch-fact writer)
+  // are PRIMARY-VAULT-scoped via the canonical accessor below — with one entry
+  // that is exactly today's rendering; a second entry adds a second
+  // self-contained card without disturbing them.
+  // ------------------------------------------------------------------
+  function isPrimaryVault(vCfg) { return !!vCfg && vCfg === vaultCfg(); }
+
+  // Per-entry resolvers. A missing/mis-keyed config entry resolves to null and
+  // the card degrades to the honest "unavailable (RPC)" rows — never a
+  // wrong-vault read, never a crash.
+  function poolCfgFor(vCfg) {
+    return (vCfg && vCfg.pool && cfg.pools) ? cfg.pools[vCfg.pool] : null;
+  }
+  function feedCfgFor(vCfg) {
+    return (vCfg && vCfg.chainlinkFeed && cfg.priceFeeds) ? cfg.priceFeeds[vCfg.chainlinkFeed] : null;
+  }
+  // The asset's static label lives in cfg.tokens keyed by token name; resolve by
+  // ADDRESS so a config entry needs no parallel token-name field. No match →
+  // null (the card falls back to the LIVE-read symbol — never an invented label).
+  function tokenCfgFor(addr) {
+    if (!addr || !cfg.tokens) { return null; }
+    var keys = Object.keys(cfg.tokens);
+    for (var i = 0; i < keys.length; i++) {
+      var t = cfg.tokens[keys[i]];
+      if (t && typeof t.address === 'string' && t.address.toLowerCase() === String(addr).toLowerCase()) { return t; }
+    }
+    return null;
+  }
+
   function renderCardShell(vaultCfg) {
     // V4: a PENDING_DEPLOY vault renders a designed pending card (dashed variant + tag),
     // not a finished-looking card with a warning row. The honest sentence in
@@ -170,9 +207,12 @@
     return { card: card, rows: rows, note: note };
   }
 
-  function underlyingRow(u) {
+  function underlyingRow(u, vCfg) {
     if (!u) { return row('Underlying', 'unavailable (RPC)'); }
-    var label = (u.symbol || '?') + ' — ' + (cfg.tokens.spy.label);
+    // WS-VAULT-FAMILY-GRID: the static label resolves per entry (address match
+    // against cfg.tokens); no static entry → the live-read symbol alone.
+    var t = tokenCfgFor(vCfg && vCfg.asset);
+    var label = (u.symbol || '?') + (t && t.label ? ' — ' + t.label : '');
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, label));
     frag.appendChild(el('span', 'muted', '  ·  ' + (u.state === 'active' ? 'not paused' : u.state === 'unknown' ? 'pause state unknown' : u.state)));
@@ -780,48 +820,61 @@
   async function loadVaultData(vaultCfg, mounts) {
     var client = state.client;
     if (!client) { return; }
+    // WS-VAULT-FAMILY-GRID: the card loader is fully per-entry — the pool, the
+    // Chainlink feed and the asset resolve through THIS config entry's keys, and
+    // the hero-level shared surfaces (badge, state globals, coverage seam, hero
+    // ledger, widget) are written only by the PRIMARY vault's pass.
+    var primary = isPrimaryVault(vaultCfg);
+    var poolCfg = poolCfgFor(vaultCfg);
+    var feedCfg = feedCfgFor(vaultCfg);
 
-    // chain identity badge
-    try {
-      var chainIdHex = await client.call('eth_chainId', []);
-      var okChain = Number.parseInt(chainIdHex, 16) === cfg.chain.id;
-      var badge = $('chain-badge');
-      if (badge) {
-        badge.textContent = '';
-        badge.appendChild(flagNode(okChain, 'chain ' + Number.parseInt(chainIdHex, 16) + (okChain ? ' (expected 4663)' : ' — UNEXPECTED, expected 4663')));
+    if (primary) {
+      // chain identity badge (one page-level badge, primary-scoped)
+      try {
+        var chainIdHex = await client.call('eth_chainId', []);
+        var okChain = Number.parseInt(chainIdHex, 16) === cfg.chain.id;
+        var badge = $('chain-badge');
+        if (badge) {
+          badge.textContent = '';
+          badge.appendChild(flagNode(okChain, 'chain ' + Number.parseInt(chainIdHex, 16) + (okChain ? ' (expected 4663)' : ' — UNEXPECTED, expected 4663')));
+        }
+      } catch (e) {
+        var badge2 = $('chain-badge');
+        if (badge2) { badge2.textContent = ''; badge2.appendChild(flagNode(false, 'RPC unreachable — values below show unavailable, never estimates')); }
       }
-    } catch (e) {
-      var badge2 = $('chain-badge');
-      if (badge2) { badge2.textContent = ''; badge2.appendChild(flagNode(false, 'RPC unreachable — values below show unavailable, never estimates')); }
     }
 
-    // underlying + pool + feed in one batch-ish pass (independent → parallel)
+    // underlying + pool + feed in one batch-ish pass (independent → parallel);
+    // pool/feed resolve through the entry's own config keys. A missing key
+    // degrades to the honest "unavailable (RPC)" rows — never a wrong-vault read.
     var underlyingP = WS.vault.readUnderlying(client, vaultCfg.asset).catch(function () { return null; });
-    var poolP = WS.vault.readPoolSnapshot(client, cfg.pools.spyWeth500).catch(function () { return null; });
-    var priceP = WS.vault.readPriceUsd(client, cfg.priceFeeds.spyUsd, Date.now()).catch(function () { return null; });
+    var poolP = poolCfg ? WS.vault.readPoolSnapshot(client, poolCfg).catch(function () { return null; }) : null;
+    var priceP = feedCfg ? WS.vault.readPriceUsd(client, feedCfg, Date.now()).catch(function () { return null; }) : null;
     var u = await underlyingP;
     var pool = await poolP;
     var price = await priceP;
 
-    state.pool = pool;
-    // diff snapshot: the live quantities the tape's tick glyphs react to (refreshCards prevSnap).
-    state.snap = {
-      priceUsd: price && price.usd != null && isFinite(price.usd) ? price.usd : null,
-      tvlWeth: pool && pool.tvlToken0 ? pool.tvlToken0 : null
-    };
+    if (primary) {
+      state.pool = pool;
+      // diff snapshot: the live quantities the tape's tick glyphs react to (refreshCards prevSnap).
+      state.snap = {
+        priceUsd: price && price.usd != null && isFinite(price.usd) ? price.usd : null,
+        tvlWeth: pool && pool.tvlToken0 ? pool.tvlToken0 : null
+      };
 
-    // STRATTON-LEDGER-CARD: single shared fill point for #mint-backed + #inv-stat —
-    // placed BEFORE the renderLedger branch split so both the no-USD first paint and
-    // the live branch leave the two cells identical.
-    fillBackingCoverage(client, vaultCfg);
+      // STRATTON-LEDGER-CARD: single shared fill point for #mint-backed + #inv-stat —
+      // placed BEFORE the renderLedger branch split so both the no-USD first paint and
+      // the live branch leave the two cells identical. Primary-scoped.
+      fillBackingCoverage(client, vaultCfg);
 
-    // hero ledger (WS-HERO-V9): first paint from the same snapshot the cards
-    // just rendered; the USD TVL lands via deriveApr below.
-    renderLedger(pool, price, null);
+      // hero ledger (WS-HERO-V9): first paint from the same snapshot the primary
+      // card just rendered; the USD TVL lands via deriveApr below.
+      renderLedger(pool, price, null);
+    }
 
     mounts.rows.textContent = '';
     mounts.rows.appendChild(vaultStatusRow(vaultCfg));
-    mounts.rows.appendChild(underlyingRow(u));
+    mounts.rows.appendChild(underlyingRow(u, vaultCfg));
     mounts.rows.appendChild(priceRow(price));
     mounts.rows.appendChild(poolRow(pool));
     mounts.rows.appendChild(cutRow(pool));
@@ -830,31 +883,38 @@
     mounts.note.textContent = 'Everything above is read by your browser directly from public RPC nodes — no backend, no keys. ' +
       'Share tokens (' + vaultCfg.shareSymbol + ') are issued by the vault at deploy.';
 
-    renderWidgetState();
+    // the deposit widget is the PRIMARY vault's surface (family-grid contract)
+    if (primary) { renderWidgetState(); }
 
     // APR derivation (non-blocking, after first paint of the card)
-    deriveApr(mounts, pool, price);
+    deriveApr(mounts, pool, price, vaultCfg);
   }
 
-  async function deriveApr(mounts, pool, price) {
+  async function deriveApr(mounts, pool, price, vCfg) {
     var pins = cfg.aprPins;
     var econ = cfg.economics;
+    // WS-VAULT-FAMILY-GRID: each card derives from ITS OWN pool/price reads; the
+    // published hero-level fan-out (chips, stat band, flow, sim, hero ledger) is
+    // written only by the PRIMARY vault's derivation.
+    var primary = isPrimaryVault(vCfg);
 
     function publish(apr) {
-      state.apr = apr;
-      // V10 chip + WSV-STATS-REAL-FOOTER band: the published projection's
-      // depositor figure, computed once, mirrored byte-for-byte in both
-      // (label-only '' when absent).
-      var aprText = apr.depositorAprPct != null ? '~' + fmtPct(apr.depositorAprPct, 1) : '';
-      setChipValue('chip-apr', aprText);
-      setStatValue('stat-apr', aprText);
-      // WOW-2/WOW-6: the flow diagram's terminal label and the sim's static
-      // projection region consume the SAME published string byte-for-byte —
-      // never recomputed, never spectacularized.
-      setFlowYield(aprText);
-      setSimProjection(aprText);
-      // WOW-2: the dash-flow pace buckets from the PUBLISHED pool net rate.
-      setFlowRate(apr.poolNetAprPct);
+      if (primary) {
+        state.apr = apr;
+        // V10 chip + WSV-STATS-REAL-FOOTER band: the published projection's
+        // depositor figure, computed once, mirrored byte-for-byte in both
+        // (label-only '' when absent).
+        var aprText = apr.depositorAprPct != null ? '~' + fmtPct(apr.depositorAprPct, 1) : '';
+        setChipValue('chip-apr', aprText);
+        setStatValue('stat-apr', aprText);
+        // WOW-2/WOW-6: the flow diagram's terminal label and the sim's static
+        // projection region consume the SAME published string byte-for-byte —
+        // never recomputed, never spectacularized.
+        setFlowYield(aprText);
+        setSimProjection(aprText);
+        // WOW-2: the dash-flow pace buckets from the PUBLISHED pool net rate.
+        setFlowRate(apr.poolNetAprPct);
+      }
       var rows = mounts.rows;
       var strong = rows.querySelector('.card-row-strong');
       var prev = rows.querySelector('[data-apr-input]');
@@ -868,7 +928,7 @@
         strong.querySelector('.row-value').appendChild(el('strong', null,
           (apr.depositorAprPct != null ? fmtPct(apr.depositorAprPct) : '—') + ' — ' + apr.label));
       }
-      renderWidgetState();
+      if (primary) { renderWidgetState(); }
     }
 
     // TVL in WETH units; USD value via the pool's own price and the Chainlink feed
@@ -877,7 +937,9 @@
     var priceP = pool && pool.priceToken1PerToken0 ? pool.priceToken1PerToken0 : null;
     var wethUsd = (spyUsd && priceP) ? priceP * spyUsd : null;
     var tvlUsd = (tvlWeth && wethUsd) ? tvlWeth * wethUsd : null;
-    renderLedger(pool, price, tvlUsd); // hero ledger consumes the pipeline's USD TVL
+    if (primary) {
+      renderLedger(pool, price, tvlUsd); // hero ledger consumes the pipeline's USD TVL (primary-scoped)
+    }
 
     var live = null;
     if (tvlWeth && pool) {
@@ -917,6 +979,13 @@
     box.appendChild(el('span', warn ? 'flag flag-warn' : 'flag', text));
   }
 
+  // WS-VAULT-FAMILY-GRID: THE canonical primary-vault accessor — the primary-
+  // vault-scoped surfaces (deposit widget, hero ledger/flow vault-state rows,
+  // coverage fill, APR fan-out gating, token decimals) read the primary entry
+  // through HERE. The launch-fact writer keeps its own goal-protected form
+  // (pinned byte-exact by the wow + agent-first batteries); the CARDS render
+  // from the full cfg.vaults[] loop with per-entry config resolution
+  // (poolCfgFor / feedCfgFor / tokenCfgFor).
   function vaultCfg() { return cfg.vaults[0]; }
 
   function renderWidgetState() {
@@ -952,8 +1021,13 @@
     });
 
     if (acquire) {
+      // WS-VAULT-FAMILY-GRID: the widget speaks for the PRIMARY vault — token and
+      // pool resolve through its config entry (never a hardcoded pool/token).
+      var tCfg = tokenCfgFor(v.asset);
+      var pCfg = poolCfgFor(v);
       acquire.textContent = deployed
-        ? 'The vault accepts only ' + (cfg.tokens.spy.symbol || 'SPY') + '. Acquire it via the tier-500 ' + cfg.pools.spyWeth500.label +
+        ? 'The vault accepts only ' + ((tCfg && tCfg.symbol) || 'the underlying token') + '. Acquire it via the tier-' +
+          (pCfg && pCfg.feeTier != null ? pCfg.feeTier : '?') + ' ' + (pCfg ? pCfg.label : 'configured') +
           ' pool (SwapRouter02 ' + fmtAddr(cfg.contracts.swapRouter02) + ', quotes via QuoterV2) or bring your own.'
         : 'Deposit flows activate when the vault deploys. Until then nothing here takes money or approvals.';
     }
@@ -973,12 +1047,13 @@
       return;
     }
     try {
+      var tBal = tokenCfgFor(v.asset);
       var bal = await WS.wallet.balanceOf(state.client, v.asset, state.wallet.account);
       var allow = await WS.wallet.allowance(state.client, v.asset, state.wallet.account, v.vault);
       var box = $('wallet-balances');
       if (box) {
         box.textContent = '';
-        box.appendChild(el('span', null, 'Your ' + (cfg.tokens.spy.symbol || 'SPY') + ' balance: ' + fmtToken(bal) +
+        box.appendChild(el('span', null, 'Your ' + ((tBal && tBal.symbol) || 'underlying') + ' balance: ' + fmtToken(bal) +
           ' · allowance to vault: ' + fmtToken(allow)));
       }
     } catch (e) {
@@ -1033,7 +1108,10 @@
   // ---------------- write flows ----------------
 
   function tokenDecimals() {
-    var t = cfg.tokens && cfg.tokens.spy;
+    // WS-VAULT-FAMILY-GRID: the PRIMARY vault's asset token resolves per entry;
+    // no static entry (or no entry at all) → the chain-standard 18, never a crash.
+    var v = vaultCfg();
+    var t = v ? tokenCfgFor(v.asset) : null;
     return (t && t.decimals != null) ? t.decimals : 18;
   }
 

@@ -1,6 +1,6 @@
 # $WELL and protocol economics
 
-Status first: **$WELL has not launched.** Nothing on this page is an offer. The numbers here describe the fee mechanics as configured at launch; where a value is fixed in code versus set at launch time, that is stated.
+Status first: **$WELL has not launched.** Nothing on this page is an offer. The vault contracts are deployed on Robinhood Chain (chain ID 4663) — the vault fee split below is live at its initial value, settable by the timelock within its cap. The $WELL numbers describe the pad's fee mechanics as configured at the token's launch; where a value is fixed in code versus set at launch time, that is stated.
 
 ## The two fee streams, kept deliberately separate
 
@@ -63,7 +63,7 @@ No team allocation and no foundation treasury: the only protocol-owned capital i
 | Launch fee (paid to the pad) | 0.0005 ETH |
 | Creator trade tax | 0 |
 | Creator fee wallet | The 2-of-3 Safe multisig (address published at launch) |
-| Contract address | `PENDING_DEPLOY` — not launched |
+| Contract address | None yet — the token has not been created |
 
 ## What is promised
 

@@ -6,9 +6,14 @@ this page is a promise, a guarantee, or an offer of any return.
 
 ## The formula chain
 
-Projected depositor APR is computed as:
+Projected depositor APR is computed as (the liquidity-share form ratified at
+the 2026-09-03 GO/NO-GO gate — the formula the shipped site code implements):
 
-    pool net fee APR × (harvester LP value ÷ target vault TVL) × (1 − protocol fee)
+    pool net fee APR × (L_pos ÷ L_pool) × (pool TVL ÷ vault TVL) × (1 − protocol fee)
+
+L_pos is the harvester LP position's liquidity and L_pool is the pool's total
+liquidity: the LP's share of the pool, not the size of the LP. At the initial
+1000 bps protocol fee the final leg is 0.9.
 
 The pool net fee APR input is itself derived:
 
@@ -24,9 +29,9 @@ reference price). The measured pool net fee APR is net of the pool's protocol
 cut ONLY. The harvester LP principal is treasury capital, excluded from
 depositor accounting, and it is that capital — not depositor assets — that
 bears these losses; depositor fee yield is unaffected, but the
-`(harvester LP value ÷ target vault TVL)` leverage term above silently decays
-as the principal shrinks. The quantified loss side is disclosed as a risk
-figure in [risk-disclosure.md](risk-disclosure.md).
+`(L_pos ÷ L_pool)` liquidity-share term above silently decays if the harvester
+position's share of the pool shrinks. The quantified loss side is disclosed as
+a risk figure in [risk-disclosure.md](risk-disclosure.md).
 
 ## Every input, and where it comes from
 
@@ -34,10 +39,13 @@ figure in [risk-disclosure.md](risk-disclosure.md).
   pool. When live sampling is unavailable (RPC failure, incomplete retrieval),
   the calculation falls back to the measured phase-0 baseline described below.
 - **Pool protocol cut** — decoded live from the pool's slot0 feeProtocol word.
-- **Harvester LP value** — the ratified GO/NO-GO seed pin. The harvester LP is
-  not yet seeded; until it is, the ratified pin stands in and the page says so.
-- **Target vault TVL** — the ratified GO/NO-GO TVL pin, read at page-load. TVL
-  moves with the market between loads; this is a documented approximation.
+- **Liquidity share (L_pos ÷ L_pool)** — the ratified GO/NO-GO seed pin: the
+  harvester LP seed's share of pool liquidity at full range. The harvester LP
+  is not yet seeded; until it is, the ratified pin stands in and the page says
+  so.
+- **Pool TVL ÷ vault TVL** — the ratified GO/NO-GO basis pins: the measured
+  pool-TVL basis and the launch-era vault TVL expectation, both declared
+  inputs, not live reads.
 - **Protocol fee** — the share of income the protocol keeps. It starts at 10%
   and is timelock-settable, hard-capped at 20%.
 
@@ -73,7 +81,9 @@ measured input, and it feeds exactly the same formula a live sample would.
   live decode picks up such a change on the next calculation, but past figures
   are not retroactively corrected.
 - The harvester LP is not yet seeded. The ratified seed pin is used until it is.
-- TVL is read at page-load — a documented approximation, not a locked value.
+- The projection's TVL legs are the ratified basis pins, not live page-load
+  reads — the projection is pinned at the gate, not re-derived from the market
+  between loads.
 - Nothing here is an offer, a solicitation, or financial advice.
 
 Pool-level figures that appear in methodology work are inputs to the formula

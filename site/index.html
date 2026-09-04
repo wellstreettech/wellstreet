@@ -287,6 +287,15 @@
             Token state, pool balances, the pool's price and its owner-set fee cut (decoded from the pool's own
             <code>slot0</code>) — the raw reads, not a summary of them. <span id="vaults-launch-fact">The vault is on-chain — four contracts on Robinhood Chain, verifiable at the exact addresses these cards read.</span>
           </p>
+          <!-- WS-VAULT-FAMILY-GRID (2026-09-04): the vault card is a REPEATABLE
+               TEMPLATE rendered by js/main.js from the cfg.vaults[] array in
+               js/config.js — one config entry = one bordered ledger card (mono
+               rows, green accent, the certificate keeper), zero markup change per
+               entry. This grid stays EMPTY in the static markup by design (cards
+               are JS-rendered like every live figure on this page); the
+               pending/deployed variant, the underlying, the fee pool and the
+               Chainlink feed all resolve per-entry from the config keys, and the
+               auto-fit grid below lays the family out in rows. -->
           <div id="vault-grid"></div>
           <div class="apr-footnote" id="apr-footnote">
             <span class="lbl">Projected depositor APR — projected, methodology-linked</span>

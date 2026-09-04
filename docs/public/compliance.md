@@ -28,7 +28,7 @@ The decentralization this project claims is about the code, not the keys: fully 
 
 ## Deployer key custody
 
-At launch, two roles that would otherwise sit on the deployer key move to the 2-of-3 Safe: the treasury timelock proposer, and the $WELL creator fee wallet (the creator fee stream accrues to the multisig). The deployer EOA still embodies: the pause authority, the harvester LP seeding, the token-launch initial-buy wallet, and gas/ops duties — a single point of failure for those capabilities.
+One of the two roles that would otherwise sit on the deployer key already sits with the 2-of-3 Safe: the deployed treasury timelock was born under it — its proposer is the Safe multisig, and the proposer is immutable, so no handover was possible or needed. The second moves at the $WELL launch: the creator fee wallet is the Safe (the creator fee stream accrues to the multisig). The deployer EOA still embodies: the pause authority, the harvester LP seeding, the token-launch initial-buy wallet, and gas/ops duties — a single point of failure for those capabilities.
 
 **Commitment: the deployer key moves to a hardware wallet (or an equivalent documented cold-storage procedure) before launch, and the three Safe operator keys live on three separate devices (hardware preferred).** Until those moves are done and documented, treat every privileged capability above as attached to hot keys, and act accordingly.
 

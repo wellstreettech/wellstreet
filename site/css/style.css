@@ -253,7 +253,11 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
 .row-label { color: var(--ink-soft); flex: 0 0 auto; }
 .row-value { text-align: right; font-family: var(--mono); font-size: var(--step-8); word-break: break-word; font-variant-numeric: tabular-nums; }
 .card-row-strong .row-value strong { color: var(--accent-text); font-size: var(--step-13); }
-.card-note { margin: 0; padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14); font-size: var(--step-4); color: var(--ink-soft); border-top: 1px dotted var(--line-dotted); }
+/* WS-VAULT-FAMILY-GRID: the note pins to the card's bottom edge (margin-top:auto
+   absorbs the free space of a grid row stretched to its tallest card), so a row
+   of family cards keeps aligned footers. With a single card there is no free
+   space and this renders exactly as before. */
+.card-note { margin: auto 0 0; padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14); font-size: var(--step-4); color: var(--ink-soft); border-top: 1px dotted var(--line-dotted); }
 
 .flag { font-family: var(--mono); font-size: var(--step-6); }
 .flag-ok { color: var(--accent-text); }

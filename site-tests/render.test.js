@@ -284,6 +284,25 @@ global.fetch = async function (url, opts) {
   return { ok: false, status: 404, text: async function () { return 'nf'; } };
 };
 
+// ---------------- WS-VAULT-FAMILY-GRID: test-only second config entry ----------------
+// The template contract under test: cfg.vaults[] is THE card source — adding an
+// entry must render a second self-contained card with ZERO code change. This
+// fixture invents NO vault data: it reuses the existing SPY asset/pool/feed
+// config objects and carries the config's own PENDING_DEPLOY sentinel as its
+// vault address (the honest undeployed state), so what gets exercised is the
+// pending-card variant and the primary-surface gating (the shipped site bytes —
+// site/js/config.js — are untouched; this mutation lives only in this test
+// process's in-memory config module).
+config.vaults.push({
+  id: 'ws-family-fixture',
+  displayName: 'Family Grid Fixture',
+  shareSymbol: 'ws-FIXTURE',
+  vault: config.PENDING_DEPLOY,
+  asset: config.tokens.spy.address,
+  pool: 'spyWeth500',
+  chainlinkFeed: 'spyUsd'
+});
+
 // ---------------- load the real bootstrap (runs init() inline) ----------------
 require('../site/js/main.js');
 
@@ -504,4 +523,82 @@ test('WS-ASSET-WIRE: the skill-link upgrade seam is state-agnostic (repoUrl-driv
     assert.ok(!href || href.indexOf('https://') !== 0,
       'no fabricated absolute href under a non-published repoUrl, got: ' + href);
   }
+});
+
+// -------- WS-VAULT-FAMILY-GRID (2026-09-04: the card is a repeatable template) --------
+
+test('WS-VAULT-FAMILY-GRID: one card per cfg.vaults entry, each self-contained (template contract)', async () => {
+  await settle(120);
+  const grid = REGISTRY['vault-grid'];
+  assert.ok(grid, 'vault grid rendered');
+  const cardEls = grid.querySelectorAll('.vault-card');
+  assert.strictEqual(cardEls.length, config.vaults.length,
+    'exactly one card rendered per config entry (the test fixture entry included), got: ' + cardEls.length);
+  for (let i = 0; i < config.vaults.length; i++) {
+    const v = config.vaults[i];
+    const cardEl = cardEls[i];
+    assert.ok(cardEl, 'card ' + i + ' rendered');
+    assert.strictEqual(cardEl.getAttribute('data-vault-id'), v.id,
+      'card ' + i + ' carries its config entry id');
+    const t = allText(cardEl).join(' | ');
+    assert.ok(t.indexOf(v.displayName) !== -1, 'card ' + i + ' renders its display name');
+    assert.ok(t.indexOf(v.shareSymbol) !== -1, 'card ' + i + ' renders its share symbol');
+  }
+  // the test-only fixture entry carries the config's own PENDING_DEPLOY sentinel:
+  // the template must render the honest pending variant, never a deployed claim
+  const fixture = cardEls.filter(function (c) { return c.getAttribute('data-vault-id') === 'ws-family-fixture'; })[0];
+  assert.ok(fixture, 'the fixture entry rendered its card');
+  assert.ok(fixture.classList.contains('vault-card--pending'),
+    'a PENDING_DEPLOY entry renders the dashed pending variant');
+  const ft = allText(fixture).join(' | ');
+  assert.ok(ft.indexOf('pending deploy — deposits not open') !== -1,
+    'the pending card carries the honest pending status row');
+  assert.ok(ft.indexOf('deployed · ') === -1, 'the pending card never claims a deployed state');
+});
+
+test('WS-VAULT-FAMILY-GRID: hero-level surfaces stay primary-vault-scoped when a second card exists', async () => {
+  // The fixture card is PENDING_DEPLOY: an UNGATED coverage writer would overwrite
+  // the primary vault's live read with the wiring-truth string — this poll is the
+  // primary-scoping gate's teeth (the STRATTON seam's published string survives).
+  for (let i = 0; i < 100 && REGISTRY['mint-backed'].textContent !== '100.0%'; i++) { await settle(20); }
+  assert.strictEqual(REGISTRY['mint-backed'].textContent, '100.0%',
+    'the coverage seam keeps the PRIMARY vault\'s live read, got: ' + REGISTRY['mint-backed'].textContent);
+  assert.strictEqual(REGISTRY['inv-stat'].textContent, '100.0%', 'single seam intact (invariants cell)');
+  // the published projection fan-out is the primary card's, byte-for-byte
+  assert.ok(REGISTRY['chip-apr'].textContent !== '', 'chip-apr filled from the primary derivation');
+  assert.strictEqual(REGISTRY['stat-apr'].textContent, REGISTRY['chip-apr'].textContent, 'stat mirror intact');
+  assert.strictEqual(REGISTRY['sim-projection'].textContent, REGISTRY['chip-apr'].textContent, 'sim consumes the fan-out');
+  // the hero ledger stays the primary card's snapshot: still exactly the 4 pipeline rows
+  assert.strictEqual(REGISTRY['hero-ledger-rows'].children.length, 4,
+    'hero ledger renders the primary snapshot only');
+});
+
+test('WS-VAULT-FAMILY-GRID source gate: per-entry config resolution, single canonical primary accessor', () => {
+  const fs2 = require('node:fs');
+  const path2 = require('node:path');
+  const src = fs2.readFileSync(path2.join(__dirname, '..', 'site', 'js', 'main.js'), 'utf8');
+  // The first-vault entry is indexed in exactly TWO places, BOTH by contract:
+  //   1. the canonical primary-vault accessor (vaultCfg) — the seam every
+  //      primary-scoped surface (deposit widget, hero ledger/flow vault-state,
+  //      coverage fill, APR fan-out gating, token decimals) reads through;
+  //   2. the PROTECTED launch-fact writer — the goal pins the writer's form
+  //      ("#vaults-launch-fact span + writer preserved") and the hardening
+  //      batteries (wow.test.js + agent-first.test.js) pin it byte-exact.
+  // The CARD path itself has ZERO direct occurrences: cards render from the
+  // cfg.vaults[] loop with per-entry config resolution.
+  assert.strictEqual((src.match(/cfg\.vaults\[0\]/g) || []).length, 2,
+    'exactly the canonical accessor + the protected launch-fact writer index the first entry');
+  // no card-path hardcode of vault #1's pool/feed/token anywhere in main.js
+  assert.strictEqual((src.match(/cfg\.pools\.spyWeth500/g) || []).length, 0, 'no hardcoded SPY pool reference');
+  assert.strictEqual((src.match(/cfg\.priceFeeds\.spyUsd/g) || []).length, 0, 'no hardcoded SPY feed reference');
+  assert.strictEqual((src.match(/cfg\.tokens\.spy/g) || []).length, 0, 'no hardcoded SPY token reference');
+  // the per-entry resolvers exist and the card path consumes them
+  assert.ok(src.indexOf('function poolCfgFor(') !== -1, 'poolCfgFor exists');
+  assert.ok(src.indexOf('function feedCfgFor(') !== -1, 'feedCfgFor exists');
+  assert.ok(src.indexOf('function tokenCfgFor(') !== -1, 'tokenCfgFor exists');
+  assert.ok(src.indexOf('poolCfgFor(vaultCfg)') !== -1, 'the card loader resolves the pool per entry');
+  assert.ok(src.indexOf('feedCfgFor(vaultCfg)') !== -1, 'the card loader resolves the feed per entry');
+  assert.ok(src.indexOf('underlyingRow(u, vaultCfg)') !== -1, 'the underlying row resolves per entry');
+  // the template loop + per-card mounts remain the card source
+  assert.ok(src.indexOf('cfg.vaults.forEach') !== -1, 'cards render from the vaults[] loop');
 });

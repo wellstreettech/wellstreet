@@ -44,16 +44,16 @@ The cost of the design is real and disclosed: the protocol's own capital can shr
 The protocol runs **no algorithmic peg defense and no market-intervention
 mechanism, now or planned** — no protocol-owned trading operation, no price floor,
 no buyback-against-decline program beyond the pad's automated buyback leg, and no
-discretionary market ops behind the single proposer key. $WELL's only accrual is
+discretionary market ops behind the operator's keys. $WELL's only accrual is
 the pons buyback stream (a market mechanism, not a defense policy); ws-SPY is
 price-anchored by instant burn-for-underlying redemption arbitrage — anyone can
 arbitrage a premium or discount, and the protocol itself will never trade to
 defend a price. If a price moves, the protocol's only action is disclosure.
 
-## Owner controls are single-keyed
+## Key control is concentrated in one operator
 
-- The treasury timelock has **a single proposer key** — the Wellstreet deployer EOA. Execution after the 48-hour delay is open to anyone, but only that key can start a proposal, and therefore only that key can schedule any owner action. The openness this project claims — open source, MIT, permissionlessly forkable — is a claim about the code, not the keys; the concentration above is real and disclosed.
-- The same EOA holds a **function-limited pause-only authority** over deposits (it can pause deposits and do nothing else privileged). The timelock can revoke it.
+- The treasury timelock's proposer is a **2-of-3 Safe multisig**: two of the three owner keys must sign to schedule any owner action; execution after the 48-hour delay is open to anyone, scheduling is not. The three keys are held by **one operator** on separate devices — disclosed plainly, because multiple keys are NOT multiple parties. A single person controls the operator set. The openness this project claims — open source, MIT, permissionlessly forkable — is a claim about the code, not the keys; the concentration here is real and disclosed.
+- The deployer EOA holds a **function-limited pause-only authority** over deposits (it can pause deposits and do nothing else privileged) and remains a single point of failure for its other roles — the harvester LP seeding and the token-launch initial buy. The timelock can revoke the pause authority.
 - `MAX_FEE_BPS` (20%) is the **only structural bound** on fee escalation. Keeping the fee at 10% is a governance commitment, not a code guarantee — the code's job is only to keep it under 20%.
 
 Key custody: [compliance.md](compliance.md).

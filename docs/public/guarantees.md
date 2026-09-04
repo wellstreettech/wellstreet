@@ -66,4 +66,13 @@ Sweeping already-accrued fees to the treasury is permissionless and needs no own
 
 ## How to check these
 
-Every numbered item maps to tests in the repository's Foundry suite. After deployment, the contract sources are verified on the block explorer, so the deployed bytecode can be compared against this repository at the deployed commit.
+Every numbered item maps to tests in the repository's Foundry suite.
+
+The v1 contracts are deployed on Robinhood Chain (chain ID 4663) — broadcast 2026-09-03 — and their sources are verified on the block explorer, so the deployed bytecode can be compared against this repository at the deployed commit. The deployed addresses, as pinned in the site configuration (`site/js/config.js`):
+
+| Contract | Address |
+|---|---|
+| Vault #1 (ws-SPY) | `0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01` |
+| Vault factory | `0x07446D9807F90eD7ED177Ab63597e8BB4D96428f` |
+| Treasury timelock (48h) | `0xD55bA510533dc5a250b4D6d49Ee825113DD69342` |
+| Harvester | `0xe6c4502cfe17E99475a1B9C8511F47ea38a8A996` |

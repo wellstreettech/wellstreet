@@ -83,7 +83,7 @@ Expected: the script's logs list each deployed contract (vault, harvester, treas
      --broadcast
    ```
 
-3. Record the printed addresses. Until they are recorded in the repository's README, every address is `PENDING_DEPLOY`.
+3. Record the printed addresses. The canonical deployment's addresses are pinned in `site/js/config.js` (and in [guarantees.md](guarantees.md)); for your own fork, record your printed addresses in your repository's README before relying on them.
 4. Verify the deployed sources on the block explorer and compare them against this repository at the deployed commit. If a deployed contract's source does not match the repository, stop and treat the deployment as untrusted.
 
 ## 6. Interacting (cast)
