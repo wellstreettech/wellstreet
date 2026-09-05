@@ -160,6 +160,19 @@ pre code { background: none; border: none; padding: var(--space-0); }
    within >=80vh on desktop, so the headline/lede/panel get air above and below
    regardless of content height. Mobile (<=640px) keeps the compact padding
    band — the stacked ledger already fills the viewport there. */
+/* Canyon hero backdrop (2026-09-05): dithered Wall-Street buildings framing the
+   headline, open center for the type. Positioning here; the vibration lives in
+   the WS-ASSET-WIRE motion section (no-preference gate + reduce pair). */
+.hero-canyon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+  pointer-events: none;
+}
 .hero .wrap {
   padding-top: var(--space-56);
   padding-bottom: var(--space-48);
@@ -467,6 +480,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
     animation: none !important;
     transition: none !important;
   }
+  /* explicit per-asset pairs (WS-ASSET-WIRE discipline): */
+  .hero-canyon { animation: none !important; }
 }
 
 /* ---------- design tokens (v1.2, R2 foundation) — 1:1 aliases of the values this
@@ -1378,16 +1393,28 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
   .asset-draw { transition: clip-path 900ms var(--ease-enter); }
   .asset-draw.asset-draw-arm { clip-path: inset(0 100% 0 0); }
   .asset-draw.asset-draw-in { clip-path: inset(0 0 0 0); }
+  /* canyon hero backdrop: a ~100ms shake burst inside every 1.62s cycle
+     (operator spec) — transform-only, compositor-friendly */
+  .hero-canyon { animation: ws-canyon-vibrate var(--ws-vibrate-period, 1.62s) linear infinite; }
 }
 @keyframes asset-magnify-sweep {
   0% { transform: translateX(0) rotate(0deg); }
   45% { transform: translateX(14px) rotate(6deg); }
   100% { transform: translateX(0) rotate(0deg); }
 }
+@keyframes ws-canyon-vibrate {
+  0% { transform: translate(0, 0); }
+  1.5% { transform: translate(-1px, 1px); }
+  3% { transform: translate(1px, -1px); }
+  4.5% { transform: translate(-1px, 0); }
+  6% { transform: translate(0, 0); }
+  100% { transform: translate(0, 0); }
+}
 @media (prefers-reduced-motion: reduce) {
   .asset-press { transition: none; transform: none; }
   .asset-magnify.asset-sweep { animation: none; }
   .asset-draw { clip-path: none; transition: none; }
+  .hero-canyon { animation: none; transform: none; }
 }
 
 /* mobile (<=640px): the hero point-hand hides so the stacked ledger card keeps

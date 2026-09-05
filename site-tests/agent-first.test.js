@@ -63,7 +63,8 @@ const ASSET_MOTION = [
   ['img/compressed/hand-magnify.png', 'asset-magnify', true],    // one sweep per refresh cycle, motionAllowed()-gated
   ['img/compressed/curve-stroke.png', 'asset-draw', true],       // clip-path draw-on, IO-armed only
   ['img/compressed/certificate.png', 'asset-certificate', false], // vault-card keeper (appended by main.js) — static
-  ['img/logo-mark.png', 'brand-mark', false]                     // header logo mark (2026-09-04) — static, no motion by design
+  ['img/logo-mark.png', 'brand-mark', false],                    // header logo mark (2026-09-04) — static, no motion by design
+  ['img/canyon-hero.png', 'hero-canyon', true]                   // hero backdrop (2026-09-05) — 1.62s vibrate cycle, nulled under reduce
 ];
 
 // ---------------- (a) agent-first section ----------------
