@@ -1427,6 +1427,26 @@
   // Opacity/translate only — the reveal cannot restate or mask content.
   function initReveal() {
     if (typeof window === 'undefined' || !('IntersectionObserver' in window)) { return; }
+    if (motionAllowed() && document.querySelector) {
+      var hw = document.querySelector('.hero .wrap');
+      var DELAYS = { 'h1': 0, 'p:not(.lede)': 80, 'p.lede': 80, '.cta-row': 160, 'aside.hero-ledger': 240, 'aside.mint-card': 240, '.hero-facts': 320, '#chain-badge': 400 };
+      for (var wi = 0; hw && hw.children && wi < hw.children.length; wi++) {
+        var kid = hw.children[wi];
+        if (!kid || !kid.classList) { continue; }
+        var tag = (kid.tagName || '').toUpperCase();
+        var role = tag === 'H1' ? 'h1'
+          : tag === 'P' ? (kid.classList.contains('lede') ? 'p.lede' : 'p:not(.lede)')
+          : kid.classList.contains('cta-row') ? '.cta-row'
+          : kid.classList.contains('hero-ledger') ? 'aside.hero-ledger'
+          : kid.classList.contains('mint-card') ? 'aside.mint-card'
+          : kid.classList.contains('hero-facts') ? '.hero-facts'
+          : kid.id === 'chain-badge' ? '#chain-badge' : null;
+        var d = DELAYS[role];
+        if (d === undefined) { continue; }
+        kid.classList.add('ws-entrance');
+        if (kid.style && typeof kid.style.setProperty === 'function') { kid.style.setProperty('--ws-entrance-delay', d + 'ms'); }
+      }
+    }
     var targets = [];
     var heads = document.body.querySelectorAll('.block-head');
     for (var i = 0; i < heads.length; i++) { targets.push(heads[i]); }
@@ -1444,7 +1464,7 @@
     // (its own class + per-row stagger tokens in the stylesheet).
     var ledgerRows = $('hero-ledger-rows');
     if (ledgerRows && ledgerRows.classList) { ledgerRows.classList.add('scroll-reveal'); }
-    if (!targets.length) { return; }
+    if (!targets.length && !ledgerRows) { return; }
     var io = new IntersectionObserver(function (entries) {
       for (var k = 0; k < entries.length; k++) {
         if (entries[k].isIntersecting && entries[k].target.classList) {
@@ -1454,6 +1474,8 @@
         }
       }
     }, { threshold: 0.15 });
+    // WS-MOTION-POLISH: the armed container was never observed — rows stayed hidden forever (.ws-reveal stays off it).
+    if (ledgerRows && ledgerRows.classList) { io.observe(ledgerRows); }
     for (var t = 0; t < targets.length; t++) {
       if (targets[t].classList) { targets[t].classList.add('ws-reveal'); io.observe(targets[t]); }
     }

@@ -421,3 +421,103 @@ test('(f4) the per-cycle summary writer: house form, after pulseStamp, frozen li
   assert.strictEqual(countOccurrences(mainSrc, 'Ledger refresh failed — the ledger shows unavailable states, never estimates'), 1,
     'the failure literal ships exactly once (the honest register)');
 });
+
+// ---------------- (m1) WS-MOTION-POLISH: press grammar + entrance + stamp stagger ----------------
+// Source-grep pins ONLY (this file's charter: dependency-free node:test + node:fs).
+// The behavioral DOM-stub pins (fresh-require IO capture) live in
+// site-tests/motion-polish.test.js. Map authority:
+// docs/inventory/UI_IMPROVE_MOTION_2026-09-04.md proposals 1, 2 and 4 (+ the
+// ledger-invisibility prerequisite fix) at the 2026-09-05 dispatch anchors.
+test('(m1) WS-MOTION-POLISH: :active press grammar, hero entrance arming, stamp stagger', () => {
+  // (i) the six per-class press rules — one rule per line, uniform :active:not(:disabled)
+  for (const sel of ['button.btn:active:not(:disabled) { transform: translateY(1px); transition:',
+    '.cta-solid:active:not(:disabled) { transform: scale(0.985); transition:',
+    '.cta-outline:active:not(:disabled) { transform: scale(0.985); transition:',
+    '.doc-tab:active:not(:disabled) { transform: translateY(1px); transition:',
+    '.code-copy:active:not(:disabled) { transform: translateY(1px); transition:',
+    '.site-nav a.nav-cta:active:not(:disabled) { transform: translateY(1px); transition:']) {
+    assert.strictEqual(countOccurrences(css, sel), 1,
+      'the press rule ships exactly once in the per-class form: ' + sel.slice(0, 44) + '…');
+  }
+  assert.strictEqual(countOccurrences(css, 'translateY(1px)'), 4, 'pill/nav/tab/copy press = a 1px dip');
+  assert.strictEqual(countOccurrences(css, 'scale(0.985)'), 2, 'the two hero CTAs press at 0.985');
+  // (ii) release rides the EXTENDED base lists — never a competing second
+  // transition property (it would kill the fill/color transitions while pressed)
+  for (const base of ['button.btn {', '.cta-solid {', '.cta-outline {', '.doc-tab {', '.code-copy {']) {
+    const span = css.slice(css.indexOf(base), css.indexOf('}', css.indexOf(base)));
+    assert.ok(span.indexOf('transform var(--t-base) var(--ease-enter)') !== -1,
+      base + ' base transition list extended IN PLACE with the transform component');
+  }
+  const navSpan = css.slice(css.indexOf('.site-nav a.nav-cta {'), css.indexOf('}', css.indexOf('.site-nav a.nav-cta {')));
+  assert.ok(navSpan.indexOf('transform var(--t-base) var(--ease-enter)') !== -1,
+    '.site-nav a.nav-cta base list extended in place');
+  // (iii) source-order: the six press rules sit BEFORE the 4th reduce gate —
+  // never inside any @media, never after the block (a post-block or
+  // lower-specificity form would leave reduce users an instant 1px/0.985 press
+  // jump while every count grep still passes)
+  const gates = []; let gi = -1;
+  while ((gi = css.indexOf('@media (prefers-reduced-motion: reduce)', gi + 1)) !== -1) { gates.push(gi); }
+  assert.ok(gates.length >= 5, 'the scoped reduce belt is intact (>= 5 gates, got ' + gates.length + ')');
+  const before = css.slice(0, gates[3]).split('\n').filter((l) => l.indexOf(':active') !== -1).length;
+  assert.ok(before >= 6, 'all six press rules sit before the 4th reduce gate (got ' + before + ')');
+  // (iv) the six verbatim reduce restates + the entrance static pair live INSIDE
+  // the 4th scoped reduce block (equal-specificity later-source wins)
+  const reduceBlock = css.slice(gates[3], css.indexOf('\n}', gates[3]));
+  for (const sel of ['button.btn:active:not(:disabled) { transform: none; }',
+    '.cta-solid:active:not(:disabled) { transform: none; }',
+    '.cta-outline:active:not(:disabled) { transform: none; }',
+    '.doc-tab:active:not(:disabled) { transform: none; }',
+    '.code-copy:active:not(:disabled) { transform: none; }',
+    '.site-nav a.nav-cta:active:not(:disabled) { transform: none; }']) {
+    assert.ok(reduceBlock.indexOf(sel) !== -1, 'verbatim reduce restate inside the scoped block: ' + sel);
+  }
+  assert.ok(reduceBlock.indexOf('.ws-entrance { animation: none; opacity: 1; transform: none; }') !== -1,
+    'the entrance static pair rides the same scoped reduce block');
+  // (v) entrance: one-shot keyframes + the exact plain single-class rule —
+  // (0,1,0), no !important, no combinator prefix, so the launch-flip ledger
+  // beat (0,2,1) keeps winning on launch day
+  assert.ok(css.indexOf('@keyframes ws-entrance-in {') !== -1
+    && css.indexOf('@keyframes ws-entrance-in {') < gates[3],
+    'the entrance keyframes exist and sit before the 4th reduce gate');
+  assert.strictEqual(countOccurrences(css, '.ws-entrance { animation: ws-entrance-in var(--t-slow) var(--ease-enter) backwards; animation-delay: var(--ws-entrance-delay, 0ms); }'), 1,
+    'the entrance base rule is the exact single-class form consuming the delay var once');
+  for (const line of css.split('\n')) {
+    if (line.indexOf('ws-entrance') !== -1) {
+      assert.ok(line.indexOf('!important') === -1, 'cascade purity: no ws-entrance line carries !important');
+    }
+  }
+  // (vi) stamp stagger: base opacity:0 + the FORWARDS shorthand byte-unchanged
+  // (a backwards fill would repaint the 0% frame during the delay) + id-form delays
+  const stampAt = css.indexOf('.ledger-v.ledger-stamp::after {');
+  const stampSpan = css.slice(stampAt, css.indexOf('}', stampAt));
+  assert.ok(stampSpan.indexOf('opacity: 0;') !== -1, 'stamp base carries opacity:0 (held invisible through its delay window)');
+  assert.ok(stampSpan.indexOf('animation: ws-stamp-fade 900ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) forwards;') !== -1,
+    'the stamp animation shorthand stays byte-unchanged (forwards fill — never both/backwards)');
+  assert.ok(css.indexOf('@keyframes ws-stamp-fade {\n  0% { opacity: 1; }\n  55% { opacity: 1; }\n  100% { opacity: 0; }\n}') !== -1,
+    'the ws-stamp-fade keyframes stay byte-unchanged');
+  assert.strictEqual(countOccurrences(css, '#hero-ledger-rows .ledger-row:nth-child(1) .ledger-stamp::after { animation-delay: 0ms; }'), 1, 'row-1 stamp delay pinned (id form)');
+  assert.strictEqual(countOccurrences(css, '#hero-ledger-rows .ledger-row:nth-child(2) .ledger-stamp::after { animation-delay: 140ms; }'), 1, 'row-2 stamp delay pinned (id form)');
+  assert.strictEqual(countOccurrences(css, '#hero-ledger-rows .ledger-row:nth-child(3) .ledger-stamp::after { animation-delay: 280ms; }'), 1, 'row-3 stamp delay pinned (id form)');
+  // (vii) JS: gate restructure + observation + arming + the role→delay map
+  assert.strictEqual(countOccurrences(mainSrc, 'if (!targets.length && !ledgerRows) { return; }'), 1,
+    'the early-return gate keeps the armed container alive (the degenerate-case fix)');
+  assert.strictEqual(countOccurrences(mainSrc, 'if (ledgerRows && ledgerRows.classList) { io.observe(ledgerRows); }'), 1,
+    'the ledger container is OBSERVED — the armed-but-never-observed invisibility fix');
+  const irStart = mainSrc.indexOf('function initReveal()');
+  const armIdx = mainSrc.indexOf('if (motionAllowed() && document.querySelector) {', irStart);
+  const gateIdx = mainSrc.indexOf('if (!targets.length && !ledgerRows) { return; }');
+  const ioEndIdx = mainSrc.indexOf('}, { threshold: 0.15 });', irStart);
+  const obsIdx = mainSrc.indexOf('io.observe(ledgerRows)');
+  const loopIdx = mainSrc.indexOf('for (var t = 0; t < targets.length; t++)', irStart);
+  assert.ok(irStart !== -1 && armIdx > irStart && gateIdx > armIdx,
+    'arming sits inside initReveal AFTER the IO-presence guard and BEFORE the targets-empty gate');
+  assert.ok(ioEndIdx > gateIdx && obsIdx > ioEndIdx && loopIdx > obsIdx,
+    'io.observe(ledgerRows) sits after the IO construction, outside the targets loop');
+  assert.strictEqual(countOccurrences(mainSrc, "var DELAYS = { 'h1': 0, 'p:not(.lede)': 80, 'p.lede': 80, '.cta-row': 160, 'aside.hero-ledger': 240, 'aside.mint-card': 240, '.hero-facts': 320, '#chain-badge': 400 };"), 1,
+    'the role→delay map ships exactly once with the pinned six-beat schedule');
+  assert.ok(mainSrc.indexOf("kid.classList.add('ws-entrance')") !== -1, 'arming adds the ws-entrance class');
+  assert.ok(/kid\.style && typeof kid\.style\.setProperty === 'function'/.test(mainSrc),
+    'style.setProperty access is guarded (stub-safe arming — the makeEl cohort has no .style)');
+  const sweepFn = mainSrc.slice(mainSrc.indexOf('function sweepMagnifier()'), mainSrc.indexOf('function stampRow('));
+  assert.ok(sweepFn.indexOf('!motionAllowed()') !== -1, 'the (b4) sweep slice keeps its motionAllowed() gate (new JS never entered it)');
+});

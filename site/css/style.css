@@ -160,9 +160,10 @@ pre code { background: none; border: none; padding: var(--space-0); }
   padding: var(--space-6) var(--space-16);
   font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.06em;
   line-height: 1; display: inline-flex; align-items: center; text-decoration: none;
-  transition: background-color var(--t-base) var(--ease-enter);
+  transition: background-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
 }
 .site-nav a.nav-cta:hover { background: var(--ink-soft); }
+.site-nav a.nav-cta:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 .site-nav a.active { border-bottom-color: var(--ink); }
 
 /* ---------- jurisdiction banner ---------- */
@@ -342,12 +343,13 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
 button.btn {
   font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--step-4);
   padding: var(--space-10) var(--space-16); border: 2px solid var(--line); background: var(--paper); color: var(--ink);
-  cursor: pointer; transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter);
+  cursor: pointer; transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
   border-radius: var(--radius); /* R3 IMP-7: the action class unifies on the pill — same geometry as the nav CTA 40px away */
   min-height: 44px; /* money-path mobile ergonomics — ens.domains action targets measure 52px @400 / 72px @1280; 44 = platform floor; NOT an a11y-compliance claim */
 }
 button.btn:hover:not(:disabled) { background: var(--paper-2); }
 button.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+button.btn:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 button.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--ink); }
 button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 /* hero CTA pair (WS-LEDGER-STRUCTURE P3, ascetic-degen reference): ONE solid + ONE
@@ -363,19 +365,21 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   padding: var(--space-10) var(--space-16); border: 2px solid var(--ink); background: var(--ink); color: var(--paper);
   text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; border-radius: var(--radius); cursor: pointer;
-  transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter);
+  transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
 }
 .cta-solid:visited { color: var(--paper); text-decoration: none; }
 .cta-solid:hover { background: var(--paper-2); color: var(--ink); }
+.cta-solid:active:not(:disabled) { transform: scale(0.985); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 .cta-outline {
   font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--step-4);
   padding: var(--space-10) var(--space-16); border: 2px solid var(--ink); background: transparent; color: var(--ink);
   text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; border-radius: var(--radius); cursor: pointer;
-  transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter);
+  transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
 }
 .cta-outline:visited { color: var(--ink); text-decoration: none; }
 .cta-outline:hover { background: var(--ink); color: var(--paper); }
+.cta-outline:active:not(:disabled) { transform: scale(0.985); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 #widget-status { margin-top: var(--space-16); padding: var(--space-10) var(--space-12); border: 2px solid var(--line); background: var(--paper-2); font-size: var(--step-6); min-height: 40px; word-break: break-all; }
 #wallet-balances { margin-top: var(--space-10); font-family: var(--mono); font-size: var(--step-4); color: var(--ink-soft); }
 #acquire-note { margin: var(--space-14) 0 0 0; font-size: var(--step-4); color: var(--ink-soft); }
@@ -393,11 +397,12 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.05em;
   padding: var(--space-9) var(--space-14); background: var(--paper-2); border: 2px solid var(--line); border-bottom: none;
   margin-right: var(--space-6); cursor: pointer; color: var(--ink-soft);
-  transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter);
+  transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
   min-height: 44px; /* money-path mobile ergonomics — ens.domains action targets measure 52px @400 / 72px @1280; 44 = platform floor; NOT an a11y-compliance claim */
 }
 .doc-tab.active { background: var(--ink); color: var(--paper); }
 .doc-tab:hover:not(.active) { background: var(--paper); color: var(--ink); }
+.doc-tab:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 /* V8: the doc pane reads as a document — measure-limited, serif headers, mono code */
 #doc-pane { border: 2px solid var(--line); border-top: none; background: var(--paper-raised); padding: var(--space-22) var(--space-24); min-height: 220px; max-width: 72ch; }
 #doc-pane[aria-busy="true"] { color: var(--ink-soft); font-family: var(--mono); font-size: var(--step-6); }
@@ -429,10 +434,11 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .code-copy {
   font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.06em;
   padding: var(--space-2) var(--space-8); border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-soft);
-  cursor: pointer; transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter);
+  cursor: pointer; transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
   margin-top: var(--space-2);
 }
 .code-copy:hover { color: var(--ink); background: var(--paper); }
+.code-copy:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 
 /* ---------- honest states (V5) — one component for "we're working, nothing faked" ----------
    Used by the live-read status row + APR placeholder in main.js and by the docs pane's
@@ -1076,6 +1082,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-size: var(--step-1, 0.6875rem);
   color: var(--accent-text, #0d6b4f);
   margin-left: var(--space-8, 8px);
+  opacity: 0;
   animation: ws-stamp-fade 900ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) forwards;
 }
 @keyframes ws-stamp-fade {
@@ -1083,6 +1090,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   55% { opacity: 1; }
   100% { opacity: 0; }
 }
+#hero-ledger-rows .ledger-row:nth-child(1) .ledger-stamp::after { animation-delay: 0ms; }
+#hero-ledger-rows .ledger-row:nth-child(2) .ledger-stamp::after { animation-delay: 140ms; }
+#hero-ledger-rows .ledger-row:nth-child(3) .ledger-stamp::after { animation-delay: 280ms; }
 
 /* ---- WOW-2 — live money-flow diagram: deposit → pool → vault.
    Node figures are HTML bound by main.js to the published pipeline
@@ -1322,6 +1332,9 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
   100% { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes ws-entrance-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.ws-entrance { animation: ws-entrance-in var(--t-slow) var(--ease-enter) backwards; animation-delay: var(--ws-entrance-delay, 0ms); }
+
 /* ---- scoped reduced-motion pairing for EVERY animation this block
    ships (the global guard above already covers the page; this keeps
    the new surfaces guarded even if that one is ever edited). Under
@@ -1345,6 +1358,13 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
   .ledger-v.ledger-stamp::after { opacity: 0.9; }
   .scroll-reveal .ledger-row, .flow-figure.ws-reveal .flow-node { opacity: 1; transform: none; }
   .sim-bar-fill { transition: none; }
+  .ws-entrance { animation: none; opacity: 1; transform: none; }
+  button.btn:active:not(:disabled) { transform: none; }
+  .cta-solid:active:not(:disabled) { transform: none; }
+  .cta-outline:active:not(:disabled) { transform: none; }
+  .doc-tab:active:not(:disabled) { transform: none; }
+  .code-copy:active:not(:disabled) { transform: none; }
+  .site-nav a.nav-cta:active:not(:disabled) { transform: none; }
 }
 
 /* ============================================================
@@ -1433,10 +1453,12 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
 }
 @keyframes ws-canyon-vibrate {
   0% { transform: translate(0, 0); }
-  1.5% { transform: translate(-1px, 1px); }
-  3% { transform: translate(1px, -1px); }
-  4.5% { transform: translate(-1px, 0); }
-  6% { transform: translate(0, 0); }
+  2% { transform: translate(-6px, 4px); }
+  4% { transform: translate(5px, -5px); }
+  6% { transform: translate(-4px, -4px); }
+  8% { transform: translate(6px, 3px); }
+  10% { transform: translate(-3px, 5px); }
+  12% { transform: translate(0, 0); }
   100% { transform: translate(0, 0); }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1482,7 +1504,7 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
   .hero .wrap > .hero-facts { order: 7; }
   .hero .wrap > #chain-badge { order: 8; }
   /* P1 — anchored jumps clear the compressed sticky header (value = measured
-     header height H + 16, finalized from the post-P3 probe). */
-  section.block, .hero { scroll-margin-top: 130px; }
-  #doc-pane [id] { scroll-margin-top: 130px; }
+     header height H + 16, finalized from the post-P3 probe: H = 126.09 → 142). */
+  section.block, .hero { scroll-margin-top: 142px; }
+  #doc-pane [id] { scroll-margin-top: 142px; }
 }
