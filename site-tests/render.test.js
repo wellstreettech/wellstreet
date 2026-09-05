@@ -118,6 +118,11 @@ global.document = {
 // red-amount-label (the shared redeem input's unit-owning label) and redeem-preview
 // (the live redeem/withdraw preview row) — all three are static page ids in
 // index.html, queried by main.js's WS-PRODUCT-GAPS seams.
+// + WS-A11Y-QUICK (2026-09-05) registry add -> 60 in-array ids (was 59): hero-ledger-summary
+// (the visually-hidden aria-live=polite per-cycle summary span inside
+// aside.hero-ledger — a real static node in index.html, written by main.js's
+// refreshCards summary writer; the REGISTRY RIDER requires registration for
+// every $-queried id).
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge', 'vault-grid', 'vaults-updated',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
@@ -133,7 +138,7 @@ global.document = {
  'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
  'mint-backed', 'inv-stat', 'invariants',
  'agents', 'agents-skill-link', 'agents-skill-mirror-link', 'asset-magnify',
- 'red-amount-label', 'redeem-preview'
+ 'red-amount-label', 'redeem-preview', 'hero-ledger-summary'
 ].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');

@@ -127,6 +127,13 @@
     // never broken). First cycle is a real cycle — the heartbeat may fire;
     // the DELTA flashes below are the path that must skip the first render.
     pulseStamp(!!state.pool);
+    // WS-A11Y-QUICK (2026-09-05): one polite line per COMPLETED cycle for screen
+    // readers, keyed off the same !!state.pool signal the stamp consumes. Skipped
+    // cycles (flow pending / tab hidden / no client) hit the early return above
+    // and announce nothing — claiming a failure for a cycle that never ran would
+    // lie. Byte-identical steady-state re-announcements are SR-dependent by
+    // design: no churn mechanisms, no counters.
+    var n = $('hero-ledger-summary'); if (n) { n.textContent = state.pool ? 'Ledger refreshed — re-read from public RPC' : 'Ledger refresh failed — the ledger shows unavailable states, never estimates'; }
   }
 
   function startTimers() {
@@ -241,7 +248,7 @@
   }
 
   function priceRow(price) {
-    if (!price) { return row('Underlying price', 'unavailable (feed)'); }
+    if (!price) { return row('Underlying price', 'unavailable (feed — no invented price)'); }
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, '$' + price.usd.toFixed(2)));
     frag.appendChild(el('span', 'muted', '  ·  ' + price.label + ' (Chainlink) · ' + fmtAge(price.ageSeconds) +
@@ -260,13 +267,13 @@
   }
 
   function cutRow(pool) {
-    if (!pool || !pool.cut) { return row('Protocol cut (pool owner)', 'unavailable'); }
+    if (!pool || !pool.cut) { return row("The pool owner's cut", 'unavailable'); }
     var c = pool.cut;
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, (c.cutFraction * 100).toFixed(0) + '% of swap fees per side (live slot0: (' +
       c.token0N + ',' + c.token1N + ')) — LPs keep ' + (c.netMultiplier * 100).toFixed(0) + '%'));
     if (c.note) { frag.appendChild(el('span', 'muted', '  ·  ' + c.note)); }
-    return row('Pool protocol cut (live)', frag);
+    return row("The pool owner's cut (live)", frag);
   }
 
   function vaultStatusRow(vaultCfg) {
@@ -306,7 +313,7 @@
     if (chip) {
       chip.className = 'hero-ledger-state ' + (pool ? 'flag flag-ok' : 'flag flag-warn');
       chip.textContent = pool ? 'live · chain ' + cfg.chain.id
-        : 'rpc unreachable — honest states shown, never estimates';
+        : 'rpc unreachable — the rows below show the gap, not a guess';
     }
     rowsBox.textContent = '';
 
@@ -348,7 +355,7 @@
     } else {
       cutNode = el('span', 'state', 'unavailable (RPC)');
     }
-    var rCut = ledgerRow('Pool protocol cut (live)', cutNode);
+    var rCut = ledgerRow("The pool owner's cut (live)", cutNode);
     rowsBox.appendChild(rCut);
     if (pool && pool.cut) { stampRow(rCut, 'slot0'); }
 
@@ -772,7 +779,7 @@
     var share = simSharePct(simState.size, simState.tvlUsd);
     if (shareEl) {
       shareEl.textContent = share === null
-        ? 'pool TVL unavailable — the dilution input needs the live read'
+        ? 'pool TVL unavailable — the dilution bar will not invent a denominator'
         : (share < 0.01 ? '<0.01' : share.toFixed(2)) + '% of pool TVL';
     }
     if (bar) {
@@ -925,7 +932,7 @@
     mounts.rows.appendChild(aprRow(null)); // placeholder until derivation completes
 
     mounts.note.textContent = 'Everything above is read by your browser directly from public RPC nodes — no backend, no keys. ' +
-      'Share tokens (' + vaultCfg.shareSymbol + ') are issued by the vault at deploy.';
+      'The ' + vaultCfg.shareSymbol + ' token was created at deploy; shares are minted by the vault on deposit and burned on redeem.';
 
     // the deposit widget is the PRIMARY vault's surface (family-grid contract)
     if (primary) { renderWidgetState(); }
@@ -1285,7 +1292,7 @@
     if (!box || !hash) { return; }
     var prev = box.querySelector('.tx-link');
     if (prev) { prev.remove(); }
-    var a = el('a', 'tx-link', 'view on explorer');
+    var a = el('a', 'tx-link', 'verify it on the explorer');
     a.href = cfg.chain.explorerTx(hash);
     a.target = '_blank';
     a.rel = 'noopener noreferrer';

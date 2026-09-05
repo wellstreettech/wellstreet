@@ -84,7 +84,34 @@ body[data-geo-blocked="true"] { background: var(--paper); }
 a { color: var(--accent-text); text-decoration: underline; text-underline-offset: 2px; transition: color var(--motion), outline-color var(--motion); }
 a:visited { color: var(--accent-visited); }
 a, button, input, [tabindex] { outline: 2px solid transparent; outline-offset: 2px; }
-a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline-color: var(--accent); }
+a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline-color: var(--accent-punch); } /* WS-A11Y-QUICK 2026-09-05: the keyboard-only ring must clear the 3:1 WCAG 1.4.11 floor — punch computes 5.42:1 on paper / 5.73:1 on paper-raised (--accent computed 2.54:1); mouse users never see :focus-visible */
+
+/* ---------- screen-reader utilities (WS-A11Y-QUICK 2026-09-05) ---------- */
+/* clip-form sr-only: visually vanishes while STAYING in the tab order and the
+   accessibility tree — never opacity:0 (invisible-but-focusable) and never
+   display:none (removes the element from the tab order, WCAG 2.4.1). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+}
+/* skip link: the body's first focusable (bypass blocks, WCAG 2.4.1), hidden
+   with the same clip recipe. The reveal on keyboard focus is INSTANT — no
+   transition/animation declaration on either rule (reduced-motion pairing by
+   construction) — and un-clips FULLY before any styling: a color-only reveal
+   would leave a permanently invisible 1px link. */
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+}
+.skip-link:focus-visible { clip: auto; width: auto; height: auto; margin: auto; overflow: visible; position: fixed; top: var(--space-6); left: var(--space-6); background: var(--paper); color: var(--ink); border: 2px solid var(--ink); font-family: var(--mono); text-transform: uppercase; padding: var(--space-10) var(--space-16); z-index: 100; } /* z-index 100 clears the sticky header's 10 (the site max) */
 code { font-family: var(--mono); background: var(--code-bg); padding: var(--space-0) var(--space-4); border: 1px solid var(--line); font-size: var(--step-8); }
 pre { background: var(--code-bg); border: 2px solid var(--line); padding: var(--space-12); overflow-x: auto; }
 pre code { background: none; border: none; padding: var(--space-0); }
@@ -1333,6 +1360,8 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
    surface with a prefers-reduced-motion static pair in this same
    change (no-preference gating + an explicit reduce block). */
 #agents .quiet { color: var(--ink-soft); } /* two-tone headline: line 2 recedes (same treatment as .hero h1 .quiet) */
+#deposit .quiet { color: var(--ink-soft); } /* two-tone headline: line 2 recedes (same treatment as .hero h1 .quiet) */
+#docs .quiet { color: var(--ink-soft); } /* two-tone headline: line 2 recedes (same treatment as .hero h1 .quiet) */
 .hero-ledger { position: relative; }  /* anchor for the overlapping point-hand */
 .asset-point {
   position: absolute;
@@ -1422,4 +1451,38 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
    extra rule. */
 @media (max-width: 640px) {
   .asset-point { display: none; }
+}
+
+/* ---------- WS-MOBILE-FIXES (2026-09-05) — pure-additive EOF mobile block ----------
+   Appended AFTER every existing media block (cascade-safe override order; zero
+   edits to existing lines). Three fixes from docs/inventory/UI_IMPROVE_MOBILE_
+   2026-09-04.md: P1 anchored-jump scroll-margin override = post-P3 measured
+   header height + 16; P2 phone-first hero fold — CSS order on the 8 .hero .wrap
+   children in the ratified rank; P3 header compression — 2-row header with a
+   nowrap horizontally-scrollable nav strip (.doc-tabs swipe-strip precedent)
+   and 44px link tap targets. Contract: docs/internal/GOALS_WS_UI_ROUND2_
+   2026-09-05.md (WS-MOBILE-FIXES). Tokens only — no color literals, no copy
+   changes, nothing hidden. */
+@media (max-width: 640px) {
+  /* P3 — the nav becomes one nowrap horizontally-scrollable strip; tap-target
+     height lives ON the links (min-height 44px), never as vertical padding on
+     .site-nav itself (its clientHeight must stay <= 48). */
+  .site-nav { flex-wrap: nowrap; overflow-x: auto; width: 100%; }
+  .site-nav a { flex: 0 0 auto; white-space: nowrap; min-height: 44px; }
+  .site-nav a.nav-cta { min-height: 44px; } /* must out-rank the base 38px nav-cta min-height */
+  /* P2 — phone-first hero fold: ratified rank (h1 → pitch → CTA row → live
+     ledger → mint ticket → lede → facts → chain badge) so the live ledger
+     enters the 844px fold. */
+  .hero .wrap > h1 { order: 1; }
+  .hero .wrap > p:not(.lede) { order: 2; }
+  .hero .wrap > .cta-row { order: 3; }
+  .hero .wrap > .hero-ledger { order: 4; }
+  .hero .wrap > .mint-card { order: 5; }
+  .hero .wrap > p.lede { order: 6; }
+  .hero .wrap > .hero-facts { order: 7; }
+  .hero .wrap > #chain-badge { order: 8; }
+  /* P1 — anchored jumps clear the compressed sticky header (value = measured
+     header height H + 16, finalized from the post-P3 probe). */
+  section.block, .hero { scroll-margin-top: 130px; }
+  #doc-pane [id] { scroll-margin-top: 130px; }
 }

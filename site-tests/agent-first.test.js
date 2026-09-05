@@ -201,7 +201,8 @@ test('(c) ledger card rows: mono labels + the BACKED cell rides the coverage sea
   assert.ok(css.indexOf('.mint-card .ledger-k { font-family: var(--mono); }') !== -1,
     '.mint-card .ledger-k rides the mono stack');
   // the BACKED cell = the read side of the single coverage seam
-  assert.ok(html.indexOf('<span class="ledger-v" id="mint-backed">') !== -1,
+  // re-pinned 2026-09-05 (WS-A11Y-QUICK): aria-live="polite" appended to the coverage-cell opening tags
+  assert.ok(html.indexOf('<span class="ledger-v" id="mint-backed" aria-live="polite">') !== -1,
     'the BACKED cell is #mint-backed');
   const fill = mainSrc.slice(mainSrc.indexOf('function fillBackingCoverage('),
     mainSrc.indexOf('async function loadVaultData('));
@@ -304,4 +305,119 @@ test('(e) LAUNCH_FACT single-source: quoted-literal counts, writer, byte-equal s
     'exactly the two statics carry the deployed register (hero-ledger row + flow node)');
   assert.strictEqual((html.match(/deploy\(ed|s\) 20\d\d/g) || []).length, 0,
     'index.html never hard-dates the deploy fact');
+});
+
+// ---------------- (f) WS-A11Y-QUICK a11y teeth (2026-09-05) ----------------
+// docs/inventory/UI_IMPROVE_A11Y_2026-09-04.md findings 1 (focus-ring token),
+// 2a+2b (sr-only per-cycle summary + polite coverage cells) and 3 (skip link).
+// Finding 7 and finding 2(c) (the docs.js load announcement) are OUT of scope
+// by the goal. All CSS teeth use the file's brace-span slicing: indexOf the
+// selector, slice to the next '}', assert inside the span.
+
+test('(f1) focus ring token clears the 3:1 WCAG 1.4.11 floor on every surface it lands on', () => {
+  // the token swap: the old semicolon-terminated form is gone (NOT a substring
+  // of the -punch form, so plain counting is safe) and the new form appears
+  // exactly once. The rgba(0,168,107,*) literals stay untouched (theme.test.js
+  // pins the accent retint — it owns that surface, not this battery).
+  assert.strictEqual(countOccurrences(css, 'outline-color: var(--accent);'), 0,
+    'the failing accent ring token is gone');
+  assert.strictEqual(countOccurrences(css, 'outline-color: var(--accent-punch);'), 1,
+    'the focus ring rides --accent-punch exactly once');
+  // contrast tooth (permanent): parse the tokens and compute WCAG 2.x ratios
+  // with the same math as theme.test.js — --accent-punch must clear 3:1 on
+  // every surface the ring can land on.
+  function tokenValue(name) {
+    const m = css.match(new RegExp(name + '[ \\t]*:[ \\t]*(#[0-9a-fA-F]{6})'));
+    assert.ok(m, name + ' hex resolvable in style.css');
+    return m[1];
+  }
+  function luminance(hex) {
+    const chans = [0, 2, 4].map((i) => {
+      const v = parseInt(hex.slice(1 + i, 3 + i), 16) / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * chans[0] + 0.7152 * chans[1] + 0.0722 * chans[2];
+  }
+  function contrast(fg, bg) {
+    const l1 = luminance(fg);
+    const l2 = luminance(bg);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  }
+  const punch = tokenValue('--accent-punch');
+  const surfaces = [tokenValue('--paper'), tokenValue('--paper-raised'), tokenValue('--paper-2')];
+  surfaces.forEach(function (bg, i) {
+    const r = contrast(punch, bg);
+    assert.ok(r >= 3.0, '--accent-punch on surface ' + i + ' computes ' + r.toFixed(2) + ':1 — must be >= 3.0 (WCAG 1.4.11 non-text)');
+  });
+});
+
+test('(f2) skip link: first focusable in body, frozen copy, clip hidden / full un-clip reveal', () => {
+  // byte-frozen anchor + byte-order first-focusable proof
+  const anchor = '<a class="skip-link" href="#vaults">Skip to content</a>';
+  assert.strictEqual(countOccurrences(html, anchor), 1,
+    'the skip anchor ships exactly once in its byte-frozen form');
+  const anchorAt = html.indexOf(anchor);
+  assert.ok(anchorAt > html.indexOf('<body'), 'the skip anchor sits inside <body>');
+  assert.ok(anchorAt < html.indexOf('<noscript'), 'the skip anchor precedes the <noscript> note');
+  assert.ok(anchorAt < html.indexOf('id="ws-root"'), 'the skip anchor is the first focusable (before #ws-root)');
+  assert.ok(anchor.indexOf('cta-') === -1, 'the skip link never borrows a pinned CTA class');
+  // both rules exist
+  assert.ok(css.indexOf('.skip-link {') !== -1, 'the .skip-link hidden rule is present');
+  assert.ok(css.indexOf('.skip-link:focus-visible {') !== -1, 'the .skip-link:focus-visible reveal rule is present');
+  // (i) .visually-hidden: all six pinned declarations inside its brace span
+  const vhAt = css.indexOf('.visually-hidden {');
+  const vh = css.slice(vhAt, css.indexOf('}', vhAt));
+  for (const decl of ['position: absolute', 'width: 1px', 'height: 1px', 'margin: -1px', 'overflow: hidden', 'clip: rect(0,0,0,0)']) {
+    assert.ok(vh.indexOf(decl) !== -1, '.visually-hidden carries ' + decl);
+  }
+  // (ii) the hidden skip-link form actually clips
+  const skAt = css.indexOf('.skip-link {');
+  const sk = css.slice(skAt, css.indexOf('}', skAt));
+  assert.ok(sk.indexOf('clip: rect(0,0,0,0)') !== -1, '.skip-link hidden state actually clips');
+  // (iii) the reveal actually UN-clips — a color-only reveal leaves a
+  // permanently invisible 1px skip link while every other tooth stays green
+  const revAt = css.indexOf('.skip-link:focus-visible {');
+  const rev = css.slice(revAt, css.indexOf('}', revAt));
+  for (const decl of ['clip: auto', 'width: auto', 'height: auto', 'margin: auto', 'overflow: visible']) {
+    assert.ok(rev.indexOf(decl) !== -1, '.skip-link reveal fully un-clips: ' + decl);
+  }
+  // (iv) no motion on ANY .skip-link rule — scoped extraction, never a
+  // whole-file grep (style.css carries many unrelated transition declarations)
+  const skipRules = css.match(/\.skip-link[^{]*\{[^}]*\}/g) || [];
+  assert.ok(skipRules.length >= 2, 'both .skip-link rules matched by the scoped extraction (got ' + skipRules.length + ')');
+  for (const span of skipRules) {
+    assert.ok(span.indexOf('transition') === -1 && span.indexOf('animation') === -1,
+      '.skip-link rules carry no transition/animation — the reveal is instant (reduced-motion pairing by construction)');
+  }
+});
+
+test('(f3) aria-live: polite coverage cells + leading summary sibling, never the rows container', () => {
+  assert.strictEqual(countOccurrences(html, 'id="mint-backed" aria-live="polite"'), 1,
+    '#mint-backed announces its value changes');
+  assert.strictEqual(countOccurrences(html, 'id="inv-stat" aria-live="polite"'), 1,
+    '#inv-stat announces its value changes');
+  assert.strictEqual(countOccurrences(html, 'id="hero-ledger-rows" aria-live'), 0,
+    'the rows container is NEVER a live region (a 60s rebuild would dump the whole ledger into the queue)');
+  const summary = '<span class="visually-hidden" id="hero-ledger-summary" aria-live="polite"></span>';
+  assert.strictEqual(countOccurrences(html, summary), 1,
+    'the sr-only summary span ships in its byte-frozen form');
+  assert.ok(html.indexOf('id="hero-ledger-summary"') > html.indexOf('id="hero-ledger"'),
+    'the summary sits inside aside.hero-ledger');
+  assert.ok(html.indexOf('id="hero-ledger-summary"') < html.indexOf('id="hero-ledger-rows"'),
+    'the summary is the LEADING sibling of the rows div (never a child — its children count pins at 4)');
+  assert.strictEqual(countOccurrences(html, 'id="hero-ledger-state" aria-live="polite"'), 1,
+    '#hero-ledger-state keeps exactly its one aria-live and gains no new attributes');
+});
+
+test('(f4) the per-cycle summary writer: house form, after pulseStamp, frozen literals', () => {
+  assert.ok(/var n = \$\('hero-ledger-summary'\);\s*if \(n\)/.test(mainSrc),
+    'the writer is null-guarded in the house form (the var n = prefix is part of the pin — no implicit global)');
+  assert.strictEqual(countOccurrences(mainSrc, 'pulseStamp(!!state.pool)'), 1,
+    'the placement anchor is unique (the byte-order proof stays meaningful)');
+  assert.ok(mainSrc.indexOf("$('hero-ledger-summary')") > mainSrc.indexOf('pulseStamp(!!state.pool)'),
+    'the writer sits inside refreshCards AFTER the early-return gate and the pulseStamp call — not at module top-level where it would run once and go stale');
+  assert.strictEqual(countOccurrences(mainSrc, 'Ledger refreshed — re-read from public RPC'), 1,
+    'the success literal ships exactly once (never claims coverage was re-read — it fails independently)');
+  assert.strictEqual(countOccurrences(mainSrc, 'Ledger refresh failed — the ledger shows unavailable states, never estimates'), 1,
+    'the failure literal ships exactly once (the honest register)');
 });

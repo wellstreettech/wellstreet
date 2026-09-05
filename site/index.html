@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Yield vaults for tokenized stocks on Robinhood Chain. Checkable, not sellable — every number verifiable on-chain.">
-  <meta property="og:title" content="Wellstreet — yield vaults for tokenized stocks">
+  <meta property="og:title" content="Wellstreet — checkable yield vaults for tokenized stocks">
   <meta property="og:description" content="Open-source ERC-4626 vaults wrapping tokenized stocks on Robinhood Chain (chain 4663). No audit. Every number is read by your browser straight from public chain nodes.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://wellstreet.tech/">
@@ -16,7 +16,7 @@
   <meta name="twitter:image" content="https://wellstreet.tech/og.png">
   <meta name="theme-color" content="#EDE9DC">
   <meta name="color-scheme" content="light">
-  <title>Wellstreet — yield vaults for tokenized stocks</title>
+  <title>Wellstreet — checkable yield vaults for tokenized stocks</title>
   <link rel="stylesheet" href="css/style.css">
   <!-- R3 IMP-11: favicon rebuilt to match the masthead plate — square --paper-2
        fill, 2px --line border, serif W (EB Garamond with Georgia fallback; the
@@ -24,6 +24,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23E4DFD1'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%231C1A15' stroke-opacity='0.4' stroke-width='2'/%3E%3Ctext x='32' y='45' font-family='EB Garamond,Georgia,serif' font-size='38' text-anchor='middle' fill='%231C1A15'%3EW%3C/text%3E%3C/svg%3E">
 </head>
 <body>
+  <a class="skip-link" href="#vaults">Skip to content</a>
   <noscript>
     <div class="wrap noscript-note">
       This page renders live on-chain reads in your browser and needs JavaScript.
@@ -134,6 +135,7 @@
               <span class="hero-ledger-title">Live ledger</span>
               <span class="hero-ledger-state" id="hero-ledger-state" aria-live="polite">connecting to public RPC…</span>
             </div>
+            <span class="visually-hidden" id="hero-ledger-summary" aria-live="polite"></span>
             <div class="hero-ledger-rows" id="hero-ledger-rows">
               <!-- WOW-8 ledger stamp: when a live read lands, js/main.js stamps the
                    row's value cell (data-stamp="slot0"|"balances" + .ledger-stamp)
@@ -141,7 +143,7 @@
                    data-carrying only, typographic, never ornamental. -->
               <div class="ledger-row"><span class="ledger-k">SPY / WETH (pool slot0)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
               <div class="ledger-row"><span class="ledger-k">Pool TVL (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
-              <div class="ledger-row"><span class="ledger-k">Pool protocol cut (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
+              <div class="ledger-row"><span class="ledger-k">The pool owner's cut (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
               <div class="ledger-row"><span class="ledger-k">Vault state</span><span class="ledger-v">deployed — yield phase live</span></div>
             </div>
             <p class="hero-ledger-note">Every figure above is read by your browser straight from public RPC nodes — no backend, no keys. When a read fails, the row says so instead of estimating.</p>
@@ -165,7 +167,7 @@
             <div class="ledger-row"><span class="ledger-k">DEPOSIT</span><span class="ledger-v">SPY (on-chain stock token)</span></div>
             <div class="ledger-row"><span class="ledger-k">SETTLED AT</span><span class="ledger-v">Robinhood Chain (chainId 4663)</span></div>
             <div class="ledger-row"><span class="ledger-k">YOU RECEIVE</span><span class="ledger-v">ws-SPY shares — never rebased</span></div>
-            <div class="ledger-row"><span class="ledger-k">BACKED</span><span class="ledger-v" id="mint-backed">coverage reads live from backingCoverage() on the vault at 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 (js/config.js); verify it yourself with any RPC client.</span></div>
+            <div class="ledger-row"><span class="ledger-k">BACKED</span><span class="ledger-v" id="mint-backed" aria-live="polite">coverage reads live from backingCoverage() on the vault at 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 (js/config.js); verify it yourself with any RPC client.</span></div>
             <div class="mint-card-callout">One token is one share. If the share value doubles, your tokens double. Nothing rebases.</div>
           </aside>
           <div class="hero-facts">
@@ -305,7 +307,7 @@
                auto-fit grid below lays the family out in rows. -->
           <div id="vault-grid"></div>
           <div class="apr-footnote" id="apr-footnote">
-            <span class="lbl">Projected depositor APR — projected, methodology-linked</span>
+            <span class="lbl">Depositor APR — projected, methodology-linked</span>
             <span id="apr-footnote-text"></span>
           </div>
         </div>
@@ -316,7 +318,7 @@
         <div class="wrap">
           <div class="block-head">
             <span class="index">02</span>
-            <h2>Deposit / Redeem</h2>
+            <h2>Deposit / Redeem<br><span class="quiet">the only buttons on this page that can move funds</span></h2>
             <span class="spacer"></span>
             <span class="muted" id="widget-chain"></span>
           </div>
@@ -407,7 +409,7 @@
               <div class="sim-region">
                 <span class="sim-region-k">Your size ÷ pool TVL (live) — the dilution input</span>
                 <span class="sim-bar" role="img" aria-label="Your illustrative deposit as a share of the live pool TVL"><span class="sim-bar-fill" id="sim-bar-fill"></span></span>
-                <span class="sim-region-v" id="sim-share">pool TVL unavailable — the dilution input needs the live read</span>
+                <span class="sim-region-v" id="sim-share">pool TVL unavailable — the dilution bar will not invent a denominator</span>
               </div>
               <div class="sim-region sim-region--static">
                 <span class="sim-region-k">Projected depositor APR</span>
@@ -442,7 +444,7 @@
           <div class="inv-card">
             <span class="inv-tag">DEFINITION-LEVEL GUARANTEE</span>
             <h3>Backing Invariant</h3>
-            <p class="inv-stat-line"><span id="inv-stat">coverage reads live from backingCoverage() on the vault at 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 (js/config.js); verify it yourself with any RPC client.</span></p>
+            <p class="inv-stat-line"><span id="inv-stat" aria-live="polite">coverage reads live from backingCoverage() on the vault at 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 (js/config.js); verify it yourself with any RPC client.</span></p>
             <div class="inv-disclosure">coverage = the vault's raw asset balance divided by the accounted figure (deposits plus credited yield — harvest credits raise it without minting shares), readable on-chain via <code>backingCoverage()</code>; 1e18 = exact cover (an empty vault reads 1e18: no accounted liability); above 1e18 is unaccounted excess (donations/uncredited yield); below 1.0 only after an issuer burn; redemptions are served until the balance is exhausted.</div>
           </div>
         </div>
@@ -453,7 +455,7 @@
         <div class="wrap">
           <div class="block-head">
             <span class="index">04</span>
-            <h2>Docs</h2>
+            <h2>Docs<br><span class="quiet">the fine print, promoted.</span></h2>
             <span class="spacer"></span>
             <span class="muted">markdown, rendered locally — no analytics, no tracking</span>
             <!-- WS-ASSET-WIRE (2026-09-04): magnify-hand in the Docs header — the
@@ -524,7 +526,7 @@
             <div class="h">Source &amp; license</div>
             <div>Open source. MIT. No company behind it. Owner controls live behind a public 48-hour timelock. Run it yourself.</div>
             <div>Every other yield vault asks you to trust a company, an audit, and a founder. This one asks you to read.</div>
-            <div>Source repository publishes with the new identity at launch (placeholder until then).</div>
+            <div>Source repository publishes with the new identity at launch. A placeholder is not an address, so this line carries no link.</div>
             <div>No audit. Verify the contracts yourself; the docs tell you exactly how.</div>
           </div>
           <div class="footer-col">
