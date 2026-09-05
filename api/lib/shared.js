@@ -47,26 +47,40 @@ const BROWSER_UA =
 /**
  * Call selectors. Sources:
  *  - Verified against live on-chain calls in the phase-0 evidence file:
- *    name, symbol, decimals, totalSupply, paused, latestRoundData, description.
- *  - Computed locally (keccak via cast sig) and PROVISIONAL until verified against
- *    the deployed factory/vault source at build time: vaultList, totalAssets,
- *    pricePerShare, asset, aggregator. The factory contract does not exist yet —
- *    re-pin these the moment the deployed source is available.
+ *    name, symbol, decimals, totalSupply, latestRoundData, description.
+ *  - Verified against the DEPLOYED source (F-01 broadcast 2026-09-03; selectors
+ *    derived from the canonical signatures of the shipped contracts):
+ *      allVaults        — src/VaultFactory.sol:71  `allVaults() returns (address[])`
+ *      totalAssets      — src/YieldShares.sol:122 (ERC-4626 override)
+ *      asset            — lib/openzeppelin-contracts ERC4626.sol:123 `asset() returns (address)`
+ *      convertToAssets  — lib/openzeppelin-contracts ERC4626.sol:138 (inherited by YieldShares)
+ *      depositsPaused   — src/YieldShares.sol:76 `bool public depositsPaused`
+ *    (The old PROVISIONAL vaultList/pricePerShare/paused guesses named functions that
+ *    do NOT exist on the deployed contracts — every call would revert.)
+ *  - The underlying tokenized-stock tokens expose `paused()` (0x5c975abb) — read by
+ *    the frontend (site/js/vault.js:124), never by these endpoints.
  */
 const SEL = {
-  vaultList: '0xd223bb36', // PROVISIONAL — verify against deployed factory source
-  totalAssets: '0x01e1d114', // PROVISIONAL — verify against deployed vault source
-  pricePerShare: '0x99530b06', // PROVISIONAL — verify against deployed vault source
-  asset: '0x38d52e0f', // PROVISIONAL — verify against deployed vault source
+  allVaults: '0x063effeb', // verified — src/VaultFactory.sol:71
+  totalAssets: '0x01e1d114', // verified — src/YieldShares.sol:122
+  convertToAssets: '0x07a2d13a', // verified — OZ ERC4626 (inherited by YieldShares)
+  depositsPaused: '0x60da3e83', // verified — src/YieldShares.sol:76
+  asset: '0x38d52e0f', // verified — OZ ERC4626 asset()
   totalSupply: '0x18160ddd', // verified on-chain (phase-0)
   name: '0x06fdde03', // verified on-chain (phase-0)
   symbol: '0x95d89b41', // verified on-chain (phase-0)
   decimals: '0x313ce567', // verified on-chain (phase-0)
-  paused: '0x5c975abb', // verified on-chain (phase-0)
   latestRoundData: '0xfeaf968c', // verified on-chain (phase-0)
   description: '0x7284e416', // verified on-chain (phase-0)
-  aggregator: '0x245a7bfc', // PROVISIONAL — verify against deployed proxy source
 };
+
+/**
+ * The deployed VaultFactory (F-01 broadcast 2026-09-03, on-chain verified) — pinned
+ * identically in site/js/config.js `contracts.vaultFactory` (the single source of
+ * truth). /api/vaults defaults to it so the enhancement works with no serverless env
+ * config; WELLSTREET_FACTORY_ADDRESS overrides (set it to an empty string to disable).
+ */
+const DEFAULT_FACTORY_ADDRESS = '0x07446D9807F90eD7ED177Ab63597e8BB4D96428f';
 
 /** Canonical tokenized-stock facts (phase-0 evidence; both carry "• Robinhood Token" naming + cdn icon — the discriminator). */
 const TOKENS = {
@@ -145,7 +159,10 @@ const FEED_TABLE = [
 
 const RPC_TIMEOUT_MS = 10_000;
 const BODY_LIMIT_BYTES = 256 * 1024; // /api/rpc request-size guard
-const VAULT_CACHE_TTL_MS = 600_000; // /api/vaults in-memory cache
+// Vault state (totalAssets / share price) moves on every deposit and every harvest,
+// so the in-memory TTL matches the site's own 60s refresh loop (main.js REFRESH_MS) —
+// a 10-minute-old vault snapshot presented without a loud marker would be a lie.
+const VAULT_CACHE_TTL_MS = 60_000;
 const MAX_VAULTS = 50; // per-response cap on the vault list fan-out
 const PRICE_STALE_AFTER_SEC = 4 * 3600; // staleness threshold during weekday sessions (24/5 feed)
 
@@ -251,6 +268,11 @@ async function ethCall(fetchImpl, to, data, opts = {}) {
 }
 
 // ---------------------------------------------------------------- hex / ABI decoding
+
+/** ABI-encode a single uint256 call argument (32-byte, left-padded, no 0x prefix). */
+function encodeUintArg(value) {
+  return BigInt(value).toString(16).padStart(64, '0');
+}
 
 function strip0x(hex) {
   return typeof hex === 'string' && hex.startsWith('0x') ? hex.slice(2) : String(hex || '');
@@ -437,6 +459,7 @@ module.exports = {
   TOKENS,
   FEEDS,
   FEED_TABLE,
+  DEFAULT_FACTORY_ADDRESS,
   RPC_TIMEOUT_MS,
   BODY_LIMIT_BYTES,
   VAULT_CACHE_TTL_MS,
@@ -453,6 +476,7 @@ module.exports = {
   rpcWithFailover,
   ethCall,
   // decoding
+  encodeUintArg,
   strip0x,
   hexToBigInt,
   wordToSignedInt,

@@ -48,6 +48,9 @@ async function handler(req, res) {
   const ok = chainId === CHAIN_ID_EXPECTED;
   return sendJson(res, ok ? 200 : 502, {
     ok,
+    // Error-shape consistency: every non-200 body names its failure (same contract
+    // as the other /api/* functions) while still reporting the observed values.
+    ...(ok ? {} : { error: `upstream reported chain id ${chainId}, expected ${CHAIN_ID_EXPECTED}` }),
     chainId,
     chainIdHex: r.json.result,
     expectedChainId: CHAIN_ID_EXPECTED,

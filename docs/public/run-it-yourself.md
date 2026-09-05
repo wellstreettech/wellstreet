@@ -98,6 +98,12 @@ cast call $VAULT 'convertToAssets(1000000000000000000)(uint256)' --rpc-url $RPC
 cast call $VAULT 'paused()(bool)' --rpc-url $RPC
 ```
 
+## Run it as an agent
+
+The repository ships the same material as a machine-readable agent skill: `skills/wellstreet-vaults/SKILL.md`. It packages what this page covers in the form an agent needs — a numbered keyless `cast` read battery with each command and its expected output shape, the approve/deposit and redeem write flows with fail-closed rules (approve only the pinned vault, bound a minimum out on any swap you perform yourself, swap the quote asset to the vault's asset before depositing, never transfer tokens directly to the vault or harvester, read `depositsPaused()` before a deposit), the ratified backward-looking APR formula with source-and-window reporting rules, and a self-check battery an agent runs against its own copy before acting.
+
+Addresses come only from `site/js/config.js` and the skill; never approve or call an address not pinned there. The site serves a copy of the skill at https://wellstreet.tech/skills/wellstreet-vaults.md — the repository file is the source of truth, and if the two ever differ, the repository wins, same as everything else here.
+
 ## CI
 
 CI runs `forge test` (including the fork tests) with `WELLSTREET_ROBINHOOD_RPC_URL` as the single fork-RPC secret name. A green CI run and a green local `forge test` are the same suite.

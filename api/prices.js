@@ -202,7 +202,14 @@ async function handler(req, res) {
       feedTable: FEED_TABLE,
       feedTableNote:
         'Full on-chain feed discovery from the phase-0 probe. Only feeds with recorded proxy addresses are quoted; the remaining addresses are re-pinned at build time using the same on-chain discovery method.',
-      ...(ok ? {} : { errors }),
+      ...(ok
+        ? {}
+        : {
+            // Error-shape consistency: every non-200 /api/* body names its failure at
+            // the top level; per-symbol detail stays in feeds[symbol].error.
+            errors,
+            error: 'no feed produced a usable quote — primary and secondary sources failed for every symbol',
+          }),
     },
     { 'cache-control': CACHE_HEADER }
   );

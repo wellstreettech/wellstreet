@@ -23,6 +23,8 @@ Each vault wraps a tokenized stock token issued and administered by a third part
 
 Depositing means accepting all of the above.
 
+One of these states is surfaced before you sign anything: the frontend reads the vault's `depositsPaused()` flag and the underlying token's `paused()` flag directly from the chain. On a verified deposit pause it disables the deposit side of the widget (approve and deposit — the redeem/withdraw controls keep their ordinary wallet-and-deploy gates) and prints a row saying so; a verified issuer pause of the token gets its own row. A failed or unreadable flag renders nothing and gates nothing — the page displays verified chain state, it is not a safety mechanism, and the contracts, not the page, are the authority.
+
 ## Underlying-market risk — how alive is the token we wrap?
 
 `redeem()` is 1:1 in the stock token and never pausable — but 1:1 redemption only

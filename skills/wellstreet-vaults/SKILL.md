@@ -84,8 +84,8 @@ Wellstreet vaults are ERC-4626 yield vaults ("YieldShares", `src/YieldShares.sol
 
 | Function | Source | Notes |
 |---|---|---|
-| `createVault(asset, name, symbol)` | `:50-64` | permissionless; one vault per asset, enforced on-chain |
-| `vaultOfAsset(asset)` / `allVaults()` / `allVaultsLength()` | `:26` / `:67` / `:72` | the on-chain registry — how any agent discovers the canonical vault without an API |
+| `createVault(asset, name, symbol)` | `:54-68` | permissionless; one vault per asset, enforced on-chain (a v4-capable second creation path, `createVaultV4`, exists at `:116` — same one-vault-per-asset invariant) |
+| `vaultOfAsset(asset)` / `allVaults()` / `allVaultsLength()` | `:27` / `:71` / `:137` | the on-chain registry — how any agent discovers the canonical vault without an API |
 
 ## READ BATTERY
 
@@ -108,7 +108,7 @@ TIMELOCK=0xD55bA510533dc5a250b4D6d49Ee825113DD69342
 | 1 | Total accounted assets | `cast call $VAULT 'totalAssets()(uint256)' --rpc-url $RPC` | one uint256, asset-wei (SPY, 18 dec). Storage-based — donations excluded |
 | 2 | Share price (assets per human share) | `cast call $VAULT 'convertToAssets(uint256)(uint256)' 1000000000000000000000000 --rpc-url $RPC` | one uint256, asset-wei backing 1e24 shares; divide by 1e18 → SPY-per-share (first deposits sit at 1.0) |
 | 3 | Redeem preview | `cast call $VAULT 'previewRedeem(uint256)(uint256)' <shares-wei> --rpc-url $RPC` | one uint256, asset-wei you would receive for those shares |
-| 4 | Backing coverage | `cast call $VAULT 'backingCoverage()(uint256)' --rpc-url $RPC` | one uint256, 1e18 fixed point: `= 1e18` exact cover; `> 1e18` unaccounted excess (donations / uncredited yield); `< 1e18` under-coverage — today only reachable via an issuer `adminBurn` against the vault; redemptions are served from the remaining balance and late redeemers revert (`src/YieldShares.sol:152-156`) |
+| 4 | Backing coverage | `cast call $VAULT 'backingCoverage()(uint256)' --rpc-url $RPC` | one uint256, 1e18 fixed point: `= 1e18` exact cover; `> 1e18` unaccounted excess (donations / uncredited yield); `< 1e18` under-coverage — today only reachable via an issuer `adminBurn` against the vault; redemptions are served from the remaining balance and late redeemers revert (`src/YieldShares.sol:152-156`). TWO reporting traps: an EMPTY vault reads exactly 1e18 by construction (`ta == 0` short-circuits, `:152-156`) — 1e18 alone is "no accounted liability", not proof of deposits or of backing; and under-coverage is the F-04b class — the views degrade gracefully instead of panicking (`unaccountedAssets()` returns 0 rather than reverting, `:132-136`), so a burned vault is a state you REPORT, never an error you suppress |
 | 5 | Deposit pause flag | `cast call $VAULT 'depositsPaused()(bool)' --rpc-url $RPC` | `true`/`false` |
 | 6 | Protocol fee | `cast call $VAULT 'feeBps()(uint256)' --rpc-url $RPC` | uint256 bps (initial 1000; cap 2000) |
 | 7 | Unaccounted excess | `cast call $VAULT 'unaccountedAssets()(uint256)' --rpc-url $RPC` | uint256 asset-wei sitting above the accounting figure |
@@ -119,6 +119,9 @@ TIMELOCK=0xD55bA510533dc5a250b4D6d49Ee825113DD69342
 | 12 | Vault yield credits | `cast logs --from-block <N> --to-block latest --address $VAULT 'YieldHarvested(uint256,uint256)' --rpc-url $RPC` | list of logs: assets credited + resulting totalAssets |
 | 13 | Vault discovery | `cast logs --from-block 0 --to-block latest --address $FACTORY 'VaultCreated(address,address,string,string)' --rpc-url $RPC` | one log per vault: asset, vault, name, symbol — or just read `cast call $FACTORY 'vaultOfAsset(address)(address)' 0x117cc2133c37B721F49dE2A7a74833232B3B4C0C` |
 | 14 | Pending timelock ops | `cast call $TIMELOCK 'readyAt(bytes32)(uint256)' <id> --rpc-url $RPC` | uint256 unix timestamp (0 = not queued); enumerate via `CallQueued` logs |
+| 15 | Holder share balance | `cast call $VAULT 'balanceOf(address)(uint256)' $USER --rpc-url $RPC` | uint256 RAW share balance at the 1e24-per-human-share scale (offset 6): a 1.0-SPY depositor into an empty vault holds 1e24, not 1e18 — never print a raw count as "shares" without the scale |
+| 16 | Holder position value | `cast call $VAULT 'convertToAssets(uint256)(uint256)' <raw-shares-from-15> --rpc-url $RPC` | uint256 asset-wei the position stands behind — the holder-state figure the site's position row shows (`site/js/vault.js:280-295`, same two reads batched). Two scales in play: raw balances are 1e24-per-human-share while the site's per-share price line uses `convertToAssets(1e18)` = a 1e18-share (1e-6-human-share) basis — they differ by 1e6, never mix them in one sentence |
+| 17 | Withdraw preview (asset-exact exit) | `cast call $VAULT 'previewWithdraw(uint256)(uint256)' <assets-wei> --rpc-url $RPC` | uint256 shares that would be BURNED to receive that asset amount (OZ rounds the share side CEIL). Pair with #3 (`previewRedeem`, which floors the asset side) and the preview-discipline rule below |
 
 Works TODAY (no deployment needed):
 
@@ -148,6 +151,14 @@ cast send $VAULT 'mint(uint256,address)' <shares-wei> $RECEIVER --rpc-url $RPC -
 cast send $VAULT 'redeem(uint256,address,address)' <shares-wei> $RECEIVER $OWNER --rpc-url $RPC --private-key $KEY
 # or asset-exact: withdraw(uint256 assets, address receiver, address owner)
 ```
+
+**Pause mode — read before ANY deposit write.** The pause model is one-sided: DEPOSITS are pausable, REDEMPTIONS never (`_deposit` is the only pause checkpoint in the contract, `src/YieldShares.sol:249` + revert `DepositsPaused` `:254`; `_withdraw` `:267-278` has no pause path).
+
+- Before a deposit/mint, read `depositsPaused()` (battery #5) and/or `maxDeposit(receiver)` — `maxDeposit`/`maxMint` encode the same truth as `0` when paused (`:165-172`). A `0` is a HARD STOP, never an amount to clamp down to. (The site's deposit widget gates on exactly this verified read — `readDepositsPaused`, `site/js/vault.js:265-274` — where an unknown/unread state never enables a deposit.)
+- A pause can flip between your read and your send: `setDepositPaused` is callable by the timelock OR the pause-only EOA (`:195-199`) and every flip emits `DepositPauseSet` (`:78`). A `DepositsPaused` revert on send is data — re-read the flag and report the paused state; never retry harder and never route around it.
+- "Paused" means deposits ONLY: all reads and redeem/withdraw keep working, and no agent may report a paused vault as "funds trapped" — the protocol's own controls cannot trap user funds.
+
+**Preview discipline — the chain prices the final amount.** Never quote an exit from `convertToAssets` arithmetic, a remembered share price, or a stale read: call `previewRedeem(shares)` (battery #3) for a share-exact exit or `previewWithdraw(assets)` (battery #17) for an asset-exact exit immediately before the send. The OZ `redeem`/`withdraw` entrypoints execute through these same previews (`previewWithdraw`/`previewRedeem` called internally, `lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol:215,228`), so a preview is EXACT against the state it was computed from — and stale the moment state moves (another deposit or a `harvest()` between preview and mine shifts the number). Quote → send without sitting on the quote, and label the figure "previewed" — a live quote, never a promise. The site's redeem widget runs the same two previews live before any send (`previewRedeem`/`previewWithdraw`, `site/js/vault.js:301-321`).
 
 Fail-closed rules — an agent that cannot satisfy one of these does not write:
 
@@ -192,6 +203,7 @@ depositor APR = pool_net_rate × (L_pos / L_pool) × (pool_TVL / vault_TVL) × 0
 4. **Never print from thin data.** Windows with fewer than 20 Swap events are excluded; incomplete log retrieval drops the window rather than patching it (`site/js/config.js:222-239`, `docs/public/methodology.md`). If the pipeline is unavailable, print "no figure" — not the last number, not a fallback presented as current.
 5. **Scenario tables are upper bounds where marked.** Band rows assume always-in-range; real band economics multiply by the in-range fraction, which the measured tick drift makes materially < 1.
 6. **Report risk alongside yield.** Any yield report names the counterfactual honestly: same income divided among more depositors dilutes per-depositor APR; the LP principal that generates it is treasury capital that bears IL/LVR and can shrink.
+7. **Coverage percent truncates toward zero; excess is never clamped.** A 99.95%-covered vault prints "99.9%", never "100.0%", and `> 1e18` excess prints as-is ("199.9%", not capped at 100) — the same rule the site's formatter enforces (`site/js/vault.js:103-110`). Rounding under-coverage up to a round number misreports the protocol's worst risk; clamping excess hides real donations.
 
 ## SELF-CHECK
 
@@ -212,4 +224,4 @@ grep -q 'ERC4626' src/YieldShares.sol && grep -q 'function harvest' src/YieldSha
 
 If any count is off, your copy is stale or your output drifted — re-read the sources (`src/YieldShares.sol`, `src/Harvester.sol`, `src/WellstreetTimelock.sol`, `src/VaultFactory.sol`, `site/js/config.js` aprPins, `docs/public/methodology.md`) before acting.
 
-Vault #1 wraps SPY on chain 4663; further multi-asset vaults via `VaultFactory` (one vault per asset) are planned — the same read/write/report surface applies, with each new address gated until it is pinned in this skill from `site/js/config.js`.
+Vault #1 wraps SPY on chain 4663; further multi-asset vaults via `VaultFactory` (one vault per asset) are planned — the same read/write/report surface applies, with each new address gated until it is pinned in this skill from `site/js/config.js`. The config seam is already family-shaped: `vaults[]` (`site/js/config.js:147-157`) is an ARRAY, so a vault #2 entry slots in beside the ws-SPY entry and nothing about this skill's structure changes — only the pinned-address table above grows, and each new address obeys the same pin-first gate (config.js entry, on-chain verification via the factory registry read #13, then re-pin here — never the reverse).

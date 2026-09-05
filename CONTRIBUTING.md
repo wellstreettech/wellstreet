@@ -14,18 +14,39 @@ Documentation and comments in this repository are written to be checkable agains
 
 ## Setup
 
+The Foundry project lives at the repository root (`foundry.toml`), not in a subdirectory.
+
 ```bash
 curl -L https://foundry.paradigm.xyz | bash && foundryup   # Foundry (forge, cast)
-cd contracts        # or the repository root, wherever the Foundry project lives
 forge install
 forge build
 ```
+
+## Tests
+
+There are two independent suites, and CI runs both on every push and PR (`.github/workflows/ci.yml`):
+
+**Forge suite** — contracts, including fork tests against live chain state. Fork tests need `WELLSTREET_ROBINHOOD_RPC_URL` set to any read-only RPC for chain 4663 (the keyless public RPC works: `https://rpc.mainnet.chain.robinhood.com`). Locally the fork suites self-skip when the variable is unset; in CI a skip fails the job.
+
+```bash
+WELLSTREET_ROBINHOOD_RPC_URL=https://rpc.mainnet.chain.robinhood.com forge test
+```
+
+**Node suite** — `site-tests/` (the static site) and `api-tests/` (the serverless functions). No `npm install`, no build step: the site is deliberately dependency-free, so plain `node --test` is the whole toolchain. Node 23 is what CI pins.
+
+```bash
+node --test "site-tests/*.test.js" "api-tests/*.test.js"
+```
+
+Quote the globs. On Node 23.3.0 the directory form (`node --test site-tests api-tests`) fails red before a single test runs — node treats each directory as a test file and reports `test failed` for both — and an unquoted glob depends on your shell expanding it (a shell that passes the literal pattern gets the same red). The quoted-glob form is the canonical command; CI runs exactly it.
+
+Do not add a package manager, bundler, or build step to `site/`. Dependency-free and no-build is a stated property of this repository, not an accident.
 
 ## Pull-request flow
 
 1. Fork the repository and create a branch.
 2. Make the change.
-3. **`forge test` must pass green** — the full suite. Fork tests need `WELLSTREET_ROBINHOOD_RPC_URL` set to any read-only RPC for chain 4663 (the keyless public RPC works: `https://rpc.mainnet.chain.robinhood.com`). CI runs the same suite; a PR that does not pass it will not be merged.
+3. **Both suites must pass green** — full `forge test` and the full node suite (commands above). CI runs the same commands; a PR that does not pass them will not be merged.
 4. Open a PR stating: what changed, why, and how a reviewer can verify it (commands plus expected output).
 5. Keep PRs scoped to one logical change.
 

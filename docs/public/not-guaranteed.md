@@ -10,6 +10,8 @@ No third-party audit has been performed or is scheduled. The contracts are new a
 
 The protocol has no operating history. No depositors have ridden a full market cycle, no harvest has run in production, no edge case has been hit by real users at real size. Tests and invariants reduce risk; they do not remove it.
 
+The deployment is young, and how young is checkable. The four contracts went live on Robinhood Chain (chain ID 4663) on 2026-09-03 (addresses in [guarantees.md](guarantees.md)). When the repository's Foundry suite was run on 2026-09-05 it executed 84 tests across 11 suites — including fork suites that read live chain 4663 state, with CI failing the job if any fork test is skipped — and all of them passed. The site's own Node battery goes further: one of its tests pins the factual claims in these very docs against the deployed configuration (`site/js/config.js`), so a doc that drifts from the config fails CI. None of that is operating history. A test suite is evidence about the cases its authors imagined; a market cycle, a live incident, and real deposits at real size are evidence about everything else. The deployed vault is empty (measured on-chain, 2026-09-05): nobody's money has ever ridden these contracts, so nothing has been defended yet.
+
 ## The underlying stock token is issuer-controlled
 
 The vault wraps a tokenized stock token the protocol does not control. The issuer can:

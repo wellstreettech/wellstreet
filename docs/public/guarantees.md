@@ -47,6 +47,8 @@ scaled against its accounted deposits, in 1e18 fixed point:
 - `> 1e18` — the vault holds more than accounted (donations and not-yet-credited yield sit as unaccounted excess nobody can claim);
 - `< 1e18` — the accounted figure exceeds the balance, which today can only happen if the issuer burns tokens held by the vault (the [admin burn](risk-disclosure.md)). Redemptions are still served from the remaining balance until it is exhausted; late redeemers' transfers revert. The vault does not hide this state — it is readable on-chain the moment it exists.
 
+The page itself reads the same view. The site calls `backingCoverage()` on every refresh and prints the identical figure in two places — the mint ticket's BACKED row and the backing-invariant card — from one fill point (`fillBackingCoverage` in `site/js/main.js`; the formatting lives in `site/js/vault.js`). The percentage is truncated toward zero, so a 99.95%-covered vault reads "99.9%", never "100.0%", and excess above full cover prints as-is rather than being capped at 100%. A failed or undecodable read renders "unavailable (RPC)" — never a fabricated figure.
+
 ## 7. Harvest is permissionless
 
 `harvest()` can be called by anyone. The caller receives a tip of 0.1% of the harvested proceeds, deducted from the protocol share — not from depositor yield, and not 0.1% of the protocol share. There is no keeper dependency: if nobody harvests, fees accrue in the LP position until someone does.

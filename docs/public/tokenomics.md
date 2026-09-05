@@ -1,6 +1,6 @@
 # $WELL and protocol economics
 
-Status first: **$WELL has not launched.** Nothing on this page is an offer. The vault contracts are deployed on Robinhood Chain (chain ID 4663) — the vault fee split below is live at its initial value, settable by the timelock within its cap. The $WELL numbers describe the pad's fee mechanics as configured at the token's launch; where a value is fixed in code versus set at launch time, that is stated.
+Status first: **$WELL has not launched.** Nothing on this page is an offer. The vault contracts are deployed on Robinhood Chain (chain ID 4663) — broadcast 2026-09-03 — and the vault fee split below is live at its initial value, settable by the timelock within its cap. The $WELL numbers describe the pad's fee mechanics as configured at the token's launch; where a value is fixed in code versus set at launch time, that is stated.
 
 ## The two fee streams, kept deliberately separate
 
@@ -39,6 +39,8 @@ Of every unit of yield the harvester pushes into the vault:
 - **90%** accrues to depositors pro-rata (no shares are minted);
 - **10%** accrues to the treasury (initially; timelock-settable within the 20% cap);
 - the harvest caller receives a **0.1% tip** on the harvested proceeds, deducted from the protocol share — not from depositor yield.
+
+The live value is readable without permission: `feeBps()` on the vault (addresses in [guarantees.md](guarantees.md)) returns the fee in basis points — 1000 at the initial value, verified on-chain 2026-09-05 — with the 2000 cap enforced in code (`MAX_FEE_BPS`). Read commands: [run-it-yourself.md](run-it-yourself.md).
 
 ## The treasury, and what it is for
 
