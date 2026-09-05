@@ -62,7 +62,8 @@ const ASSET_MOTION = [
   ['img/compressed/hand-press.png', 'asset-press', true],        // dips ~6px on #btn-deposit hover/focus
   ['img/compressed/hand-magnify.png', 'asset-magnify', true],    // one sweep per refresh cycle, motionAllowed()-gated
   ['img/compressed/curve-stroke.png', 'asset-draw', true],       // clip-path draw-on, IO-armed only
-  ['img/compressed/certificate.png', 'asset-certificate', false] // vault-card keeper (appended by main.js) — static
+  ['img/compressed/certificate.png', 'asset-certificate', false], // vault-card keeper (appended by main.js) — static
+  ['img/logo-mark.png', 'brand-mark', false]                     // header logo mark (2026-09-04) — static, no motion by design
 ];
 
 // ---------------- (a) agent-first section ----------------
@@ -205,9 +206,15 @@ test('(c) ledger card rows: mono labels + the BACKED cell rides the coverage sea
     mainSrc.indexOf('async function loadVaultData('));
   assert.ok(fill.indexOf("$('mint-backed')") !== -1 && fill.indexOf("$('inv-stat')") !== -1,
     'fillBackingCoverage is the single fill point writing BOTH seam cells');
-  const pending = 'awaiting address wiring — coverage goes live when the vault address is published';
-  assert.strictEqual(countOccurrences(html, pending), 2,
-    'the honest pending coverage text is exactly the two static seam cells (identical by construction)');
+  // re-pinned 2026-09-05 (WS-PRODUCT-GAPS P5): the vault is DEPLOYED (config.js pins
+  // the live address), so the static first paint no longer claims the address is
+  // unpublished — both cells now carry the self-verify truth string (the JS fill
+  // seam above is unchanged: isDeployed-gated, honest on failure).
+  const staticCoverage = 'coverage reads live from backingCoverage() on the vault at 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 (js/config.js); verify it yourself with any RPC client.';
+  assert.strictEqual(countOccurrences(html, staticCoverage), 2,
+    'the noscript coverage truth is exactly the two static seam cells (identical by construction)');
+  assert.strictEqual(countOccurrences(html, 'awaiting address wiring'), 0,
+    'the stale pre-deploy coverage claim is gone from the statics (false post-deploy)');
   // seam semantics: isDeployed-gated (no eth_call pre-deploy), honest on failure
   assert.ok(fill.indexOf('WS.vault.isDeployed(') !== -1, 'the fill gates on the isDeployed seam');
   assert.ok(fill.indexOf('unavailable (RPC)') !== -1, 'a failed read renders the honest state, never a figure');

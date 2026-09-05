@@ -215,3 +215,49 @@ test('launch fact single-sourced: one quoted literal per state, statics byte-equ
   assert.strictEqual(spanMatch[1], constMatch[1],
     'the static span text is byte-equal to proseDeployed');
 });
+
+// ---------------- WS-PRODUCT-GAPS (2026-09-05) ----------------
+// P1 pause gate: only a VERIFIED paused=true blocks the deposit side; an
+// unknown read (null/undefined) never does — and never fabricates a row.
+test('P1 depositsOpen: a verified pause blocks the deposit side; unknown never does', () => {
+  const wow2 = global.WS.wow;
+  assert.strictEqual(wow2.depositsOpen(true, false), true, 'unpaused + ready → deposit side open');
+  assert.strictEqual(wow2.depositsOpen(true, true), false, 'verified pause → deposit side closed');
+  assert.strictEqual(wow2.depositsOpen(false, true), false, 'no wallet gates regardless');
+  assert.strictEqual(wow2.depositsOpen(true, null), true, 'unknown read (null) → gate stays as inputsReady');
+  assert.strictEqual(wow2.depositsOpen(true, undefined), true, 'unknown read (undefined) → same');
+});
+
+// Honesty-string pins for the five WS-PRODUCT-GAPS strings (verbatim, one home
+// each): the pause row states the pause + the redeem guarantee and never a
+// duration; the position line carries the share-price qualifier; the preview
+// names the chain as the final pricer (never "you will receive"); the flow
+// deposit node's pending sentence lives ONLY in main.js's writer (Branch B:
+// the deployed register is the static first paint); the stale pre-deploy
+// coverage claim is gone from the statics, replaced by the self-verify truth.
+test('WS-PRODUCT-GAPS honesty strings: verbatim single-source pins, no overclaim', () => {
+  assert.strictEqual((mainSrc.match(/Deposits are paused on the vault\. Redemptions are never pausable — exits stay open\./g) || []).length, 1,
+    'the pause row is quoted exactly once in main.js');
+  assert.ok(mainSrc.indexOf('at the current share price.') !== -1, 'the position ≈ carries the share-price qualifier');
+  assert.ok(mainSrc.indexOf('the chain prices the final amount.') !== -1, 'the preview names the chain as the final pricer');
+  assert.strictEqual(mainSrc.indexOf('you will receive'), -1, 'never a receive-promise in the JS');
+
+  const indexSrc2 = fs.readFileSync(path.join(__dirname, '..', 'site', 'index.html'), 'utf8');
+  assert.strictEqual(indexSrc2.indexOf('you will receive'), -1, 'never a receive-promise in the statics');
+  assert.strictEqual((indexSrc2.match(/open — approve the vault, then deposit/g) || []).length, 1,
+    'the flow deposit node ships the deployed register statically, exactly once');
+  assert.strictEqual(indexSrc2.indexOf('deposits activate when the vault deploys'), -1,
+    'the pending sentence never ships statically (Branch B)');
+  assert.ok(mainSrc.indexOf('deposits activate when the vault deploys') !== -1,
+    'the pending sentence lives in main.js\'s FLOW_DEPOSIT_SUB writer');
+  assert.strictEqual((indexSrc2.match(/verify it yourself with any RPC client/g) || []).length, 2,
+    'the noscript coverage truth is exactly the two static seam cells');
+  assert.strictEqual(indexSrc2.indexOf('awaiting address wiring'), -1,
+    'the stale pre-deploy coverage claim is gone from the statics');
+  // the new strings carry no yield figure, no owner language, no VIBE
+  // (verified absent from BOTH files before pinning — byte-presence greps)
+  for (const s of ['APY', 'guaranteed', 'risk-free', 'no owner', 'ownerless', 'VIBE']) {
+    assert.strictEqual(mainSrc.indexOf(s), -1, 'main.js hygiene: ' + s);
+    assert.strictEqual(indexSrc2.indexOf(s), -1, 'index.html hygiene: ' + s);
+  }
+});

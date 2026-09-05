@@ -108,6 +108,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
   padding-bottom: var(--space-14);
 }
 .brand { display: flex; align-items: baseline; gap: var(--space-10); text-decoration: none; color: var(--ink); }
+.brand-mark { width: 28px; height: 30px; align-self: center; image-rendering: pixelated; flex: none; }
 .brand-word {
   font-family: var(--serif); /* serif masthead — editorial-ledger V1 */
   font-weight: 700;

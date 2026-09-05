@@ -19,6 +19,20 @@
   // Undated by design (a hard date in code goes stale) and carries no yield promise.
   var LAUNCH_FACT = { pendingShort: 'awaiting on-chain deploy', pending: 'awaiting on-chain deploy — yield phase not started', deployed: 'deployed — yield phase live', prosePending: 'The vault is not yet on-chain — factory, timelock, harvester and vault land on Robinhood Chain; these cards read the pending state until then.', proseDeployed: 'The vault is on-chain — four contracts on Robinhood Chain, verifiable at the exact addresses these cards read.' };
 
+  // WS-PRODUCT-GAPS (2026-09-05): single-sourced strings for the widget's
+  // pause/position/preview truth surfaces and the flow-diagram deposit node's
+  // sub-label. The deposit node's static first paint carries the DEPLOYED
+  // sentence (Branch B precedent — the deployed register ships statically; a
+  // pending state is written by the seam, never shipped statically), so the
+  // pending sentence lives ONLY here.
+  var FLOW_DEPOSIT_SUB = {
+    deployed: 'open — approve the vault, then deposit',
+    pending: 'schematic — deposits activate when the vault deploys'
+  };
+  // P1: the pause row states the pause and the redeem guarantee — it never
+  // guesses a duration, promises a date, or implies an un-pause.
+  var PAUSE_ROW = 'Deposits are paused on the vault. Redemptions are never pausable — exits stay open.';
+
   function $(id) { return document.getElementById(id); }
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -66,6 +80,8 @@
     pool: null,          // live pool snapshot
     apr: null,           // last APR derivation
     vaultDeployed: false,
+    depositsPaused: null,     // P1: vault's own depositsPaused() — null = unknown (verified read only)
+    underlyingState: null,    // P1: underlying token state ('active' | 'issuer-paused' | 'unknown')
     lastUpdated: null,   // timestamp of the last successful card refresh
     snap: null,          // {priceUsd, tvlWeth} — this cycle's snapshot (diffed for the tape's tick glyphs)
     prevDeployed: undefined // previous isDeployed reading (WOW-3 launch-flip key)
@@ -688,6 +704,13 @@
         ? LAUNCH_FACT.deployed
         : LAUNCH_FACT.pending;
     }
+    // P4 (WS-PRODUCT-GAPS): the deposit node's sub-label rides the SAME
+    // isDeployed seam — every state-bearing surface reads the seam, this one
+    // was missed. Deployed is the static first paint; pending is written here.
+    var d = $('flow-deposit-state');
+    if (d) {
+      d.textContent = deployed ? FLOW_DEPOSIT_SUB.deployed : FLOW_DEPOSIT_SUB.pending;
+    }
   }
 
   function setFlowYield(text) {
@@ -776,12 +799,21 @@
     if (n && aprText) { n.textContent = aprText; }
   }
 
+  // P1 (WS-PRODUCT-GAPS): PURE deposit-side gate — only a VERIFIED pause
+  // (true) blocks the deposit side; an unknown read (null/undefined) never
+  // does, and a disconnected wallet/pending deploy gates through inputsReady
+  // as before. Redemptions never pass through this gate (never pausable).
+  function depositsOpen(inputsReady, depositsPaused) {
+    return !!inputsReady && depositsPaused !== true;
+  }
+
   // Test seam: the honesty-critical helpers, pure and unit-battery-consumable.
   WS.wow = {
     tickGlyph: tickGlyph,
     flowRateClass: flowRateClass,
     simSharePct: simSharePct,
-    launchFlipShouldAnimate: launchFlipShouldAnimate
+    launchFlipShouldAnimate: launchFlipShouldAnimate,
+    depositsOpen: depositsOpen
   };
 
   function aprRow(apr) {
@@ -855,12 +887,19 @@
     var underlyingP = WS.vault.readUnderlying(client, vaultCfg.asset).catch(function () { return null; });
     var poolP = poolCfg ? WS.vault.readPoolSnapshot(client, poolCfg).catch(function () { return null; }) : null;
     var priceP = feedCfg ? WS.vault.readPriceUsd(client, feedCfg, Date.now()).catch(function () { return null; }) : null;
+    // P1 (WS-PRODUCT-GAPS): the deposit-pause read rides the SAME read pass —
+    // an independent eth_call through the same client/failover, primary-scoped
+    // (the widget speaks for the primary vault). Honest null on failure.
+    var pauseP = primary ? WS.vault.readDepositsPaused(client, vaultCfg.vault).catch(function () { return null; }) : null;
     var u = await underlyingP;
     var pool = await poolP;
     var price = await priceP;
+    var pause = pauseP ? await pauseP : null;
 
     if (primary) {
       state.pool = pool;
+      state.depositsPaused = pause;
+      state.underlyingState = u ? u.state : null;
       // diff snapshot: the live quantities the tape's tick glyphs react to (refreshCards prevSnap).
       state.snap = {
         priceUsd: price && price.usd != null && isFinite(price.usd) ? price.usd : null,
@@ -1016,9 +1055,22 @@
 
     var hasWallet = !!state.wallet;
     var inputsReady = hasWallet && deployed;
+    // P1 (WS-PRODUCT-GAPS): the vault's own pause flag closes ONLY the deposit
+    // side (approve/deposit). Redemptions are never pausable — the redeem/
+    // withdraw controls keep the wallet/deploy gates alone, so a paused vault
+    // still renders live exits. Unknown pause (null) never blocks.
+    var depositsReady = WS.wow.depositsOpen(inputsReady, state.depositsPaused);
 
     [amountInput, sharesInput].forEach(function (n) { if (n) { n.disabled = !inputsReady; } });
-    [approveBtn, depositBtn, withdrawBtn, redeemBtn].forEach(function (n) {
+    [approveBtn, depositBtn].forEach(function (n) {
+      if (n) {
+        n.disabled = !depositsReady;
+        n.title = !hasWallet ? 'Connect a wallet first.'
+          : (!deployed ? 'Vault contract pending deploy.'
+          : (state.depositsPaused === true ? 'Deposits are paused on the vault.' : ''));
+      }
+    });
+    [withdrawBtn, redeemBtn].forEach(function (n) {
       if (n) {
         n.disabled = !inputsReady;
         n.title = !hasWallet ? 'Connect a wallet first.' : (!deployed ? 'Vault contract pending deploy.' : '');
@@ -1040,8 +1092,27 @@
     if (!hasWallet) { widgetStatus('Not connected — connect a wallet to interact. Reads above still work without one.', false); }
     else if (!deployed) { widgetStatus('Vault contract is pending deploy — write flows stay disabled. This is not a claim screen; there is nothing to claim yet.', true); }
     else { widgetStatus('Connected on chain ' + state.wallet.chainId + '.', false); }
+    appendWidgetTruthRows();
 
     if (hasWallet) { refreshBalances(); }
+  }
+
+  // P1 (WS-PRODUCT-GAPS): vault-state truth rows appended AFTER the base
+  // status line — verified reads only (state.depositsPaused === true /
+  // state.underlyingState === 'issuer-paused'); an unknown read renders no
+  // row. The pause row states the pause and the redeem guarantee, never a
+  // duration; the issuer row names the token's own on-chain pause flag.
+  function appendWidgetTruthRows() {
+    var box = $('widget-status');
+    if (!box) { return; }
+    if (state.depositsPaused === true) {
+      box.appendChild(el('div', 'flag flag-warn', PAUSE_ROW));
+    }
+    if (state.underlyingState === 'issuer-paused') {
+      var tCfg = tokenCfgFor(vaultCfg().asset);
+      box.appendChild(el('div', 'flag flag-warn',
+        'The underlying token (' + ((tCfg && tCfg.symbol) || 'underlying') + ') is issuer-paused — token transfers may fail until the issuer lifts the pause.'));
+    }
   }
 
   async function refreshBalances() {
@@ -1055,11 +1126,25 @@
       var tBal = tokenCfgFor(v.asset);
       var bal = await WS.wallet.balanceOf(state.client, v.asset, state.wallet.account);
       var allow = await WS.wallet.allowance(state.client, v.asset, state.wallet.account, v.vault);
+      // P2 (WS-PRODUCT-GAPS): the holder's own position — share balance + the
+      // LIVE share price (convertToAssets(1e18)), one batched vault read. The
+      // ≈ figure is the product of the two verified reads at the CURRENT share
+      // price (BigInt floor division — never rounded up, never tied to the
+      // projected APR); it renders only when the share decode landed.
+      var pos = await WS.vault.readPosition(state.client, v.vault, state.wallet.account);
       var box = $('wallet-balances');
       if (box) {
         box.textContent = '';
         box.appendChild(el('span', null, 'Your ' + ((tBal && tBal.symbol) || 'underlying') + ' balance: ' + fmtToken(bal) +
           ' · allowance to vault: ' + fmtToken(allow)));
+        if (pos && pos.sharesRaw !== null && pos.sharesRaw !== undefined) {
+          var line = 'Your ' + (v.shareSymbol || 'shares') + ': ' + fmtToken(pos.sharesRaw);
+          if (pos.assetsPerShareRaw !== null && pos.assetsPerShareRaw !== undefined) {
+            var assetsRaw = (pos.sharesRaw * pos.assetsPerShareRaw) / 1000000000000000000n;
+            line += ' · ≈ ' + fmtToken(assetsRaw) + ' ' + ((tBal && tBal.symbol) || 'underlying') + ' at the current share price.';
+          }
+          box.appendChild(el('div', null, line));
+        }
       }
     } catch (e) {
       var box2 = $('wallet-balances');
@@ -1205,6 +1290,69 @@
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
     box.appendChild(a);
+  }
+
+  // ---------------- P3 (WS-PRODUCT-GAPS): redeem unit ownership + live preview ----------------
+  // ERC-4626's classic trap: one shared input drives both redeem (shares) and
+  // withdraw (underlying). The ACTIVE action's unit owns the label — the static
+  // first paint carries the redeem default (the first button's unit); focusing
+  // or pressing a redeem-side button hands the label to that action's unit and
+  // re-prices the preview row for that action's semantics.
+  var redeemAction = 'redeem';
+  var previewTimer = null;
+  var previewSeq = 0;
+
+  function setRedeemAction(kind) {
+    if (kind !== 'redeem' && kind !== 'withdraw') { return; }
+    redeemAction = kind;
+    var label = $('red-amount-label');
+    if (label) {
+      var sym = (tokenCfgFor(vaultCfg().asset) || {}).symbol || 'underlying';
+      label.textContent = kind === 'withdraw' ? 'Amount (' + sym + ')' : 'Amount (shares)';
+    }
+    scheduleRedeemPreview();
+  }
+
+  function scheduleRedeemPreview() {
+    if (typeof setTimeout !== 'function') { return; }
+    if (previewTimer && typeof clearTimeout === 'function') { clearTimeout(previewTimer); }
+    previewTimer = setTimeout(renderRedeemPreview, 350);
+    if (typeof previewTimer.unref === 'function') { previewTimer.unref(); }
+  }
+
+  // ONE vault preview eth_call per debounced input, priced by the vault's own
+  // view for the ACTIVE action's unit. The row states the current rate and the
+  // chain's final pricing — never a receive-promise. Honest states:
+  // cleared when the input is empty/invalid or the vault is undeployed, and
+  // "unavailable (RPC)" when the read fails — never a fabricated figure. A
+  // sequence guard keeps a slow stale response from overwriting a newer one.
+  async function renderRedeemPreview() {
+    var out = $('redeem-preview');
+    if (!out) { return; }
+    var v = vaultCfg();
+    var parsed = parseInput('red-amount');
+    if (!WS.vault.isDeployed(v.vault) || !parsed.ok || parsed.value === 0n) { out.textContent = ''; return; }
+    var seq = ++previewSeq;
+    var sym = (tokenCfgFor(v.asset) || {}).symbol || 'underlying';
+    var shareSym = v.shareSymbol || 'shares';
+    try {
+      var text;
+      if (redeemAction === 'withdraw') {
+        var shares = await WS.vault.previewWithdraw(state.client, v.vault, parsed.value);
+        if (seq !== previewSeq) { return; }
+        text = shares === null ? 'Preview unavailable (RPC).'
+          : '≈ ' + fmtToken(shares) + ' ' + shareSym + ' at the current rate — the chain prices the final amount.';
+      } else {
+        var assets = await WS.vault.previewRedeem(state.client, v.vault, parsed.value);
+        if (seq !== previewSeq) { return; }
+        text = assets === null ? 'Preview unavailable (RPC).'
+          : '≈ ' + fmtToken(assets) + ' ' + sym + ' out at the current rate — the chain prices the final amount.';
+      }
+      out.textContent = text;
+    } catch (e) {
+      if (seq !== previewSeq) { return; }
+      out.textContent = 'Preview unavailable (RPC).';
+    }
   }
 
   // ------------------------------------------------------------------
@@ -1408,6 +1556,22 @@
       var b = $(id);
       if (b) { b.addEventListener('click', function () { runFlow(map[id]); }); }
     });
+
+    // P3 (WS-PRODUCT-GAPS): the shared redeem input's unit follows the active
+    // action (focus or press on a redeem-side button), and the input re-prices
+    // the live preview row as it is typed.
+    var btnRedeem = $('btn-redeem');
+    var btnWithdraw = $('btn-withdraw');
+    if (btnRedeem && btnRedeem.addEventListener) {
+      btnRedeem.addEventListener('focus', function () { setRedeemAction('redeem'); });
+      btnRedeem.addEventListener('click', function () { setRedeemAction('redeem'); });
+    }
+    if (btnWithdraw && btnWithdraw.addEventListener) {
+      btnWithdraw.addEventListener('focus', function () { setRedeemAction('withdraw'); });
+      btnWithdraw.addEventListener('click', function () { setRedeemAction('withdraw'); });
+    }
+    var redInput = $('red-amount');
+    if (redInput && redInput.addEventListener) { redInput.addEventListener('input', scheduleRedeemPreview); }
 
     if (WS.wallet.isAvailable()) {
       WS.wallet.onAccountsChanged(function () { state.wallet = null; renderWidgetState(); });

@@ -256,6 +256,70 @@
     }
   }
 
+  // ---------------- WS-PRODUCT-GAPS (2026-09-05): deposit-widget reads ----------------
+  // P1 DEPOSIT-PAUSE GATE: the vault's own deposit pause flag — depositsPaused()
+  // is a custom public bool (src/YieldShares.sol:76; deposit reverts DepositsPaused
+  // :254, and maxDeposit(address) encodes the same truth as 0 when paused :165-172).
+  // Honest null when undeployed/failed: "unknown" renders no pause row and never
+  // masquerades as paused or open (the null-guard convention above).
+  async function readDepositsPaused(client, vaultAddr) {
+    if (!isDeployed(vaultAddr)) { return null; }
+    var abi = root.WS.abi;
+    try {
+      var raw = await ethCall(client, vaultAddr, abi.selectorOf('depositsPaused()'));
+      return (raw && abi.wordCount(raw) >= 1) ? abi.decodeBool(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // P2 POSITION TRUTH: the holder's share balance + the LIVE share price in ONE
+  // batch — balanceOf(user) on the vault + convertToAssets(1e18) (1e18-scaled
+  // underlying per share, the same shape readVaultSnapshot reads). Honest nulls
+  // per decode — never 0-as-fake; the caller renders only verified decodes.
+  async function readPosition(client, vaultAddr, userAddr) {
+    if (!isDeployed(vaultAddr) || !userAddr) { return null; }
+    var abi = root.WS.abi;
+    try {
+      var r = await client.batch([
+        { method: 'eth_call', params: [{ to: vaultAddr, data: abi.selectorOf('balanceOf(address)') + abi.encodeAddress(userAddr) }, 'latest'] },
+        { method: 'eth_call', params: [{ to: vaultAddr, data: abi.selectorOf('convertToAssets(uint256)') + abi.encodeUint256('1000000000000000000') }, 'latest'] }
+      ]);
+      return {
+        sharesRaw: r[0] && abi.wordCount(r[0]) >= 1 ? abi.decodeUint(r[0]) : null,
+        assetsPerShareRaw: r[1] && abi.wordCount(r[1]) >= 1 ? abi.decodeUint(r[1]) : null
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // P3 REDEEM PREVIEWS: the OZ ERC-4626 std views (inherited, verified live in
+  // skills/wellstreet-vaults/SKILL.md) — previewRedeem(shares) -> assets out,
+  // previewWithdraw(assets) -> shares burned. Honest null on failure: the preview
+  // row renders "unavailable (RPC)", never a fabricated figure.
+  async function previewRedeem(client, vaultAddr, sharesRaw) {
+    if (!isDeployed(vaultAddr) || sharesRaw === null || sharesRaw === undefined) { return null; }
+    var abi = root.WS.abi;
+    try {
+      var raw = await ethCall(client, vaultAddr, abi.selectorOf('previewRedeem(uint256)') + abi.encodeUint256(sharesRaw.toString()));
+      return (raw && abi.wordCount(raw) >= 1) ? abi.decodeUint(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function previewWithdraw(client, vaultAddr, assetsRaw) {
+    if (!isDeployed(vaultAddr) || assetsRaw === null || assetsRaw === undefined) { return null; }
+    var abi = root.WS.abi;
+    try {
+      var raw = await ethCall(client, vaultAddr, abi.selectorOf('previewWithdraw(uint256)') + abi.encodeUint256(assetsRaw.toString()));
+      return (raw && abi.wordCount(raw) >= 1) ? abi.decodeUint(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Factory registry — PENDING_DEPLOY until identity/deploy. Interface candidates are
   // documented deploy-prep verification items (see file header).
   async function readFactoryVaults(client, factoryAddr) {
@@ -318,6 +382,10 @@
     readVaultSnapshot: readVaultSnapshot,
     decodeBackingCoverage: decodeBackingCoverage,
     formatCoveragePct: formatCoveragePct,
-    readBackingCoverage: readBackingCoverage
+    readBackingCoverage: readBackingCoverage,
+    readDepositsPaused: readDepositsPaused,
+    readPosition: readPosition,
+    previewRedeem: previewRedeem,
+    previewWithdraw: previewWithdraw
   };
 });

@@ -113,6 +113,11 @@ global.document = {
 // + WS-SKILL-MIRROR (2026-09-04) registry add: agents-skill-mirror-link — the
 // agent-first section's SITE mirror pointer (static page id, never JS-queried;
 // its href stays relative forever — only the repo pointer is repoUrl-upgraded).
+// + WS-PRODUCT-GAPS (2026-09-05) registry add -> 56 in-array ids: flow-deposit-state
+// (the money-flow deposit node's sub-label, written by the setFlowVaultState seam),
+// red-amount-label (the shared redeem input's unit-owning label) and redeem-preview
+// (the live redeem/withdraw preview row) — all three are static page ids in
+// index.html, queried by main.js's WS-PRODUCT-GAPS seams.
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge', 'vault-grid', 'vaults-updated',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
@@ -124,9 +129,11 @@ global.document = {
  'stat-tvl', 'stat-price', 'stat-split',
  'stat-tape', 'stat-tick-tvl', 'stat-tick-price',
  'flow-diagram', 'flow-pool-tvl', 'flow-cut', 'flow-vault-state', 'flow-yield',
+ 'flow-deposit-state',
  'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
  'mint-backed', 'inv-stat', 'invariants',
- 'agents', 'agents-skill-link', 'agents-skill-mirror-link', 'asset-magnify'
+ 'agents', 'agents-skill-link', 'agents-skill-mirror-link', 'asset-magnify',
+ 'red-amount-label', 'redeem-preview'
 ].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');
@@ -237,6 +244,12 @@ function ethCallResult(to, data) {
     // now reads the REAL vault address; the mock serves 1e18 (an empty vault's exact
     // cover, the deployed-but-empty state).
     return '0x' + hexWord('1000000000000000000');
+  }
+  if (toL === VAULT && sel === abi.selectorOf('depositsPaused()')) {
+    // WS-PRODUCT-GAPS P1: the real vault is unpaused — the pause gate reads
+    // false, the widget renders no pause row (the paused world lives in
+    // widget-pause.test.js).
+    return '0x' + hexWord(0);
   }
   return '0x'; // empty result (honest "unavailable" path if hit)
 }
@@ -558,6 +571,24 @@ test('WS-ASSET-WIRE: the skill-link upgrade seam is state-agnostic (repoUrl-driv
     assert.ok(!href || href.indexOf('https://') !== 0,
       'no fabricated absolute href under a non-published repoUrl, got: ' + href);
   }
+});
+
+// -------- WS-PRODUCT-GAPS (2026-09-05: pause gate is read-driven; flow deposit node) --------
+
+test('P1+P4: unpaused vault renders no pause row; the flow deposit node reads the deployed register', async () => {
+  await settle(120);
+  // P1 negative: the pause row is written ONLY from a VERIFIED paused=true read.
+  // This mock serves depositsPaused() = false — the row must never appear and the
+  // writer must not fabricate it from an unknown/false read.
+  const status = allText(REGISTRY['widget-status']).join(' | ');
+  assert.ok(status.indexOf('Deposits are paused on the vault.') === -1,
+    'no pause row when depositsPaused() reads false, got: ' + status);
+  // P4: the deposit node's sub-label rides the SAME isDeployed seam — the deployed
+  // register is both the static first paint and the written state; the pending
+  // sentence lives only in main.js's writer (never shipped statically).
+  assert.strictEqual(REGISTRY['flow-deposit-state'].textContent,
+    'open — approve the vault, then deposit',
+    'flow deposit node carries the deployed register under the deployed config');
 });
 
 // -------- WS-VAULT-FAMILY-GRID (2026-09-04: the card is a repeatable template) --------
