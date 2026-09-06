@@ -348,7 +348,8 @@
       { method: 'eth_call', params: [{ to: vaultAddr, data: abi.selectorOf('asset()') }, 'latest'] },
       { method: 'eth_call', params: [{ to: vaultAddr, data: abi.selectorOf('totalAssets()') }, 'latest'] },
       { method: 'eth_call', params: [{ to: vaultAddr, data: abi.selectorOf('totalSupply()') }, 'latest'] },
-      { method: 'eth_call', params: [{ to: vaultAddr, data: abi.selectorOf('paused()') }, 'latest'] },
+      // depositsPaused() — deposits gate only; redemptions are structurally unpausable (no paused() exists on the vault)
+      { method: 'eth_call', params: [{ to: vaultAddr, data: abi.selectorOf('depositsPaused()') }, 'latest'] },
       { method: 'eth_call', params: [{ to: vaultAddr, data: abi.selectorOf('pricePerShare()') }, 'latest'] },
       { method: 'eth_call', params: [{ to: vaultAddr, data: abi.selectorOf('convertToAssets(uint256)') + abi.encodeUint256('1000000000000000000') }, 'latest'] }
     ];

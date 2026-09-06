@@ -95,7 +95,7 @@ RPC=$WELLSTREET_ROBINHOOD_RPC_URL
 cast call $VAULT 'totalAssets()(uint256)' --rpc-url $RPC
 cast call $VAULT 'totalSupply()(uint256)' --rpc-url $RPC
 cast call $VAULT 'convertToAssets(1000000000000000000)(uint256)' --rpc-url $RPC
-cast call $VAULT 'paused()(bool)' --rpc-url $RPC
+cast call $VAULT 'depositsPaused()(bool)' --rpc-url $RPC
 ```
 
 ## Run it as an agent
