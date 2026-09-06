@@ -284,8 +284,11 @@ test('P1 paused vault: honest row renders, deposit side disabled, redeem side st
   await click();
 
   // wait for the connected read pass (position line proves refreshBalances ran)
+  // re-pinned 2026-09-06 (WS3-MONEY #3, UI_IMPROVE2_MONEY-SURFACES): the position
+  // line re-chunked into the ledger-row anatomy — label and value are now
+  // separate cells, so the sentinel matches the label cell, not the old run-on line.
   let balances = '';
-  for (let i = 0; i < 100 && balances.indexOf('ws-SPY:') === -1; i++) {
+  for (let i = 0; i < 100 && balances.indexOf('Your ws-SPY') === -1; i++) {
     await settle(50);
     balances = allText(REGISTRY['wallet-balances']).join(' | ');
   }
@@ -307,8 +310,11 @@ test('P1 paused vault: honest row renders, deposit side disabled, redeem side st
   // P2 rides the same connected pass: the holder's position truth renders with
   // the share-price qualifier (12.4031 shares x 1.245 live price, truncated —
   // never rounded up)
-  assert.ok(balances.indexOf('Your ws-SPY: 12.4031') !== -1,
-    'the share balance renders, got: ' + balances);
-  assert.ok(balances.indexOf('≈ 15.4418 SPY at the current share price.') !== -1,
+  // re-pinned 2026-09-06 (WS3-MONEY #3, UI_IMPROVE2_MONEY-SURFACES): same verified
+  // figures, now in label/value cells — the ≈ qualifier text is unchanged in main.js
+  // (wow.test.js pins it verbatim).
+  assert.ok(balances.indexOf('Your ws-SPY') !== -1 && balances.indexOf('12.4031') !== -1,
+    'the share balance renders (label + value cells), got: ' + balances);
+  assert.ok(balances.indexOf('≈ at the current share price.') !== -1 && balances.indexOf('15.4418 SPY') !== -1,
     'the ≈ assets figure renders truncated at the current share price, got: ' + balances);
 });

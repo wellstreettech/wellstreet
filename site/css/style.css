@@ -34,10 +34,7 @@
   --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);  /* expo-out — entrances, hovers, reveals */
   --ease-loop: cubic-bezier(0.65, 0, 0.35, 1);  /* symmetric — designed curve for the loops */
   --motion: var(--t-fast) var(--ease-enter);
-  --ws-trust-size: clamp(36px, 4.5vw, 42px);
-  --ws-trust-bg: #F4F0E4;
-  --ws-trust-border: #C8C1AD;
-  --ws-trust-text: #5C584C;
+  --ws-trust-size: clamp(36px, 4.5vw, 42px); /* UI2-P4 (2026-09-06, WS3-COLOR): the --ws-trust-bg/border/text duplicate trio is collapsed — trust-pill colors live on the ladder: bg=--paper-raised, border=--line, text=--ink-soft (consumers re-pointed in the same pass; --ws-trust-size survives, used by .hero-fact) */
 }
 
 /* Self-hosted OFL webfonts (R2, user-approved): display serif + text sans, both
@@ -61,7 +58,7 @@
 * { box-sizing: border-box; }
 
 /* R3 IMP-11: brand selection color (was the default UA blue on a green/black brand) */
-::selection { background: rgba(0,168,107,0.35); color: var(--ink); }
+::selection { background: color-mix(in srgb, var(--accent) 35%, transparent); color: var(--ink); } /* UI2-P8 (2026-09-06, WS3-COLOR): token-derived alpha — was the rgba(0,168,107,0.35) literal (identical rendered value today); a future --accent re-value now propagates. color-mix() is Baseline 2023; an engine without it drops the declaration and keeps the UA default selection color (graceful degradation, no regression path). */
 
 /* R3 IMP-10: progressive enhancement — headline orphans rebalance where
    text-wrap: balance is supported; unsupported browsers ignore it. The h1
@@ -135,7 +132,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
   padding-bottom: var(--space-14);
 }
 .brand { display: flex; align-items: baseline; gap: var(--space-10); text-decoration: none; color: var(--ink); }
-.brand-mark { width: 28px; height: 30px; align-self: center; image-rendering: pixelated; flex: none; }
+.brand-mark { width: 28px; height: 33px; align-self: center; image-rendering: pixelated; flex: none; } /* WS3-HEADER P5 (2026-09-06): source png is 434x513 (0.846) — 33 restores the ratio at the 28px optical width (the old 30 stretched ~10% wide) */
 .brand-word {
   font-family: var(--serif); /* serif masthead — editorial-ledger V1 */
   font-weight: 700;
@@ -143,28 +140,32 @@ pre code { background: none; border: none; padding: var(--space-0); }
   text-transform: uppercase;
   font-size: var(--step-13);
   border: 2px solid var(--line);
-  padding: var(--space-2) var(--space-10);
+  padding: var(--space-2) var(--space-10);        /* P-11: left stays --space-10 */
+  padding-right: calc(var(--space-10) - 0.12em);  /* P-11: optical — eats the trailing 0.12em tracking unit inside the bordered plate */
   background: var(--paper-2);
 }
-.brand-tag { font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); text-transform: uppercase; }
+.brand-tag { font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); text-transform: uppercase; letter-spacing: var(--track-label); } /* P-11/P-10: the one untracked mono metadata surface joins the label register */
 .site-nav { display: flex; flex-wrap: wrap; gap: var(--space-10) var(--space-16); align-items: center; }
-.site-nav a { color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid transparent; padding: var(--space-4) var(--space-0); transition: border-bottom-color var(--motion), color var(--motion); }
-.site-nav a:hover { border-bottom-color: var(--line); }
+.site-nav a { color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: var(--step-6); text-transform: uppercase; letter-spacing: var(--track-chrome); border-bottom: 2px solid transparent; padding: var(--space-4) var(--space-0); transition: border-bottom-color var(--motion), color var(--motion); } /* P-07: nav steps up one role to the small-text role; P-10: tracking rides --track-chrome */
+.site-nav a:hover { border-bottom-color: var(--ink-soft); } /* WS3-HEADER P2 (2026-09-06): the --line hover underline was 1.48:1 on paper — sub-perceptual; ink-soft is 5.85:1, a visible step below the active underline */
 /* R2 header CTA — honest conversion affordance (copy reused verbatim from the footer;
    targets the #docs section, never the pre-deploy deposit widget). Specificity-bearing
    selector so the base .site-nav a rule cannot squash the pill. */
 .site-nav a.nav-cta {
-  background: var(--ink); color: var(--paper);
+  /* WS3-HEADER P3 (2026-09-06): the pill takes the accent register — the self-serve /
+     agent voice matches button.btn-primary; the hero .cta-solid stays the ink money
+     register, so the page speaks one primary per register instead of two black fills. */
+  background: var(--accent); color: var(--accent-ink);
   border-bottom: none;
   border-radius: var(--radius); min-height: 38px;
   padding: var(--space-6) var(--space-16);
-  font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.06em;
+  font-family: var(--mono); font-size: var(--step-6); text-transform: uppercase; letter-spacing: var(--track-chrome); /* P-07: the CTA steps up one role; P-10: --track-chrome */
   line-height: 1; display: inline-flex; align-items: center; text-decoration: none;
   transition: background-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
 }
-.site-nav a.nav-cta:hover { background: var(--ink-soft); }
+.site-nav a.nav-cta:hover { background: var(--accent-hover); } /* WS3-HEADER P3 (2026-09-06): the shipped btn-primary:hover vocabulary */
 .site-nav a.nav-cta:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
-.site-nav a.active { border-bottom-color: var(--ink); }
+.site-nav a.active { border-bottom-color: var(--accent-punch); } /* WS3-HEADER P7 (2026-09-06): orientation green — accent marks where you are (5.42:1, passes 1.4.11); hover ink-soft and active punch now differ in kind, not degree */
 
 /* ---------- jurisdiction banner ---------- */
 .jurisdiction-banner {
@@ -191,11 +192,15 @@ pre code { background: none; border: none; padding: var(--space-0); }
 /* Canyon hero backdrop (2026-09-05): dithered Wall-Street buildings framing the
    headline, open center for the type. Positioning here; the vibration lives in
    the WS-ASSET-WIRE motion section (no-preference gate + reduce pair). */
+/* WS3-ART P1 (2026-09-06, UI_IMPROVE2_ART-DIRECTION): edge-bleed ≥ the 6px max
+   vibrate translate — the img box now overhangs the hero padding box by 8px on
+   every side, so a burst can never expose a paper gap at any hero edge (.hero's
+   overflow:hidden clips the overhang, so nothing paints outside the hero). */
 .hero-canyon {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  inset: -8px;                  /* WS3-ART P1: was 0 — 8px bleed ≥ the 6px max translate */
+  width: calc(100% + 16px);     /* WS3-ART P1: was 100% */
+  height: calc(100% + 16px);    /* WS3-ART P1: was 100% */
   object-fit: cover;
   object-position: center;
   z-index: 0;
@@ -217,7 +222,13 @@ pre code { background: none; border: none; padding: var(--space-0); }
   margin: 0 0 var(--space-24) 0; /* V10: larger gap headline -> lede */
   letter-spacing: -0.035em;
 }
-.hero h1 .punch { color: var(--accent-punch); } /* V10: punch word steps up to the more saturated protocol green */
+.hero h1 .punch { /* P-03: the ratified drafts' green BLOCK behind serif type — the law-compliant form: text rides --accent-ink on the --accent fill (5.6:1, an already-asserted pair; cream-on-green would be 2.5:1). box-decoration-break keeps the block whole across a wrap. --accent-punch stays live (section indices, stat ticks, focus ring). */
+  color: var(--accent-ink);
+  background: var(--accent);
+  padding: 0 0.12em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
 .hero h1 .quiet { color: var(--ink-soft); } /* two-tone deadpan: line 2 recedes, the joke reads quieter than the claim */
 .hero .lede { max-width: 60ch; font-size: var(--step-15); margin: 0 0 var(--space-32) 0; color: var(--ink-soft); } /* R3 IMP-8: the lede takes the 20px role (display register vs the 16px body) */
 .hero-facts {
@@ -233,8 +244,8 @@ pre code { background: none; border: none; padding: var(--space-0); }
   flex: 0 1 auto;
   padding: var(--space-14) var(--space-16);
   position: relative;
-  border: 1px solid var(--ws-trust-border);
-  background: var(--ws-trust-bg);
+  border: 1px solid var(--line); /* UI2-P4: was var(--ws-trust-border) — same value #C8C1AD, now a ladder name */
+  background: var(--paper-raised); /* UI2-P4: was var(--ws-trust-bg) — #F4F0E4 collapses into --paper-raised #F3EFE3 (one RGB step) */
   border-radius: var(--radius);
   margin-left: calc(var(--ws-trust-size) * -0.42);
   min-width: 0;
@@ -244,8 +255,8 @@ pre code { background: none; border: none; padding: var(--space-0); }
   font-family: var(--mono);
   font-size: var(--step-1);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ws-trust-text);
+  letter-spacing: var(--track-label); /* P-10 */
+  color: var(--ink-soft); /* UI2-P4: was var(--ws-trust-text) — straight #5C584C alias, now a ladder name */
 }
 .hero-fact .v {
   font-weight: 700;
@@ -258,28 +269,53 @@ pre code { background: none; border: none; padding: var(--space-0); }
 .hero-fact:first-child { margin-left: 0; }
 
 /* ---------- sections ---------- */
-/* hatched band separator (WS-LEDGER-STRUCTURE P1): same hatch as .hero — each
-   boundary is its own rule block with its own gradient declaration. */
-section.block { border-bottom: 8px solid transparent; border-image: repeating-linear-gradient(45deg, var(--line) 0 4px, transparent 4px 8px) 8; }
+/* hatched band separator (WS-LEDGER-STRUCTURE P1) — each boundary is its own rule
+   block with its own gradient declaration. */
+/* UI2-P5 (2026-09-06, WS3-COLOR): two-register hatch rhythm. MAJOR register = the
+   prologue band edges — .hero, plus the .stat-band/.flow-figure boundaries LAYOUT L5
+   unified (8px, "spectacle hands off to product"). MINOR register = the repeat
+   section breaks: intra-page boundaries run a 4px micro-hatch (half stripe width;
+   slice 4 = the border width) so the major 8px hatch reads as the page's dominant
+   break. (The mapper's 2px sub-band register description predates L5's landed
+   unification — on the merged tree those two boundaries carry the major register;
+   disclosed in the worker report. Plain 2px data-surface rules — .card-head,
+   .hero-ledger-head, td/th — are untouched.) */
+section.block { border-bottom: 4px solid transparent; border-image: repeating-linear-gradient(45deg, var(--line) 0 2px, transparent 2px 4px) 4; }
 /* R3 IMP-6: anchored sections clear the 68px sticky header on nav jumps
    (68px bar + 16px breathing); in-pane doc headings get the same so the
    docs TOC deep links land their heading below the bar. */
-section.block, .hero { scroll-margin-top: 84px; }
-#doc-pane [id] { scroll-margin-top: 84px; }
+/* WS3-HEADER P1 (2026-09-06): 84 was calibrated to the 68px desktop header; the
+   641-940px band's two-row nav measures 107.4 + 16 landing air = 124. Desktop cost
+   is air only (68px header — generous, never clipped). The <=640 overrides below
+   stay owned by WS-MOBILE-FIXES and are untouched. */
+section.block, .hero { scroll-margin-top: 124px; }
+#doc-pane [id] { scroll-margin-top: 124px; }
 section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-48); } /* R3 IMP-13: blocks standardize 64/48 — more air reads more expensive at zero cost */
 .block-head { display: flex; align-items: baseline; gap: var(--space-14); margin-bottom: var(--space-8); }
-.block-head .index { font-family: var(--mono); color: var(--accent-text); font-weight: 700; font-size: var(--step-6); letter-spacing: 0.22em; } /* V1: section numbers promoted — accent-as-TEXT rides --accent-text on light paper */
+.block-head .index { font-family: var(--mono); color: var(--accent-text); font-weight: 700; font-size: var(--step-11); letter-spacing: 0.22em; } /* V1: section numbers promoted — accent-as-TEXT rides --accent-text on light paper; P-01: numeral scales with the display head (was --step-6) */
 .block-head h2 {
   margin: 0;
   font-family: var(--serif); /* V1 editorial-ledger display */
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  font-size: var(--step-21);
+  text-transform: none;          /* P-01: the drafts' sentence-case display register */
+  letter-spacing: -0.01em;       /* P-01: serif display, open fit */
+  font-weight: 500;              /* P-01: drafts' stroke presence (EB Garamond var 400-800) */
+  font-size: var(--step-20);     /* P-01: existing display rung — closes the 27px→100px gap */
+  line-height: 1.05;
 }
 .block-head .spacer { flex: 1; }
-.block-sub { color: var(--ink-soft); margin: 0 0 var(--space-24); max-width: 52rem; }
+.block-sub { color: var(--ink-soft); margin: 0 0 var(--space-24); max-width: var(--measure-copy); } /* UI2-L9 (2026-09-06, WS3-LAYOUT): the copy-measure role token — was the 52rem literal, zero rendered change */
 
 /* ---------- vault cards ---------- */
+/* UI2-P6 (2026-09-06, WS3-COLOR): BORDER TAXONOMY — five registers:
+   2px = structural/live-data surfaces (header rule, brand plate, vault-card, panel,
+   hero-ledger + its rows, buttons, inputs, tabs, doc-pane) ·
+   1px = interior hairlines + tags (td/th, footer-grid, code, share-symbol, code-copy,
+   mint/inv card frames + tags) ·
+   dotted --line-dotted = ledger leaders (card-row, card-note, doc-toc, sim-region) ·
+   6px/8px-left = disclosure blocks (blockquote, apr-footnote, geo-disclosure) ·
+   8px/4px border-image hatch = band boundaries (UI2-P5 two-register rhythm).
+   Invariant: an interior border never out-weighs its frame — the one inversion
+   (mint ticket rows vs their 1px frame) is fixed in the WS3-COLOR EOF block. */
 #vault-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-20); }
 .vault-card { border: 2px solid var(--line); background: var(--paper-raised); display: flex; flex-direction: column; transition: box-shadow var(--t-base) var(--ease-enter); border-radius: var(--radius-soft); box-shadow: var(--shadow-soft); }
 .vault-card:hover { box-shadow: var(--shadow-soft-hover); }
@@ -287,26 +323,30 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
   display: flex; align-items: center; justify-content: space-between; gap: var(--space-10); flex-wrap: wrap;
   border-bottom: 2px solid var(--line); padding: var(--space-12) var(--space-14); background: var(--paper-2);
 }
-.card-title { margin: 0; font-size: var(--step-13); text-transform: uppercase; letter-spacing: 0.04em; }
+.card-title { margin: 0; font-size: var(--step-13); text-transform: uppercase; letter-spacing: var(--track-chrome); } /* P-10: was 0.04em */
 .share-symbol { font-family: var(--mono); font-size: var(--step-4); border: 1px solid var(--line); padding: var(--space-2) var(--space-8); background: var(--paper); }
 .card-rows { padding: var(--space-6) var(--space-14); font-variant-numeric: tabular-nums; } /* V2: aligned data figures */
-.card-row { display: flex; justify-content: space-between; gap: var(--space-14); padding: var(--space-9) var(--space-0); border-bottom: 1px dotted var(--line-dotted); font-size: var(--step-8); }
+.card-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-14); padding: var(--space-9) var(--space-0); border-bottom: 1px dotted var(--line-dotted); font-size: var(--step-8); } /* P-06: baseline alignment matches .ledger-row — the 18px strong value shares the 14px label's baseline (no-op in the ≤640px column stack) */
 .card-row:last-child { border-bottom: none; }
-.row-label { color: var(--ink-soft); flex: 0 0 auto; }
+.row-label { color: var(--ink-soft); flex: 0 0 auto; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #1 extension): the e30a51c family-grid card is a money surface — its labels join the same receding mono small-cap register as .ledger-k (copy unchanged; uppercase is CSS-only). */
 .row-value { text-align: right; font-family: var(--mono); font-size: var(--step-8); word-break: break-word; font-variant-numeric: tabular-nums; }
 .card-row-strong .row-value strong { color: var(--accent-text); font-size: var(--step-13); }
 /* WS-VAULT-FAMILY-GRID: the note pins to the card's bottom edge (margin-top:auto
    absorbs the free space of a grid row stretched to its tallest card), so a row
    of family cards keeps aligned footers. With a single card there is no free
    space and this renders exactly as before. */
-.card-note { margin: auto 0 0; padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14); font-size: var(--step-4); color: var(--ink-soft); border-top: 1px dotted var(--line-dotted); }
+.card-note { margin: auto 0 0; padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14); font-size: var(--step-4); color: var(--ink-soft); border-top: 1px dotted var(--line-dotted); min-height: 72px; padding-right: 112px; /* WS3-ART P2 (2026-09-06): reserve the note's right corner for the certificate keeper (art never sits on data — doc's 108px tuned +4 so the 96px cert at right:14px clears the text box with a 2px gap) */ }
 
+/* G1 (UI_IMPROVE2_GLYPHS): the glyph token law — glyphs that carry data ride
+   TEXT-role tokens (--accent-text / --warn / --ink-soft); the FILL token --accent
+   stays reserved for surfaces (style.css :21's own rule). Closes a11y finding 7
+   (the ● at 2.54:1 on paper). */
 .flag { font-family: var(--mono); font-size: var(--step-6); }
 .flag-ok { color: var(--accent-text); }
 .flag-warn { color: var(--warn); }
 /* V2: the ●/△ status glyphs are aligned (fixed advance) so multi-line flags keep their column */
 .flag .flag-glyph { display: inline-block; min-width: 1.2em; text-align: center; }
-.flag-ok .flag-glyph { color: var(--accent); }
+.flag-ok .flag-glyph { color: var(--accent-text); } /* G1: obeys the fill/text token law (see block head) */
 .flag-warn .flag-glyph { color: var(--warn); }
 .muted { color: var(--ink-soft); font-size: var(--step-6); }
 
@@ -314,14 +354,14 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
   margin-top: var(--space-16); border: 2px solid var(--line); border-left-width: 8px;
   background: var(--paper-2); padding: var(--space-12) var(--space-16); font-size: var(--step-6); color: var(--ink-soft);
 }
-.apr-footnote .lbl { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step-1); color: var(--ink); display: block; margin-bottom: var(--space-4); }
+.apr-footnote .lbl { font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-label); font-size: var(--step-1); color: var(--ink); display: block; margin-bottom: var(--space-4); } /* P-10 */
 
 /* ---------- vault-card pending state (V4) — pre-deploy, EVERY card is pending:
    render it as intentional scaffolding, not an unfinished page ---------- */
 .vault-card--pending { border-style: dashed; background: var(--paper-pending); }
 .vault-card--pending .card-head { border-bottom-style: dashed; }
 .pending-tag {
-  font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.08em;
+  font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); /* P-10 */
   color: var(--warn); border: 1px solid var(--warn); background: var(--warn-bg); padding: var(--space-2) var(--space-8); white-space: nowrap;
 }
 
@@ -330,9 +370,9 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
 .panel { border: 2px solid var(--line); background: var(--paper-raised); transition: box-shadow var(--t-base) var(--ease-enter); border-radius: var(--radius-soft); box-shadow: var(--shadow-soft); }
 .panel:hover { box-shadow: var(--shadow-soft-hover); }
 .panel-head { border-bottom: 2px solid var(--line); background: var(--paper-2); padding: var(--space-10) var(--space-14); display: flex; justify-content: space-between; align-items: center; gap: var(--space-10); }
-.panel-head h3 { margin: 0; font-size: var(--step-11); text-transform: uppercase; letter-spacing: 0.05em; }
+.panel-head h3 { margin: 0; font-size: var(--step-11); text-transform: uppercase; letter-spacing: var(--track-chrome); } /* P-10: was 0.05em */
 .panel-body { padding: var(--space-14); }
-.field label { display: block; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin-bottom: var(--space-6); }
+.field label { display: block; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); margin-bottom: var(--space-6); } /* P-10 */
 .field input[type="text"], .field input[type="number"] {
   width: 100%; padding: var(--space-10); font-family: var(--mono); font-size: var(--step-11); /* 16px: below this iOS Safari auto-zooms on focus */
   border: 2px solid var(--line); background: var(--paper); color: var(--ink);
@@ -341,14 +381,14 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
 .field + .field { margin-top: var(--space-12); }
 .btn-row { display: flex; gap: var(--space-10); margin-top: var(--space-14); flex-wrap: wrap; }
 button.btn {
-  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--step-4);
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-chrome); font-size: var(--step-6); /* P-07: action step-up one role; P-10: --track-chrome */
   padding: var(--space-10) var(--space-16); border: 2px solid var(--line); background: var(--paper); color: var(--ink);
   cursor: pointer; transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
   border-radius: var(--radius); /* R3 IMP-7: the action class unifies on the pill — same geometry as the nav CTA 40px away */
   min-height: 44px; /* money-path mobile ergonomics — ens.domains action targets measure 52px @400 / 72px @1280; 44 = platform floor; NOT an a11y-compliance claim */
 }
 button.btn:hover:not(:disabled) { background: var(--paper-2); }
-button.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+button.btn:disabled { opacity: 1; background: var(--paper-2); color: var(--ink-soft); border-color: var(--line); cursor: not-allowed; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #5): the parked register mirrors .field input:disabled — no washed-green ghost; accent scarcity restored (pre-connect the only green is CONNECT, post-connect DEPOSIT). The btn-primary companion rule lives in the WS3-MONEY EOF block. */
 button.btn:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 button.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--ink); }
 button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
@@ -359,9 +399,13 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    included. Hover states are PER-CLASS on purpose (never a shared comma-joined
    hover rule): the solid shifts its fill (the button.btn:hover vocabulary), the
    outline fills toward its border token. */
+/* G8 (UI_IMPROVE2_GLYPHS, 2026-09-06): arrow grammar — '→' promises forward
+   motion inside the page (CTAs, the flow node); '↗' promises an off-site
+   handoff (the explorer link). No other arrows ship ('›', '»', '⇒' banned
+   by convention). */
 .cta-row { display: flex; flex-wrap: wrap; gap: var(--space-10); margin-top: var(--space-16); }
 .cta-solid {
-  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--step-4);
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-chrome); font-size: var(--step-6); /* P-07: action step-up one role; P-10: --track-chrome */
   padding: var(--space-10) var(--space-16); border: 2px solid var(--ink); background: var(--ink); color: var(--paper);
   text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; border-radius: var(--radius); cursor: pointer;
@@ -371,7 +415,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .cta-solid:hover { background: var(--paper-2); color: var(--ink); }
 .cta-solid:active:not(:disabled) { transform: scale(0.985); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 .cta-outline {
-  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--step-4);
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-chrome); font-size: var(--step-6); /* P-07: action step-up one role; P-10: --track-chrome */
   padding: var(--space-10) var(--space-16); border: 2px solid var(--ink); background: transparent; color: var(--ink);
   text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; border-radius: var(--radius); cursor: pointer;
@@ -380,7 +424,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .cta-outline:visited { color: var(--ink); text-decoration: none; }
 .cta-outline:hover { background: var(--ink); color: var(--paper); }
 .cta-outline:active:not(:disabled) { transform: scale(0.985); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
-#widget-status { margin-top: var(--space-16); padding: var(--space-10) var(--space-12); border: 2px solid var(--line); background: var(--paper-2); font-size: var(--step-6); min-height: 40px; word-break: break-all; }
+#widget-status { margin-top: var(--space-16); padding: var(--space-10) var(--space-12); border: 2px solid var(--line); background: var(--paper-2); font-size: var(--step-6); min-height: 40px; word-break: normal; overflow-wrap: anywhere; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #11 bug fix): break-all wrapped every status sentence mid-word; overflow-wrap:anywhere still breaks the long hashes/explorer URLs but only when a token cannot otherwise fit. */
 #wallet-balances { margin-top: var(--space-10); font-family: var(--mono); font-size: var(--step-4); color: var(--ink-soft); }
 #acquire-note { margin: var(--space-14) 0 0 0; font-size: var(--step-4); color: var(--ink-soft); }
 .tx-link { margin-left: var(--space-10); font-family: var(--mono); font-size: var(--step-4); }
@@ -388,13 +432,13 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 /* wallet picker (eip-6963 multi-wallet) + noscript note */
 #wallet-picker { margin-top: var(--space-12); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-10); }
 #wallet-picker[hidden] { display: none; }
-#wallet-picker .picker-label { font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
+#wallet-picker .picker-label { font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: var(--track-chrome); color: var(--ink-soft); } /* P-10: a 0.06em site the mapper census omitted — re-pointed at the identical computed value (zero rendered change) to complete the cluster collapse */
 .noscript-note { padding-top: var(--space-16); padding-bottom: var(--space-16); font-size: var(--step-8); color: var(--ink-soft); border-bottom: 2px solid var(--line); }
 
 /* ---------- docs ---------- */
 .doc-tabs { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 2px solid var(--line); }
 .doc-tab {
-  font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: 0.05em;
+  font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: var(--track-chrome); /* P-10: was 0.05em */
   padding: var(--space-9) var(--space-14); background: var(--paper-2); border: 2px solid var(--line); border-bottom: none;
   margin-right: var(--space-6); cursor: pointer; color: var(--ink-soft);
   transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
@@ -404,20 +448,20 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .doc-tab:hover:not(.active) { background: var(--paper); color: var(--ink); }
 .doc-tab:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 /* V8: the doc pane reads as a document — measure-limited, serif headers, mono code */
-#doc-pane { border: 2px solid var(--line); border-top: none; background: var(--paper-raised); padding: var(--space-22) var(--space-24); min-height: 220px; max-width: 72ch; }
+#doc-pane { border: 2px solid var(--line); border-top: none; background: var(--paper-raised); padding: var(--space-22) var(--space-24); min-height: 220px; max-width: 72ch; line-height: 1.65; } /* P-08: long-form reading leading for ~2,000px documents */
 #doc-pane[aria-busy="true"] { color: var(--ink-soft); font-family: var(--mono); font-size: var(--step-6); }
 #doc-pane h1, #doc-pane h2, #doc-pane h3 {
   text-transform: none; letter-spacing: 0;
   font-family: var(--serif); /* V1 stack in the docs pane */
 }
 #doc-pane h1 { font-size: var(--step-21); border-bottom: 2px solid var(--line); padding-bottom: var(--space-8); } /* per-doc title as document header — display rung (R3: was step-16, which collapsed into the 20px role) */
-#doc-pane h2 { font-size: var(--step-15); } /* R3 IMP-11: one display bump so a ~2,000px document has headings you can skim by */
-#doc-pane h3 { font-size: var(--step-13); } /* R3: formalized on the scale (was the browser-default 1.17em) */
+#doc-pane h2 { font-size: var(--step-15); margin-top: var(--space-28); } /* R3 IMP-11: one display bump so a ~2,000px document has headings you can skim by; P-08: tokenized heading air */
+#doc-pane h3 { font-size: var(--step-13); margin-top: var(--space-20); } /* R3: formalized on the scale (was the browser-default 1.17em); P-08: tokenized heading air */
 #doc-pane pre { border: 2px solid var(--line); background: var(--code-bg); padding: var(--space-12); overflow-x: auto; font-size: var(--step-6); }
 #doc-pane .table-wrap { overflow-x: auto; }
 #doc-pane table { border-collapse: collapse; width: 100%; margin: var(--space-12) 0; font-size: var(--step-8); }
 #doc-pane th, #doc-pane td { border: 1px solid var(--line); padding: var(--space-6) var(--space-10); text-align: left; }
-#doc-pane th { background: var(--paper-2); font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; }
+#doc-pane th { background: var(--paper-2); font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: var(--track-label); } /* P-10: the other untracked mono-metadata site joins the label register */
 #doc-pane blockquote { border-left: 6px solid var(--line); margin: var(--space-12) 0; padding: var(--space-4) var(--space-14); background: var(--paper-2); }
 /* V5: the docs "Not published yet." empty state gets the same honest-state treatment */
 .doc-missing { color: var(--ink-soft); font-size: var(--step-8); border: 2px solid var(--line); background: var(--paper-2); padding: var(--space-14) var(--space-16); }
@@ -432,7 +476,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .doc-toc a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid transparent; transition: color var(--motion), border-bottom-color var(--motion); }
 .doc-toc a:hover { color: var(--ink); border-bottom-color: var(--ink); }
 .code-copy {
-  font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.06em;
+  font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-chrome); /* P-10: --track-chrome */
   padding: var(--space-2) var(--space-8); border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-soft);
   cursor: pointer; transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
   margin-top: var(--space-2);
@@ -460,7 +504,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    renders ink-on-paper like every other band. */
 .site-footer { background: var(--ink-deep); color: var(--ink); }
 .site-footer .wrap { padding-top: var(--space-40); padding-bottom: var(--space-48); } /* R3 IMP-13: footer verticals join the 40/48 pair */
-.site-footer a { color: var(--ink); }
+.site-footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--footer-muted); } /* F3 (UI_IMPROVE2_FOOTER 2026-09-06): the footer's one in-page door — hairline underline, not decoration */
 /* ledger-grid footer (WS-LEDGER-STRUCTURE P2, ascetic-degen reference): the
    borderless auto-fit grid becomes a hard 1px-bordered ledger table — the grid
    paints var(--line) beneath a 1px gap so every cell edge shares one hairline,
@@ -468,8 +512,17 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    surface. Existing tokens only (--line / --footer-muted); no new token. */
 .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; border: 1px solid var(--line); background: var(--line); font-size: var(--step-6); }
 .footer-col { background: var(--ink-deep); padding: var(--space-14); }
-.footer-grid .h { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step-1); margin-bottom: var(--space-6); color: var(--footer-muted); border: 1px solid var(--footer-muted); padding: var(--space-6) var(--space-8); }
-.footer-fine { margin-top: var(--space-20); font-size: var(--step-1); color: var(--footer-faint); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; } /* P4: mono metadata edge — mirrors the .h precedent (uppercase + tracking, not small-caps) */
+.footer-grid .h { font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-label); font-size: var(--step-1); margin-bottom: var(--space-6); color: var(--footer-muted); border: 1px solid var(--footer-muted); padding: var(--space-6) var(--space-8); } /* P-10 */
+.footer-fine { /* F2 (UI_IMPROVE2_FOOTER 2026-09-06): P4 mono metadata edge → colophon
+   strip — dotted rule above (.doc-toc precedent), two-edge layout, printer's mark
+   (img/logo-mark.png, already self-hosted). Supersedes the P4 single-edge form;
+   every token it used is kept. */
+  margin-top: var(--space-20); padding-top: var(--space-12);
+  border-top: 1px dotted var(--line-dotted);
+  display: flex; flex-wrap: wrap; gap: var(--space-6) var(--space-16);
+  justify-content: space-between; align-items: baseline;
+  font-size: var(--step-1); color: var(--footer-faint); font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-label); /* P-10: tracking re-pointed onto the label token — F2's layout work untouched */
+}
 
 /* ---------- geo block page ---------- */
 .geo-block-page { max-width: 760px; margin: 8vh auto; padding: 0 20px; }
@@ -522,6 +575,14 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    A second :root block merges identically in the cascade. The geo template's
    declarations stay literal by design (D14 retention). ---------- */
 :root {
+  /* UI2-P4 (2026-09-06, WS3-COLOR): THE PAPER LADDER — one substrate family, four steps + two roles:
+     raised --paper-raised (cards, +1) · base --paper (body) ·
+     recess --paper-2 (panel/tab heads, −1) · deep --code-bg (code, −2).
+     Roles: --paper-pending (pending scaffolding, between base and recess),
+     --ink-deep (footer band surface; ink-era misnomer retained for history).
+     INK FAMILY (the ink/footer split): --ink text · --ink-soft muted-on-paper ·
+     --footer-muted/-faint muted-on-footer (measured AA pairs, theme.test-pinned —
+     keep values). New paper surfaces MUST pick a step, never a new hex. */
   /* color aliases (existing hex values, named) */
   --paper-raised: #F3EFE3;
   --paper-pending: #E7E2D4;
@@ -574,6 +635,15 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   --step-15: 1.25rem;    /* 20px — lede/display-small (was step-15/16/17) */
   --step-20: clamp(2rem, 4.8vw, 3.3rem);    /* display rungs — unchanged (IMP-1) */
   --step-21: clamp(1.35rem, 2.6vw, 1.7rem);
+  /* tracking roles (WS3-TYPOGRAPHY P-10, 2026-09-06): TRACK tokens, not text sizes —
+     written justification per the scale law. --track-label = micro metadata labels
+     (11-14px mono uppercase, the label register); --track-chrome = actions/nav/chrome
+     headings. Each replaces several byte-different declarations of the same intent
+     (the 0.03/0.04/0.05/0.06/0.08em cluster collapse). Deliberate literal outliers
+     stay documented: .brand-word 0.12em (masthead display), .block-head .index 0.22em
+     (decorative numeral), .geo-block-body h1 0.04em (D14 retention, literal by design). */
+  --track-label: 0.08em;
+  --track-chrome: 0.06em;
   /* layout */
   --wrap-max: 1020px;
   /* ens-derived soft treatment (R2, user-approved taste split): CARDS/BUTTONS carry
@@ -581,9 +651,15 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
      stat rows, hero facts) keeps its hard 2px border. --ink-deep is the ens INK
      reference value; a second-accent role is deliberately NOT assigned to it. */
   /* R3 IMP-7: exactly THREE radii on the page — 0 (data/ledger surfaces),
-     var(--radius) 999px (every interactive action + tag pill), --radius-soft
-     12px (cards only, the D15 taste split). --radius-base (4px buttons) is
-     retired: the action class unifies on the pill. */
+     var(--radius) 999px (every interactive action + STATE tag/chip: .stat-marker,
+     .hero-chip — live/live-adjacent markers) — EVIDENCE tags (MINT TICKET,
+     DEFINITION-LEVEL GUARANTEE, pending, share-symbol) are DATA/LEDGER elements
+     and keep the hard square, per the same D15 taste split that governs cards.
+     --radius-soft 12px (cards only, the D15 taste split). --radius-base (4px
+     buttons) is retired: the action class unifies on the pill.
+     [G6 (UI_IMPROVE2_GLYPHS, 2026-09-06): the two-register tag rule, recorded —
+     future tags pick a register by role: names a verified on-chain fact → square;
+     names a live page state → pill.] */
   --radius: 999px;
   --radius-soft: 12px;
   --shadow-soft: 0 20px 28px rgba(28, 26, 21, 0.10);
@@ -618,13 +694,20 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   z-index: 0;
   pointer-events: none;
   user-select: none;
+  /* UI2-P2 (2026-09-06, WS3-COLOR): demoted while the canyon owns the hero backdrop
+     (one texture system per surface — the og-era green grid + quarter-turn SVG is the
+     dark-era visual language and rattles across the dithered canyon). Markup stays
+     (theme.test (d) pins the six rgba(0,168,107,) sites in index.html); no media
+     block re-declares display, so the demotion holds at every width. Restore by
+     deleting this line if the canyon is ever retired. */
+  display: none;
 }
 
 /* ledger card — hero-facts anatomy (2px hard borders, no radius, no shadow:
    it is a data/ledger element, not a chrome card) */
 .hero-ledger {
   margin: var(--space-32) 0 var(--space-40); /* V10: panel sits lower — bigger air from the lede, and pushes hero-facts/chain-badge down with it (spacing only; nothing hidden) */
-  max-width: 46rem;
+  max-width: var(--measure-ledger); /* UI2-L9 (2026-09-06, WS3-LAYOUT): ledger-measure role token — was the 46rem literal, zero rendered change */
   border: 2px solid var(--line);
   background: var(--paper-raised);
 }
@@ -634,9 +717,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   background: var(--paper-2);
   border-bottom: 2px solid var(--line);
 }
-.hero-ledger-title { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); }
-.hero-ledger-state { font-family: var(--mono); font-size: var(--step-1); text-align: right; }
-.hero-ledger-state.flag-ok { color: var(--accent-text); }
+.hero-ledger-title { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink); } /* P-10 */
+.hero-ledger-state { font-family: var(--mono); font-size: var(--step-4); text-align: right; } /* P-04: the honest-STATUS line lifts off the 11px micro floor onto the 12.5px chrome role */
+.hero-ledger-state.flag-ok { color: var(--accent-text); border: 1px solid var(--accent-text); padding: var(--space-2) var(--space-6); text-transform: uppercase; letter-spacing: var(--track-label); white-space: nowrap; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #8): the ratified LIVE ONCHAIN stamp — accent-text/outlined-accent (the .stat-marker pairing); uppercase is CSS-only, copy intact; the warn branch deliberately stays a bare red line (failure is not stamped). */
 .hero-ledger-state.flag-warn { color: var(--warn); }
 .hero-ledger-rows { font-variant-numeric: tabular-nums; }
 .ledger-row {
@@ -646,10 +729,10 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-size: var(--step-8);
 }
 .ledger-row:last-child { border-bottom: none; }
-.ledger-k { font-family: var(--serif); font-size: var(--step-11); color: var(--ink); flex: 0 0 auto; }
+.ledger-k { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); flex: 0 0 auto; } /* P-04: the last serif-in-data island joins the mono small-cap label register (one grammar across the hero ledger + mint ticket; rebased onto the P-10 label token). After this rule serif is display-only on the page. */ /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #1): the label RECEDES — micro mono keys (step-1, ink-soft on raised: the .card-note pairing) under dominant values; MONEY layers size+color onto P-04's mono register. */
 .ledger-v { text-align: right; font-family: var(--mono); font-size: var(--step-8); word-break: break-word; font-variant-numeric: tabular-nums; color: var(--ink); }
 .ledger-v .muted { font-size: var(--step-1); }
-.ledger-row-strong .ledger-v strong { color: var(--accent-text); font-size: var(--step-8); }
+.ledger-row-strong .ledger-v strong { color: var(--accent-text); font-size: var(--step-11); } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #1): strong values lead at body size — was step-8; the generic sibling rule lives in the WS3-MONEY EOF block. */
 .hero-ledger-note {
   margin: 0;
   padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14);
@@ -670,7 +753,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    ink-callout-on-paper after any future carrier flip. */
 .mint-card {
   margin: var(--space-24) 0 var(--space-32);
-  max-width: 46rem;
+  max-width: var(--measure-ledger); /* UI2-L9 (2026-09-06, WS3-LAYOUT): ledger-measure role token — was the 46rem literal, zero rendered change */
   border: 1px solid var(--line);
   background: var(--paper);
 }
@@ -682,9 +765,11 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-family: var(--mono);
   font-size: var(--step-1);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink);
-}
+  letter-spacing: var(--track-label); /* P-10 */
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--ink);
+} /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #4): the ratified GREEN tag — accent-ink on accent (the documented 5.6:1 .btn-primary pair), 1px ink border keeps it a printed stamp; the ticket carries exactly one accent element. */
 .mint-card .ledger-k { font-family: var(--mono); } /* mono small-cap labels per the reference grammar — row anatomy otherwise inherited */
 .mint-card-callout {
   margin: var(--space-12);
@@ -702,10 +787,10 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   padding: var(--space-10) 0;
   border-bottom: 1px solid var(--line);
 }
-.inv-dt { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); flex: 0 0 auto; }
+.inv-dt { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink); flex: 0 0 auto; } /* P-10 */
 .inv-dd { margin: 0; text-align: right; font-family: var(--mono); font-size: var(--step-8); font-variant-numeric: tabular-nums; word-break: break-word; color: var(--ink); }
 .inv-card {
-  max-width: 46rem;
+  max-width: var(--measure-ledger); /* UI2-L9 (2026-09-06, WS3-LAYOUT): ledger-measure role token — was the 46rem literal, zero rendered change */
   border: 1px solid var(--line);
   background: var(--paper);
   padding: var(--space-14);
@@ -717,12 +802,12 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-family: var(--mono);
   font-size: var(--step-1);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label); /* P-10 */
   color: var(--ink);
 }
-.inv-card h3 { margin: var(--space-10) 0 var(--space-6); font-family: var(--mono); font-size: var(--step-6); text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); }
+.inv-card h3 { margin: var(--space-10) 0 var(--space-6); font-family: var(--mono); font-size: var(--step-6); text-transform: uppercase; letter-spacing: var(--track-chrome); color: var(--ink); } /* P-10: was 0.05em */
 .inv-stat-line { margin: 0; font-family: var(--mono); font-size: var(--step-6); color: var(--ink); word-break: break-word; font-variant-numeric: tabular-nums; }
-.inv-disclosure { margin-top: var(--space-12); padding: var(--space-12); background: var(--code-bg); font-size: var(--step-4); color: var(--ink-soft); }
+.inv-disclosure { margin-top: var(--space-12); padding: var(--space-12); background: var(--ink); color: var(--paper); font-size: var(--step-4); line-height: 1.5; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #9): the fine print promoted — the backing disclosure joins the ink-callout family (the .mint-card-callout pairing); the code override lives in the WS3-MONEY EOF block. */
 
 @media (max-width: 640px) {
   /* panel stacks under the hero lede, full measure; motif shrinks + fades */
@@ -785,7 +870,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   border-radius: var(--radius);          /* ens pill */
   font-family: var(--mono);
   font-size: var(--step-1);
-  letter-spacing: 0.03em;
+  letter-spacing: var(--track-chrome); /* P-10: was 0.03em — the sub-perceptual cluster joins the chrome token */
   line-height: 1.2;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;   /* data figures — V2 discipline */
@@ -920,15 +1005,16 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 .stat-glyph {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: clamp(22px, 3vw, 33px);
+  font-size: clamp(15px, 1.8vw, 21px);   /* P-05: decoration recedes below the data */
   line-height: 1;
   color: var(--accent-text, #0d6b4f);
+  opacity: 0.8;
 }
 .stat-value {
-  font-family: var(--sans, "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
-  font-size: clamp(18px, 2.2vw, 26px);
-  font-weight: 600;
-  letter-spacing: -0.025em;
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: clamp(20px, 2.6vw, 30px);   /* P-05: the REAL figure is the biggest thing in the cell (drafts' big-mono tape register) */
+  font-weight: 500;
+  letter-spacing: normal;                /* mono digits are self-tabular; no grotesque tracking */
   font-variant-numeric: tabular-nums;
   color: var(--ink, #1C1A15);
   min-height: 1.2em;
@@ -937,7 +1023,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: clamp(11px, 1.2vw, 12.5px);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label, 0.08em); /* P-10: label token, WSV-STATS mandatory literal fallback kept */
   color: var(--ink-soft, #5C584C);
 }
 .stat-marker {
@@ -950,7 +1036,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1, 0.6875rem);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label, 0.08em); /* P-10: label token, WSV-STATS mandatory literal fallback kept */
   color: var(--accent-text, #0d6b4f);
 }
 @media (max-width: 720px) {
@@ -1039,11 +1125,11 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .ledger-row.delta-up { animation: ws-delta-up 600ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1; }
 .ledger-row.delta-down { animation: ws-delta-down 600ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1; }
 @keyframes ws-delta-up {
-  0% { background-color: rgba(0, 168, 107, 0.16); }
+  0% { background-color: color-mix(in srgb, var(--accent) 16%, transparent); } /* UI2-P8: was the rgba(0, 168, 107, 0.16) literal — WOW-7 flash hue now derives from --accent; var() inside @keyframes resolves against the animating element */
   100% { background-color: transparent; }
 }
 @keyframes ws-delta-down {
-  0% { background-color: rgba(163, 58, 36, 0.16); }
+  0% { background-color: color-mix(in srgb, var(--warn) 16%, transparent); } /* UI2-P8: was the rgba(163, 58, 36, 0.16) literal — now derives from --warn */
   100% { background-color: transparent; }
 }
 .ledger-row.delta-up::after {
@@ -1076,6 +1162,11 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    verified (✓ slot0 / ✓ balances) via data-stamp, held for a beat,
    then faded. If a design pass ever strips the read name from the
    content, kill the package — the stamp MUST carry data. */
+/* G4 (UI_IMPROVE2_GLYPHS): the coverage seam's second cell (#inv-stat — no
+   .ledger-v class) joins the stamp grammar. New selector sits FIRST so the
+   byte-pin on '.ledger-v.ledger-stamp::after {' (agent-first.test.js (vi))
+   still resolves to this rule's declaration span. */
+#inv-stat.ledger-stamp::after,
 .ledger-v.ledger-stamp::after {
   content: '✓ ' attr(data-stamp);
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
@@ -1157,7 +1248,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1, 0.6875rem);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label); /* P-10 */
   color: var(--ink-soft, #5C584C);
 }
 .flow-node-v {
@@ -1218,14 +1309,14 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1, 0.6875rem);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label); /* P-10 */
   color: var(--ink-soft, #5C584C);
 }
 .sim-slider-label {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1, 0.6875rem);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label); /* P-10 */
   color: var(--ink-soft, #5C584C);
 }
 #sim-slider {
@@ -1252,7 +1343,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1, 0.6875rem);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-label); /* P-10 */
   color: var(--ink-soft, #5C584C);
 }
 .sim-region-v {
@@ -1346,6 +1437,7 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
   #vaults-updated.heartbeat, .hero-ledger-state.is-connecting,
   .flow-rate-fast .flow-path, .flow-rate-mid .flow-path, .flow-rate-slow .flow-path,
   .flow-figure:not(.flow-live) .flow-path--in,
+  #inv-stat.ledger-stamp::after, /* G4 (UI_IMPROVE2_GLYPHS): the coverage seam's second cell joins the reduce pair */
   .ledger-v.ledger-stamp::after,
   .sim-bar-fill,
   .scroll-reveal .ledger-row, .flow-figure.ws-reveal .flow-node,
@@ -1355,7 +1447,7 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
     transition: none !important;
   }
   .stat-tick:not(:empty) { opacity: 1; }
-  .ledger-v.ledger-stamp::after { opacity: 0.9; }
+  #inv-stat.ledger-stamp::after, .ledger-v.ledger-stamp::after { opacity: 0.9; }
   .scroll-reveal .ledger-row, .flow-figure.ws-reveal .flow-node { opacity: 1; transform: none; }
   .sim-bar-fill { transition: none; }
   .ws-entrance { animation: none; opacity: 1; transform: none; }
@@ -1411,11 +1503,18 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
   pointer-events: none;
 }
 .vault-card { position: relative; }  /* anchor for the certificate — re-pinned 2026-09-04: the keeper rides live cards too (deployed-but-empty state) */
+/* WS3-ART P2 (2026-09-06, UI_IMPROVE2_ART-DIRECTION): certificate occlusion fix —
+   the keeper leaves the .card-head corner (where .share-symbol / .pending-tag data
+   chips render) and docks to the fine-print row's right corner; .card-note reserves
+   the corner (min-height + padding-right). Still fully static (no animation/
+   transition in the base rule — the (b3) tooth holds); outcome-pinned: no overlap
+   with the last .card-row value at any grid width ≥320. */
 .asset-certificate {
   position: absolute;
-  top: var(--space-12);
-  right: var(--space-12);
-  width: clamp(84px, 10vw, 120px);
+  top: auto;                    /* WS3-ART P2: was var(--space-12) — the head corner is data territory */
+  bottom: var(--space-10);      /* WS3-ART P2: corner of the fine-print row */
+  right: var(--space-14);       /* WS3-ART P2: was var(--space-12) */
+  width: clamp(72px, 8vw, 96px); /* WS3-ART P2: was clamp(84px, 10vw, 120px) */
   height: auto;
   opacity: 0.9;
   pointer-events: none;
@@ -1507,4 +1606,281 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
      header height H + 16, finalized from the post-P3 probe: H = 126.09 → 142). */
   section.block, .hero { scroll-margin-top: 142px; }
   #doc-pane [id] { scroll-margin-top: 142px; }
+}
+
+/* ---------- WS3-FOOTER (2026-09-06, UI_IMPROVE2_FOOTER F1/F2/F3/F4/F5) — pure-additive EOF block ----------
+   Ledger-grid footer completion + meta-edges. New rules only (existing-rule edits live in the
+   footer section above: .site-footer a F3, .footer-fine F2). No motion added — a colophon is
+   print; it does not move. Token-only, zero new external origins. */
+.footer-callout { /* F1: the contrast line gets the ink-box treatment — .mint-card-callout
+  precedent (token-inverted, mono), small-print given weight per the ratified reference. */
+  margin-top: var(--space-10);
+  padding: var(--space-10) var(--space-12);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: var(--step-4);
+  line-height: 1.5;
+}
+.fine-mark { /* F2: printer's mark (thumbs-up logo mark, 14x15 half-scale, decorative) */
+  width: 14px; height: 15px; vertical-align: -2px; margin-right: var(--space-6); opacity: 0.85;
+}
+.site-footer a:hover { /* F3: underline darkens toward ink on hover */
+  border-bottom-color: var(--ink);
+}
+.footer-imprint { /* F4: the legal colophon gets its own imprint row under the fine strip */
+  margin-top: var(--space-8);
+  font-size: var(--step-1); color: var(--footer-faint); font-family: var(--mono);
+  text-transform: uppercase; letter-spacing: 0.08em; max-width: 88ch;
+}
+.footer-col > div:not(.h):not(.footer-callout) { /* F5: rows as cells — the reference's
+  ledger-grid footer is a table, not stacked prose; the callout exclusion (F1) keeps the
+  ink box self-bounded. */
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--line);
+}
+.footer-col > div:last-child { border-bottom: none; }
+/* ---------- end WS3-FOOTER EOF block ---------- */
+
+/* ---------- WS3-HEADER (2026-09-06) — header + nav additive EOF block ----------
+   From docs/inventory/UI_IMPROVE2_HEADER_2026-09-05.md. In-place single-line edits
+   (P1 scroll-margin, P2 hover, P3 pill register, P5 mark ratio, P7 active punch)
+   carry their own dated markers up in the header block. Tokens only — no color
+   literals, no motion added (the strip is static, so no reduced-motion pair is
+   owed), zero new external origins, nothing hidden. */
+/* P4 — identity tape under the header. The 1px border sits under the header's 2px
+   so the weight hierarchy reads header > strip > content. Static and non-sticky —
+   it scrolls away with the page, so the sticky header's geometry is untouched. */
+.tape-strip { border-bottom: 1px solid var(--line); background: var(--paper); }
+.tape-strip .wrap {
+  display: flex; flex-wrap: wrap; column-gap: var(--space-10); row-gap: var(--space-2);
+  padding-top: var(--space-8); padding-bottom: var(--space-8);
+  font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--ink-soft);
+} /* ink-soft on paper = 5.85:1 at 11px — above the 4.5 small-text floor */
+.tape-strip-entry + .tape-strip-entry::before {
+  content: '·'; margin-right: var(--space-10); color: var(--accent-punch);
+} /* 5.42:1 — the sanctioned separator accent */
+.tape-strip-sym { color: var(--ink); } /* the symbol is the row's strongest cell */
+.tape-strip-tier, .tape-strip-state { color: var(--ink-soft); }
+.tape-strip-entry--gated .tape-strip-sym { color: var(--ink-soft); } /* a gated tier never shouts */
+/* P6 — mobile lockup: the brand tag drops to its own clean ledger line instead of
+   internally wrapping into a ragged two-line squeeze (measured 34.1px vs 17
+   natural at 390). Nothing is removed — the tag stays visible on every width. */
+@media (max-width: 640px) {
+  .brand { flex-wrap: wrap; row-gap: var(--space-2); }
+}
+/* ---------- end WS3-HEADER EOF block ---------- */
+
+/* ---------- WS3-TYPOGRAPHY (2026-09-06, UI_IMPROVE2_TYPOGRAPHY) — pure-additive EOF block ----------
+   The goal's ONE new-rule block: P-09 (the deadpan pitch line's typographic voice) and
+   P-08's first-heading guard. Every EXISTING-rule edit (P-01..P-08, P-10, P-11) lives in
+   its home section above with its own dated marker. No motion, no new @media (the
+   reduce-gate count is unchanged), token-only colors, zero new external origins, nothing
+   hidden. Multi-vault family cards need no extra rules here: they render the shared
+   .vault-card/.card-row/.card-title/.ledger-k anatomy this pass already re-typed. */
+.hero .wrap > p:not(.lede) { /* P-09: the deadpan skeptic line (the h1's echo) — quiet ink-soft on paper (asserted 4.5:1+ pair) and a narrowed 46ch measure; pairs the mobile order rule for the same selector */
+  color: var(--ink-soft);
+  max-width: 46ch;
+}
+#doc-pane h2:first-child, #doc-pane h3:first-child { margin-top: 0; } /* P-08 guard: no new gap under the title border when the renderer's first output is a heading; deep-link scroll-margin behavior unchanged */
+/* ---------- end WS3-TYPOGRAPHY EOF block ---------- */
+
+/* ---------- WS3-LAYOUT (2026-09-06, UI_IMPROVE2_LAYOUT) — pure-additive EOF block ----------
+   Composition + geometry from the LAYOUT mapper: L9 measure tokens, L3 one ledger
+   measure, L5 hatch continuity, L6 mint-ticket stamp straddle (all ungated), then the
+   media-scoped blocks L1 (asymmetric hero >=1024), L8 (agents editorial split >=900)
+   and L4 (draft display scale >=1280). Existing-line edits (the four measure re-points)
+   carry their own dated markers in the home sections above. Tokens only — no color
+   literals (the theme.test.js exact-count pins ride untouched), no new ids (registry
+   untouched), no markup/copy changes, zero motion added (static transforms only; the
+   reduce-gate count is unchanged), zero new external origins. Every @media here is a
+   min-width gate: the <=640 mobile fold rules (WS-MOBILE-FIXES rank block, header
+   compression) never coexist with them. */
+/* UI2-L9: measure roles — the ledger surface (data cards) vs the copy measure (prose
+   subs). A second :root block merges identically in the cascade (v1.2 foundation
+   convention). New text-width decisions pick a role token. */
+:root {
+  --measure-ledger: 46rem;
+  --measure-copy: 52rem;
+}
+/* UI2-L3: the ledger-surface measure — a single family card is a 736px ledger table,
+   not a full-wrap stretch; footnote and invariant list join the same measure so each
+   section reads as one aligned unit (the Stratton-grammar compact table). Written
+   against the L9 token from the start. Family-grid math: at the 736px grid box,
+   minmax(320px,1fr) auto-fit yields 2x358px cards when vault #2 lands. */
+#vault-grid { max-width: var(--measure-ledger); }
+.apr-footnote { max-width: var(--measure-ledger); }
+.inv-dl { max-width: var(--measure-ledger); }
+/* UI2-L5: boundary rhythm — every major band edge carries the same 8px hatch; the two
+   prologue boundaries (stat-band -> flow-figure, flow-figure -> #vaults) were plain
+   2px lines, stuttering exactly where spectacle hands off to product. House form
+   restated verbatim: each boundary its own rule block with its own gradient
+   declaration (the :180-186 law). */
+.stat-band { border-bottom: 8px solid transparent; border-image: repeating-linear-gradient(45deg, var(--line) 0 4px, transparent 4px 8px) 8; }
+.flow-figure { border-bottom: 8px solid transparent; border-image: repeating-linear-gradient(45deg, var(--line) 0 4px, transparent 4px 8px) 8; }
+/* UI2-L6: the draft seats a rotated stamp tag OVER the ticket's top edge (LIVE
+   ONCHAIN in welldis.jpg). Static transform — no motion, no reduce pair required;
+   -2deg echoes the chips' rotation register. Opaque paper background so the card's
+   1px border never strikes through the glyph run; padding-top restores the old tag
+   headroom (28px + the first row's 10px ~= the old 38px). Copy unchanged ("MINT
+   TICKET" byte-frozen); the <=640 rank block moves the card whole — the tag travels
+   with it. */
+.mint-card { position: relative; padding-top: var(--space-28); }
+.mint-card-tag {
+  position: absolute;
+  top: -10px;              /* half the tag box — probe-tune +-2px */
+  left: var(--space-16);
+  margin: 0;
+  background: var(--paper);
+  transform: rotate(-2deg);
+}
+/* UI2-L1 (>=1024): the ratified draft's asymmetric hero (welldis.jpg) — headline +
+   pitch + CTA in the left column, the mint ticket beside them, the live ledger
+   spanning full measure below. Same 8 .wrap children (grid-area placement — the
+   <=640 mobile rank block and the ws-entrance arming are untouched, min-width-scoped,
+   class/HTML unchanged); base position/z-index and min-height: 80vh persist by
+   cascade. The two asides stay unwrapped (8-children contracts). */
+@media (min-width: 1024px) {
+  .hero .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-areas:
+      "h1     mint"
+      "pitch  mint"
+      "cta    mint"
+      "lede   lede"
+      "ledger ledger"
+      "facts  facts"
+      "badge  badge";
+    column-gap: var(--space-40);
+    align-content: center;   /* replaces the flex justify-content:center beat */
+  }
+  .hero .wrap > h1 { grid-area: h1; }
+  .hero .wrap > p:not(.lede) { grid-area: pitch; }
+  .hero .wrap > .cta-row { grid-area: cta; align-self: start; }
+  .hero .wrap > .mint-card { grid-area: mint; margin: 0; align-self: start; margin-top: var(--space-56); } /* probe-tune: the draft seats the ticket at headline line 2 */
+  .hero .wrap > p.lede { grid-area: lede; }
+  .hero .wrap > .hero-ledger { grid-area: ledger; margin: var(--space-24) 0 var(--space-32); }
+  .hero .wrap > .hero-facts { grid-area: facts; }
+  .hero .wrap > #chain-badge { grid-area: badge; }
+}
+/* UI2-L8 (>=900): the agents section's two children become an asymmetric editorial
+   spread — the two-tone headline owns the left column, the machine-surface prose the
+   right. Same two children, zero markup; agent-first.test.js pins are href/content
+   greps (unaffected by CSS). The .block-head's spacer/muted wrap inside the narrow
+   column is accepted (probe 900-1024). */
+@media (min-width: 900px) {
+  #agents .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    column-gap: var(--space-40);
+  }
+  #agents .wrap > .block-head { grid-column: 1; grid-row: 1; align-self: start; }
+  #agents .wrap > .block-sub { grid-column: 2; grid-row: 1; margin: 0; }
+}
+/* UI2-L4 (>=1280): the draft's dominant move — type IS the composition (welldis.jpg
+   measures ~10-11vw). Desktop-only: the <=640 clamp floor stays byte-identical so the
+   ratified mobile fold gates (header <=135px, hero-ledger <=844px at 390x844) keep
+   holding. 115px @1280, 129.6px @1440. No test pins 7.8vw / 6.25rem (pre-flight
+   sweeped 2026-09-06). */
+@media (min-width: 1280px) {
+  .hero h1 { font-size: clamp(6.25rem, 9vw, 8.25rem); }
+}
+/* ---------- end WS3-LAYOUT EOF block ---------- */
+/* ---------- WS3-MONEY (2026-09-06, UI_IMPROVE2_MONEY-SURFACES items 1-11) — money-surface additive EOF block ----------
+   One ledger-row grammar everywhere money renders (label recedes, value leads);
+   the verified coverage figure is the ticket's one hot number; the holder's own
+   position renders in the receipt anatomy. Token-only (zero new color literals),
+   zero motion, zero new @media blocks, zero new element IDs. */
+.ledger-row .ledger-v strong { font-size: var(--step-11); } /* #1: live figures out-size their row — the price/TVL strongs become the largest element in the panel */
+#mint-backed.coverage-live, #inv-stat.coverage-live { font-weight: 700; color: var(--accent-text); font-size: var(--step-11); } /* #2: only a verified decode carries the class (writeAll live flag) — pending/unavailable states stay neutral */
+#wallet-balances:not(:empty) { border: 2px solid var(--line); background: var(--paper-raised); } /* #3: the data-element border on the holder's own money box; :not(:empty) keeps the pre-connect page free of an empty bordered panel (deviation from the mapper's unconditional rule — disclosed in the worker report) */
+#redeem-preview { font-size: var(--step-8); color: var(--ink); font-variant-numeric: tabular-nums; border-top: 1px dotted var(--line-dotted); padding-top: var(--space-10); margin-top: var(--space-12); } /* #6: the chain-priced preview promoted to a number line via the .card-row dotted-separator vocabulary; text untouched (the anti-promise wording is load-bearing) */
+button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft); border-color: var(--line); } /* #5: explicit parked-register companion (button.btn:disabled already out-ranks btn-primary on specificity) */
+.inv-disclosure code { background: transparent; color: var(--paper); border-color: var(--paper); } /* #9: the mono code inside the ink callout stays legible */
+/* ---------- end WS3-MONEY EOF block ---------- */
+/* ---------- WS3-ART (2026-09-06, UI_IMPROVE2_ART-DIRECTION P-items + LAYOUT L2 dim) — canyon-substrate EOF block ----------
+   L2 canyon dim-to-substrate (OWNER per the GOALS_WS_UI3 cross-goal table): the dithered
+   canyon recedes to paper texture so the serif headline reads ink-on-paper (L-E2). Base
+   dim 0.30; the <=640 dim is a max-width block AFTER the WS-MOBILE-FIXES / sibling EOF
+   blocks per the L2 landing spec (later-wins cascade). Opacity is a value, not a color
+   literal (theme.test.js sweeps untouched); no motion touched (the canyon's no-preference
+   gate and both reduce pairs stay byte-identical above); no new reduce gate ((b5) count
+   unchanged); P1/P2 landed as dated in-place edits in their home sections. */
+.hero-canyon { opacity: 0.30; }   /* UI2-L2: probe 0.25-0.35 at 1440x900 and 390x844; darkest dither blends to ~#B7AE9C vs --ink at 0.30 */
+@media (max-width: 640px) {
+  .hero-canyon { opacity: 0.22; }  /* UI2-L2: phone — buildings dominate the crop; the ratified mobile fold is paper-first */
+}
+/* ---------- end WS3-ART EOF block ---------- */
+/* ---------- WS3-COLOR (2026-09-06, UI_IMPROVE2_COLOR-TEXTURE P6) — border-taxonomy additive EOF block ----------
+   The one border-weight inversion fix: the mint ticket's inherited .ledger-row rows
+   (2px) out-weighed their 1px frame — the interior must never out-weigh the frame.
+   Print register 1px/1px for the printed ticket (the inv-card sibling is already
+   coherent 1px/1px); the live .hero-ledger keeps 2px/2px (live instrument vs printed
+   document). Placed here at equal specificity AFTER .ledger-row:last-child, so the
+   last row's borderless state still wins the cascade. Token-only; zero motion. */
+.mint-card .ledger-row { border-bottom: 1px solid var(--line); } /* UI2-P6: print register (was inherited 2px) */
+/* ---------- end WS3-COLOR EOF block ---------- */
+/* ---------- WS3-DEGRADED (2026-09-06, UI_IMPROVE2_DEGRADED-STATES 1-8) — degraded + empty states EOF block ----------
+   Additive-only, @media-free, token-only (no new color literals — the theme battery's
+   pinned counts are untouched); zero new motion (one animation REMOVAL, #2 — finality
+   is stillness, so no reduced-motion pairing is owed), zero new reduce gates ((b5)
+   count unchanged), zero new resource URLs. #9 EXCLUDED (D14-gated). The BACKED accent
+   stays WS3-MONEY's (#2 owner) — this goal adds only the verify-promise persistence
+   (#7) and the state-independent tags below.
+   Deviation from the mapper draft, disclosed: .card-empty-tag is a FLOW tag inside
+   .card-head (same anatomy as .pending-tag), not the draft's absolute top-left plate —
+   the head corner is data territory per the WS3-ART P2 occlusion fix already landed
+   in this file. */
+/* #2: the pulse means "working". A settled degraded fact renders STILL — finality
+   is quiet, never a fake progress signal. Voice unchanged (mono, --ink-soft). */
+.state--final { animation: none !important; }
+/* #1: the empty register — the keeper stops being wallpaper when its state is real
+   (full strength), and the verified fact wears a tag in the pending-tag anatomy. */
+.vault-card--empty .asset-certificate { opacity: 1; }
+.card-empty-tag { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink); border: 1px solid var(--line); background: var(--paper); padding: var(--space-2) var(--space-8); white-space: nowrap; }
+/* #4: panel-head state tags — same anatomy as .pending-tag. --safe marks a
+   structural guarantee (always true, not a state); --warn rides only a verified pause. */
+.panel-tag { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); padding: var(--space-2) var(--space-8); border: 1px solid var(--line); background: var(--paper); white-space: nowrap; }
+.panel-tag--safe { color: var(--accent-text); border-color: var(--accent-text); }
+.panel-tag--warn { color: var(--warn); border-color: var(--warn); background: var(--warn-bg); }
+/* #5: APR baseline provenance — the fallback reading labels itself on band + chip;
+   hidden by default, shown only on the labeled fallback (main.js publish fan-out). */
+.stat-baseline-note { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); border: 1px solid var(--line); background: var(--paper); padding: var(--space-2) var(--space-8); align-self: flex-start; }
+#stat-baseline-note[hidden], #chip-baseline-note[hidden] { display: none; } /* belt-and-braces: an author display rule must never out-rank the [hidden] UA default */
+/* #6: a failed live read leaves the DOM '' (render-degrade pin: never 0-as-fake).
+   The VISUAL empty is designed: the same unavailable voice as the ledger. Scoped to
+   the two LIVE cells only — the split cell is a ratified constant filled at init
+   (never empty past first paint) and the APR cell degrades to the labeled baseline
+   (never empty). First paint is safe: the static cells contain '—' (not :empty). */
+#stat-tvl:empty::after, #stat-price:empty::after {
+  content: 'unavailable (RPC)';
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
+  font-size: var(--step-8, 0.84375rem);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink-soft, #5C584C);
+}
+/* #7: the verify-yourself promise persists in EVERY state — a static line under the
+   mint-card BACKED row that main.js never writes (the pinned cell strings stay free
+   to degrade; this instruction does not vanish with them). */
+.mint-card-verify { margin: 0 var(--space-12); padding: 0 var(--space-2) var(--space-10); font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); }
+/* #8: the widget-status box's two moods — the wallet-absent read-only state is a
+   feature (the whole page works walletless) and reads muted; warnings stay red. */
+#widget-status .flag--info { color: var(--ink-soft); }
+#widget-status .flag-warn { color: var(--warn); }
+/* #3: noscript plates — the empty grid/pane voids and the note are designed in the
+   same print register (the <noscript> style block at the top of <body> shows them
+   and stills the forever-pulse; these base rules keep them dormant with JS on). */
+.vault-grid-empty, .doc-pane-empty { display: none; }
+.noscript-note { border: 2px solid var(--line); border-left-width: 8px; background: var(--paper-2); margin-top: var(--space-16); }
+.noscript-kicker { display: block; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink); margin-bottom: var(--space-6); }
+/* ---------- end WS3-DEGRADED EOF block ---------- */
+
+/* WS3-CLOSEOUT (2026-09-06): the asset-magnify hand overflowed the 390px viewport by
+   ~4px (unclipped, right=394 — post-wave consolidated probe). Scoped ≤480 only; the
+   desktop clamp(88px,11vw,150px) register is untouched. */
+@media (max-width: 480px) {
+  .asset-magnify { max-width: 80px; }
 }

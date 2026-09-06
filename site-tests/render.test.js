@@ -123,6 +123,12 @@ global.document = {
 // aside.hero-ledger — a real static node in index.html, written by main.js's
 // refreshCards summary writer; the REGISTRY RIDER requires registration for
 // every $-queried id).
+// + WS3-DEGRADED (2026-09-06, UI_IMPROVE2_DEGRADED-STATES) registry add -> 63 in-array
+// ids (was 60): stat-baseline-note + chip-baseline-note (the APR fallback-provenance
+// markers on the band + chip, hidden/shipped by the publish fan-out's isBaseline flag)
+// and deposit-panel-head (the deposit panel-head hook the verified-pause warn tag
+// attaches to in appendWidgetTruthRows) — all three are static page ids in index.html
+// queried by main.js's WS3-DEGRADED seams.
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge', 'vault-grid', 'vaults-updated',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
@@ -138,7 +144,8 @@ global.document = {
  'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
  'mint-backed', 'inv-stat', 'invariants',
  'agents', 'agents-skill-link', 'agents-skill-mirror-link', 'asset-magnify',
- 'red-amount-label', 'redeem-preview', 'hero-ledger-summary'
+ 'red-amount-label', 'redeem-preview', 'hero-ledger-summary',
+ 'stat-baseline-note', 'chip-baseline-note', 'deposit-panel-head'
 ].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');

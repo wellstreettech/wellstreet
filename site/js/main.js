@@ -33,6 +33,13 @@
   // guesses a duration, promises a date, or implies an un-pause.
   var PAUSE_ROW = 'Deposits are paused on the vault. Redemptions are never pausable — exits stay open.';
 
+  // GLYPH REGISTER (G9, UI_IMPROVE2_GLYPHS 2026-09-05): the small-mark census —
+  // '·' separates metadata fields (single spaces; HTML collapses doubles, so the
+  // old two-space form was dead bytes) · '≈' marks a derived figure, never a
+  // promise (the sim/preview/balance sites already obey) · '…' marks truncation
+  // (fmtAddr) · '└' marks a methodology child row (the only box-drawing glyph).
+  // No new separators ship ('—' stays the degraded-state em-dash per the
+  // honest-state idiom).
   function $(id) { return document.getElementById(id); }
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -243,7 +250,7 @@
     var label = (u.symbol || '?') + (t && t.label ? ' — ' + t.label : '');
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, label));
-    frag.appendChild(el('span', 'muted', '  ·  ' + (u.state === 'active' ? 'not paused' : u.state === 'unknown' ? 'pause state unknown' : u.state)));
+    frag.appendChild(el('span', 'muted', ' · ' + (u.state === 'active' ? 'not paused' : u.state === 'unknown' ? 'pause state unknown' : u.state)));
     return row('Underlying (live)', frag);
   }
 
@@ -251,7 +258,7 @@
     if (!price) { return row('Underlying price', 'unavailable (feed — no invented price)'); }
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, '$' + price.usd.toFixed(2)));
-    frag.appendChild(el('span', 'muted', '  ·  ' + price.label + ' (Chainlink) · ' + fmtAge(price.ageSeconds) +
+    frag.appendChild(el('span', 'muted', ' · ' + price.label + ' (Chainlink) · ' + fmtAge(price.ageSeconds) +
       (price.stale ? ' · equity feeds update 24/5 — weekend/holiday staleness is expected' : '')));
     return row('Underlying price (live)', frag);
   }
@@ -260,9 +267,9 @@
     if (!pool) { return row('Pool', 'unavailable (RPC)'); }
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, pool.label));
-    frag.appendChild(el('span', 'muted', '  ·  TVL ' + (pool.tvlToken0 ? pool.tvlToken0.toFixed(2) + ' WETH' : '—') +
-      '  ·  fee tier ' + (pool.feeTier != null ? pool.feeTier / 1e4 + '%' : '—') +
-      '  ·  ' + fmtAddr(pool.address)));
+    frag.appendChild(el('span', 'muted', ' · TVL ' + (pool.tvlToken0 ? pool.tvlToken0.toFixed(2) + ' WETH' : '—') +
+      ' · fee tier ' + (pool.feeTier != null ? pool.feeTier / 1e4 + '%' : '—') +
+      ' · ' + fmtAddr(pool.address)));
     return row('Fee pool (live)', frag);
   }
 
@@ -276,7 +283,7 @@
     if (h === null || h === undefined) { return row('Harvests credited (live)', 'unavailable (RPC)'); }
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, h.count === 0 ? 'no harvests yet — the honest pre-accrual state' : String(h.count)));
-    frag.appendChild(el('span', 'muted', '  ·  YieldHarvested log count (getLogs on the vault)'));
+    frag.appendChild(el('span', 'muted', ' · YieldHarvested log count (getLogs on the vault)'));
     return row('Harvests credited (live)', frag);
   }
 
@@ -286,7 +293,7 @@
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, (c.cutFraction * 100).toFixed(0) + '% of swap fees per side (live slot0: (' +
       c.token0N + ',' + c.token1N + ')) — LPs keep ' + (c.netMultiplier * 100).toFixed(0) + '%'));
-    if (c.note) { frag.appendChild(el('span', 'muted', '  ·  ' + c.note)); }
+    if (c.note) { frag.appendChild(el('span', 'muted', ' · ' + c.note)); }
     return row("The pool owner's cut (live)", frag);
   }
 
@@ -328,12 +335,15 @@
     if (f.pool && cfg.pools && cfg.pools[f.pool]) {
       var p = cfg.pools[f.pool];
       frag.appendChild(el('span', null, p.label));
-      frag.appendChild(el('span', 'muted', '  ·  pinned pool ' + fmtAddr(p.address) + ' — fee tier ' + (p.feeTier != null ? p.feeTier / 1e4 + '%' : '—')));
+      frag.appendChild(el('span', 'muted', ' · pinned pool ' + fmtAddr(p.address) + ' — fee tier ' + (p.feeTier != null ? p.feeTier / 1e4 + '%' : '—')));
     } else if (f.poolId) {
       frag.appendChild(el('span', null, 'v4 poolId ' + fmtAddr(f.poolId)));
-      frag.appendChild(el('span', 'muted', '  ·  PoolManager fork ' + fmtAddr(cfg.uniswapV4 && cfg.uniswapV4.poolManager) + ' (StateView-readable after the tier deploys)'));
+      frag.appendChild(el('span', 'muted', ' · PoolManager fork ' + fmtAddr(cfg.uniswapV4 && cfg.uniswapV4.poolManager) + ' (StateView-readable after the tier deploys)'));
     } else {
-      frag.appendChild(el('span', 'state', 'unavailable (RPC)'));
+      // WS3-DEGRADED #2 (2026-09-06): settled fact renders STILL — the finality
+      // modifier re-derived live onto the family-grid surface per the goals doc's
+      // shared constraint 3 (the mapper's three anchors predate e30a51c).
+      frag.appendChild(el('span', 'state state--final', 'unavailable (RPC)'));
     }
     return row('Fee book (pinned)', frag);
   }
@@ -398,7 +408,7 @@
       ? 1 / pool.priceToken1PerToken0 : null;
     var rPrice = ledgerRow('SPY / WETH (pool slot0)',
       spyWeth ? el('strong', null, spyWeth.toFixed(4) + ' WETH')
-              : el('span', 'state', 'unavailable (RPC)'));
+              : el('span', 'state state--final', 'unavailable (RPC)'));
     rowsBox.appendChild(rPrice);
     if (spyWeth) { stampRow(rPrice, 'slot0'); }   // WOW-8: names the read that verified
 
@@ -408,10 +418,10 @@
     if (pool && pool.tvlToken0) {
       tvlNode.appendChild(el('strong', null, pool.tvlToken0.toFixed(2) + ' WETH'));
       if (tvlUsd !== null && tvlUsd !== undefined && isFinite(tvlUsd)) {
-        tvlNode.appendChild(el('span', 'muted', '  ·  ≈ ' + fmtUsd(tvlUsd)));
+        tvlNode.appendChild(el('span', 'muted', ' · ≈ ' + fmtUsd(tvlUsd)));
       }
     } else {
-      tvlNode.appendChild(el('span', 'state', 'unavailable (RPC)'));
+      tvlNode.appendChild(el('span', 'state state--final', 'unavailable (RPC)'));
     }
     var rTvl = ledgerRow('Pool TVL (live)', tvlNode);
     rowsBox.appendChild(rTvl);
@@ -424,10 +434,10 @@
       var c = pool.cut;
       var cf = document.createDocumentFragment();
       cf.appendChild(el('span', null, (c.cutFraction * 100).toFixed(0) + '% of swap fees per side'));
-      cf.appendChild(el('span', 'muted', '  ·  slot0 (' + c.token0N + ',' + c.token1N + ') — LPs keep ' + (c.netMultiplier * 100).toFixed(0) + '%'));
+      cf.appendChild(el('span', 'muted', ' · slot0 (' + c.token0N + ',' + c.token1N + ') — LPs keep ' + (c.netMultiplier * 100).toFixed(0) + '%'));
       cutNode = cf;
     } else {
-      cutNode = el('span', 'state', 'unavailable (RPC)');
+      cutNode = el('span', 'state state--final', 'unavailable (RPC)');
     }
     var rCut = ledgerRow("The pool owner's cut (live)", cutNode);
     rowsBox.appendChild(rCut);
@@ -739,6 +749,17 @@
     if (t.classList) { t.classList.add('ledger-stamp'); }
   }
 
+  // G4 (UI_IMPROVE2_GLYPHS): the WOW-8 stamp grammar extended to the coverage
+  // seam — the skeptic-facing cells name the read that verified them.
+  // Data-carrying only (✓ + the read name), same .ledger-stamp anatomy.
+  function stampCoverage() {
+    [$('mint-backed'), $('inv-stat')].forEach(function (c) {
+      if (!c || !c.setAttribute) { return; }
+      c.setAttribute('data-stamp', 'backingCoverage');
+      if (c.classList) { c.classList.add('ledger-stamp'); }
+    });
+  }
+
   // ---- WOW-2 money-flow: HTML nodes bound to the published pipeline reads ----
   // PURE: flow-speed bucket from the PUBLISHED pool net rate (a ratio encoding
   // via class — never an APR rendered as a velocity number). Unknown → null
@@ -908,7 +929,7 @@
     if (!apr || apr.poolNetAprPct == null) { return row('└ pool net fee APR (input, NOT the product yield)', '—'); }
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, fmtPct(apr.poolNetAprPct)));
-    frag.appendChild(el('span', 'muted', '  ·  source: ' + (apr.sourceLabel || 'unknown')));
+    frag.appendChild(el('span', 'muted', ' · source: ' + (apr.sourceLabel || 'unknown')));
     return row('└ pool net fee APR (methodology input)', frag);
   }
 
@@ -922,17 +943,47 @@
 
   function fillBackingCoverage(client, vCfg) {
     var cells = [$('mint-backed'), $('inv-stat')];
-    function writeAll(t) {
-      cells.forEach(function (c) { if (c) { c.textContent = t; } });
+    // MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #2): the verified
+    // live decode is the ticket's one hot number — the coverage-live class
+    // rides ONLY a successful read; pending wiring-truth and the unavailable
+    // states keep the neutral cell. Stub-safe guard kept for the DOM stubs.
+    function writeAll(t, live) {
+      cells.forEach(function (c) {
+        if (!c) { return; }
+        c.textContent = t;
+        if (c.classList && typeof c.classList.toggle === 'function') { c.classList.toggle('coverage-live', live === true); }
+      });
     }
     if (!WS.vault.isDeployed(vCfg.vault)) { writeAll(PENDING_COVERAGE_TEXT); return; }
     if (!client) { writeAll('unavailable (RPC)'); return; }
     WS.vault.readBackingCoverage(client, vCfg.vault).then(function (raw) {
       var pct = raw === null ? null : WS.vault.formatCoveragePct(raw);
-      writeAll(pct === null ? 'unavailable (RPC)' : pct);
+      if (pct === null) { writeAll('unavailable (RPC)'); } else { writeAll(pct, true); }
+      // G4 (UI_IMPROVE2_GLYPHS): the stamp fires ONLY on a real successful read —
+      // pending-wiring and unavailable states never wear the ✓.
+      if (pct !== null) { stampCoverage(); }
     }).catch(function () {
       writeAll('unavailable (RPC)');
     });
+  }
+
+  // WS3-DEGRADED #1 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES): the vault's own
+  // totalSupply() — 0n = no shares minted = the empty state (isomorphic to the
+  // skill's pre-broadcast "returns empty" rule). Honest null on a failed or
+  // undecodable read — never a claim. Read inline via the shared abi seam (the
+  // mapper's readVaultSupply helper lives in js/vault.js, outside this goal's
+  // declared region); the PENDING_DEPLOY branch NEVER issues the eth_call, and
+  // the selector is runtime-derived (the no-hardcoded-selector convention).
+  var EMPTY_VAULT_TAG = 'empty — 0 shares minted';
+
+  async function readVaultSupply(client, vaultAddr) {
+    if (!WS.vault.isDeployed(vaultAddr)) { return null; }
+    try {
+      var raw = await client.call('eth_call', [{ to: vaultAddr, data: WS.abi.selectorOf('totalSupply()') }, 'latest']);
+      return (raw && WS.abi.wordCount(raw) >= 1) ? WS.abi.decodeUint(raw, 0) : null;
+    } catch (e) {
+      return null;
+    }
   }
 
   async function loadVaultData(vaultCfg, mounts) {
@@ -977,11 +1028,15 @@
     var harvestP = WS.vault.isDeployed(vaultCfg.vault)
       ? WS.vault.readHarvestCredits(client, vaultCfg.vault).catch(function () { return null; })
       : null;
+    // WS3-DEGRADED #1: the share-supply read rides the SAME pass (independent
+    // eth_call through the same client/failover). Honest null on failure.
+    var supplyP = readVaultSupply(client, vaultCfg.vault).catch(function () { return null; });
     var u = await underlyingP;
     var pool = await poolP;
     var price = await priceP;
     var pause = pauseP ? await pauseP : null;
     var harvest = harvestP ? await harvestP : null;
+    var supply = await supplyP;
 
     if (primary) {
       state.pool = pool;
@@ -1013,6 +1068,29 @@
     // a pending card never reaches this branch with a deployed read).
     mounts.rows.appendChild(harvestRow(harvest));
     mounts.rows.appendChild(aprRow(null)); // placeholder until derivation completes
+    // WS3-DEGRADED #1: the verified share-supply row + the designed empty
+    // register. totalSupply()==0n is a verified on-chain fact stated as
+    // mechanism, not opportunity; a failed read renders the honest
+    // "unavailable (RPC)" — never the claim. The empty tag + full-strength
+    // keeper ride the vault-card--empty class, removed the moment shares exist.
+    if (supply !== null && supply !== undefined) {
+      mounts.rows.appendChild(row('Shares outstanding',
+        supply === 0n ? '0 — the vault is empty; the first deposit mints the first shares'
+                      : fmtToken(supply)));
+    } else {
+      mounts.rows.appendChild(row('Shares outstanding', 'unavailable (RPC)'));
+    }
+    if (mounts.card.classList) {
+      if (supply === 0n) { mounts.card.classList.add('vault-card--empty'); }
+      else { mounts.card.classList.remove('vault-card--empty'); }
+    }
+    var headEl = mounts.card.querySelector ? mounts.card.querySelector('.card-head') : null;
+    if (headEl) {
+      var emptyTag = headEl.querySelector ? headEl.querySelector('.card-empty-tag') : null;
+      if (supply === 0n) {
+        if (!emptyTag) { headEl.appendChild(el('span', 'card-empty-tag', EMPTY_VAULT_TAG)); }
+      } else if (emptyTag && emptyTag.remove) { emptyTag.remove(); }
+    }
 
     mounts.note.textContent = 'Everything above is read by your browser directly from public RPC nodes — no backend, no keys. ' +
       'The ' + vaultCfg.shareSymbol + ' token was created at deploy; shares are minted by the vault on deposit and burned on redeem.';
@@ -1032,7 +1110,7 @@
     // written only by the PRIMARY vault's derivation.
     var primary = isPrimaryVault(vCfg);
 
-    function publish(apr) {
+    function publish(apr, isBaseline) {
       if (primary) {
         state.apr = apr;
         // V10 chip + WSV-STATS-REAL-FOOTER band: the published projection's
@@ -1048,6 +1126,15 @@
         setSimProjection(aprText);
         // WOW-2: the dash-flow pace buckets from the PUBLISHED pool net rate.
         setFlowRate(apr.poolNetAprPct);
+        // WS3-DEGRADED #5 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES): the baseline
+        // provenance marker travels with the figure on BOTH quoted surfaces —
+        // hidden on a live-sample reading, shown only on the labeled fallback.
+        // The static 'projected' marker is untouched (render-degrade pin); the
+        // stat-apr cell gains no tick (still excluded from TAPE_TICK_IDS).
+        var bn = $('stat-baseline-note');
+        if (bn) { bn.hidden = !isBaseline; }
+        var cb = $('chip-baseline-note');
+        if (cb) { cb.hidden = !isBaseline; }
       }
       var rows = mounts.rows;
       var strong = rows.querySelector('.card-row-strong');
@@ -1089,7 +1176,7 @@
       projLive.sourceLabel = 'live client-side sample of the last ' +
         Math.round((live.windowSeconds || 0) / 60) + 'min of Swap events (' + live.events + ' events), net of the live-decoded cut';
       projLive.inputs = { tvlWeth: tvlWeth, tvlUsd: tvlUsd, windowSeconds: live.windowSeconds, events: live.events };
-      publish(projLive);
+      publish(projLive, false);
       return;
     }
 
@@ -1099,18 +1186,22 @@
     projBase.sourceLabel = 'phase-0 measured baseline (' + base.source + ') — live sampling unavailable' +
       (live && live.reason ? ' [' + live.reason + ']' : '');
     projBase.inputs = { tvlWeth: tvlWeth, tvlUsd: tvlUsd };
-    publish(projBase);
+    publish(projBase, true);   // WS3-DEGRADED #5: the fallback reading labels itself on band + chip
   }
 
   // ------------------------------------------------------------------
   // 3. Deposit / redeem widget
   // ------------------------------------------------------------------
 
-  function widgetStatus(text, warn) {
+  // WS3-DEGRADED #8 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES): optional third
+  // class — the wallet-absent neutral register ('flag--info') renders muted,
+  // distinct from the warn red; every other call site keeps the exact prior
+  // classes (copy untouched).
+  function widgetStatus(text, warn, cls) {
     var box = $('widget-status');
     if (!box) { return; }
     box.textContent = '';
-    box.appendChild(el('span', warn ? 'flag flag-warn' : 'flag', text));
+    box.appendChild(el('span', warn ? 'flag flag-warn' : ('flag' + (cls ? ' ' + cls : '')), text));
   }
 
   // WS-VAULT-FAMILY-GRID: THE canonical primary-vault accessor — the primary-
@@ -1179,7 +1270,7 @@
         : 'Deposit flows activate when the vault deploys. Until then nothing here takes money or approvals.';
     }
 
-    if (!hasWallet) { widgetStatus('Not connected — connect a wallet to interact. Reads above still work without one.', false); }
+    if (!hasWallet) { widgetStatus('Not connected — connect a wallet to interact. Reads above still work without one.', false, 'flag--info'); }
     else if (!deployed) { widgetStatus('Vault contract is pending deploy — write flows stay disabled. This is not a claim screen; there is nothing to claim yet.', true); }
     else { widgetStatus('Connected on chain ' + state.wallet.chainId + '.', false); }
     appendWidgetTruthRows();
@@ -1197,6 +1288,22 @@
     if (!box) { return; }
     if (state.depositsPaused === true) {
       box.appendChild(el('div', 'flag flag-warn', PAUSE_ROW));
+      // WS3-DEGRADED #4 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES): the pause
+      // becomes a staged panel moment — a warn tag on the deposit panel head,
+      // rendered ONLY on the verified pause and removed the moment the verified
+      // read says otherwise (a stale pause tag would lie). The redeem side's
+      // static no-pause guarantee tag lives in index.html (structural, not a
+      // state read).
+      var dh = $('deposit-panel-head');
+      if (dh && !dh.querySelector('.panel-tag--warn')) {
+        dh.appendChild(el('span', 'panel-tag panel-tag--warn', 'deposits paused'));
+      }
+    } else {
+      var dh2 = $('deposit-panel-head');
+      if (dh2) {
+        var staleTag = dh2.querySelector('.panel-tag--warn');
+        if (staleTag && staleTag.remove) { staleTag.remove(); }
+      }
     }
     if (state.underlyingState === 'issuer-paused') {
       var tCfg = tokenCfgFor(vaultCfg().asset);
@@ -1224,16 +1331,23 @@
       var pos = await WS.vault.readPosition(state.client, v.vault, state.wallet.account);
       var box = $('wallet-balances');
       if (box) {
+        // MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #3): the
+        // holder's own money renders in the ledger-row anatomy — label
+        // recedes, value leads. Same verified reads, re-chunked copy;
+        // symbols resolve from the existing locals, never hardcoded; the
+        // share-price qualifier keeps its verbatim form.
         box.textContent = '';
-        box.appendChild(el('span', null, 'Your ' + ((tBal && tBal.symbol) || 'underlying') + ' balance: ' + fmtToken(bal) +
-          ' · allowance to vault: ' + fmtToken(allow)));
+        box.appendChild(ledgerRow('Your ' + ((tBal && tBal.symbol) || 'underlying') + ' balance', fmtToken(bal)));
+        box.appendChild(ledgerRow('Allowance to vault', fmtToken(allow)));
         if (pos && pos.sharesRaw !== null && pos.sharesRaw !== undefined) {
-          var line = 'Your ' + (v.shareSymbol || 'shares') + ': ' + fmtToken(pos.sharesRaw);
+          box.appendChild(ledgerRow('Your ' + (v.shareSymbol || 'shares'),
+            el('strong', null, fmtToken(pos.sharesRaw)),
+            pos.assetsPerShareRaw ? 'ledger-row-strong' : ''));
           if (pos.assetsPerShareRaw !== null && pos.assetsPerShareRaw !== undefined) {
             var assetsRaw = (pos.sharesRaw * pos.assetsPerShareRaw) / 1000000000000000000n;
-            line += ' · ≈ ' + fmtToken(assetsRaw) + ' ' + ((tBal && tBal.symbol) || 'underlying') + ' at the current share price.';
+            box.appendChild(ledgerRow('≈ at the current share price.',
+              fmtToken(assetsRaw) + ' ' + ((tBal && tBal.symbol) || 'underlying')));
           }
-          box.appendChild(el('div', null, line));
         }
       }
     } catch (e) {
@@ -1375,7 +1489,10 @@
     if (!box || !hash) { return; }
     var prev = box.querySelector('.tx-link');
     if (prev) { prev.remove(); }
-    var a = el('a', 'tx-link', 'verify it on the explorer');
+    // G8 (UI_IMPROVE2_GLYPHS): ↗ marks the page's one off-site exit — the
+    // explorer link — mirroring the → in-page forward grammar; glyph appended
+    // AFTER the pinned string (the copy-goal pin is a substring and stays green).
+    var a = el('a', 'tx-link', 'verify it on the explorer ↗');
     a.href = cfg.chain.explorerTx(hash);
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
@@ -1498,6 +1615,34 @@
       }
     }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
     sections.forEach(function (sec) { io.observe(sec); });
+  }
+
+  // ---------------- header tape strip (WS3-HEADER P4, 2026-09-06) ----------------
+  // The identity band under the header. Rows are written from cfg.vaultFamily —
+  // the SAME config array the family cards read — and each row's state rides the
+  // SAME isDeployed seam those cards use: a live tier reads LAUNCH_FACT.deployed,
+  // a gated tier reads LAUNCH_FACT.pendingShort (single-sourced launch facts —
+  // no new literals, no figures, zero live reads, zero fetches). The static
+  // first paint carries structural facts only; NULL-GUARDED so DOM stubs and
+  // absent markup are a clean no-op.
+  function initTapeStrip() {
+    if (typeof document === 'undefined' || !document.querySelector) { return; }
+    var host = document.querySelector('.tape-strip .wrap');
+    if (!host || !Array.isArray(cfg.vaultFamily)) { return; }
+    var meta = host.querySelector('.tape-strip-meta');
+    function put(node) { if (meta) { host.insertBefore(node, meta); } else { host.appendChild(node); } }
+    cfg.vaultFamily.forEach(function (f) {
+      if (!f || !f.shareSymbol) { return; }
+      var live = WS.vault.isDeployed(f.vault);
+      var item = el('span', 'tape-strip-entry' + (live ? '' : ' tape-strip-entry--gated'));
+      item.appendChild(el('span', 'tape-strip-sym', f.shareSymbol));
+      if (f.tierLabel) { item.appendChild(el('span', 'tape-strip-tier', f.tierLabel)); }
+      item.appendChild(el('span', 'tape-strip-state', live ? LAUNCH_FACT.deployed : LAUNCH_FACT.pendingShort));
+      put(item);
+    });
+    var chainItem = el('span', 'tape-strip-entry tape-strip-meta');
+    chainItem.appendChild(el('span', 'tape-strip-tier', cfg.chain.name + ' ' + cfg.chain.id));
+    put(chainItem);
   }
 
   // ---------------- scroll reveal (R3 IMP-3) ----------------
@@ -1716,6 +1861,7 @@
 
     initDocs();
     initScrollSpy();
+    initTapeStrip();  // WS3-HEADER P4: writes the header tape strip's family rows from config
     initReveal();   // R3 IMP-3: after the cards render — arms .ws-reveal on section heads + vault cards
     initAssetDraw();  // WS-ASSET-WIRE: arms the curve divider's scroll-in draw-on
 

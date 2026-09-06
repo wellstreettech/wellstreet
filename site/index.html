@@ -18,15 +18,32 @@
   <meta name="color-scheme" content="light">
   <title>Wellstreet — checkable yield vaults for tokenized stocks</title>
   <link rel="stylesheet" href="css/style.css">
-  <!-- R3 IMP-11: favicon rebuilt to match the masthead plate — square --paper-2
-       fill, 2px --line border, serif W (EB Garamond with Georgia fallback; the
-       favicon context cannot load webfonts). Inline data-URI, zero new files. -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23E4DFD1'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%231C1A15' stroke-opacity='0.4' stroke-width='2'/%3E%3Ctext x='32' y='45' font-family='EB Garamond,Georgia,serif' font-size='38' text-anchor='middle' fill='%231C1A15'%3EW%3C/text%3E%3C/svg%3E">
+  <!-- G2 (UI_IMPROVE2_GLYPHS): favicon = the ratified thumbs-up mark as a
+       solid-ink silhouette (halftone dies at 16-32px — the ratified logo system's
+       favicon rule). Plate/stroke stay the --paper-2 / --ink token values the
+       theme battery resolves (theme.test.js (d) favicon asserts stay green
+       untouched). Still an inline data-URI — zero new files, zero requests. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23E4DFD1'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%231C1A15' stroke-opacity='0.4' stroke-width='2'/%3E%3Cpath fill='%231C1A15' d='M13 29h8v22h-8zM24 51c-2.8 0-5-2.2-5-5V31.5c0-1.5.6-2.9 1.7-3.9l7.6-7.2c1.1-1 1.7-2.5 1.7-4v-6c0-2 1.6-3.6 3.6-3.6 3.6 0 6.4 2.9 6.4 6.4v9.3h7.2c3.2 0 5.6 2.8 5.1 5.9l-2 13.9c-.4 2.9-2.9 5-5.8 5L24 51z'/%3E%3C/svg%3E">
 </head>
 <body>
   <a class="skip-link" href="#vaults">Skip to content</a>
+  <!-- WS3-DEGRADED #3 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES): the no-JS first
+       paint becomes a designed plate. The inline <style> lives INSIDE this body-top
+       <noscript> (NOT the <head>) deliberately: agent-first.test.js (f2) pins the
+       skip anchor BEFORE the first '<noscript' byte in the document, and a head
+       placement would break that pin. Style applies document-wide wherever parsed;
+       it precedes every skeleton span below, so there is no unstyled flash. With
+       scripting ON this block is inert — zero JS-path impact, zero resource URLs
+       (resource-gate scans inline styles for url() only; there is none). -->
   <noscript>
+    <style>
+      [data-skeleton] { display: none; }
+      .state { animation: none; }
+      .stat-value { color: var(--ink-soft); }
+      .vault-grid-empty, .doc-pane-empty { display: block; }
+    </style>
     <div class="wrap noscript-note">
+      <span class="noscript-kicker">Live reads require JavaScript</span>
       This page renders live on-chain reads in your browser and needs JavaScript.
       Nothing is hidden behind it: the contracts are open source, the docs are plain
       markdown under /docs/public/, and every number the page shows is a public RPC
@@ -48,7 +65,7 @@
     <header class="site-header">
       <div class="wrap">
         <a class="brand" href="index.html">
-          <img class="brand-mark" src="img/logo-mark.png" alt="Wellstreet thumbs-up mark" width="28" height="30">
+          <img class="brand-mark" src="img/logo-mark.png" alt="Wellstreet thumbs-up mark" width="28" height="33"> <!-- WS3-HEADER P5 (2026-09-06): attrs track the CSS ratio fix (434x513 source) -->
           <span class="brand-word">Wellstreet</span>
           <span class="brand-tag">yield vaults · tokenized stocks</span>
         </a>
@@ -61,6 +78,18 @@
       </div>
     </header>
 
+    <!-- WS3-HEADER P4 (2026-09-06): identity tape under the header (ratified grammar,
+         DESIGN_REFERENCE_ASCETIC_DEGEN_2026-09-04.md). Static spans carry structural
+         facts only; the per-vault family rows and the chain cell are written on load
+         by js/main.js from config.js vaultFamily — live tiers vs gated schematic
+         states off the same isDeployed seam the cards read. Never a static deployment
+         claim, never a yield figure. Non-sticky: it scrolls away with the page. -->
+    <div class="tape-strip">
+      <div class="wrap">
+        <span class="tape-strip-entry tape-strip-meta">every number read in your browser</span>
+      </div>
+    </div>
+
     <main>
       <!-- ============ HERO ============ -->
       <section class="hero" id="top">
@@ -69,7 +98,7 @@
              Purely decorative: aria-hidden, behind .wrap (z-index 0), vibrates on a
              1.62s cycle per the operator spec; the stylesheet's prefers-reduced-motion
              guard nulls the animation. -->
-        <img class="hero-canyon" src="img/canyon-hero.png" alt="" aria-hidden="true" width="2560" height="1440">
+        <img class="hero-canyon" src="img/canyon-hero.png" alt="" aria-hidden="true" width="1600" height="900"> <!-- WS3-ART P3 (2026-09-06): canyon recompressed in place 2560x1440/482,796B -> 1600x900/231,102B (-52%), palette re-quantized, cutout alpha preserved; attrs track the new intrinsic size (CLS discipline) -->
         <!-- Brand motif (WS-HERO-V9): the og.png visual language (green grid +
              quarter-turn track/rounded-elbow motifs on cream) as pure inline SVG —
              zero image files, zero network requests, IPFS-safe. Purely decorative:
@@ -104,7 +133,7 @@
         <div class="hero-chips" aria-hidden="true">
           <span class="hero-chip hero-chip--green hero-chip--price"><span class="hero-chip-label">SPY</span><span class="hero-chip-val" id="chip-price"></span></span>
           <span class="hero-chip hero-chip--ink hero-chip--tvl"><span class="hero-chip-label">TVL</span><span class="hero-chip-val" id="chip-tvl"></span></span>
-          <span class="hero-chip hero-chip--warn hero-chip--apr"><span class="hero-chip-label">APR</span><span class="hero-chip-val" id="chip-apr"></span><span class="hero-chip-suffix">projected</span></span>
+          <span class="hero-chip hero-chip--tan hero-chip--apr"><span class="hero-chip-label">APR</span><span class="hero-chip-val" id="chip-apr"></span><span class="hero-chip-suffix">projected</span><span class="hero-chip-suffix" id="chip-baseline-note" hidden>baseline</span></span> <!-- WS3-DEGRADED #5: fallback provenance rides the chip — hidden unless publish() lands the labeled baseline -->
           <span class="hero-chip hero-chip--tan hero-chip--share"><span class="hero-chip-label">ws-SPY</span></span>
           <span class="hero-chip hero-chip--ink hero-chip--split"><span class="hero-chip-label">90/10 split</span></span>
           <span class="hero-chip hero-chip--tan hero-chip--chain"><span class="hero-chip-label">RH · 4663</span></span>
@@ -133,7 +162,7 @@
           <aside class="hero-ledger" id="hero-ledger" aria-label="Live on-chain ledger: SPY / WETH pool and vault state">
             <div class="hero-ledger-head">
               <span class="hero-ledger-title">Live ledger</span>
-              <span class="hero-ledger-state" id="hero-ledger-state" aria-live="polite">connecting to public RPC…</span>
+              <span class="hero-ledger-state" id="hero-ledger-state" aria-live="polite" data-skeleton>connecting to public RPC…</span><noscript><span class="hero-ledger-state">unavailable without JavaScript — every figure on this page is a public RPC call you can make yourself</span></noscript>
             </div>
             <span class="visually-hidden" id="hero-ledger-summary" aria-live="polite"></span>
             <div class="hero-ledger-rows" id="hero-ledger-rows">
@@ -141,9 +170,9 @@
                    row's value cell (data-stamp="slot0"|"balances" + .ledger-stamp)
                    and the stylesheet renders a mono "✓ <read>" verification mark —
                    data-carrying only, typographic, never ornamental. -->
-              <div class="ledger-row"><span class="ledger-k">SPY / WETH (pool slot0)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
-              <div class="ledger-row"><span class="ledger-k">Pool TVL (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
-              <div class="ledger-row"><span class="ledger-k">The pool owner's cut (live)</span><span class="ledger-v"><span class="state">connecting to public RPC…</span></span></div>
+              <div class="ledger-row"><span class="ledger-k">SPY / WETH (pool slot0)</span><span class="ledger-v"><span class="state" data-skeleton>connecting to public RPC…</span><noscript><span class="state">unavailable without JavaScript</span></noscript></span></div>
+              <div class="ledger-row"><span class="ledger-k">Pool TVL (live)</span><span class="ledger-v"><span class="state" data-skeleton>connecting to public RPC…</span><noscript><span class="state">unavailable without JavaScript</span></noscript></span></div>
+              <div class="ledger-row"><span class="ledger-k">The pool owner's cut (live)</span><span class="ledger-v"><span class="state" data-skeleton>connecting to public RPC…</span><noscript><span class="state">unavailable without JavaScript</span></noscript></span></div>
               <div class="ledger-row"><span class="ledger-k">Vault state</span><span class="ledger-v">deployed — yield phase live</span></div>
             </div>
             <p class="hero-ledger-note">Every figure above is read by your browser straight from public RPC nodes — no backend, no keys. When a read fails, the row says so instead of estimating.</p>
@@ -168,6 +197,12 @@
             <div class="ledger-row"><span class="ledger-k">SETTLED AT</span><span class="ledger-v">Robinhood Chain (chainId 4663)</span></div>
             <div class="ledger-row"><span class="ledger-k">YOU RECEIVE</span><span class="ledger-v">ws-SPY shares — never rebased</span></div>
             <div class="ledger-row"><span class="ledger-k">BACKED</span><span class="ledger-v" id="mint-backed" aria-live="polite">coverage reads live from backingCoverage() on the vault at 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 (js/config.js); verify it yourself with any RPC client.</span></div>
+            <!-- WS3-DEGRADED #7 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES): the
+                 verify promise is state-INDEPENDENT — main.js never writes this
+                 line, so the check-it-yourself instruction survives every degrade
+                 (the pinned cell strings above still flip to "unavailable (RPC)").
+                 States only what exists: a public view + the one-seam duplication. -->
+            <p class="mint-card-verify">The BACKED figure is the vault's own <code>backingCoverage()</code> view — one public eth_call, decodable by any RPC client; the invariants card below carries the same seam.</p>
             <div class="mint-card-callout">One token is one share. If the share value doubles, your tokens double. Nothing rebases.</div>
           </aside>
           <div class="hero-facts">
@@ -228,6 +263,7 @@
               <span class="stat-value" id="stat-apr">—</span>
               <span class="stat-label">Depositor APR</span>
               <span class="stat-marker">projected</span>
+              <span class="stat-baseline-note" id="stat-baseline-note" hidden>baseline</span><!-- WS3-DEGRADED #5: fallback provenance on the band; sibling to the pinned 'projected' marker, never a replacement -->
             </div>
             <div class="stat-cell">
               <span class="stat-glyph">#</span>
@@ -322,6 +358,9 @@
                gated tier cards (and upgrades any family entry whose vault deploys
                into the live pipeline automatically). -->
           <div id="vault-grid"></div>
+          <!-- WS3-DEGRADED #3: the no-JS vault-grid void gets its sentence — shown
+               only by the <noscript> style block at the top of <body>. -->
+          <noscript><div class="vault-grid-empty">The vault cards are rendered by your browser from live chain reads. Without JavaScript: the contracts are open source, and every figure is a public RPC call you can make yourself — the note above points at the docs.</div></noscript>
           <div class="apr-footnote" id="apr-footnote">
             <span class="lbl">Depositor APR — projected, methodology-linked</span>
             <span id="apr-footnote-text"></span>
@@ -346,7 +385,7 @@
 
           <div class="widget-grid">
             <div class="panel">
-              <div class="panel-head">
+              <div class="panel-head" id="deposit-panel-head"><!-- WS3-DEGRADED #4: hook for the verified-pause warn tag (appended by main.js only when depositsPaused===true) -->
                 <h3>Deposit</h3>
                 <span class="share-symbol">ws-SPY</span>
               </div>
@@ -372,6 +411,12 @@
               <div class="panel-head">
                 <h3>Redeem</h3>
                 <span class="share-symbol">ws-SPY</span>
+                <!-- WS3-DEGRADED #4 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES): the
+                     structural guarantee gets permanent signage — static, always
+                     true (redemptions have no pause path in the protocol design),
+                     NOT a state read; the truth asymmetry the pause staging fixes
+                     (bad state styled, guarantee invisible) closes here. -->
+                <span class="panel-tag panel-tag--safe">exits: no pause path</span>
               </div>
               <div class="panel-body">
                 <div class="field">
@@ -486,6 +531,9 @@
           </p>
           <div id="doc-tabs"></div>
           <div id="doc-pane" role="tabpanel" tabindex="0"></div>
+          <!-- WS3-DEGRADED #3: the no-JS doc-pane void gets its sentence — points at
+               the real markdown files this pane reads (relative path, no new origin). -->
+          <noscript><div class="doc-pane-empty">The docs render locally in your browser. The raw markdown lives under /docs/public/ — the same files this pane reads.</div></noscript>
         </div>
       </section>
 
@@ -540,8 +588,9 @@
           </div>
           <div class="footer-col">
             <div class="h">Source &amp; license</div>
-            <div>Open source. MIT. No company behind it. Owner controls live behind a public 48-hour timelock. Run it yourself.</div>
-            <div>Every other yield vault asks you to trust a company, an audit, and a founder. This one asks you to read.</div>
+            <div>Open source. MIT. No company behind it. Owner controls live behind a public 48-hour timelock. <a href="#docs">Run it yourself.</a></div>
+            <div>Every other yield vault asks you to trust a company, an audit, and a founder.</div>
+            <div class="footer-callout">This one asks you to read.</div>
             <div>Source repository publishes with the new identity at launch. A placeholder is not an address, so this line carries no link.</div>
             <div>No audit. Verify the contracts yourself; the docs tell you exactly how.</div>
           </div>
@@ -552,9 +601,9 @@
           </div>
         </div>
         <div class="footer-fine">
-          <span id="footer-year">2026</span> Wellstreet contributors.
-          <span id="trademark-note"></span>
+          <span class="fine-edge"><img class="fine-mark" src="img/logo-mark.png" width="14" height="15" alt="" aria-hidden="true"> <span id="footer-year">2026</span> Wellstreet contributors.</span>
         </div>
+        <div class="footer-imprint"><span id="trademark-note"></span></div>
       </div>
     </footer>
   </div>
