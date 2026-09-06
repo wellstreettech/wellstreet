@@ -603,8 +603,14 @@ test('WS-VAULT-FAMILY-GRID: one card per cfg.vaults entry, each self-contained (
   const grid = REGISTRY['vault-grid'];
   assert.ok(grid, 'vault grid rendered');
   const cardEls = grid.querySelectorAll('.vault-card');
-  assert.strictEqual(cardEls.length, config.vaults.length,
-    'exactly one card rendered per config entry (the test fixture entry included), got: ' + cardEls.length);
+  // WS-MULTI-VAULT-FRONTEND (2026-09-05): the grid carries the single-vault cards
+  // (one per cfg.vaults entry, test fixture included) PLUS the gated family cards
+  // (cfg.vaultFamily entries whose id did not already render above).
+  const renderedIds = config.vaults.map(function (v) { return v.id; });
+  const familyExtras = (Array.isArray(config.vaultFamily) ? config.vaultFamily : [])
+    .filter(function (f) { return renderedIds.indexOf(f.id) === -1; });
+  assert.strictEqual(cardEls.length, config.vaults.length + familyExtras.length,
+    'one card per cfg.vaults entry + one per not-yet-rendered cfg.vaultFamily entry, got: ' + cardEls.length);
   for (let i = 0; i < config.vaults.length; i++) {
     const v = config.vaults[i];
     const cardEl = cardEls[i];
@@ -625,6 +631,40 @@ test('WS-VAULT-FAMILY-GRID: one card per cfg.vaults entry, each self-contained (
   assert.ok(ft.indexOf('pending deploy — deposits not open') !== -1,
     'the pending card carries the honest pending status row');
   assert.ok(ft.indexOf('deployed · ') === -1, 'the pending card never claims a deployed state');
+});
+
+test('WS-MULTI-VAULT-FRONTEND: every gated family card renders the explicit DEPLOY-GATED state', async () => {
+  await settle(120);
+  const grid = REGISTRY['vault-grid'];
+  assert.ok(grid, 'vault grid rendered');
+  const gatedEntries = (Array.isArray(config.vaultFamily) ? config.vaultFamily : [])
+    .filter(function (f) { return !WS.vault.isDeployed(f.vault); });
+  assert.ok(gatedEntries.length >= 4, 'the config carries >= 4 gated family entries');
+  for (const f of gatedEntries) {
+    const cardEl = grid.querySelectorAll('.vault-card')
+      .filter(function (c) { return c.getAttribute('data-vault-id') === f.id; })[0];
+    assert.ok(cardEl, 'gated family card rendered for ' + f.id);
+    assert.ok(cardEl.classList.contains('vault-card--pending'),
+      'gated card ' + f.id + ' uses the dashed pending variant');
+    const t = allText(cardEl).join(' | ');
+    assert.ok(t.indexOf('DEPLOY-GATED') !== -1,
+      'gated card ' + f.id + ' states the gated state in plain text');
+    assert.ok(t.indexOf(f.tierLabel) !== -1, 'gated card ' + f.id + ' renders its tier label');
+    assert.ok(t.indexOf('APR published post-deploy from measured harvests') !== -1,
+      'gated card ' + f.id + ' carries the honest APR note verbatim');
+    assert.ok(t.indexOf('pending deploy — deposits not open') !== -1,
+      'gated card ' + f.id + ' carries the honest pending status row');
+    if (f.riskLabel) {
+      assert.ok(t.indexOf(f.riskLabel) !== -1, 'gated card ' + f.id + ' renders its risk label');
+    }
+  }
+  // the PACK tier is the family's HIGH-RISK entry — its disclosure must ride the card
+  const pack = config.vaultFamily.filter(function (f) { return f.highRisk; })[0];
+  assert.ok(pack, 'the family carries a high-risk entry');
+  const packText = allText(grid.querySelectorAll('.vault-card')
+    .filter(function (c) { return c.getAttribute('data-vault-id') === pack.id; })[0]).join(' | ');
+  assert.ok(packText.indexOf('HIGH RISK') !== -1 && packText.indexOf('dust') !== -1,
+    'the high-risk card carries the HIGH-RISK + dust-cap disclosure');
 });
 
 test('WS-VAULT-FAMILY-GRID: hero-level surfaces stay primary-vault-scoped when a second card exists', async () => {

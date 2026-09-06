@@ -156,13 +156,37 @@ test('renderMarkdown handles null/undefined and CRLF line endings', () => {
 // These tests pin the index to the files that actually exist in docs/public/
 // so the tab can never silently list phantom pages again.
 
-test('docs index lists exactly the 7 published docs', () => {
-  assert.strictEqual(config.docs.index.length, 7);
+test('docs index lists exactly the 8 published docs', () => {
+  assert.strictEqual(config.docs.index.length, 8);
   assert.deepStrictEqual(
     config.docs.index.map(function (d) { return d.id; }),
     ['compliance', 'guarantees', 'not-guaranteed',
-     'risk-disclosure', 'run-it-yourself', 'methodology', 'tokenomics']
+     'risk-disclosure', 'run-it-yourself', 'methodology', 'tokenomics',
+     'agent-vault-ops']
   );
+});
+
+// WS-MULTI-VAULT-FRONTEND (2026-09-05): the agent-first docs page mirrors the
+// canonical skill (skills/wellstreet-vaults/SKILL.md, DEPLOYED state) — pin the
+// mirror relationship itself so the page can never silently drift from its source.
+test('agent-vault-ops page is wired into the map and mirrors the agent skill', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const entry = config.docs.index.find(function (d) { return d.id === 'agent-vault-ops'; });
+  assert.ok(entry, 'agent-vault-ops must be in the docs index');
+  assert.strictEqual(entry.file, 'agent-vault-ops.md');
+  const page = fs.readFileSync(path.join(__dirname, '..', 'docs', 'public', entry.file), 'utf8');
+  // the pinned flagship vault address + the config pin source are the page's spine
+  assert.ok(page.indexOf(config.vaults[0].vault) !== -1, 'page quotes the pinned flagship vault address');
+  assert.ok(page.indexOf('site/js/config.js') !== -1, 'page cites site/js/config.js as the pin source');
+  // it covers the four things the goal pins it to: read battery, write flows,
+  // honest-APR rules, per-vault status
+  assert.ok(page.indexOf('depositsPaused()') !== -1, 'page carries the read battery');
+  assert.ok(page.indexOf('previewRedeem') !== -1, 'page carries the redeem flow');
+  assert.ok(page.indexOf('Backward-looking only') !== -1, 'page carries the honest-APR rules');
+  assert.ok(page.indexOf('DEPLOY-GATED') !== -1, 'page states the family deploy gating');
+  // and it points at its canonical source
+  assert.ok(page.indexOf('skills/wellstreet-vaults/SKILL.md') !== -1, 'page mirrors the canonical skill');
 });
 
 test('every docs index entry has a non-empty id, title and file', () => {

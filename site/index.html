@@ -295,6 +295,17 @@
           <p class="block-sub">
             Token state, pool balances, the pool's price and its owner-set fee cut (decoded from the pool's own
             <code>slot0</code>) — the raw reads, not a summary of them. <span id="vaults-launch-fact">The vault is on-chain — four contracts on Robinhood Chain, verifiable at the exact addresses these cards read.</span>
+            <!-- WS-MULTI-VAULT-FRONTEND (2026-09-05): the section is now the whole
+                 vault FAMILY. The flagship ws-SPY card reads live; every other tier
+                 renders the explicit gated state (config-pinned facts, zero live
+                 reads, zero yield figures — the honest APR note is the only APR a
+                 gated card carries). Tier + risk labels come from cfg.vaultFamily;
+                 the PACK tier carries the HIGH-RISK, dust-cap disclosure. -->
+            <strong>The family:</strong> the flagship <code>ws-SPY</code> vault is LIVE and reads live below. The rest of the
+            family — <code>ws-RBLX</code> (stock/stable, v3), the v4 stock/stable and stable/ETH rails tiers, and the
+            PACK meme/stock tier (HIGH RISK, dust-capped) — is DEPLOY-GATED: each gated card states its gate in plain text,
+            pins its fee book, and publishes no yield figure until measured harvests exist. Every APR on a gated card is the
+            same sentence: published post-deploy from measured harvests, backward-looking only.
           </p>
           <!-- WS-VAULT-FAMILY-GRID (2026-09-04): the vault card is a REPEATABLE
                TEMPLATE rendered by js/main.js from the cfg.vaults[] array in
@@ -304,7 +315,12 @@
                are JS-rendered like every live figure on this page); the
                pending/deployed variant, the underlying, the fee pool and the
                Chainlink feed all resolve per-entry from the config keys, and the
-               auto-fit grid below lays the family out in rows. -->
+               auto-fit grid below lays the family out in rows.
+               WS-MULTI-VAULT-FRONTEND (2026-09-05): the template's input is now the
+               FAMILY — cfg.vaults[] renders the flagship exactly as before
+               (byte-compatible single-vault callers), then cfg.vaultFamily adds the
+               gated tier cards (and upgrades any family entry whose vault deploys
+               into the live pipeline automatically). -->
           <div id="vault-grid"></div>
           <div class="apr-footnote" id="apr-footnote">
             <span class="lbl">Depositor APR — projected, methodology-linked</span>

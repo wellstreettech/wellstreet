@@ -369,6 +369,69 @@
     };
   }
 
+  // ---------------- WS-MULTI-VAULT-FRONTEND (2026-09-05): the vault family ----------------
+  // The site is a MULTI-vault frontend: cfg.vaultFamily carries the flagship (LIVE)
+  // plus the DEPLOY-GATED family tiers, and this module reads them. Per-vault reads
+  // stay the parameterized readVaultSnapshot above — nothing per-entry is invented
+  // here; the family layer only sequences reads and attaches the honest-APR source.
+
+  // The vault's OWN harvest-credit event: `event YieldHarvested(uint256 indexed
+  // assets, uint256 newTotalAssets)` (src/YieldShares.sol:81) — emitted once per
+  // successful vault-level harvest credit (Harvester.sol:280 -> YieldShares.sol:232).
+  // Topic0 is the FULL keccak of the signature, derived at runtime from abi.js's
+  // keccak256Hex — the same no-hardcoded-selector convention as every selector here.
+  var YIELD_HARVESTED_SIGNATURE = 'YieldHarvested(uint256,uint256)';
+
+  function yieldHarvestedTopic() {
+    var abi = root.WS.abi;
+    return abi.keccak256Hex(YIELD_HARVESTED_SIGNATURE, true);
+  }
+
+  // Honest-APR source #1 (LIVE vaults only): the number of YieldHarvested logs the
+  // vault has ever emitted (eth_getLogs on the VAULT address, topic0-filtered —
+  // OZ Deposit/Withdraw/Transfer traffic is excluded by the topic). "0" is a REAL
+  // state — "no harvests yet", the honest pre-accrual state — while null means the
+  // read itself is unavailable. The PENDING_DEPLOY branch NEVER issues the call.
+  async function readHarvestCredits(client, vaultAddr) {
+    if (!isDeployed(vaultAddr)) { return null; }
+    var abi = root.WS.abi;
+    try {
+      var logs = await client.call('eth_getLogs', [{
+        address: vaultAddr,
+        topics: [yieldHarvestedTopic()],
+        fromBlock: '0x0',
+        toBlock: 'latest'
+      }]);
+      return (logs && typeof logs.length === 'number') ? { count: logs.length, topic0: yieldHarvestedTopic() } : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Read the whole family, one entry at a time. LIVE entries carry the full
+  // snapshot PLUS backingCoverage() + the harvest count (the two honest-APR
+  // sources); PENDING entries return readVaultSnapshot's { deployed:false,
+  // pending:true } state untouched — the gated card renders exactly that, and
+  // no eth_call is issued for a PENDING_DEPLOY address (the gates inside the
+  // per-vault readers are the guarantee). A failed/unavailable live read stays
+  // null — "unavailable (RPC)", never a fabricated figure.
+  async function readFamilySnapshots(client, familyEntries) {
+    var out = [];
+    for (var i = 0; i < familyEntries.length; i++) {
+      var entry = familyEntries[i];
+      var snap = await readVaultSnapshot(client, entry.vault, entry.asset);
+      snap.entryId = entry.id;
+      snap.familyStatus = entry.status || (isDeployed(entry.vault) ? 'LIVE' : 'DEPLOY-GATED');
+      if (snap.deployed) {
+        snap.backingCoverageRaw = await readBackingCoverage(client, entry.vault);
+        var credits = await readHarvestCredits(client, entry.vault);
+        snap.harvestCount = credits ? credits.count : null;
+      }
+      out.push(snap);
+    }
+    return out;
+  }
+
   return {
     PENDING: PENDING,
     isDeployed: isDeployed,
@@ -381,6 +444,9 @@
     readPoolSnapshot: readPoolSnapshot,
     readFactoryVaults: readFactoryVaults,
     readVaultSnapshot: readVaultSnapshot,
+    yieldHarvestedTopic: yieldHarvestedTopic,
+    readHarvestCredits: readHarvestCredits,
+    readFamilySnapshots: readFamilySnapshots,
     decodeBackingCoverage: decodeBackingCoverage,
     formatCoveragePct: formatCoveragePct,
     readBackingCoverage: readBackingCoverage,

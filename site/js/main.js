@@ -266,6 +266,20 @@
     return row('Fee pool (live)', frag);
   }
 
+  // WS-MULTI-VAULT-FRONTEND: the LIVE card's honest-APR source row — the vault's
+  // own YieldHarvested log count (getLogs on the vault; readHarvestCredits in
+  // js/vault.js). ZERO is a real, displayed state ("no harvests yet" — the honest
+  // pre-accrual state of an empty, live vault); null renders "unavailable (RPC)".
+  // A count never becomes an APR anywhere: the APR projection stays on its own
+  // methodology-linked register.
+  function harvestRow(h) {
+    if (h === null || h === undefined) { return row('Harvests credited (live)', 'unavailable (RPC)'); }
+    var frag = document.createDocumentFragment();
+    frag.appendChild(el('span', null, h.count === 0 ? 'no harvests yet — the honest pre-accrual state' : String(h.count)));
+    frag.appendChild(el('span', 'muted', '  ·  YieldHarvested log count (getLogs on the vault)'));
+    return row('Harvests credited (live)', frag);
+  }
+
   function cutRow(pool) {
     if (!pool || !pool.cut) { return row("The pool owner's cut", 'unavailable'); }
     var c = pool.cut;
@@ -285,6 +299,66 @@
       frag.appendChild(flagNode(false, 'pending deploy — deposits not open; no numbers below pretend otherwise'));
     }
     return row('Vault contract', frag);
+  }
+
+  // ------------------------------------------------------------------
+  // WS-MULTI-VAULT-FRONTEND (2026-09-05): the DEPLOY-GATED family cards.
+  // A gated family entry (cfg.vaultFamily, status DEPLOY-GATED) renders the
+  // explicit gated state: the frozen pending status row, its tier badge, its
+  // risk label (PACK carries the HIGH-RISK disclosure), its config-pinned fee
+  // book, and the honest APR note — VERBATIM, never a yield figure. Static
+  // config facts are labeled "pinned"; NO live reads are made for a gated
+  // entry (the family reader's pending:true path issues zero eth_calls — the
+  // isDeployed gates inside js/vault.js are the guarantee), and the card's
+  // note says exactly that.
+  // ------------------------------------------------------------------
+  function tierRow(f) {
+    var frag = document.createDocumentFragment();
+    frag.appendChild(el('span', 'share-symbol', f.tierLabel || 'family tier'));
+    return row('Tier', frag);
+  }
+
+  function riskRow(f) {
+    if (!f.riskLabel) { return null; }
+    return row('Risk disclosure', flagNode(false, f.riskLabel));
+  }
+
+  function familyBookRow(f) {
+    var frag = document.createDocumentFragment();
+    if (f.pool && cfg.pools && cfg.pools[f.pool]) {
+      var p = cfg.pools[f.pool];
+      frag.appendChild(el('span', null, p.label));
+      frag.appendChild(el('span', 'muted', '  ·  pinned pool ' + fmtAddr(p.address) + ' — fee tier ' + (p.feeTier != null ? p.feeTier / 1e4 + '%' : '—')));
+    } else if (f.poolId) {
+      frag.appendChild(el('span', null, 'v4 poolId ' + fmtAddr(f.poolId)));
+      frag.appendChild(el('span', 'muted', '  ·  PoolManager fork ' + fmtAddr(cfg.uniswapV4 && cfg.uniswapV4.poolManager) + ' (StateView-readable after the tier deploys)'));
+    } else {
+      frag.appendChild(el('span', 'state', 'unavailable (RPC)'));
+    }
+    return row('Fee book (pinned)', frag);
+  }
+
+  function aprNoteRow(f) {
+    return row('Depositor APR', el('span', 'state', f.aprNote ||
+      'APR published post-deploy from measured harvests — backward-looking only'));
+  }
+
+  // Family card body: reuses renderCardShell (the PENDING_DEPLOY address flips it
+  // to the designed pending variant — same component the flagship used pre-deploy)
+  // and fills the gated rows. Nothing here fabricates a number: every row is a
+  // config-pinned fact, a gated-state statement, or the honest APR note.
+  function renderFamilyCard(f) {
+    var mounts = renderCardShell(f);
+    mounts.rows.appendChild(vaultStatusRow(f));
+    mounts.rows.appendChild(tierRow(f));
+    var risk = riskRow(f);
+    if (risk) { mounts.rows.appendChild(risk); }
+    mounts.rows.appendChild(familyBookRow(f));
+    mounts.rows.appendChild(aprNoteRow(f));
+    mounts.note.textContent = 'DEPLOY-GATED: this family tier is ratified but its contracts are not on chain yet — ' +
+      'this card carries config-pinned facts only, no live reads, and no yield figure. Addresses publish at deployment; ' +
+      'until then the honest state is the one above.';
+    return mounts;
   }
 
   // ------------------------------------------------------------------
@@ -898,10 +972,16 @@
     // an independent eth_call through the same client/failover, primary-scoped
     // (the widget speaks for the primary vault). Honest null on failure.
     var pauseP = primary ? WS.vault.readDepositsPaused(client, vaultCfg.vault).catch(function () { return null; }) : null;
+    // WS-MULTI-VAULT-FRONTEND: the LIVE card's honest-APR source — the vault's own
+    // YieldHarvested log count (no call at all for a PENDING_DEPLOY address).
+    var harvestP = WS.vault.isDeployed(vaultCfg.vault)
+      ? WS.vault.readHarvestCredits(client, vaultCfg.vault).catch(function () { return null; })
+      : null;
     var u = await underlyingP;
     var pool = await poolP;
     var price = await priceP;
     var pause = pauseP ? await pauseP : null;
+    var harvest = harvestP ? await harvestP : null;
 
     if (primary) {
       state.pool = pool;
@@ -929,6 +1009,9 @@
     mounts.rows.appendChild(priceRow(price));
     mounts.rows.appendChild(poolRow(pool));
     mounts.rows.appendChild(cutRow(pool));
+    // WS-MULTI-VAULT-FRONTEND: the honest-APR source row (live cards only —
+    // a pending card never reaches this branch with a deployed read).
+    mounts.rows.appendChild(harvestRow(harvest));
     mounts.rows.appendChild(aprRow(null)); // placeholder until derivation completes
 
     mounts.note.textContent = 'Everything above is read by your browser directly from public RPC nodes — no backend, no keys. ' +
@@ -1573,6 +1656,28 @@
         mounts.rows.appendChild(row('Status', el('span', 'state', 'connecting to public RPC…')));
         cards.push({ vaultCfg: v, mounts: mounts });
       });
+      // WS-MULTI-VAULT-FRONTEND: the family cards. Family entries already rendered
+      // through the single-vault loop above (the flagship) are skipped by id. A
+      // family entry whose vault IS deployed joins the live pipeline (loadVaultData
+      // — the same reads the flagship card gets, including the harvest-count row);
+      // a DEPLOY-GATED entry renders the explicit gated card (renderFamilyCard:
+      // config-pinned facts only, zero live reads, the honest APR note — no yield
+      // figure exists for a gated tier anywhere on this page).
+      if (Array.isArray(cfg.vaultFamily)) {
+        cfg.vaultFamily.forEach(function (f) {
+          var exists = cards.some(function (c) { return c.vaultCfg.id === f.id; });
+          if (exists) { return; }
+          if (WS.vault.isDeployed(f.vault)) {
+            var liveMounts = renderCardShell(f);
+            grid.appendChild(liveMounts.card);
+            liveMounts.rows.appendChild(row('Status', el('span', 'state', 'connecting to public RPC…')));
+            cards.push({ vaultCfg: f, mounts: liveMounts });
+          } else {
+            var gatedMounts = renderFamilyCard(f);
+            grid.appendChild(gatedMounts.card);
+          }
+        });
+      }
       refreshCards();
     }
     startTimers();

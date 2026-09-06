@@ -74,6 +74,29 @@ function pinnedAddresses() {
     out['vaults[' + v.id + '].vault'] = v.vault;
     out['vaults[' + v.id + '].asset'] = v.asset;
   });
+  // WS-MULTI-VAULT-FRONTEND (2026-09-05): the vault family extends the pin map —
+  // every hex address a family entry carries (vault/harvester/asset/quote) is a
+  // legit doc quote. PENDING_DEPLOY placeholders are non-hex and never enter the
+  // map; v4 poolIds are 64-hex (not 40-hex addresses) and are quoted in docs in
+  // abbreviated form only.
+  if (Array.isArray(config.vaultFamily)) {
+    config.vaultFamily.forEach(function (f) {
+      ['vault', 'harvester', 'asset', 'quote'].forEach(function (k) {
+        if (typeof f[k] === 'string' && /^0x[0-9a-fA-F]{40}$/.test(f[k])) {
+          out['vaultFamily[' + f.id + '].' + k] = f[k];
+        }
+      });
+    });
+  }
+  Object.keys(config.pools).forEach(function (k) {
+    out['pools.' + k] = config.pools[k].address;
+    out['pools.' + k + '.token0'] = config.pools[k].token0;
+    out['pools.' + k + '.token1'] = config.pools[k].token1;
+  });
+  if (config.uniswapV4) {
+    out['uniswapV4.poolManager'] = config.uniswapV4.poolManager;
+    out['uniswapV4.stateView'] = config.uniswapV4.stateView;
+  }
   return out;
 }
 
@@ -136,6 +159,20 @@ test('(a) run-it-yourself.md quotes the pinned SPY token and SPY/WETH pool', () 
     'run-it-yourself.md does not quote the pinned SPY address (' + pins['tokens.spy'] + ')');
   assert.ok(countOccurrences(text, pins['pools.spyWeth500'].toLowerCase()) >= 1,
     'run-it-yourself.md does not quote the pinned pool address (' + pins['pools.spyWeth500'] + ')');
+});
+
+test('(a) agent-vault-ops.md quotes the pinned flagship + family addresses', () => {
+  const pins = pinnedAddresses();
+  const text = docs['agent-vault-ops.md'].toLowerCase();
+  const mustQuote = ['vaults[ws-spy].vault', 'contracts.vaultFactory', 'contracts.harvester',
+    'tokens.spy', 'tokens.weth',
+    'vaultFamily[rblx-usdg].asset', 'vaultFamily[rblx-usdg].quote',
+    'pools.rblxUsdg3000'];
+  for (const key of mustQuote) {
+    assert.ok(pins[key], 'pin map missing ' + key + ' — extend pinnedAddresses() in the same change');
+    assert.ok(countOccurrences(text, pins[key].toLowerCase()) >= 1,
+      'agent-vault-ops.md does not quote the pinned ' + key + ' (' + pins[key] + ')');
+  }
 });
 
 // ---- (b) no stale pending claims ------------------------------------------------
