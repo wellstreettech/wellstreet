@@ -109,7 +109,7 @@
              Purely decorative: aria-hidden, behind .wrap (z-index 0), vibrates on a
              1.62s cycle per the operator spec; the stylesheet's prefers-reduced-motion
              guard nulls the animation. -->
-        <img class="hero-canyon" src="img/canyon-hero.png" alt="" aria-hidden="true" width="1600" height="900"> <!-- WS3-ART P3 (2026-09-06): canyon recompressed in place 2560x1440/482,796B -> 1600x900/231,102B (-52%), palette re-quantized, cutout alpha preserved; attrs track the new intrinsic size (CLS discipline) -->
+        <img class="hero-canyon" src="img/canyon-hero.png" alt="" aria-hidden="true" width="1600" height="900" loading="lazy" decoding="async"> <!-- WS3-ART P3 (2026-09-06): canyon recompressed in place 2560x1440/482,796B -> 1600x900/231,102B (-52%), palette re-quantized, cutout alpha preserved; attrs track the new intrinsic size (CLS discipline). WS5-GATES (2026-09-07): loading=lazy — the canyon is display:none at ≤640px but was still fetched eagerly (231KB on every phone load); lazy + hidden = never fetched (verified Playwright 390: 0 bytes), desktop viewport-intersect loads it identically -->
         <!-- Brand motif (WS-HERO-V9): the og.png visual language (green grid +
              quarter-turn track/rounded-elbow motifs on cream) as pure inline SVG —
              zero image files, zero network requests, IPFS-safe. Purely decorative:
