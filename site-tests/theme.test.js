@@ -246,12 +246,23 @@ test('(e) geo freeze strings present (secondary guard; mechanical proof = GEO-FR
 
 test('(f) frozen copy strings present exactly once each (contains-checks)', () => {
   const frozen = [
-    'Yield vaults for <span class="punch">tokenized stocks</span>.<br><span class="quiet">Checkable, not sellable.</span>',
-    'open-source ERC-4626 vaults and routes liquidity-pool fee income to depositors.',
+    // WS-MESSAGING-V2 2026-09-06: the tokenized-stocks h1 was retired by the
+    // ratified copy pass — re-pinned to the v2 two-tone form (structure unchanged:
+    // line-1 claim + punch accent + br + quiet tagline).
+    'The open liquidity layer of <span class="punch">Robinhood Chain</span>.<br><span class="quiet">Checkable, not sellable.</span>',
+    // WS-MESSAGING-V2 2026-09-06: string retired by the ratified copy pass
+    // ("open-source ERC-4626 vaults and routes liquidity-pool fee income to
+    // depositors." lived only in the old lede; the v2 lede no longer contains it —
+    // the og:description's "Open-source ERC-4626 vaults and protocol-owned
+    // liquidity…" is a different string, still pinned via its "No audit." tail).
     // WS-OG-PERF (2026-09-04): the meta description was re-locked to the ratified
     // one-sentence form — the old "No audit. Every number on this page …" meta
     // string is superseded (the og:description short variant below stays pinned).
-    'Yield vaults for tokenized stocks on Robinhood Chain. Checkable, not sellable — every number verifiable on-chain.',
+    // WS-MESSAGING-V2 2026-09-06: re-locked again to the v2 identity form.
+    // WS-MESSAGING-V2-GATE-FIX (2026-09-06, main session): the tagline clause moved
+    // to the lowercase tail so the period-form tagline keeps its single carrier (the
+    // h1 quiet span); <title> mirrors og:title without the tagline.
+    'The open liquidity layer of Robinhood Chain, operated by agents and verifiable by anyone. Every number is a raw RPC call — checkable, not sellable.',
     'No audit. Every number is read by your browser straight from public chain nodes.',
     '1 · Approve',
     '2 · Deposit',
@@ -259,6 +270,26 @@ test('(f) frozen copy strings present exactly once each (contains-checks)', () =
   for (const s of frozen) {
     assert.strictEqual(countOccurrences(html, s), 1, 'frozen copy appears exactly once: ' + s.slice(0, 44));
   }
+});
+
+// WS-MESSAGING-V2 kill-list guard (2026-09-06): the ratified v2 copy pass retired
+// the tokenized-stocks identity. Kill-list strings stay absent from index.html;
+// the tagline stays exactly once as the h1 quiet span. GATE-FIX note (2026-09-06,
+// main session): the dispatch's edit-1 title/meta pins tripled the matchable tagline
+// form against the =1 boundary; the pins are amended — <title> mirrors og:title and
+// the meta carries the lowercase echo "checkable, not sellable." — restoring the
+// original single-carrier invariant (the period form appears ONLY in the h1).
+test('WS-MESSAGING-V2 kill-list guard', () => {
+  assert.strictEqual(countOccurrences(html, 'tokenized stocks'), 0, 'kill-list: tokenized-stocks identity gone');
+  assert.strictEqual(countOccurrences(html, 'S&P'), 0, 'kill-list: bare S&P gone');
+  assert.strictEqual(countOccurrences(html, 'S&amp;P'), 0, 'kill-list: encoded S&amp;P gone');
+  assert.ok(!/guaranteed|risk-free|auto yield|passive income/i.test(html), 'kill-list: no yield overclaim');
+  assert.ok(!/ownerless|fully decentralized|trustless/i.test(html), 'kill-list: no decentralization overclaim');
+  assert.ok(!/vibe/i.test(html), 'kill-list: no VIBE cross-contamination');
+  assert.strictEqual(countOccurrences(html, '<span class="quiet">Checkable, not sellable.</span>'), 1,
+    'the tagline lives exactly once, as the h1 quiet span');
+  assert.strictEqual(countOccurrences(html, 'Checkable, not sellable.'), 1,
+    'period-form tagline = the h1 quiet span exactly once (GATE-FIX: head carriers amended out)');
 });
 
 // (g) WS-LEDGER-STRUCTURE (2026-09-04) — ascetic structure layer teeth:

@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Yield vaults for tokenized stocks on Robinhood Chain. Checkable, not sellable — every number verifiable on-chain.">
-  <meta property="og:title" content="Wellstreet — checkable yield vaults for tokenized stocks">
-  <meta property="og:description" content="Open-source ERC-4626 vaults wrapping tokenized stocks on Robinhood Chain (chain 4663). No audit. Every number is read by your browser straight from public chain nodes.">
+  <meta name="description" content="The open liquidity layer of Robinhood Chain, operated by agents and verifiable by anyone. Every number is a raw RPC call — checkable, not sellable.">
+  <meta property="og:title" content="Wellstreet — the open liquidity layer of Robinhood Chain">
+  <meta property="og:description" content="Open-source ERC-4626 vaults and protocol-owned liquidity on Robinhood Chain (chain 4663). No audit. Every number is read by your browser straight from public chain nodes.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://wellstreet.tech/">
   <meta property="og:site_name" content="Wellstreet">
@@ -16,7 +16,7 @@
   <meta name="twitter:image" content="https://wellstreet.tech/og.png">
   <meta name="theme-color" content="#EDE9DC">
   <meta name="color-scheme" content="light">
-  <title>Wellstreet — checkable yield vaults for tokenized stocks</title>
+  <title>Wellstreet — the open liquidity layer of Robinhood Chain</title>
   <link rel="stylesheet" href="css/style.css">
   <!-- G2 (UI_IMPROVE2_GLYPHS): favicon = the ratified thumbs-up mark as a
        solid-ink silhouette (halftone dies at 16-32px — the ratified logo system's
@@ -67,7 +67,7 @@
         <a class="brand" href="index.html">
           <img class="brand-mark" src="img/logo-mark.png" alt="Wellstreet thumbs-up mark" width="28" height="33"> <!-- WS3-HEADER P5 (2026-09-06): attrs track the CSS ratio fix (434x513 source) -->
           <span class="brand-word">Wellstreet</span>
-          <span class="brand-tag">yield vaults · tokenized stocks</span>
+          <span class="brand-tag">open liquidity layer · chain 4663</span>
         </a>
         <nav class="site-nav" aria-label="Sections">
           <a href="#vaults">Vaults</a>
@@ -139,7 +139,7 @@
           <span class="hero-chip hero-chip--tan hero-chip--chain"><span class="hero-chip-label">RH · 4663</span></span>
         </div>
         <div class="wrap">
-          <h1>Yield vaults for <span class="punch">tokenized stocks</span>.<br><span class="quiet">Checkable, not sellable.</span></h1>
+          <h1>The open liquidity layer of <span class="punch">Robinhood Chain</span>.<br><span class="quiet">Checkable, not sellable.</span></h1>
           <!-- Copy review 2026-09-03: benefit bridge + skeptic CTA. WS-LEDGER-STRUCTURE
                (2026-09-04): the skeptic link became a two-CTA row — solid primary to
                the deposit widget + outlined secondary to the docs. -->
@@ -149,9 +149,10 @@
             <a class="cta-outline" href="#docs">Read the code →</a>
           </div>
           <p class="lede">
-            Wellstreet wraps on-chain stock tokens (starting with the S&amp;P 500 ETF token "SPY" on Robinhood Chain,
-            chain&nbsp;4663) in open-source ERC-4626 vaults and routes liquidity-pool fee income to depositors.
-            MIT-licensed and unaudited — the docs are written to be checkable against the code, not to sell anything.
+            Today: one open ERC-4626 vault on Robinhood Chain (chain 4663) and a skill file any agent can operate.
+            The v2 design, public in the contracts before it is a promise: protocol-owned liquidity across the
+            chain's books, fee income routed to holders, zero dev take. MIT-licensed, unaudited, checkable.
+            Every number on this page is a raw RPC call. Replay them yourself.
           </p>
           <!-- Hero live ledger (WS-HERO-V9): real on-chain numbers beside the pitch.
                It CONSUMES the vault-card pipeline's already-fetched reads in js/main.js
@@ -337,7 +338,7 @@
                  reads, zero yield figures — the honest APR note is the only APR a
                  gated card carries). Tier + risk labels come from cfg.vaultFamily;
                  the PACK tier carries the HIGH-RISK, dust-cap disclosure. -->
-            <strong>The family:</strong> the flagship <code>ws-SPY</code> vault is LIVE and reads live below. The rest of the
+            <strong>The family:</strong> the flagship <code>ws-SPY</code> vault is LIVE and reads live below. The SPY book is winding down — redemptions stay open. The rest of the
             family — <code>ws-RBLX</code> (stock/stable, v3), the v4 stock/stable and stable/ETH rails tiers, and the
             PACK meme/stock tier (HIGH RISK, dust-capped) — is DEPLOY-GATED: each gated card states its gate in plain text,
             pins its fee book, and publishes no yield figure until measured harvests exist. Every APR on a gated card is the
@@ -527,7 +528,7 @@
           </div>
           <p class="block-sub">
             The honest-docs set: how the vault works, what can go wrong, and the exact methodology behind every
-            number this page shows — written to be checked, not to be believed. Docs load from a relative path (IPFS-ready) and render in your browser.
+            number this page shows — written to be checked, not to be believed. Every APR carries its window. Docs load from a relative path (IPFS-ready) and render in your browser.
           </p>
           <div id="doc-tabs"></div>
           <div id="doc-pane" role="tabpanel" tabindex="0"></div>
@@ -566,7 +567,8 @@
             <span class="muted">the machine surface is a skill file</span>
           </div>
           <p class="block-sub">
-            There is no dashboard to log into: the vault is plain ERC-4626 with public reads, and the
+            No API keys. No permission. One skill file — any agent can operate this protocol. There is no
+            dashboard to log into: the vault is plain ERC-4626 with public reads, and the
             canonical agent skill lives in the repository at
             <a id="agents-skill-link" href="skills/wellstreet-vaults/SKILL.md">skills/wellstreet-vaults/SKILL.md</a>
             — mirrored on this site at

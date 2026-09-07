@@ -109,7 +109,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-vis
   clip: rect(0,0,0,0);
 }
 .skip-link:focus-visible { clip: auto; width: auto; height: auto; margin: auto; overflow: visible; position: fixed; top: var(--space-6); left: var(--space-6); background: var(--paper); color: var(--ink); border: 2px solid var(--ink); font-family: var(--mono); text-transform: uppercase; padding: var(--space-10) var(--space-16); z-index: 100; } /* z-index 100 clears the sticky header's 10 (the site max) */
-code { font-family: var(--mono); background: var(--code-bg); padding: var(--space-0) var(--space-4); border: 1px solid var(--line); font-size: var(--step-8); }
+code { font-family: var(--mono); background: var(--code-bg); padding: var(--space-0) var(--space-4); border: 1px solid var(--line); font-size: var(--step-3); }
 pre { background: var(--code-bg); border: 2px solid var(--line); padding: var(--space-12); overflow-x: auto; }
 pre code { background: none; border: none; padding: var(--space-0); }
 
@@ -138,7 +138,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  font-size: var(--step-13);
+  font-size: var(--step-5);
   border: 2px solid var(--line);
   padding: var(--space-2) var(--space-10);        /* P-11: left stays --space-10 */
   padding-right: calc(var(--space-10) - 0.12em);  /* P-11: optical — eats the trailing 0.12em tracking unit inside the bordered plate */
@@ -146,7 +146,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
 }
 .brand-tag { font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); text-transform: uppercase; letter-spacing: var(--track-label); } /* P-11/P-10: the one untracked mono metadata surface joins the label register */
 .site-nav { display: flex; flex-wrap: wrap; gap: var(--space-10) var(--space-16); align-items: center; }
-.site-nav a { color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: var(--step-6); text-transform: uppercase; letter-spacing: var(--track-chrome); border-bottom: 2px solid transparent; padding: var(--space-4) var(--space-0); transition: border-bottom-color var(--motion), color var(--motion); } /* P-07: nav steps up one role to the small-text role; P-10: tracking rides --track-chrome */
+.site-nav a { color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); border-bottom: 2px solid transparent; padding: var(--space-4) var(--space-0); transition: border-bottom-color var(--motion), color var(--motion); } /* P-07: nav steps up one role to the small-text role; P-10: tracking rides --track-chrome */
 .site-nav a:hover { border-bottom-color: var(--ink-soft); } /* WS3-HEADER P2 (2026-09-06): the --line hover underline was 1.48:1 on paper — sub-perceptual; ink-soft is 5.85:1, a visible step below the active underline */
 /* R2 header CTA — honest conversion affordance (copy reused verbatim from the footer;
    targets the #docs section, never the pre-deploy deposit widget). Specificity-bearing
@@ -159,7 +159,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
   border-bottom: none;
   border-radius: var(--radius); min-height: 38px;
   padding: var(--space-6) var(--space-16);
-  font-family: var(--mono); font-size: var(--step-6); text-transform: uppercase; letter-spacing: var(--track-chrome); /* P-07: the CTA steps up one role; P-10: --track-chrome */
+  font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); /* P-07: the CTA steps up one role; P-10: --track-chrome */
   line-height: 1; display: inline-flex; align-items: center; text-decoration: none;
   transition: background-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
 }
@@ -172,7 +172,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
   border-bottom: 2px solid var(--warn);
   background: var(--warn-bg);
   color: var(--ink);
-  font-size: var(--step-6);
+  font-size: var(--step-2);
 }
 .jurisdiction-banner .wrap { padding-top: var(--space-10); padding-bottom: var(--space-10); }
 .jurisdiction-banner .disclosure { font-family: var(--mono); display: block; margin-top: var(--space-4); }
@@ -216,7 +216,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
 }
 .hero h1 {
   font-family: var(--serif); /* V1 editorial-ledger display — R2 re-typed to the ens.domains display register */
-  font-size: clamp(2.5rem, 7.8vw, 6.25rem);
+  font-size: var(--step-7); /* WS-TYPE-MOTION_FINAL 2026-09-06: the 7.8vw/6.25rem clamp retires onto the ratified step-7 rung — the page's loudest number */
   font-weight: 400;
   line-height: 0.96;
   margin: 0 0 var(--space-24) 0; /* V10: larger gap headline -> lede */
@@ -230,7 +230,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
   -webkit-box-decoration-break: clone;
 }
 .hero h1 .quiet { color: var(--ink-soft); } /* two-tone deadpan: line 2 recedes, the joke reads quieter than the claim */
-.hero .lede { max-width: 60ch; font-size: var(--step-15); margin: 0 0 var(--space-32) 0; color: var(--ink-soft); } /* R3 IMP-8: the lede takes the 20px role (display register vs the 16px body) */
+.hero .lede { max-width: 60ch; font-size: var(--step-6); margin: 0 0 var(--space-32) 0; color: var(--ink-soft); } /* R3 IMP-8 / WS-TYPE-MOTION_FINAL 2026-09-06: the lede rides the step-6 display rung (the ratified lede/section-h2 role) */
 .hero-facts {
   /* honest trust row — the reference's ring/pill treatment on the four existing hero facts;
      the fabricated enterprise-logos row and its icon-font CDN host are rejected — no icon
@@ -292,14 +292,14 @@ section.block, .hero { scroll-margin-top: 124px; }
 #doc-pane [id] { scroll-margin-top: 124px; }
 section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-48); } /* R3 IMP-13: blocks standardize 64/48 — more air reads more expensive at zero cost */
 .block-head { display: flex; align-items: baseline; gap: var(--space-14); margin-bottom: var(--space-8); }
-.block-head .index { font-family: var(--mono); color: var(--accent-text); font-weight: 700; font-size: var(--step-11); letter-spacing: 0.22em; } /* V1: section numbers promoted — accent-as-TEXT rides --accent-text on light paper; P-01: numeral scales with the display head (was --step-6) */
+.block-head .index { font-family: var(--mono); color: var(--accent-text); font-weight: 700; font-size: var(--step-4); letter-spacing: 0.22em; } /* V1: section numbers promoted — accent-as-TEXT rides --accent-text on light paper; P-01: numeral scales with the display head (was --step-6) */
 .block-head h2 {
   margin: 0;
   font-family: var(--serif); /* V1 editorial-ledger display */
   text-transform: none;          /* P-01: the drafts' sentence-case display register */
   letter-spacing: -0.01em;       /* P-01: serif display, open fit */
   font-weight: 500;              /* P-01: drafts' stroke presence (EB Garamond var 400-800) */
-  font-size: var(--step-20);     /* P-01: existing display rung — closes the 27px→100px gap */
+  font-size: var(--step-6);     /* P-01: display rung; WS-TYPE-MOTION_FINAL 2026-09-06: rides the ratified step-6 section-h2 role */
   line-height: 1.05;
 }
 .block-head .spacer { flex: 1; }
@@ -323,36 +323,36 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
   display: flex; align-items: center; justify-content: space-between; gap: var(--space-10); flex-wrap: wrap;
   border-bottom: 2px solid var(--line); padding: var(--space-12) var(--space-14); background: var(--paper-2);
 }
-.card-title { margin: 0; font-size: var(--step-13); text-transform: uppercase; letter-spacing: var(--track-chrome); } /* P-10: was 0.04em */
-.share-symbol { font-family: var(--mono); font-size: var(--step-4); border: 1px solid var(--line); padding: var(--space-2) var(--space-8); background: var(--paper); }
+.card-title { margin: 0; font-size: var(--step-5); text-transform: uppercase; letter-spacing: var(--track-chrome); } /* P-10: was 0.04em */
+.share-symbol { font-family: var(--mono); font-size: var(--step-2); border: 1px solid var(--line); padding: var(--space-2) var(--space-8); background: var(--paper); }
 .card-rows { padding: var(--space-6) var(--space-14); font-variant-numeric: tabular-nums; } /* V2: aligned data figures */
-.card-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-14); padding: var(--space-9) var(--space-0); border-bottom: 1px dotted var(--line-dotted); font-size: var(--step-8); } /* P-06: baseline alignment matches .ledger-row — the 18px strong value shares the 14px label's baseline (no-op in the ≤640px column stack) */
+.card-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-14); padding: var(--space-9) var(--space-0); border-bottom: 1px dotted var(--line-dotted); font-size: var(--step-3); } /* P-06: baseline alignment matches .ledger-row — the strong value shares the row's baseline (no-op in the ≤640px column stack); sizes re-denominated onto the 7-step scale, WS-TYPE-MOTION_FINAL 2026-09-06 */
 .card-row:last-child { border-bottom: none; }
 .row-label { color: var(--ink-soft); flex: 0 0 auto; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #1 extension): the e30a51c family-grid card is a money surface — its labels join the same receding mono small-cap register as .ledger-k (copy unchanged; uppercase is CSS-only). */
-.row-value { text-align: right; font-family: var(--mono); font-size: var(--step-8); word-break: break-word; font-variant-numeric: tabular-nums; }
-.card-row-strong .row-value strong { color: var(--accent-text); font-size: var(--step-13); }
+.row-value { text-align: right; font-family: var(--mono); font-size: var(--step-3); word-break: break-word; font-variant-numeric: tabular-nums; }
+.card-row-strong .row-value strong { color: var(--accent-text); font-size: var(--step-4); }
 /* WS-VAULT-FAMILY-GRID: the note pins to the card's bottom edge (margin-top:auto
    absorbs the free space of a grid row stretched to its tallest card), so a row
    of family cards keeps aligned footers. With a single card there is no free
    space and this renders exactly as before. */
-.card-note { margin: auto 0 0; padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14); font-size: var(--step-4); color: var(--ink-soft); border-top: 1px dotted var(--line-dotted); min-height: 72px; padding-right: 112px; /* WS3-ART P2 (2026-09-06): reserve the note's right corner for the certificate keeper (art never sits on data — doc's 108px tuned +4 so the 96px cert at right:14px clears the text box with a 2px gap) */ }
+.card-note { margin: auto 0 0; padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14); font-size: var(--step-2); color: var(--ink-soft); border-top: 1px dotted var(--line-dotted); min-height: 72px; padding-right: 112px; /* WS3-ART P2 (2026-09-06): reserve the note's right corner for the certificate keeper (art never sits on data — doc's 108px tuned +4 so the 96px cert at right:14px clears the text box with a 2px gap) */ }
 
 /* G1 (UI_IMPROVE2_GLYPHS): the glyph token law — glyphs that carry data ride
    TEXT-role tokens (--accent-text / --warn / --ink-soft); the FILL token --accent
    stays reserved for surfaces (style.css :21's own rule). Closes a11y finding 7
    (the ● at 2.54:1 on paper). */
-.flag { font-family: var(--mono); font-size: var(--step-6); }
+.flag { font-family: var(--mono); font-size: var(--step-2); }
 .flag-ok { color: var(--accent-text); }
 .flag-warn { color: var(--warn); }
 /* V2: the ●/△ status glyphs are aligned (fixed advance) so multi-line flags keep their column */
 .flag .flag-glyph { display: inline-block; min-width: 1.2em; text-align: center; }
 .flag-ok .flag-glyph { color: var(--accent-text); } /* G1: obeys the fill/text token law (see block head) */
 .flag-warn .flag-glyph { color: var(--warn); }
-.muted { color: var(--ink-soft); font-size: var(--step-6); }
+.muted { color: var(--ink-soft); font-size: var(--step-2); }
 
 .apr-footnote {
   margin-top: var(--space-16); border: 2px solid var(--line); border-left-width: 8px;
-  background: var(--paper-2); padding: var(--space-12) var(--space-16); font-size: var(--step-6); color: var(--ink-soft);
+  background: var(--paper-2); padding: var(--space-12) var(--space-16); font-size: var(--step-2); color: var(--ink-soft);
 }
 .apr-footnote .lbl { font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-label); font-size: var(--step-1); color: var(--ink); display: block; margin-bottom: var(--space-4); } /* P-10 */
 
@@ -370,18 +370,18 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
 .panel { border: 2px solid var(--line); background: var(--paper-raised); transition: box-shadow var(--t-base) var(--ease-enter); border-radius: var(--radius-soft); box-shadow: var(--shadow-soft); }
 .panel:hover { box-shadow: var(--shadow-soft-hover); }
 .panel-head { border-bottom: 2px solid var(--line); background: var(--paper-2); padding: var(--space-10) var(--space-14); display: flex; justify-content: space-between; align-items: center; gap: var(--space-10); }
-.panel-head h3 { margin: 0; font-size: var(--step-11); text-transform: uppercase; letter-spacing: var(--track-chrome); } /* P-10: was 0.05em */
+.panel-head h3 { margin: 0; font-size: var(--step-4); text-transform: uppercase; letter-spacing: var(--track-chrome); } /* P-10: was 0.05em */
 .panel-body { padding: var(--space-14); }
 .field label { display: block; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); margin-bottom: var(--space-6); } /* P-10 */
 .field input[type="text"], .field input[type="number"] {
-  width: 100%; padding: var(--space-10); font-family: var(--mono); font-size: var(--step-11); /* 16px: below this iOS Safari auto-zooms on focus */
+  width: 100%; padding: var(--space-10); font-family: var(--mono); font-size: var(--step-4); /* 16px: below this iOS Safari auto-zooms on focus */
   border: 2px solid var(--line); background: var(--paper); color: var(--ink);
 }
 .field input:disabled { background: var(--paper-2); color: var(--ink-soft); }
 .field + .field { margin-top: var(--space-12); }
 .btn-row { display: flex; gap: var(--space-10); margin-top: var(--space-14); flex-wrap: wrap; }
 button.btn {
-  font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-chrome); font-size: var(--step-6); /* P-07: action step-up one role; P-10: --track-chrome */
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-chrome); font-size: var(--step-2); /* P-07: action step-up one role; P-10: --track-chrome */
   padding: var(--space-10) var(--space-16); border: 2px solid var(--line); background: var(--paper); color: var(--ink);
   cursor: pointer; transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
   border-radius: var(--radius); /* R3 IMP-7: the action class unifies on the pill — same geometry as the nav CTA 40px away */
@@ -405,7 +405,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    by convention). */
 .cta-row { display: flex; flex-wrap: wrap; gap: var(--space-10); margin-top: var(--space-16); }
 .cta-solid {
-  font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-chrome); font-size: var(--step-6); /* P-07: action step-up one role; P-10: --track-chrome */
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-chrome); font-size: var(--step-2); /* P-07: action step-up one role; P-10: --track-chrome */
   padding: var(--space-10) var(--space-16); border: 2px solid var(--ink); background: var(--ink); color: var(--paper);
   text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; border-radius: var(--radius); cursor: pointer;
@@ -415,7 +415,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .cta-solid:hover { background: var(--paper-2); color: var(--ink); }
 .cta-solid:active:not(:disabled) { transform: scale(0.985); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 .cta-outline {
-  font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-chrome); font-size: var(--step-6); /* P-07: action step-up one role; P-10: --track-chrome */
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-chrome); font-size: var(--step-2); /* P-07: action step-up one role; P-10: --track-chrome */
   padding: var(--space-10) var(--space-16); border: 2px solid var(--ink); background: transparent; color: var(--ink);
   text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; border-radius: var(--radius); cursor: pointer;
@@ -424,21 +424,21 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .cta-outline:visited { color: var(--ink); text-decoration: none; }
 .cta-outline:hover { background: var(--ink); color: var(--paper); }
 .cta-outline:active:not(:disabled) { transform: scale(0.985); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
-#widget-status { margin-top: var(--space-16); padding: var(--space-10) var(--space-12); border: 2px solid var(--line); background: var(--paper-2); font-size: var(--step-6); min-height: 40px; word-break: normal; overflow-wrap: anywhere; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #11 bug fix): break-all wrapped every status sentence mid-word; overflow-wrap:anywhere still breaks the long hashes/explorer URLs but only when a token cannot otherwise fit. */
-#wallet-balances { margin-top: var(--space-10); font-family: var(--mono); font-size: var(--step-4); color: var(--ink-soft); }
-#acquire-note { margin: var(--space-14) 0 0 0; font-size: var(--step-4); color: var(--ink-soft); }
-.tx-link { margin-left: var(--space-10); font-family: var(--mono); font-size: var(--step-4); }
+#widget-status { margin-top: var(--space-16); padding: var(--space-10) var(--space-12); border: 2px solid var(--line); background: var(--paper-2); font-size: var(--step-2); min-height: 40px; word-break: normal; overflow-wrap: anywhere; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #11 bug fix): break-all wrapped every status sentence mid-word; overflow-wrap:anywhere still breaks the long hashes/explorer URLs but only when a token cannot otherwise fit. */
+#wallet-balances { margin-top: var(--space-10); font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+#acquire-note { margin: var(--space-14) 0 0 0; font-size: var(--step-2); color: var(--ink-soft); }
+.tx-link { margin-left: var(--space-10); font-family: var(--mono); font-size: var(--step-2); }
 
 /* wallet picker (eip-6963 multi-wallet) + noscript note */
 #wallet-picker { margin-top: var(--space-12); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-10); }
 #wallet-picker[hidden] { display: none; }
-#wallet-picker .picker-label { font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: var(--track-chrome); color: var(--ink-soft); } /* P-10: a 0.06em site the mapper census omitted — re-pointed at the identical computed value (zero rendered change) to complete the cluster collapse */
-.noscript-note { padding-top: var(--space-16); padding-bottom: var(--space-16); font-size: var(--step-8); color: var(--ink-soft); border-bottom: 2px solid var(--line); }
+#wallet-picker .picker-label { font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); color: var(--ink-soft); } /* P-10: a 0.06em site the mapper census omitted — re-pointed at the identical computed value (zero rendered change) to complete the cluster collapse */
+.noscript-note { padding-top: var(--space-16); padding-bottom: var(--space-16); font-size: var(--step-3); color: var(--ink-soft); border-bottom: 2px solid var(--line); }
 
 /* ---------- docs ---------- */
 .doc-tabs { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 2px solid var(--line); }
 .doc-tab {
-  font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: var(--track-chrome); /* P-10: was 0.05em */
+  font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); /* P-10: was 0.05em */
   padding: var(--space-9) var(--space-14); background: var(--paper-2); border: 2px solid var(--line); border-bottom: none;
   margin-right: var(--space-6); cursor: pointer; color: var(--ink-soft);
   transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
@@ -449,29 +449,29 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .doc-tab:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 /* V8: the doc pane reads as a document — measure-limited, serif headers, mono code */
 #doc-pane { border: 2px solid var(--line); border-top: none; background: var(--paper-raised); padding: var(--space-22) var(--space-24); min-height: 220px; max-width: 72ch; line-height: 1.65; } /* P-08: long-form reading leading for ~2,000px documents */
-#doc-pane[aria-busy="true"] { color: var(--ink-soft); font-family: var(--mono); font-size: var(--step-6); }
+#doc-pane[aria-busy="true"] { color: var(--ink-soft); font-family: var(--mono); font-size: var(--step-2); }
 #doc-pane h1, #doc-pane h2, #doc-pane h3 {
   text-transform: none; letter-spacing: 0;
   font-family: var(--serif); /* V1 stack in the docs pane */
 }
-#doc-pane h1 { font-size: var(--step-21); border-bottom: 2px solid var(--line); padding-bottom: var(--space-8); } /* per-doc title as document header — display rung (R3: was step-16, which collapsed into the 20px role) */
-#doc-pane h2 { font-size: var(--step-15); margin-top: var(--space-28); } /* R3 IMP-11: one display bump so a ~2,000px document has headings you can skim by; P-08: tokenized heading air */
-#doc-pane h3 { font-size: var(--step-13); margin-top: var(--space-20); } /* R3: formalized on the scale (was the browser-default 1.17em); P-08: tokenized heading air */
-#doc-pane pre { border: 2px solid var(--line); background: var(--code-bg); padding: var(--space-12); overflow-x: auto; font-size: var(--step-6); }
+#doc-pane h1 { font-size: var(--step-6); border-bottom: 2px solid var(--line); padding-bottom: var(--space-8); } /* per-doc title as document header — display rung (R3: was step-16, which collapsed into the 20px role) */
+#doc-pane h2 { font-size: var(--step-5); margin-top: var(--space-28); } /* R3 IMP-11: one display bump so a ~2,000px document has headings you can skim by; P-08: tokenized heading air */
+#doc-pane h3 { font-size: var(--step-5); margin-top: var(--space-20); } /* R3: formalized on the scale (was the browser-default 1.17em); P-08: tokenized heading air */
+#doc-pane pre { border: 2px solid var(--line); background: var(--code-bg); padding: var(--space-12); overflow-x: auto; font-size: var(--step-3); }
 #doc-pane .table-wrap { overflow-x: auto; }
-#doc-pane table { border-collapse: collapse; width: 100%; margin: var(--space-12) 0; font-size: var(--step-8); }
+#doc-pane table { border-collapse: collapse; width: 100%; margin: var(--space-12) 0; font-size: var(--step-3); }
 #doc-pane th, #doc-pane td { border: 1px solid var(--line); padding: var(--space-6) var(--space-10); text-align: left; }
-#doc-pane th { background: var(--paper-2); font-family: var(--mono); font-size: var(--step-4); text-transform: uppercase; letter-spacing: var(--track-label); } /* P-10: the other untracked mono-metadata site joins the label register */
+#doc-pane th { background: var(--paper-2); font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-label); } /* P-10: the other untracked mono-metadata site joins the label register */
 #doc-pane blockquote { border-left: 6px solid var(--line); margin: var(--space-12) 0; padding: var(--space-4) var(--space-14); background: var(--paper-2); }
 /* V5: the docs "Not published yet." empty state gets the same honest-state treatment */
-.doc-missing { color: var(--ink-soft); font-size: var(--step-8); border: 2px solid var(--line); background: var(--paper-2); padding: var(--space-14) var(--space-16); }
+.doc-missing { color: var(--ink-soft); font-size: var(--step-3); border: 2px solid var(--line); background: var(--paper-2); padding: var(--space-14) var(--space-16); }
 /* R2 docs proof-nav: on-page TOC (deep-linkable headings) + code copy buttons.
    Chrome styling only — the data/ledger surfaces inside the pane keep hard borders. */
 .doc-toc {
   display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-14);
   margin: 0 0 var(--space-16) 0; padding-bottom: var(--space-8);
   border-bottom: 1px dotted var(--line-dotted);
-  font-family: var(--mono); font-size: var(--step-4);
+  font-family: var(--mono); font-size: var(--step-2);
 }
 .doc-toc a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid transparent; transition: color var(--motion), border-bottom-color var(--motion); }
 .doc-toc a:hover { color: var(--ink); border-bottom-color: var(--ink); }
@@ -489,7 +489,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    aria-busy loading state; the pulse ships WITH its prefers-reduced-motion nullification. */
 .state, #doc-pane[aria-busy="true"] {
   font-family: var(--mono);
-  font-size: var(--step-6);
+  font-size: var(--step-2);
   color: var(--ink-soft);
   animation: ws-state-pulse 1.8s var(--ease-loop) infinite;
 }
@@ -510,7 +510,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    paints var(--line) beneath a 1px gap so every cell edge shares one hairline,
    and each column (.footer-col, class-only markup addition) sits on the footer
    surface. Existing tokens only (--line / --footer-muted); no new token. */
-.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; border: 1px solid var(--line); background: var(--line); font-size: var(--step-6); }
+.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; border: 1px solid var(--line); background: var(--line); font-size: var(--step-2); }
 .footer-col { background: var(--ink-deep); padding: var(--space-14); }
 .footer-grid .h { font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-label); font-size: var(--step-1); margin-bottom: var(--space-6); color: var(--footer-muted); border: 1px solid var(--footer-muted); padding: var(--space-6) var(--space-8); } /* P-10 */
 .footer-fine { /* F2 (UI_IMPROVE2_FOOTER 2026-09-06): P4 mono metadata edge → colophon
@@ -528,14 +528,14 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .geo-block-page { max-width: 760px; margin: 8vh auto; padding: 0 20px; }
 .geo-block-card { border: 2px solid var(--line); background: #fbfaf5; }
 .geo-block-head { border-bottom: 2px solid var(--line); background: var(--warn); color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-12); }
-.geo-block-head .code { font-family: var(--mono); font-size: 2rem; font-weight: 800; }
+.geo-block-head .code { font-family: var(--mono); font-size: var(--step-6); font-weight: 800; }
 .geo-block-body { padding: 22px 24px; }
-.geo-block-body h1 { margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.04em; font-size: 1.3rem; }
+.geo-block-body h1 { margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.04em; font-size: var(--step-5); }
 .geo-disclosure {
   border: 2px solid var(--line); border-left-width: 8px; background: var(--paper-2);
-  padding: 12px 16px; font-family: var(--mono); font-size: 0.88rem; margin: 16px 0;
+  padding: 12px 16px; font-family: var(--mono); font-size: var(--step-3); margin: 16px 0;
 }
-.geo-block-body p { font-size: 0.92rem; color: var(--ink-soft); }
+.geo-block-body p { font-size: var(--step-3); color: var(--ink-soft); }
 
 /* ---------- responsive ----------
    V3: mobile keeps its section navigation — the header reflows so the nav
@@ -573,7 +573,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 /* ---------- design tokens (v1.2, R2 foundation) — 1:1 aliases of the values this
    stylesheet already shipped; consumption sites read var(--step-*) / var(--space-*).
    A second :root block merges identically in the cascade. The geo template's
-   declarations stay literal by design (D14 retention). ---------- */
+   tracking literal stays by design (D14 retention); its font sizes joined the
+   step scale (WS-TYPE-MOTION_FINAL 2026-09-06). ---------- */
 :root {
   /* UI2-P4 (2026-09-06, WS3-COLOR): THE PAPER LADDER — one substrate family, four steps + two roles:
      raised --paper-raised (cards, +1) · base --paper (body) ·
@@ -619,22 +620,19 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   --space-48: 48px;
   --space-56: 56px;
   --space-64: 64px;
-  /* type scale (R3 IMP-1: 21 steps collapsed to 7 text roles + 2 display clamps —
-     the sub-perceptual clusters (0.02–0.7px apart) are merged and the em/rem
-     split is resolved by re-denomination: every role is a fixed rem value, so
-     nothing resizes with its parent anymore). Each merged role keeps its LOWEST
-     step number as the canonical token; retired siblings: 2,3,5,7,9,10,12,14,
-     16,17,18,19. Consumption sites were re-pointed in the same pass. New text
-     MUST pick one of these roles — a new token needs a written justification. */
-  --step-1: 0.6875rem;   /* 11px — micro labels (was step-1/2/3) */
-  --step-4: 0.78125rem;  /* 12.5px — chrome/nav labels (was step-4/5) */
-  --step-6: 0.84375rem;  /* 13.5px — small text (was step-6/7, step-19 .muted) */
-  --step-8: 0.875rem;    /* 14px — data/values + code (was step-8/9/10, step-18) */
-  --step-11: 1rem;       /* 16px — body (was step-11/12) */
-  --step-13: 1.125rem;   /* 18px — card/panel heads (was step-13/14) */
-  --step-15: 1.25rem;    /* 20px — lede/display-small (was step-15/16/17) */
-  --step-20: clamp(2rem, 4.8vw, 3.3rem);    /* display rungs — unchanged (IMP-1) */
-  --step-21: clamp(1.35rem, 2.6vw, 1.7rem);
+  /* type scale (WS-TYPE-MOTION_FINAL 2026-09-06: the R3 IMP-1 9-token ramp is
+     collapsed onto the ratified EXACT 7-step scale — every font-size in this
+     file is var(--step-N) with N in 1..7, mapped to the nearest prior value;
+     old token numbers 1/4/6/8/11/13/15/20/21 are retired and all call sites
+     were re-pointed in the same pass, fallbacks dropped). New text MUST pick
+     one of these seven rungs — a new token needs a written justification. */
+  --step-1: 0.6875rem;                    /* 11px — micro */
+  --step-2: 0.8125rem;                    /* 13px — chrome/small merged */
+  --step-3: 0.875rem;                     /* 14px — data */
+  --step-4: 1rem;                         /* 16px — body (the iOS no-zoom input floor) */
+  --step-5: 1.25rem;                      /* 20px — heads/panels */
+  --step-6: clamp(1.5rem, 3vw, 2rem);     /* lede / section h2 display */
+  --step-7: clamp(2.75rem, 7.5vw, 7rem);  /* hero h1 / tape giant — the page's loudest number */
   /* tracking roles (WS3-TYPOGRAPHY P-10, 2026-09-06): TRACK tokens, not text sizes —
      written justification per the scale law. --track-label = micro metadata labels
      (11-14px mono uppercase, the label register); --track-chrome = actions/nav/chrome
@@ -718,7 +716,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   border-bottom: 2px solid var(--line);
 }
 .hero-ledger-title { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink); } /* P-10 */
-.hero-ledger-state { font-family: var(--mono); font-size: var(--step-4); text-align: right; } /* P-04: the honest-STATUS line lifts off the 11px micro floor onto the 12.5px chrome role */
+.hero-ledger-state { font-family: var(--mono); font-size: var(--step-2); text-align: right; } /* P-04: the honest-STATUS line lifts off the 11px micro floor onto the 12.5px chrome role */
 .hero-ledger-state.flag-ok { color: var(--accent-text); border: 1px solid var(--accent-text); padding: var(--space-2) var(--space-6); text-transform: uppercase; letter-spacing: var(--track-label); white-space: nowrap; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #8): the ratified LIVE ONCHAIN stamp — accent-text/outlined-accent (the .stat-marker pairing); uppercase is CSS-only, copy intact; the warn branch deliberately stays a bare red line (failure is not stamped). */
 .hero-ledger-state.flag-warn { color: var(--warn); }
 .hero-ledger-rows { font-variant-numeric: tabular-nums; }
@@ -726,17 +724,17 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-14);
   padding: var(--space-10) var(--space-14);
   border-bottom: 2px solid var(--line);
-  font-size: var(--step-8);
+  font-size: var(--step-3);
 }
 .ledger-row:last-child { border-bottom: none; }
 .ledger-k { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); flex: 0 0 auto; } /* P-04: the last serif-in-data island joins the mono small-cap label register (one grammar across the hero ledger + mint ticket; rebased onto the P-10 label token). After this rule serif is display-only on the page. */ /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #1): the label RECEDES — micro mono keys (step-1, ink-soft on raised: the .card-note pairing) under dominant values; MONEY layers size+color onto P-04's mono register. */
-.ledger-v { text-align: right; font-family: var(--mono); font-size: var(--step-8); word-break: break-word; font-variant-numeric: tabular-nums; color: var(--ink); }
+.ledger-v { text-align: right; font-family: var(--mono); font-size: var(--step-3); word-break: break-word; font-variant-numeric: tabular-nums; color: var(--ink); }
 .ledger-v .muted { font-size: var(--step-1); }
-.ledger-row-strong .ledger-v strong { color: var(--accent-text); font-size: var(--step-11); } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #1): strong values lead at body size — was step-8; the generic sibling rule lives in the WS3-MONEY EOF block. */
+.ledger-row-strong .ledger-v strong { color: var(--accent-text); font-size: var(--step-4); } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #1): strong values lead at body size — was step-8; the generic sibling rule lives in the WS3-MONEY EOF block. */
 .hero-ledger-note {
   margin: 0;
   padding: var(--space-10) var(--space-14) var(--space-14) var(--space-14);
-  font-size: var(--step-4);
+  font-size: var(--step-2);
   color: var(--ink-soft);
   border-top: 2px solid var(--line);
 }
@@ -777,7 +775,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   background: var(--ink);
   color: var(--paper);
   font-family: var(--mono);
-  font-size: var(--step-4);
+  font-size: var(--step-2);
   line-height: 1.5;
 }
 #invariants .quiet { color: var(--ink-soft); } /* two-tone headline: line 2 recedes (same treatment as .hero h1 .quiet) */
@@ -788,7 +786,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   border-bottom: 1px solid var(--line);
 }
 .inv-dt { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink); flex: 0 0 auto; } /* P-10 */
-.inv-dd { margin: 0; text-align: right; font-family: var(--mono); font-size: var(--step-8); font-variant-numeric: tabular-nums; word-break: break-word; color: var(--ink); }
+.inv-dd { margin: 0; text-align: right; font-family: var(--mono); font-size: var(--step-3); font-variant-numeric: tabular-nums; word-break: break-word; color: var(--ink); }
 .inv-card {
   max-width: var(--measure-ledger); /* UI2-L9 (2026-09-06, WS3-LAYOUT): ledger-measure role token — was the 46rem literal, zero rendered change */
   border: 1px solid var(--line);
@@ -805,9 +803,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   letter-spacing: var(--track-label); /* P-10 */
   color: var(--ink);
 }
-.inv-card h3 { margin: var(--space-10) 0 var(--space-6); font-family: var(--mono); font-size: var(--step-6); text-transform: uppercase; letter-spacing: var(--track-chrome); color: var(--ink); } /* P-10: was 0.05em */
-.inv-stat-line { margin: 0; font-family: var(--mono); font-size: var(--step-6); color: var(--ink); word-break: break-word; font-variant-numeric: tabular-nums; }
-.inv-disclosure { margin-top: var(--space-12); padding: var(--space-12); background: var(--ink); color: var(--paper); font-size: var(--step-4); line-height: 1.5; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #9): the fine print promoted — the backing disclosure joins the ink-callout family (the .mint-card-callout pairing); the code override lives in the WS3-MONEY EOF block. */
+.inv-card h3 { margin: var(--space-10) 0 var(--space-6); font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); color: var(--ink); } /* P-10: was 0.05em */
+.inv-stat-line { margin: 0; font-family: var(--mono); font-size: var(--step-3); color: var(--ink); word-break: break-word; font-variant-numeric: tabular-nums; }
+.inv-disclosure { margin-top: var(--space-12); padding: var(--space-12); background: var(--ink); color: var(--paper); font-size: var(--step-2); line-height: 1.5; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #9): the fine print promoted — the backing disclosure joins the ink-callout family (the .mint-card-callout pairing); the code override lives in the WS3-MONEY EOF block. */
 
 @media (max-width: 640px) {
   /* panel stacks under the hero lede, full measure; motif shrinks + fades */
@@ -832,8 +830,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 
 /* ============================================================
-   WS-HERO-CHIPS-V10 (2026-09-02) — floating live-data hero chips,
-   ens.domains-style scatter carrying REAL pipeline figures. The
+   WS-HERO-CHIPS-V10 (2026-09-02) — live-data hero chips,
+   ens.domains-style static scatter carrying REAL pipeline figures. The
    chips CONSUME the reads js/main.js already fetches for the
    ledger/cards (pool slot0 snapshot, Chainlink feed, the derived
    USD TVL, the published APR projection) — zero new fetches, zero
@@ -876,9 +874,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-variant-numeric: tabular-nums;   /* data figures — V2 discipline */
   pointer-events: auto;
   transform: translate(var(--chip-tx, 0px), 0) rotate(var(--chip-rot, 0deg));
-  animation:
-    ws-hero-chip-in 480ms var(--ease-enter) var(--chip-in-delay, 0ms) backwards,
-    ws-hero-chip-float var(--chip-float-dur, 8s) var(--ease-loop) var(--chip-float-delay, 0s) infinite;
+  /* WS-TYPE-MOTION_FINAL 2026-09-06: the chip entrance/float animations retired by
+     the one-signature motion budget — chips render as a static scatter; the hover
+     lift (translate/scale transition below) is interaction feedback, not motion budget. */
   transition: translate var(--t-base) var(--ease-enter), scale var(--t-base) var(--ease-enter);
 }
 
@@ -892,7 +890,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 
 /* hover lift + slight scale via the standalone translate/scale properties —
-   they compose with (rather than fight) the transform float animation */
+   functional interaction feedback (WS-TYPE-MOTION_FINAL 2026-09-06: the float
+   animation they used to compose with is retired) */
 .hero-chip:hover { translate: 0 -4px; scale: 1.045; }
 
 /* degraded live chip = label-only form (value span stays empty until JS fills it) */
@@ -910,46 +909,40 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 
 /* positions — mobile first (<=640px): two small corner chips inside the hero's
    own top padding band (wrap padding-top is 36px there); the rest stay hidden */
-.hero-chip--price { top: 8px;  left: 10px;  --chip-rot: -2deg;  --chip-in-delay: 60ms;  --chip-float-delay: 0s;   --chip-float-dur: 7.5s; }
-.hero-chip--share { top: 8px;  right: 10px; --chip-rot: 1.7deg; --chip-in-delay: 140ms; --chip-float-delay: .9s; --chip-float-dur: 8.5s; }
+.hero-chip--price { top: 8px;  left: 10px;  --chip-rot: -2deg; }
+.hero-chip--share { top: 8px;  right: 10px; --chip-rot: 1.7deg; }
 .hero-chip--chain,
 .hero-chip--tvl,
 .hero-chip--apr,
 .hero-chip--split { display: none; }
 
 @media (min-width: 641px) {
-  .hero-chip { font-size: var(--step-4); padding: var(--space-6) var(--space-12); }
+  .hero-chip { font-size: var(--step-2); padding: var(--space-6) var(--space-12); }
   /* tablet: three chips across the top padding band (wrap padding-top 56px);
-     the centered chip rides --chip-tx so the float keyframes keep it centered */
-  .hero-chip--chain { display: inline-flex; top: 12px; left: 50%; --chip-tx: -50%; --chip-rot: -1.4deg; --chip-in-delay: 220ms; --chip-float-delay: 1.7s; --chip-float-dur: 6.5s; }
+     the centered chip rides --chip-tx inside its static transform */
+  .hero-chip--chain { display: inline-flex; top: 12px; left: 50%; --chip-tx: -50%; --chip-rot: -1.4deg; }
 }
 
 @media (min-width: 1280px) {
   /* full ens scatter: gutters are >=130px wide at this breakpoint and the wrap's
      content column starts >=150px from either edge, so no chip ever crosses the
      headline, ledger, or facts; gutter chips ride % bands of the hero's height */
-  .hero-chip--tvl   { display: inline-flex; top: 40%; right: 12px; --chip-rot: 2.2deg;  --chip-in-delay: 300ms; --chip-float-delay: 2.4s; --chip-float-dur: 9.5s; }
-  .hero-chip--apr   { display: inline-flex; top: 60%; right: 16px; --chip-rot: -1.2deg; --chip-in-delay: 380ms; --chip-float-delay: 3.1s; --chip-float-dur: 8s; }
-  .hero-chip--split { display: inline-flex; top: 66%; left: 12px;  --chip-rot: 2.5deg;  --chip-in-delay: 460ms; --chip-float-delay: 3.8s; --chip-float-dur: 7s; }
+  .hero-chip--tvl   { display: inline-flex; top: 40%; right: 12px; --chip-rot: 2.2deg; }
+  .hero-chip--apr   { display: inline-flex; top: 60%; right: 16px; --chip-rot: -1.2deg; }
+  .hero-chip--split { display: inline-flex; top: 66%; left: 12px;  --chip-rot: 2.5deg; }
   .hero-chip--price { top: 138px; left: 12px; }
   .hero-chip--share { top: 14px; right: 22px; }
   .hero-chip--chain { top: 14px; left: 16px; --chip-tx: 0px; }
 }
 
-@keyframes ws-hero-chip-float {
-  0%, 100% { transform: translate(var(--chip-tx, 0px), 0) rotate(var(--chip-rot, 0deg)) translateY(0); }
-  50%      { transform: translate(var(--chip-tx, 0px), 0) rotate(var(--chip-rot, 0deg)) translateY(-6px); }
-}
-@keyframes ws-hero-chip-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
+/* WS-TYPE-MOTION_FINAL 2026-09-06: the chip entrance/float keyframes and their
+   animation wiring are retired by the one-signature motion budget — the chips
+   are a static scatter. */
 
-/* scoped reduced-motion pairing for the V10 chips (non-negotiable pairing with
-   every animation this block ships; the global guard above remains authoritative) */
+/* scoped reduced-motion pairing for the V10 chips' surviving hover transition
+   (the global guard above remains authoritative) */
 @media (prefers-reduced-motion: reduce) {
   .hero-chip {
-    animation: none !important;
     transition: none !important;
     translate: none !important;
     scale: none !important;
@@ -1005,14 +998,14 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 .stat-glyph {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: clamp(15px, 1.8vw, 21px);   /* P-05: decoration recedes below the data */
+  font-size: var(--step-4);   /* P-05: decoration recedes below the data */
   line-height: 1;
   color: var(--accent-text, #0d6b4f);
   opacity: 0.8;
 }
 .stat-value {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: clamp(20px, 2.6vw, 30px);   /* P-05: the REAL figure is the biggest thing in the cell (drafts' big-mono tape register) */
+  font-size: var(--step-5);   /* P-05: the REAL figure is the biggest thing in the cell (drafts' big-mono tape register) */
   font-weight: 500;
   letter-spacing: normal;                /* mono digits are self-tabular; no grotesque tracking */
   font-variant-numeric: tabular-nums;
@@ -1021,7 +1014,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 .stat-label {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: clamp(11px, 1.2vw, 12.5px);
+  font-size: var(--step-2);
   text-transform: uppercase;
   letter-spacing: var(--track-label, 0.08em); /* P-10: label token, WSV-STATS mandatory literal fallback kept */
   color: var(--ink-soft, #5C584C);
@@ -1034,7 +1027,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   border: 1px solid var(--accent, #00a86b);
   border-radius: var(--radius, 999px);
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-1, 0.6875rem);
+  font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: var(--track-label, 0.08em); /* P-10: label token, WSV-STATS mandatory literal fallback kept */
   color: var(--accent-text, #0d6b4f);
@@ -1096,7 +1089,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 .stat-tick {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-4, 0.78125rem);
+  font-size: var(--step-2);
   min-width: 1.1em;
   opacity: 0;
 }
@@ -1135,13 +1128,13 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .ledger-row.delta-up::after {
   content: ' ▲';
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-1, 0.6875rem);
+  font-size: var(--step-1);
   color: var(--accent-text, #0d6b4f);
 }
 .ledger-row.delta-down::after {
   content: ' ▼';
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-1, 0.6875rem);
+  font-size: var(--step-1);
   color: var(--warn, #a33a24);
 }
 #vaults-updated.heartbeat {
@@ -1170,7 +1163,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .ledger-v.ledger-stamp::after {
   content: '✓ ' attr(data-stamp);
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-1, 0.6875rem);
+  font-size: var(--step-1);
   color: var(--accent-text, #0d6b4f);
   margin-left: var(--space-8, 8px);
   opacity: 0;
@@ -1187,11 +1180,14 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 
 /* ---- WOW-2 — live money-flow diagram: deposit → pool → vault.
    Node figures are HTML bound by main.js to the published pipeline
-   reads; the aria-hidden inline SVG carries three dash-flow paths
-   whose SPEED is class-bucketed from the published pool net rate
-   (a ratio encoding — never an APR rendered as a velocity number).
+   reads; the aria-hidden inline SVG carries three dashed paths.
+   WS-TYPE-MOTION_FINAL 2026-09-06: the dash-march animation (its SPEED
+   was class-bucketed from the published pool net rate) is retired by
+   the one-signature motion budget — the paths render static at full
+   state from frame 0 (main.js keeps setting the inert flow-rate-*
+   buckets; no JS re-triggers the animation itself).
    Pre-deploy the vault node is schematic (dashed) and the
-   deposit→pool leg runs static; the isDeployed seam flips it live.
+   deposit→pool leg runs dimmed; the isDeployed seam flips it live.
    The 90/10 split is geometry (the split bar), not a caption. */
 .flow-figure {
   position: relative;
@@ -1220,15 +1216,11 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   opacity: 0.7;
 }
 .flow-path--cut { stroke: var(--ink-soft, #5C584C); }
-.flow-rate-fast .flow-path { animation: ws-flow 1.6s linear infinite; }
-.flow-rate-mid .flow-path { animation: ws-flow 3.2s linear infinite; }
-.flow-rate-slow .flow-path { animation: ws-flow 6.4s linear infinite; }
-/* schematic pre-deploy: the deposit→pool leg runs static until the
+/* WS-TYPE-MOTION_FINAL 2026-09-06: the flow-speed animation rules and the dash
+   keyframes are retired by the one-signature motion budget. */
+/* schematic pre-deploy: the deposit→pool leg renders dimmed until the
    isDeployed seam flips the figure live (flow-live set by main.js) */
-.flow-figure:not(.flow-live) .flow-path--in { animation: none; opacity: 0.35; }
-@keyframes ws-flow {
-  to { stroke-dashoffset: -24; }
-}
+.flow-figure:not(.flow-live) .flow-path--in { opacity: 0.35; }
 .flow-nodes {
   position: relative;
   display: grid;
@@ -1246,19 +1238,19 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 .flow-node-k {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-1, 0.6875rem);
+  font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: var(--track-label); /* P-10 */
   color: var(--ink-soft, #5C584C);
 }
 .flow-node-v {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-8, 0.875rem);
+  font-size: var(--step-3);
   color: var(--ink, #1C1A15);
   font-variant-numeric: tabular-nums;
   word-break: break-word;
 }
-.flow-node-sub { font-size: var(--step-4, 0.78125rem); color: var(--ink-soft, #5C584C); }
+.flow-node-sub { font-size: var(--step-2); color: var(--ink-soft, #5C584C); }
 .flow-node--schematic { border-style: dashed; background: var(--paper-pending, #E7E2D4); }
 .flow-node--live { border-color: var(--accent, #00a86b); }
 .flow-split {
@@ -1270,12 +1262,12 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .flow-split-prot { flex: 1; background: var(--paper-2, #E4DFD1); }
 .flow-yield {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-6, 0.84375rem);
+  font-size: var(--step-2);
   color: var(--accent-text, #0d6b4f);
 }
 .flow-caption {
   margin-top: var(--space-16, 16px);
-  font-size: var(--step-4, 0.78125rem);
+  font-size: var(--step-2);
   color: var(--ink-soft, #5C584C);
 }
 .flow-caption-note { display: block; max-width: 72ch; }
@@ -1304,17 +1296,17 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   gap: var(--space-12, 12px);
   flex-wrap: wrap;
 }
-.sim-title { font-family: var(--serif, Georgia, serif); font-size: var(--step-13, 1.125rem); }
+.sim-title { font-family: var(--serif, Georgia, serif); font-size: var(--step-5); }
 .sim-note {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-1, 0.6875rem);
+  font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: var(--track-label); /* P-10 */
   color: var(--ink-soft, #5C584C);
 }
 .sim-slider-label {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-1, 0.6875rem);
+  font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: var(--track-label); /* P-10 */
   color: var(--ink-soft, #5C584C);
@@ -1324,7 +1316,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   min-height: 44px;   /* money-path mobile ergonomics floor */
   accent-color: var(--accent, #00a86b);
   background: transparent;
-  font-size: var(--step-11, 1rem);
+  font-size: var(--step-4);
 }
 .sim-grid {
   display: grid;
@@ -1341,19 +1333,19 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 .sim-region-k {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-1, 0.6875rem);
+  font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: var(--track-label); /* P-10 */
   color: var(--ink-soft, #5C584C);
 }
 .sim-region-v {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-11, 1rem);
+  font-size: var(--step-4);
   color: var(--ink, #1C1A15);
   font-variant-numeric: tabular-nums;
   word-break: break-word;
 }
-.sim-region-sub { font-size: var(--step-4, 0.78125rem); color: var(--ink-soft, #5C584C); }
+.sim-region-sub { font-size: var(--step-2); color: var(--ink-soft, #5C584C); }
 .sim-region--static .sim-region-v { color: var(--ink-soft, #5C584C); }
 .sim-bar {
   display: block;
@@ -1404,27 +1396,17 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .flow-figure.ws-reveal .flow-node:nth-child(3) { transition-delay: 160ms; }
 .flow-figure.ws-reveal.ws-reveal-in .flow-node { opacity: 1; transform: translateY(0); }
 
-/* ---- WOW-3 — launch-flip: the one-time pending→live beat. Pure CSS
-   transitions/animations triggered by the single body.launch-flip
-   class (JS sets it ONLY off a real false→true isDeployed transition,
-   once per browsing session — never simulated, never pre-played);
-   staggered per region via animation-delay; the stats band's settle
-   flash ends it. Reduced motion: the state swap is instant (the wow
-   is the state change, not the motion). */
-body.launch-flip .hero-ledger { animation: ws-flip-in 640ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 60ms both; }
-body.launch-flip .stat-band .stat-grid {
-  animation: ws-flip-in 640ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 120ms both,
-             ws-band-settle 600ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 900ms 1;
-}
-body.launch-flip .flow-figure { animation: ws-flip-in 640ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 180ms both; }
-body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 240ms both; }
-@keyframes ws-flip-in {
-  0% { opacity: 0.55; transform: translateY(6px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
+/* ---- WOW-3 — launch-flip: the one-time pending→live beat.
+   WS-TYPE-MOTION_FINAL 2026-09-06: the launch-day entrance choreography (the
+   staggered region flips + the launch-day settle flash) is retired by the
+   one-signature motion budget — the state swap is instant on launch day (the
+   wow is the state change, not the motion). main.js still sets body.launch-flip
+   ONLY off a real false→true isDeployed transition, once per browsing session;
+   the class now carries no animation. ws-band-settle survives via its WOW-1
+   data-change trigger (.stat-band--settle). */
 
 @keyframes ws-entrance-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.ws-entrance { animation: ws-entrance-in var(--t-slow) var(--ease-enter) backwards; animation-delay: var(--ws-entrance-delay, 0ms); }
+.ws-entrance { animation: ws-entrance-in var(--t-slow) var(--ease-enter) backwards; animation-delay: var(--ws-entrance-delay, 0ms); } /* KEPT 2026-09-06: pinned by site-tests/agent-first.test.js (v) — keyframe + exact rule + gates[3] reduce restate are untouchable outside wow/render */
 
 /* ---- scoped reduced-motion pairing for EVERY animation this block
    ships (the global guard above already covers the page; this keeps
@@ -1435,14 +1417,10 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
   .stat-tick, .stat-band--settle .stat-grid,
   .ledger-row.delta-up, .ledger-row.delta-down,
   #vaults-updated.heartbeat, .hero-ledger-state.is-connecting,
-  .flow-rate-fast .flow-path, .flow-rate-mid .flow-path, .flow-rate-slow .flow-path,
-  .flow-figure:not(.flow-live) .flow-path--in,
   #inv-stat.ledger-stamp::after, /* G4 (UI_IMPROVE2_GLYPHS): the coverage seam's second cell joins the reduce pair */
   .ledger-v.ledger-stamp::after,
   .sim-bar-fill,
-  .scroll-reveal .ledger-row, .flow-figure.ws-reveal .flow-node,
-  body.launch-flip .hero-ledger, body.launch-flip .stat-band .stat-grid,
-  body.launch-flip .flow-figure, body.launch-flip .vault-card {
+  .scroll-reveal .ledger-row, .flow-figure.ws-reveal .flow-node {
     animation: none !important;
     transition: none !important;
   }
@@ -1619,7 +1597,7 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
   background: var(--ink);
   color: var(--paper);
   font-family: var(--mono);
-  font-size: var(--step-4);
+  font-size: var(--step-2);
   line-height: 1.5;
 }
 .fine-mark { /* F2: printer's mark (thumbs-up logo mark, 14x15 half-scale, decorative) */
@@ -1780,12 +1758,12 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
   #agents .wrap > .block-sub { grid-column: 2; grid-row: 1; margin: 0; }
 }
 /* UI2-L4 (>=1280): the draft's dominant move — type IS the composition (welldis.jpg
-   measures ~10-11vw). Desktop-only: the <=640 clamp floor stays byte-identical so the
-   ratified mobile fold gates (header <=135px, hero-ledger <=844px at 390x844) keep
-   holding. 115px @1280, 129.6px @1440. No test pins 7.8vw / 6.25rem (pre-flight
-   sweeped 2026-09-06). */
+   measures ~10-11vw). WS-TYPE-MOTION_FINAL 2026-09-06: the 9vw override retires onto
+   the ratified step-7 rung (clamp(2.75rem, 7.5vw, 7rem)) — at >=1280 this rule now
+   restates the base rung and is kept only as the L4 record; the ramp's fluid vw
+   scaling carries the composition. Mobile (<=640) renders the step-7 clamp floor. */
 @media (min-width: 1280px) {
-  .hero h1 { font-size: clamp(6.25rem, 9vw, 8.25rem); }
+  .hero h1 { font-size: var(--step-7); }
 }
 /* ---------- end WS3-LAYOUT EOF block ---------- */
 /* ---------- WS3-MONEY (2026-09-06, UI_IMPROVE2_MONEY-SURFACES items 1-11) — money-surface additive EOF block ----------
@@ -1793,10 +1771,10 @@ body.launch-flip .vault-card { animation: ws-flip-in 640ms var(--ease-enter, cub
    the verified coverage figure is the ticket's one hot number; the holder's own
    position renders in the receipt anatomy. Token-only (zero new color literals),
    zero motion, zero new @media blocks, zero new element IDs. */
-.ledger-row .ledger-v strong { font-size: var(--step-11); } /* #1: live figures out-size their row — the price/TVL strongs become the largest element in the panel */
-#mint-backed.coverage-live, #inv-stat.coverage-live { font-weight: 700; color: var(--accent-text); font-size: var(--step-11); } /* #2: only a verified decode carries the class (writeAll live flag) — pending/unavailable states stay neutral */
+.ledger-row .ledger-v strong { font-size: var(--step-4); } /* #1: live figures out-size their row — the price/TVL strongs become the largest element in the panel */
+#mint-backed.coverage-live, #inv-stat.coverage-live { font-weight: 700; color: var(--accent-text); font-size: var(--step-4); } /* #2: only a verified decode carries the class (writeAll live flag) — pending/unavailable states stay neutral */
 #wallet-balances:not(:empty) { border: 2px solid var(--line); background: var(--paper-raised); } /* #3: the data-element border on the holder's own money box; :not(:empty) keeps the pre-connect page free of an empty bordered panel (deviation from the mapper's unconditional rule — disclosed in the worker report) */
-#redeem-preview { font-size: var(--step-8); color: var(--ink); font-variant-numeric: tabular-nums; border-top: 1px dotted var(--line-dotted); padding-top: var(--space-10); margin-top: var(--space-12); } /* #6: the chain-priced preview promoted to a number line via the .card-row dotted-separator vocabulary; text untouched (the anti-promise wording is load-bearing) */
+#redeem-preview { font-size: var(--step-3); color: var(--ink); font-variant-numeric: tabular-nums; border-top: 1px dotted var(--line-dotted); padding-top: var(--space-10); margin-top: var(--space-12); } /* #6: the chain-priced preview promoted to a number line via the .card-row dotted-separator vocabulary; text untouched (the anti-promise wording is load-bearing) */
 button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft); border-color: var(--line); } /* #5: explicit parked-register companion (button.btn:disabled already out-ranks btn-primary on specificity) */
 .inv-disclosure code { background: transparent; color: var(--paper); border-color: var(--paper); } /* #9: the mono code inside the ink callout stays legible */
 /* ---------- end WS3-MONEY EOF block ---------- */
@@ -1857,7 +1835,7 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 #stat-tvl:empty::after, #stat-price:empty::after {
   content: 'unavailable (RPC)';
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-8, 0.84375rem);
+  font-size: var(--step-3);
   font-weight: 400;
   letter-spacing: 0;
   color: var(--ink-soft, #5C584C);
