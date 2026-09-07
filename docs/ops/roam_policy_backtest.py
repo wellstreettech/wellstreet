@@ -53,6 +53,12 @@ HOLDS_DAYS_DIRECTION = [30, 7, 1]                # DIRECTION cell order: hold30 
 CAPS_PER_YEAR = [4, 52, 365]                     # MAX_MIGRATIONS_PER_PERIOD cap rows
 INCUMBENT = "fe2a80bb"                           # replay starts deployed in the 05 flagship
 
+# Deliverable-6 sensitivity grid: migrationFeeBps values priced per cost scenario.
+# CALIBRATION ONLY — the OPERATING migrationFeeBps is Safe-queued with the hard cap
+# fixed at deploy (2000 bps) and RE-PRICED from S2's live fee-screen feed before
+# go-live (07 §5(iv)); the frozen-snapshot grid is never quoted as operating policy.
+FEE_BPS_GRID = [0, 250, 500, 1000, 2000]
+
 # Rule-family scenario constants (deep-dive rank 6 shape; VALUES are scenarios, not
 # measurements — the measured migration-cost probe is an S1 build-gate input).
 MIGRATION_FEE_BPS = 1000   # S1's visible roaming exit take scenario (10% expressed in bps)
@@ -181,7 +187,7 @@ def cvar5(series):
     return sum(tail) / float(len(tail))
 
 
-def run_replay(apr, rule, sigma, cost):
+def run_replay(apr, rule, sigma, cost, fee_bps=None):
     """Sequential migrate() replay over the frozen snapshot: 52 weekly decision windows,
     roamer starts in INCUMBENT, at each window evaluates the arm trigger and fires
     migrate(from, to) to the best-passing candidate, paying the FULL migration cost
@@ -190,9 +196,12 @@ def run_replay(apr, rule, sigma, cost):
     sigma > SIGMA_CEILING -> zero migrations (the legitimate arm; deep-dive theme 3).
     Fee-APRs are held at their frozen 2026-09-04 fixture values (stationary snapshot —
     disclosed; per-swap dynamics replay is the rank-6 adopt-after-validation scope on
-    live streams). Deterministic: fixed candidate order, fixed arithmetic."""
+    live streams). Deterministic: fixed candidate order, fixed arithmetic.
+    fee_bps: the migrationFeeBps scenario — defaults to the fixed replay scenario
+    (MIGRATION_FEE_BPS); the deliverable-6 FEE-GRID sweeps it across FEE_BPS_GRID."""
     s, il = cost
-    full_cost_bps = s + MIGRATION_FEE_BPS + il
+    fee = MIGRATION_FEE_BPS if fee_bps is None else fee_bps
+    full_cost_bps = s + fee + il
     full_cost_pp = full_cost_bps / 100.0
     if rule == "distance-h*":
         def threshold():
@@ -306,6 +315,43 @@ def print_replay(apr):
           "simultaneously; a NO verdict is a calibration output, not a failure)" % (runs, dom_count))
 
 
+def print_fee_grid(apr):
+    """Deliverable 6 — migrationFeeBps sensitivity grid: FEE_BPS_GRID x the three cost
+    scenarios, per-value break-even (7d hold) and two-metric dominance of the
+    distance-h* arm at the mid sigma scenario. CALIBRATION ONLY."""
+    sigma_mid = SIGMA_SCENARIOS[1]
+    print("FEE-GRID migrationFeeBps sensitivity grid %s x cost(slippage_bps,IL_bps) in %s "
+          "(deliverable 6: the selection input for the Safe-queued operating value; the "
+          "deploy-fixed hard cap 2000 bps bounds every row)"
+          % (FEE_BPS_GRID, COST_SCENARIOS))
+    print("FEE-GRID cell: full per-migration cost = slippage_bps + migrationFeeBps + "
+          "crystallized_IL_bps (scenario bps); break_even_7d_bps = cost x 365/7 (pair-"
+          "independent, hold=7d); cap4_annual_drag_bps = 4 x cost (worst case, MAX_"
+          "MIGRATIONS_PER_PERIOD=4 start); dominance = the distance-h* arm at the mid "
+          "sigma scenario (%.2f) vs the never-migrate incumbent, two-metric (rank 2)"
+          % sigma_mid)
+    dom_count = 0
+    rows = 0
+    for fee in FEE_BPS_GRID:
+        for (s, il) in COST_SCENARIOS:
+            cost = s + fee + il
+            be = cost * 365.0 / 7.0
+            r = run_replay(apr, "distance-h*", sigma_mid, (s, il), fee_bps=fee)
+            rows += 1
+            dom = "YES" if r["dominates"] else "NO"
+            if r["dominates"]:
+                dom_count += 1
+            print("FEE-GRID fee=%d cost=(%d,%d) full_cost_bps=%d break_even_7d_bps=%.1f "
+                  "cap4_annual_drag_bps=%d migrations=%d mean_net=%.1fpp cvar5=%.1fpp "
+                  "exposure_gap=%.1fpp dominance=%s"
+                  % (fee, s, il, r["full_cost_bps"], be, 4 * cost, r["migrations"],
+                     r["mean_net"], r["cvar5"], r["gap"], dom))
+    print("FEE-GRID-SUMMARY rows=%d dominant_vs_incumbent=%d — CALIBRATION ONLY: never "
+          "quote this frozen-snapshot grid as operating policy; the OPERATING "
+          "migrationFeeBps is Safe-queued within the 2000 bps deploy cap and re-priced "
+          "from S2's live fee-screen feed before go-live (07 §5(iv))" % (rows, dom_count))
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--selftest", action="store_true",
@@ -335,6 +381,7 @@ def main(argv):
     print_break_even(apr)
     print_direction(apr)
     print_replay(apr)
+    print_fee_grid(apr)
     return 0
 
 
