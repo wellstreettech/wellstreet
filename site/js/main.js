@@ -17,7 +17,7 @@
   // consumer reads the constant, and the static span (#vaults-launch-fact in
   // index.html) stays byte-equal to proseDeployed (wow.test.js pins both sides).
   // Undated by design (a hard date in code goes stale) and carries no yield promise.
-  var LAUNCH_FACT = { pendingShort: 'awaiting on-chain deploy', pending: 'awaiting on-chain deploy — yield phase not started', deployed: 'deployed — yield phase live', prosePending: 'The vault is not yet on-chain — factory, timelock, harvester and vault land on Robinhood Chain; these cards read the pending state until then.', proseDeployed: 'The vault is on-chain — four contracts on Robinhood Chain, verifiable at the exact addresses these cards read.' };
+  var LAUNCH_FACT = { pendingShort: 'awaiting on-chain deploy', pending: 'awaiting on-chain deploy — yield phase not started', deployed: 'deployed — yield phase live', prosePending: 'The vault is not yet on-chain — factory, timelock, harvester and vault land on Robinhood Chain; these cards read the pending state until then.', proseDeployed: 'The vault is on-chain — four contracts, verifiable at the addresses these cards read.' };
 
   // WS5-SKELETON (2026-09-07): FLOW_DEPOSIT_SUB retired — the money-flow figure
   // (its only consumer) is deleted outright in the three-movement rebuild; the
@@ -190,22 +190,8 @@
     head.appendChild(sym);
     if (pending) { head.appendChild(el('span', 'pending-tag', LAUNCH_FACT.pendingShort)); }
     card.appendChild(head);
-    // WS-ASSET-WIRE: the share-certificate keeper marks the pending/empty card
-    // (decorative: aria-hidden; self-hosted relative path; styled in the
-    // stylesheet against .vault-card--pending).
-    // re-pinned 2026-09-04: config flipped to deployed addresses — the keeper rides
-    // the live card too (the deployed vault is empty; the empty card is its state).
-    // WS-OG-PERF (2026-09-04): compressed keeper variant + explicit width/height
-    // (CLS discipline — the JS-appended img never shifts layout), same treatment
-    // as the statically-wired keepers in index.html.
-    var cert = el('img', 'asset-certificate');
-    cert.setAttribute('src', 'img/compressed/certificate.png');
-    cert.setAttribute('width', '240');
-    cert.setAttribute('height', '129');
-    cert.setAttribute('alt', '');
-    cert.setAttribute('aria-hidden', 'true');
-    cert.setAttribute('loading', 'lazy');
-    card.appendChild(cert);
+    // WS-DARK-DOTO (2026-09-07): the certificate keeper is RETIRED with the
+    // zero-image identity — the card is type, rules and measured numbers only.
     var rows = el('div', 'card-rows');
     card.appendChild(rows);
     var note = el('p', 'card-note');
@@ -1226,30 +1212,9 @@
     }
   }
 
-  // ---------------- asset draw-on (WS-ASSET-WIRE) ----------------
-  // The curve-stroke divider reveals left-to-right on scroll-in (clip-path
-  // transition — the ink-laid-down feel on real dither pixels). Armed ONLY here
-  // (the .asset-draw-arm class is added by this function), so no-JS and
-  // no-IntersectionObserver environments always see the full static stroke.
-  // Reduced motion: the stylesheet's no-preference gating + reduce block make
-  // the armed state a no-op — the asset stays static and fully visible.
-  function initAssetDraw() {
-    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) { return; }
-    var curves = document.body.querySelectorAll('.asset-draw');
-    if (!curves.length) { return; }
-    var io = new IntersectionObserver(function (entries) {
-      for (var k = 0; k < entries.length; k++) {
-        if (entries[k].isIntersecting && entries[k].target.classList) {
-          entries[k].target.classList.add('asset-draw-in');
-          entries[k].target.classList.remove('asset-draw-arm');
-          io.unobserve(entries[k].target);
-        }
-      }
-    }, { threshold: 0.25 });
-    for (var t = 0; t < curves.length; t++) {
-      if (curves[t].classList) { curves[t].classList.add('asset-draw-arm'); io.observe(curves[t]); }
-    }
-  }
+  // WS-DARK-DOTO (2026-09-07): the curve-divider draw-on (initAssetDraw) is
+  // RETIRED with the zero-image identity — no asset surfaces remain to arm,
+  // and the page's one-motion budget stays the ledger stamp alone.
 
   // ------------------------------------------------------------------
   // WS5-SKELETON (2026-09-07): the Fleet feed render — movement (b)'s book
@@ -1464,7 +1429,6 @@
     initScrollSpy();
     initTapeStrip();  // WS3-HEADER P4: writes the header tape strip's family rows from config
     initReveal();   // R3 IMP-3: after the cards render — arms .ws-reveal on section heads + the flagship card
-    initAssetDraw();  // WS-ASSET-WIRE: arms the curve divider's scroll-in draw-on
     initFleet();  // WS5-SKELETON: the Fleet feed render (movement a's hero-stat + movement b's book column)
 
     // WS-ASSET-WIRE: the agent-first section's skill link ships pointing at the

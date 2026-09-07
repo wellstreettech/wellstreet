@@ -52,39 +52,23 @@ function countOccurrences(haystack, needle) {
   return haystack.split(needle).length - 1;
 }
 
-// (b) THE DECLARED ASSET TABLE — the motion contract, asset by asset. A new
-// site/img reference without an entry here FAILS the battery, forcing the next
-// author to declare its reduced-motion pairing (the WS-ASSET-WIRE invariant:
-// every moving surface ships its static pair in the same change).
-//   [file, css class, moving?]
-const ASSET_MOTION = [
-  ['img/compressed/hand-point.png', 'asset-point', false],       // hero-stat edge since WS5-SKELETON 2026-09-07 (relocated from the retired hero-ledger edge; static by design)
-  ['img/compressed/hand-press.png', 'asset-press', true],        // dips ~6px on #btn-deposit hover/focus
-  // RETIRED 2026-09-07 (WS5-TREATMENT, one-signature motion): the magnify hand is
-  // STATIC now — its sweep keyframes + rule + reduce pair are deleted from
-  // style.css (the JS trigger died with the hero motion wiring in WS5-SKELETON).
-  ['img/compressed/hand-magnify.png', 'asset-magnify', false],
-  ['img/compressed/curve-stroke.png', 'asset-draw', true],       // clip-path draw-on, IO-armed only
-  ['img/compressed/certificate.png', 'asset-certificate', false], // vault-card keeper (appended by main.js) — static
-  ['img/logo-mark.png', 'brand-mark', false],                    // header logo mark (2026-09-04) — static, no motion by design
-  // RETIRED 2026-09-07 (WS5-TREATMENT, one-signature motion): the canyon is a DIM
-  // STATIC TEXTURE (≤8% opacity desktop, hidden ≤640) — its vibrate keyframes +
-  // rule + reduce pairs are deleted from style.css.
-  ['img/canyon-hero.png', 'hero-canyon', false]
-];
+// (b) THE DECLARED ASSET TABLE — RETIRED (WS-DARK-DOTO, 2026-09-07): the
+// zero-image identity ships NO site/img assets, so the table is EMPTY by
+// contract. It is declared in the (b) section below; the derivation there
+// must see an EMPTY referenced set across html + css + all site modules.
 
 // ---------------- (a) agent-first section ----------------
-test('(a) agent-first section: two-tone headline + skill pointer', () => {
+// RE-PINNED 2026-09-07 (WS-DARK-DOTO): the movement-(c) card is 'Plug in.' —
+// the two-tone grammar retired with the serif voice; the skill pointer keeps
+// its PENDING_IDENTITY honest byte-form and the https-gated upgrade seam.
+test('(a) agent-first section: the plug-in card + skill pointer', () => {
   assert.strictEqual(countOccurrences(html, '<section class="block" id="agents">'), 1,
     'the #agents section block exists exactly once');
-  // two-tone headline grammar (design-ref item 2, transferred): claim line 1 in
-  // ink, the deadpan line 2 receding via span.quiet — same structure as the
-  // hero h1 and the #invariants h2.
-  const twoTone = '<h2>Built for humans.<br><span class="quiet">Operated by agents.</span></h2>';
-  assert.strictEqual(countOccurrences(html, twoTone), 1,
-    'the two-tone agent-first headline appears exactly once');
+  const head = '<h2>Plug in.</h2>';
+  assert.strictEqual(countOccurrences(html, head), 1,
+    'the plug-in headline appears exactly once');
   assert.ok(/#agents \.quiet \{ color: var\(--ink-soft\); \}/.test(css),
-    '#agents .quiet recede rule present (the two-tone treatment is CSS-carried, not inherited by accident)');
+    '#agents .quiet recede rule present (the receding register stays CSS-carried)');
   // the skill pointer: relative repo path, href == visible text (PENDING_IDENTITY
   // honest form), exactly once, and the target file actually exists on disk
   const link = '<a id="agents-skill-link" href="skills/wellstreet-vaults/SKILL.md">skills/wellstreet-vaults/SKILL.md</a>';
@@ -104,21 +88,26 @@ test('(a) agent-first section: two-tone headline + skill pointer', () => {
 });
 
 // ---------------- (b) motion system ----------------
-test('(b) every referenced site/img asset is declared with its motion pairing', () => {
+// RE-PINNED 2026-09-07 (WS-DARK-DOTO): the zero-image identity retires EVERY
+// site/img asset — the declared-asset table is empty by contract, and the
+// derivation below must see an EMPTY referenced set across html + css + all
+// site modules. A new img/ reference (in markup, a comment, or a url()) fails
+// this battery loudly.
+const ASSET_MOTION = [];
+
+test('(b) zero referenced site/img assets (the zero-image identity, declared table empty)', () => {
   // derive the referenced set from ALL shipped sources (html + every site module
-  // + the stylesheet); style.css carries only a prose comment mention (no real
-  // URL) — a real url(../img/...) landing later must be declared here too.
+  // + the stylesheet) — comments included: a path mentioned in prose is still a
+  // reference a future author could resurrect.
   const referenced = new Set();
-  // WS-OG-PERF (2026-09-04): subdirectory-aware — keepers serve from img/compressed/,
-  // so the token class includes '/' to capture the FULL path (a mid-path '/' would
-  // otherwise truncate img/compressed/hand-point.png to a phantom 'img/compressed').
+  // subdirectory-aware: the token class includes '/' to capture the FULL path
+  // (a mid-path '/' would otherwise truncate img/compressed/x.png to a phantom
+  // 'img/compressed').
   const re = /img\/[A-Za-z0-9._/-]+/g;
   for (const src of [html, css].concat(JS_FILES.map((n) => jsSources[n]))) {
     let m;
     while ((m = re.exec(src)) !== null) { referenced.add(m[0]); }
   }
-  assert.ok(referenced.has('img/compressed/hand-point.png') && referenced.has('img/compressed/certificate.png'),
-    'the derivation actually sees the shipped references (sanity)');
   const declared = new Set(ASSET_MOTION.map((a) => a[0]));
   const unknown = Array.from(referenced).filter((f) => !declared.has(f));
   assert.deepStrictEqual(unknown, [],
@@ -127,65 +116,33 @@ test('(b) every referenced site/img asset is declared with its motion pairing', 
   for (const [file] of ASSET_MOTION) {
     assert.ok(referenced.has(file), file + ' is still referenced by the shipped sources');
   }
+  assert.strictEqual(referenced.size, 0,
+    'the zero-image identity ships ZERO img/ references (got: ' + Array.from(referenced).join(', ') + ')');
 });
 
-test('(b2) moving assets: explicit prefers-reduced-motion static pair in their section', () => {
-  const sectionStart = css.indexOf('WS-ASSET-WIRE (2026-09-04)');
-  assert.ok(sectionStart !== -1, 'the WS-ASSET-WIRE section banner is present');
-  const section = css.slice(sectionStart);
-  const gateIdx = section.indexOf('@media (prefers-reduced-motion: no-preference)');
-  // RE-SLICED 2026-09-07 (WS5-TREATMENT, one-signature motion): the asset
-  // keyframes are retired (magnify sweep + canyon vibrate deleted), so the gate
-  // block now closes at its reduce-pair block instead of the next @keyframes.
-  const reducePairIdx = section.indexOf('@media (prefers-reduced-motion: reduce)', gateIdx);
-  assert.ok(gateIdx !== -1 && reducePairIdx > gateIdx,
-    'the no-preference motion gate is present in the asset section');
-  const gateBlock = section.slice(gateIdx, reducePairIdx);
-  const reduceIdx = section.indexOf('@media (prefers-reduced-motion: reduce)');
-  assert.ok(reduceIdx > gateIdx, 'the reduce pairing block sits in the same section, after the gate');
-  const reduceBlock = section.slice(reduceIdx, section.indexOf('@media', reduceIdx + 1));
-  for (const [file, cls, moving] of ASSET_MOTION) {
-    if (!moving) { continue; }
-    assert.ok(gateBlock.indexOf('.' + cls) !== -1,
-      cls + ' (' + file + ') motion is declared inside the no-preference gate');
-  }
-  // the two exact reduce-block static pairs (the pairing rules themselves).
-  // RETIRED 2026-09-07 (WS5-TREATMENT): the magnify-hand reduce pair is deleted
-  // with its sweep — the asset is static, nothing left to nullify.
-  assert.ok(reduceBlock.indexOf('.asset-press { transition: none; transform: none; }') !== -1,
-    'press-hand reduce pair: transition + transform nullified');
-  assert.ok(reduceBlock.indexOf('.asset-draw { clip-path: none; transition: none; }') !== -1,
-    'curve-divider reduce pair: clip-path stays the full static stroke');
+test('(b2) no asset motion gates remain (the asset section is retired, not weakened)', () => {
+  assert.strictEqual(css.indexOf('WS-ASSET-WIRE (2026-09-04)'), -1,
+    'the WS-ASSET-WIRE section banner is gone (retired dated in style.css)');
+  assert.strictEqual(css.indexOf('.asset-press'), -1, 'no .asset-press rule ships');
+  assert.strictEqual(css.indexOf('.asset-draw'), -1, 'no .asset-draw rule ships');
+  assert.strictEqual(css.indexOf('.asset-point'), -1, 'no .asset-point rule ships');
+  assert.strictEqual(css.indexOf('.asset-magnify'), -1, 'no .asset-magnify rule ships');
+  assert.strictEqual(css.indexOf('.asset-certificate'), -1, 'no .asset-certificate rule ships');
 });
 
-test('(b3) static assets: no motion shipped at all (pairing by construction)', () => {
-  const gateIdx = css.indexOf('@media (prefers-reduced-motion: no-preference)');
-  // RE-SLICED 2026-09-07 (WS5-TREATMENT, one-signature motion): the gate block
-  // used to end at the next @keyframes (the retired asset sweeps); with every
-  // non-stamp keyframe deleted, the gate now closes at its own reduce-pair
-  // block — slice to that instead of to EOF.
-  const gateBlock = css.slice(gateIdx, css.indexOf('@media (prefers-reduced-motion: reduce)', gateIdx));
-  for (const [file, cls, moving] of ASSET_MOTION) {
-    if (moving) { continue; }
-    const decl = css.match(new RegExp('\\.' + cls + ' \\{[^}]*\\}'));
-    assert.ok(decl, '.' + cls + ' base rule present in style.css');
-    assert.ok(!/animation|transition/.test(decl[0]),
-      '.' + cls + ' (' + file + ') ships NO animation/transition — reduced-motion static by construction');
-    assert.ok(gateBlock.indexOf(cls) === -1,
-      '.' + cls + ' never enters the no-preference motion gate');
-  }
+test('(b3) no asset base rules at all (nothing to pair, by construction)', () => {
+  assert.strictEqual(css.indexOf('curve-divider'), -1, 'the curve divider is retired outright');
+  assert.strictEqual(css.indexOf('hero-canyon'), -1, 'the canyon is retired outright');
+  assert.strictEqual(css.indexOf('hero-motif'), -1, 'the motif is retired outright');
 });
 
-test('(b4) the curve-divider draw-on is IO-armed in main.js', () => {
-  // RE-PINNED 2026-09-07 (WS5-SKELETON): the magnify sweep + its motionAllowed()
-  // JS gate are RETIRED — the hero-ledger-era motion wiring (sweepMagnifier and
-  // the shared gate, whose only remaining consumer was the sweep) is deleted in
-  // the three-movement rebuild; the keeper img stays static in the docs header.
-  // The draw-on pin survives: armed only by the IntersectionObserver
-  // (no-JS = static stroke).
-  assert.strictEqual(countOccurrences(mainSrc, 'function initAssetDraw()'), 1,
-    'initAssetDraw defined exactly once');
-  assert.ok(mainSrc.indexOf('initAssetDraw();') !== -1, 'initAssetDraw is wired in init()');
+test('(b4) the curve-divider draw-on is RETIRED from main.js', () => {
+  // RE-PINNED 2026-09-07 (WS-DARK-DOTO): with the curve divider gone there is
+  // nothing to arm — the IO wiring is deleted outright (no dead code for a
+  // dead surface).
+  assert.strictEqual(countOccurrences(mainSrc, 'function initAssetDraw()'), 0,
+    'initAssetDraw is deleted outright');
+  assert.strictEqual(mainSrc.indexOf('initAssetDraw();'), -1, 'initAssetDraw is not wired in init()');
 });
 
 test('(b5) the global page guard stays authoritative', () => {
@@ -199,6 +156,7 @@ test('(b5) the global page guard stays authoritative', () => {
   assert.ok(blocks.length >= 5,
     'the scoped reduce guards survive alongside the global one (got ' + blocks.length + ', need >= 5)');
 });
+
 
 // ---------------- (c) ledger card rows ----------------
 // RE-PINNED 2026-09-07 (WS5-SKELETON): the mint-ticket ledger card and the
@@ -215,8 +173,10 @@ test('(c) the coverage seam: one relocated cell rides the single fill point', ()
     mainSrc.indexOf('async function loadVaultData('));
   assert.ok(fill.indexOf("$('fleet-coverage')") !== -1,
     'fillBackingCoverage is the single fill point writing the relocated seam cell');
-  // the static first paint carries the self-verify truth string (deployed register)
-  const staticCoverage = 'coverage reads live from backingCoverage() on the vault at 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 (js/config.js); verify it yourself with any RPC client.';
+  // the static first paint carries the self-verify truth string (deployed
+  // register) — re-pinned 2026-09-07 (WS-DARK-DOTO copy diet): the address
+  // lives in js/config.js and the docs; the page states the seam, not the hex.
+  const staticCoverage = 'live from backingCoverage() — verify it yourself with any RPC client.';
   assert.strictEqual(countOccurrences(html, staticCoverage), 1,
     'the coverage truth is exactly the ONE relocated seam cell (identical string, single carrier)');
   assert.strictEqual(countOccurrences(html, 'awaiting address wiring'), 0,
@@ -235,31 +195,29 @@ test('(c) the coverage seam: one relocated cell rides the single fill point', ()
 // moved into the flagship fleet card with its section id intact, so the
 // '#deposit section present' pin survives byte-identical. Per-class :hover
 // rules + the mobile stack pin are untouched (CSS-side, still green).
-test('(d) CTA pair: solid->#fleet, outline->#docs, per-class :hover rules', () => {
+// ---------------- (d) THE ONE CTA ----------------
+// RE-PINNED 2026-09-07 (WS-DARK-DOTO): the banner contract is ONE anchor —
+// the amber solid to #fleet ('Open the Fleet'); the outline CTA is retired
+// outright (markup + rules). Per-class :hover + the transition + the mobile
+// stack keep their forms.
+test('(d) the one CTA: solid->#fleet, amber fill, per-class :hover rule', () => {
   assert.strictEqual(countOccurrences(html, '<a class="cta-solid" href="#fleet">Open the Fleet</a>'), 1,
-    'cta-solid anchors #fleet exactly once (Open the Fleet, WS5-SKELETON re-pin)');
-  assert.strictEqual(countOccurrences(html, '<a class="cta-outline" href="#docs">'), 1,
-    'cta-outline anchors #docs exactly once');
-  // no dead anchors: both targets are real sections in the page
+    'cta-solid anchors #fleet exactly once (Open the Fleet)');
+  assert.strictEqual(countOccurrences(html, 'cta-outline'), 0,
+    'the outline CTA is retired (one CTA, the banner contract)');
+  // no dead anchors: the target is a real section in the page
   // (the deposit section survives INSIDE the flagship fleet card's detail)
   assert.ok(html.indexOf('<section class="block" id="deposit">') !== -1, '#deposit section present');
-  assert.ok(html.indexOf('<section class="block" id="docs">') !== -1, '#docs section present');
-  // hover states are PER-CLASS on purpose (WS-LEDGER-STRUCTURE P3 comment): the
-  // solid shifts its fill, the outline fills toward its border token — never a
-  // shared comma-joined hover rule.
-  assert.ok(css.indexOf('.cta-solid:hover { background: var(--paper-2); color: var(--ink); }') !== -1,
-    'cta-solid has its own :hover rule (fill shift)');
-  assert.ok(css.indexOf('.cta-outline:hover { background: var(--ink); color: var(--paper); }') !== -1,
-    'cta-outline has its own :hover rule (fills toward its border token)');
-  assert.ok(!/\.cta-solid:hover,[^{]*\.cta-outline:hover/.test(css),
-    'the two hover rules are never comma-joined into one');
-  // the pair keeps its hover transition so the hover state animates at all
+  // the hover is PER-CLASS on purpose (never a shared comma-joined hover rule):
+  // the fill shifts one amber step brighter.
+  assert.ok(css.indexOf('.cta-solid:hover { background: var(--accent-hover); color: var(--accent-ink); }') !== -1,
+    'cta-solid has its own :hover rule (amber fill shift)');
+  // the CTA keeps its transition so the hover state animates at all
   assert.ok(/\.cta-solid \{[^}]*transition:/.test(css), 'cta-solid carries its transition');
-  assert.ok(/\.cta-outline \{[^}]*transition:/.test(css), 'cta-outline carries its transition');
-  // <=640px: the pair stacks full-width inside the mobile media block
+  // <=640px: the CTA stacks full-width inside the mobile media block
   const mIdx = css.indexOf('@media (max-width: 640px)');
   assert.ok(css.slice(mIdx, mIdx + 900).indexOf('.cta-row { flex-direction: column; align-items: stretch; }') !== -1,
-    'the <=640px block stacks the CTA pair full-width');
+    'the <=640px block stacks the CTA full-width');
 });
 
 // ---------------- (e) launch-fact writer ----------------
@@ -437,11 +395,11 @@ test('(f3) aria-live: the relocated coverage cell announces its changes; live re
 // site-tests/motion-polish.test.js. Map authority:
 // docs/inventory/UI_IMPROVE_MOTION_2026-09-04.md proposals 1, 2 and 4 (+ the
 // ledger-invisibility prerequisite fix) at the 2026-09-05 dispatch anchors.
-test('(m1) WS-MOTION-POLISH: :active press grammar, hero entrance arming, stamp stagger', () => {
-  // (i) the six per-class press rules — one rule per line, uniform :active:not(:disabled)
+test('(m1) WS-MOTION-POLISH: :active press grammar + stamp stagger (doto re-pin)', () => {
+  // (i) the five per-class press rules — one rule per line, uniform :active:not(:disabled)
+  //     (the sixth, .cta-outline, retired with the outline CTA)
   for (const sel of ['button.btn:active:not(:disabled) { transform: translateY(1px); transition:',
     '.cta-solid:active:not(:disabled) { transform: scale(0.985); transition:',
-    '.cta-outline:active:not(:disabled) { transform: scale(0.985); transition:',
     '.doc-tab:active:not(:disabled) { transform: translateY(1px); transition:',
     '.code-copy:active:not(:disabled) { transform: translateY(1px); transition:',
     '.site-nav a.nav-cta:active:not(:disabled) { transform: translateY(1px); transition:']) {
@@ -449,10 +407,10 @@ test('(m1) WS-MOTION-POLISH: :active press grammar, hero entrance arming, stamp 
       'the press rule ships exactly once in the per-class form: ' + sel.slice(0, 44) + '…');
   }
   assert.strictEqual(countOccurrences(css, 'translateY(1px)'), 4, 'pill/nav/tab/copy press = a 1px dip');
-  assert.strictEqual(countOccurrences(css, 'scale(0.985)'), 2, 'the two hero CTAs press at 0.985');
+  assert.strictEqual(countOccurrences(css, 'scale(0.985)'), 1, 'the one hero CTA presses at 0.985');
   // (ii) release rides the EXTENDED base lists — never a competing second
   // transition property (it would kill the fill/color transitions while pressed)
-  for (const base of ['button.btn {', '.cta-solid {', '.cta-outline {', '.doc-tab {', '.code-copy {']) {
+  for (const base of ['button.btn {', '.cta-solid {', '.doc-tab {', '.code-copy {']) {
     const span = css.slice(css.indexOf(base), css.indexOf('}', css.indexOf(base)));
     assert.ok(span.indexOf('transform var(--t-base) var(--ease-enter)') !== -1,
       base + ' base transition list extended IN PLACE with the transform component');
@@ -460,36 +418,25 @@ test('(m1) WS-MOTION-POLISH: :active press grammar, hero entrance arming, stamp 
   const navSpan = css.slice(css.indexOf('.site-nav a.nav-cta {'), css.indexOf('}', css.indexOf('.site-nav a.nav-cta {')));
   assert.ok(navSpan.indexOf('transform var(--t-base) var(--ease-enter)') !== -1,
     '.site-nav a.nav-cta base list extended in place');
-  // (iii) source-order: the six press rules sit BEFORE the 4th reduce gate —
-  // never inside any @media, never after the block (a post-block or
-  // lower-specificity form would leave reduce users an instant 1px/0.985 press
-  // jump while every count grep still passes)
+  // (iii) source-order: the five press rules sit BEFORE the 4th reduce gate —
+  // never inside any @media, never after the block
   const gates = []; let gi = -1;
   while ((gi = css.indexOf('@media (prefers-reduced-motion: reduce)', gi + 1)) !== -1) { gates.push(gi); }
   assert.ok(gates.length >= 5, 'the scoped reduce belt is intact (>= 5 gates, got ' + gates.length + ')');
   const before = css.slice(0, gates[3]).split('\n').filter((l) => l.indexOf(':active') !== -1).length;
-  assert.ok(before >= 6, 'all six press rules sit before the 4th reduce gate (got ' + before + ')');
-  // (iv) the six verbatim reduce restates + the entrance static pair live INSIDE
-  // the 4th scoped reduce block (equal-specificity later-source wins)
+  assert.ok(before >= 5, 'all five press rules sit before the 4th reduce gate (got ' + before + ')');
+  // (iv) the five verbatim reduce restates live INSIDE the 4th scoped reduce
+  // block (equal-specificity later-source wins)
   const reduceBlock = css.slice(gates[3], css.indexOf('\n}', gates[3]));
   for (const sel of ['button.btn:active:not(:disabled) { transform: none; }',
     '.cta-solid:active:not(:disabled) { transform: none; }',
-    '.cta-outline:active:not(:disabled) { transform: none; }',
     '.doc-tab:active:not(:disabled) { transform: none; }',
     '.code-copy:active:not(:disabled) { transform: none; }',
     '.site-nav a.nav-cta:active:not(:disabled) { transform: none; }']) {
     assert.ok(reduceBlock.indexOf(sel) !== -1, 'verbatim reduce restate inside the scoped block: ' + sel);
   }
-  // RETIRED 2026-09-07 (WS5-TREATMENT, one-signature motion): the entrance's
-  // reduce restate, keyframes, exact base rule and cascade-purity pins are
-  // retired with the entrance animation itself (deleted from style.css the
-  // same day) — every motion on the page is the ledger stamp now.
   // (vi) stamp: base opacity:0 + the FORWARDS shorthand byte-unchanged
   // (a backwards fill would repaint the 0% frame during the delay).
-  // RE-SCOPED 2026-09-07 (WS5-TREATMENT): the #hero-ledger-rows id-form delay
-  // pins are RETIRED with the hero ledger (the id died in WS5-SKELETON); the
-  // stagger re-homes to the fleet cards' first-render arrival in style.css's
-  // WS5-TREATMENT signature block (same 140ms beat, extended to the 6th card).
   const stampAt = css.indexOf('.ledger-v.ledger-stamp::after {');
   const stampSpan = css.slice(stampAt, css.indexOf('}', stampAt));
   assert.ok(stampSpan.indexOf('opacity: 0;') !== -1, 'stamp base carries opacity:0 (held invisible through its delay window)');
@@ -497,16 +444,8 @@ test('(m1) WS-MOTION-POLISH: :active press grammar, hero entrance arming, stamp 
     'the stamp animation shorthand stays byte-unchanged (forwards fill — never both/backwards)');
   assert.ok(css.indexOf('@keyframes ws-stamp-fade {\n  0% { opacity: 1; }\n  55% { opacity: 1; }\n  100% { opacity: 0; }\n}') !== -1,
     'the ws-stamp-fade keyframes stay byte-unchanged');
-  // (vii) RETIRED 2026-09-07 (WS5-SKELETON): the JS-side pins — the initReveal
-  // gate restructure + ledger-container observation, the hero ENTRANCE arming
-  // (the ws-entrance class + the role→delay map — half its armed surfaces were
-  // the deleted hero ledger/mint-card/facts) and the magnify sweep's
-  // motionAllowed() slice — are deleted outright with the hero-ledger-era
-  // motion wiring in the three-movement rebuild. The motion battery's
-  // behavioral half is retired dated in motion-polish.test.js the same day.
-  // (viii) WS5-TREATMENT 2026-09-07: the stamp remains the page's ONLY
-  // @keyframes — asserted here so the one-signature contract is teeth, not
-  // prose.
+  // (viii) the stamp remains the page's ONLY @keyframes — the one-signature
+  // contract is teeth, not prose.
   assert.strictEqual((css.match(/@keyframes/g) || []).length, 1,
     'exactly ONE @keyframes ships (the ledger stamp, one-signature motion)');
 });

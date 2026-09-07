@@ -340,25 +340,25 @@ test('MIRROR SITE-PATH RIDER: site/skills/wellstreet-vaults.md mirrors the canon
     'no fabricated absolute mirror URL in static markup (the mirror stays relative)');
 });
 
-// ---------------- COMPRESSED-KEEPER RIDER (WS-OG-PERF, 2026-09-04) ----------------
-// The statically-wired design-kit keepers serve their compressed variants from
-// site/img/compressed/ (byte-different files, same visual — transfer-weight pass).
-// They enter this gate as RELATIVE self-hosted paths (PASS by classification, the
-// docs/font precedent); this rider pins the count and their relative verdict so a
-// future edit cannot quietly move a keeper to an absolute/external URL or drop the
-// compressed variant. (The JS-appended certificate keeper is pinned in
-// render.test.js / agent-first.test.js — this gate scans HTML/CSS off disk only.)
-test('COMPRESSED-KEEPER RIDER: the four statically-wired keepers ship compressed + relative', () => {
-  const keeperRefs = scanSite().filter(function (x) {
-    return x.channel === 'src' && String(x.url).indexOf('img/compressed/') === 0;
+// ---------------- ZERO-IMAGE RIDER (WS-DARK-DOTO, 2026-09-07) ----------------
+// RE-PINNED from the WS-OG-PERF COMPRESSED-KEEPER RIDER: the dot-matrix identity
+// ships ZERO bitmap resources — the keeper set, the canyon and the brand mark
+// are retired outright, and no img src may return quietly. This gate scans
+// HTML/CSS off disk: any src= pointing at an image path fails here. (The
+// favicon is an inline data-URI — data: PASSes by classification, zero files.)
+// The JS-appended keeper class is negatively pinned in render.test.js /
+// agent-first.test.js — this gate is the resource-level half of the contract.
+test('ZERO-IMAGE RIDER: no image resources ship anywhere in the site tree', () => {
+  const imgRefs = scanSite().filter(function (x) {
+    // the og:image/twitter:image META channels are crawler-consumed social-card
+    // previews, not page-loaded resources (the allowlist comment at the top) —
+    // they are deliberately retained and out of this rider's scope.
+    if (x.channel.indexOf('meta:') === 0) { return false; }
+    const u = String(x.url);
+    return /\.(png|jpe?g|gif|webp|avif|bmp|ico|mp4|webm)(\?|$)/i.test(u) ||
+      u.indexOf('img/') === 0;
   });
-  const urls = keeperRefs.map(function (x) { return x.url; }).sort();
-  assert.deepStrictEqual(urls, [
-    'img/compressed/curve-stroke.png',
-    'img/compressed/hand-magnify.png',
-    'img/compressed/hand-point.png',
-    'img/compressed/hand-press.png',
-  ], 'exactly the four compressed keeper srcs are shipped, no more, no fewer');
-  assert.ok(keeperRefs.every(function (x) { return x.verdict === 'pass' && x.kind === 'relative'; }),
-    'every compressed keeper reference is a relative self-hosted path');
+  assert.deepStrictEqual(imgRefs.map(function (x) {
+    return x.source + ' [' + x.channel + '] ' + x.url;
+  }), [], 'zero image/video resources may ship (the zero-image identity)');
 });

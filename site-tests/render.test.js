@@ -137,14 +137,16 @@ global.document = {
 // -text/apr-footnote) — all out of the registry. ADDED: the fleet surfaces (fleet,
 // fleet-books, fleet-flagship-apr, fleet-vault-reads, fleet-coverage) and the ONE
 // live hero stat (hero-stat + its num/label/window children). The sim ids stay (the
-// simulator moved into the flagship fleet card with ids intact); asset-magnify stays
-// (the docs keeper img is static markup, only its JS sweep hook retired).
+// simulator moved into the flagship fleet card with ids intact).
+// + WS-DARK-DOTO (2026-09-07) registry rewrite: asset-magnify is OUT — the docs
+// keeper img is deleted outright with the zero-image identity (no rule, no markup,
+// no JS query), so the registry drops the id with its surface.
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
  'doc-tabs', 'doc-pane', 'footer-year', 'trademark-note',
  'deposit', 'docs', 'fleet',
- 'agents', 'agents-skill-link', 'agents-skill-mirror-link', 'asset-magnify',
+ 'agents', 'agents-skill-link', 'agents-skill-mirror-link',
  'red-amount-label', 'redeem-preview', 'deposit-panel-head',
  'wallet-picker',
  'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
@@ -509,35 +511,26 @@ test('WS5-SKELETON wipe-safety: the flagship fleet card lives OUTSIDE the #fleet
     'the flagship card precedes #fleet-books (static flagship first, client-rendered books after)');
 });
 
-// -------- WS-ASSET-WIRE (2026-09-04: design-kit keepers + motion + agent-first) --------
+// -------- WS-ASSET-WIRE (2026-09-04) — RETIRED WS-DARK-DOTO (2026-09-07) --------
+// The zero-image identity retires the keeper set outright: no decorative imagery
+// ships anywhere on the page (static markup, JS-appended, or stylesheet-painted
+// bitmaps). These two test nodes survive as the NEGATIVE pins of that contract.
 
-test('WS-ASSET-WIRE: the vault card carries the certificate keeper (decorative, self-hosted)', async () => {
+test('WS-DARK-DOTO zero-image: the vault card appends NO certificate keeper (retired surface)', async () => {
   await settle(120);
-  // re-pinned 2026-09-07 (WS5-SKELETON): the flagship vault card renders into the
-  // fleet section now (#fleet-vault-reads — the vault grid is retired); the keeper
-  // rides the card exactly as before (the deployed vault is empty; the empty card
-  // is its state); the decorative attributes pin holds.
   const reads = REGISTRY['fleet-vault-reads'];
   assert.ok(reads, 'flagship reads mount rendered');
-  const cert = reads.querySelector('.asset-certificate');
-  assert.ok(cert, 'the vault card carries the certificate img');
-  assert.strictEqual(cert.getAttribute('src'), 'img/compressed/certificate.png',
-    'certificate src is the relative self-hosted compressed path (WS-OG-PERF)');
-  assert.strictEqual(cert.getAttribute('width'), '240',
-    'certificate carries an explicit width (CLS discipline, JS-appended img)');
-  assert.strictEqual(cert.getAttribute('height'), '129',
-    'certificate carries an explicit height (CLS discipline, JS-appended img)');
-  assert.strictEqual(cert.getAttribute('alt'), '', 'certificate is decorative (empty alt)');
-  assert.strictEqual(cert.getAttribute('aria-hidden'), 'true', 'certificate is aria-hidden');
+  assert.strictEqual(reads.querySelector('.asset-certificate'), null,
+    'the vault card carries no certificate img (zero-image identity)');
 });
 
-test('WS-ASSET-WIRE: agent-first section ships the honest skill pointer + the exact deadpan line (static source)', () => {
+test('WS-DARK-DOTO zero-image: agent-first ships the skill pointers and NOT ONE img tag (static source)', () => {
   const fs2 = require('node:fs');
   const path2 = require('node:path');
   const html = fs2.readFileSync(path2.join(__dirname, '..', 'site', 'index.html'), 'utf8');
-  assert.ok(html.indexOf('Operated by agents.') !== -1, 'two-tone headline line 2 present');
-  assert.ok(html.indexOf('Same contracts. Same rules. Your agent reads the skill and runs the vault.') !== -1,
-    'the exact honest agent-first line present');
+  assert.ok(html.indexOf('OPERATED BY AGENTS.') !== -1, 'the banner headline line 2 present');
+  assert.ok(html.indexOf('One skill file — any agent can operate this protocol.') !== -1,
+    'the honest agent-first line present');
   assert.ok(html.indexOf('skills/wellstreet-vaults/SKILL.md') !== -1, 'canonical skill path present');
   assert.ok(html.indexOf('id="agents"') !== -1, 'agents section present');
   assert.ok(html.indexOf('href="skills/wellstreet-vaults/SKILL.md"') !== -1,
@@ -551,32 +544,13 @@ test('WS-ASSET-WIRE: agent-first section ships the honest skill pointer + the ex
     'the mirror pointer is its own anchor (the repo pointer is untouched)');
   assert.ok(/https?:\/\/[^"']*skills\/wellstreet-vaults/.test(html) === false,
     'no fabricated absolute skill URL in static markup (repoUrl is PENDING_IDENTITY)');
-  // the four statically-wired keepers (the certificate is JS-appended, pinned above)
-  // WS-OG-PERF (2026-09-04): keepers serve the compressed variants and each img tag
-  // carries explicit width/height (CLS discipline) + loading="lazy" — pinned per tag.
-  ['img/compressed/hand-point.png', 'img/compressed/hand-press.png',
-   'img/compressed/hand-magnify.png', 'img/compressed/curve-stroke.png']
-    .forEach(function (src) {
-      assert.ok(html.indexOf('src="' + src + '"') !== -1, 'keeper asset wired: ' + src);
-      const tagRe = new RegExp('<img[^>]*src="' + src.replace(/\./g, '\\.') + '"[^>]*>');
-      const tag = tagRe.exec(html);
-      assert.ok(tag, 'keeper img tag found: ' + src);
-      assert.ok(/\bwidth="\d+" /.test(tag[0]) && /\bheight="\d+"/.test(tag[0]),
-        'keeper carries explicit width/height: ' + src);
-      assert.ok(/loading="lazy"/.test(tag[0]), 'keeper is lazy-loaded: ' + src);
-    });
-  // the compressed variants exist on disk with the SAME intrinsic dimensions as the
-  // uncompressed keepers (byte-different, same visual — spot-verified at display size)
-  [['hand-point.png', 460, 259], ['hand-press.png', 220, 124],
-   ['hand-magnify.png', 300, 166], ['curve-stroke.png', 1280, 720]]
-    .forEach(function ([name, w, h]) {
-      const p = path2.join(__dirname, '..', 'site', 'img', 'compressed', name);
-      assert.ok(fs2.existsSync(p), 'compressed keeper exists on disk: img/compressed/' + name);
-      const buf = fs2.readFileSync(p);
-      // PNG IHDR: width @ offset 16, height @ offset 20 (big-endian)
-      assert.strictEqual(buf.readUInt32BE(16), w, 'compressed ' + name + ' intrinsic width');
-      assert.strictEqual(buf.readUInt32BE(20), h, 'compressed ' + name + ' intrinsic height');
-    });
+  // THE ZERO-IMAGE CONTRACT (WS-DARK-DOTO): not one img tag and not one img/
+  // path reference ships in the static markup — the keepers, the canyon, the
+  // motif and the brand mark are all retired; the favicon is an inline data-URI.
+  assert.strictEqual(countImgTags(html), 0, 'index.html ships zero <img> tags');
+  assert.strictEqual((html.match(/img\/[A-Za-z0-9._/-]+/g) || []).length, 0,
+    'index.html carries zero img/ path references (comments included)');
+  function countImgTags(src) { return (src.match(/<img\b/g) || []).length; }
 });
 
 test('WS-ASSET-WIRE: the skill-link upgrade seam is state-agnostic (repoUrl-driven, never fabricated)', async () => {

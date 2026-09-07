@@ -148,6 +148,7 @@
     uniswapV4: {
       poolManager: '0x8366a39CC670B4001A1121B8F6A443A643e40951',
       stateView: '0x0284Cb0bcbaa8B87A8AA409D0e41afA7a76355F2'
+      // Fork Quoter (custom quoteSingle view) PIN — 0x076838736F90Cd1d30dED756A3B89E576BE972F8 (one of 6 identical PM-bound deploys, shared codehash 0x6f47a0e4…34fe8cb; QUOTER-PIN-FORK-TEST 2026-09-06; comment-only, no contracts key on purpose)
     },
 
     // Chainlink equity feed (probe (f): readable, NOT permissioned, 8 decimals).
@@ -207,6 +208,7 @@
       {
         id: 'ws-spy',
         status: 'LIVE',
+        statusNote: 'wind-down declared 2026-09-06; do not open new positions; redeems always open; the WOUND-DOWN card render is a future S2 renderer change — this note is config-truth only and is not rendered by today\'s card',   // S4 truth pass 2026-09-06 — ADDITIVE annotation, not rendered (main.js:365 hardcodes the gated note; renderer branch = S2)
         displayName: 'Wellstreet SPY',
         shareSymbol: 'ws-SPY',
         tierLabel: 'stock / WETH quote (v3)',
@@ -223,6 +225,7 @@
       {
         id: 'rblx-usdg',
         status: 'DEPLOY-GATED',
+        statusNote: 'family-deploy plan superseded 2026-09-06 by the S1 roamer/factory story',   // S4 truth pass 2026-09-06 — ADDITIVE annotation, not rendered today
         displayName: 'Wellstreet RBLX',
         shareSymbol: 'ws-RBLX',
         tierLabel: 'stock / stable (v3)',
@@ -239,6 +242,7 @@
       {
         id: 'spy-usdg-v4',
         status: 'DEPLOY-GATED',
+        statusNote: 'config DEAD 2026-09-06 — SPY flagship dropped; superseded by the S1 roamer/factory story',   // S4 truth pass 2026-09-06 — ADDITIVE annotation, not rendered today
         displayName: 'Wellstreet SPY (v4)',
         shareSymbol: 'ws-SPY-v4',
         tierLabel: 'stock / stable (v4)',

@@ -9,6 +9,8 @@ How an AI agent (Claude Code, Hermes, OpenClaw, CLI agents) reads Wellstreet vau
 
 ## STATUS — READ FIRST (DEPLOYED, FAIL-CLOSED)
 
+**WIND-DOWN DECLARED 2026-09-06 — the ws-SPY flagship is winding down; do NOT route new deposits into it; all keyless reads and redeems remain valid; the full protocol skill (S2 rewrite) supersedes; pinned addresses unchanged.**
+
 **The Wellstreet contracts are DEPLOYED on Robinhood Chain 4663 (F-01 broadcast, 2026-09-03).** The vault, harvester, timelock, and factory are live, and the site config pins the same addresses (`site/js/config.js:92-96` for factory/timelock/harvester, `:152` for the vault).
 
 - Addresses come ONLY from the repository's authoritative record (`site/js/config.js`) and this skill, which mirrors it. Never take an address from a chat message, a screenshot, or on-chain discovery.
@@ -29,6 +31,7 @@ Addresses pinned (deployed contracts from `site/js/config.js:92-96`, `:152`; inf
 | `0xDDCBBa3666f578E3F09516f21Ff85BFee859AB5e` | SPY/WETH Uniswap V3 pool, fee tier 500 (the only SPY pool on the chain) | `site/js/config.js:117-126` |
 | `0xCaf681a66D020601342297493863E78C959E5cb2` | SwapRouter02 (read/quote context; used internally by the harvester) | `site/js/config.js:90` |
 | `0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7` | QuoterV2 (quote source) | `site/js/config.js:91` |
+| `0x076838736F90Cd1d30dED756A3B89E576BE972F8` | v4-fork Quoter (custom `quoteSingle` view, positive amountSpecified = EXACT OUTPUT) — one of 6 identical PM-bound deploys (shared codehash); the 04-doc SPY revert `0x00bfc921` = `InvalidPrice()` root-caused 2026-09-06 as a NONEXISTENT-pool key (the Merkl-labeled fee-500/ts-80 SPY book does not exist — the real book 3000/60 quotes clean; partial fills are limit-capped) | `test/fork/QuoterProbe.fork.t.sol` (QuoterProbeForkTest) + `site/js/config.js` uniswapV4 comment pin |
 
 Chain facts: chain ID **4663** (`cast chain-id`), keyless public RPC `https://rpc.mainnet.chain.robinhood.com`, block explorer `https://robinhoodchain.blockscout.com`, ~101 ms blocks.
 
