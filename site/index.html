@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" style="color-scheme: light">
+<html lang="en" style="color-scheme: dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,19 +14,26 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://wellstreet.tech/og.png">
-  <meta name="theme-color" content="#EDE9DC">
-  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#0B0D0C">
+  <meta name="color-scheme" content="dark">
   <title>Wellstreet — the open liquidity layer of Robinhood Chain</title>
   <link rel="stylesheet" href="css/style.css">
+  <!-- WS5-DOTO: preload the subset dot-matrix face (display + every measured figure);
+       relative path — IPFS-ready, zero external origins. crossorigin is required for
+       font preloads even same-origin. -->
+  <link rel="preload" href="fonts/doto-var.woff2" as="font" type="font/woff2" crossorigin>
   <!-- G2 (UI_IMPROVE2_GLYPHS): favicon = the ratified thumbs-up mark as a
        solid-ink silhouette (halftone dies at 16-32px — the ratified logo system's
        favicon rule). Plate/stroke stay the --paper-2 / --ink token values the
        theme battery resolves (theme.test.js (d) favicon asserts stay green
        untouched). Still an inline data-URI — zero new files, zero requests. -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23E4DFD1'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%231C1A15' stroke-opacity='0.4' stroke-width='2'/%3E%3Cpath fill='%231C1A15' d='M13 29h8v22h-8zM24 51c-2.8 0-5-2.2-5-5V31.5c0-1.5.6-2.9 1.7-3.9l7.6-7.2c1.1-1 1.7-2.5 1.7-4v-6c0-2 1.6-3.6 3.6-3.6 3.6 0 6.4 2.9 6.4 6.4v9.3h7.2c3.2 0 5.6 2.8 5.1 5.9l-2 13.9c-.4 2.9-2.9 5-5.8 5L24 51z'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23070908'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%23EAE6DB' stroke-opacity='0.4' stroke-width='2'/%3E%3Cpath fill='%23EAE6DB' d='M13 29h8v22h-8zM24 51c-2.8 0-5-2.2-5-5V31.5c0-1.5.6-2.9 1.7-3.9l7.6-7.2c1.1-1 1.7-2.5 1.7-4v-6c0-2 1.6-3.6 3.6-3.6 3.6 0 6.4 2.9 6.4 6.4v9.3h7.2c3.2 0 5.6 2.8 5.1 5.9l-2 13.9c-.4 2.9-2.9 5-5.8 5L24 51z'/%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="skip-link" href="#vaults">Skip to content</a>
+  <!-- WS5-SKELETON (2026-09-07): the skip target moved from #vaults (retired with
+       the vault family grid) to #fleet — the first content movement of the
+       three-movement rebuild. Copy byte-unchanged. -->
+  <a class="skip-link" href="#fleet">Skip to content</a>
   <!-- WS3-DEGRADED #3 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES): the no-JS first
        paint becomes a designed plate. The inline <style> lives INSIDE this body-top
        <noscript> (NOT the <head>) deliberately: agent-first.test.js (f2) pins the
@@ -34,13 +41,14 @@
        placement would break that pin. Style applies document-wide wherever parsed;
        it precedes every skeleton span below, so there is no unstyled flash. With
        scripting ON this block is inert — zero JS-path impact, zero resource URLs
-       (resource-gate scans inline styles for url() only; there is none). -->
+       (resource-gate scans inline styles for url() only; there is none).
+       WS5-SKELETON (2026-09-07): the .stat-value / .vault-grid-empty /
+       [data-skeleton] / .state selectors retired with the surfaces they styled
+       (stats band, vault grid, hero ledger) — only the docs-pane void rule is
+       still load-bearing. -->
   <noscript>
     <style>
-      [data-skeleton] { display: none; }
-      .state { animation: none; }
-      .stat-value { color: var(--ink-soft); }
-      .vault-grid-empty, .doc-pane-empty { display: block; }
+      .doc-pane-empty { display: block; }
     </style>
     <div class="wrap noscript-note">
       <span class="noscript-kicker">Live reads require JavaScript</span>
@@ -70,7 +78,10 @@
           <span class="brand-tag">open liquidity layer · chain 4663</span>
         </a>
         <nav class="site-nav" aria-label="Sections">
-          <a href="#vaults">Vaults</a>
+          <!-- WS5-SKELETON (2026-09-07): nav retargeted to the three-movement page —
+               #fleet replaces the retired #vaults section; #deposit still resolves
+               (the widget moved into the flagship fleet card with its id intact). -->
+          <a href="#fleet">The Fleet</a>
           <a href="#deposit">Deposit / Redeem</a>
           <a href="#docs">Docs</a>
           <a href="#docs" class="nav-cta">Run it yourself</a>
@@ -119,33 +130,18 @@
           <rect x="424" y="40" width="32" height="32" fill="rgba(0,168,107,0.10)"/>
           <rect x="40" y="40" width="16" height="16" fill="rgba(0,168,107,0.14)"/>
         </svg>
-        <!-- Floating live-data chips (WS-HERO-CHIPS-V10): ens.domains-style
-             scatter carrying REAL pipeline figures instead of decoration. The
-             live chips (SPY / TVL / APR) are filled by js/main.js from the same
-             reads the ledger already consumes — zero new fetch hosts (D8) — and
-             degrade to label-only form when a read fails; the static chips
-             (ws-SPY, 90/10 split, RH · 4663) always render. The container is
-             aria-hidden: every chip figure is a decorative duplicate of a value
-             the ledger and cards already expose. Chips sit in the hero's outer
-             gutters and padding bands so they never overlap the headline, and
-             .hero's overflow:hidden clips them — they can never create
-             horizontal scroll at any width. -->
-        <div class="hero-chips" aria-hidden="true">
-          <span class="hero-chip hero-chip--green hero-chip--price"><span class="hero-chip-label">SPY</span><span class="hero-chip-val" id="chip-price"></span></span>
-          <span class="hero-chip hero-chip--ink hero-chip--tvl"><span class="hero-chip-label">TVL</span><span class="hero-chip-val" id="chip-tvl"></span></span>
-          <span class="hero-chip hero-chip--tan hero-chip--apr"><span class="hero-chip-label">APR</span><span class="hero-chip-val" id="chip-apr"></span><span class="hero-chip-suffix">projected</span><span class="hero-chip-suffix" id="chip-baseline-note" hidden>baseline</span></span> <!-- WS3-DEGRADED #5: fallback provenance rides the chip — hidden unless publish() lands the labeled baseline -->
-          <span class="hero-chip hero-chip--tan hero-chip--share"><span class="hero-chip-label">ws-SPY</span></span>
-          <span class="hero-chip hero-chip--ink hero-chip--split"><span class="hero-chip-label">90/10 split</span></span>
-          <span class="hero-chip hero-chip--tan hero-chip--chain"><span class="hero-chip-label">RH · 4663</span></span>
-        </div>
         <div class="wrap">
           <h1>The open liquidity layer of <span class="punch">Robinhood Chain</span>.<br><span class="quiet">Checkable, not sellable.</span></h1>
-          <!-- Copy review 2026-09-03: benefit bridge + skeptic CTA. WS-LEDGER-STRUCTURE
-               (2026-09-04): the skeptic link became a two-CTA row — solid primary to
-               the deposit widget + outlined secondary to the docs. -->
+          <!-- WS5-SKELETON (2026-09-07): the movement-(a) CTA pair. The solid primary
+               now OPENS THE FLEET (the page's own product surface); the deposit
+               widget lives inside the flagship fleet card, one anchor-hop away.
+               supersedes: Copy review 2026-09-03 + WS-LEDGER-STRUCTURE (2026-09-04)
+               (the solid CTA anchored the deposit widget — that target moved into
+               the fleet flagship; the per-class hover rules and the outline CTA
+               label's single-carrier rule stand). -->
           <p>Every number on this page is something you can verify yourself — no trust in us, an auditor, or a screenshot required.</p>
           <div class="cta-row">
-            <a class="cta-solid" href="#deposit">Deposit →</a>
+            <a class="cta-solid" href="#fleet">Open the Fleet</a>
             <a class="cta-outline" href="#docs">Read the code →</a>
           </div>
           <p class="lede">
@@ -154,223 +150,112 @@
             chain's books, fee income routed to holders, zero dev take. MIT-licensed, unaudited, checkable.
             Every number on this page is a raw RPC call. Replay them yourself.
           </p>
-          <!-- Hero live ledger (WS-HERO-V9): real on-chain numbers beside the pitch.
-               It CONSUMES the vault-card pipeline's already-fetched reads in js/main.js
-               (same public RPC endpoints, same batching/failover, zero new fetch hosts
-               — the D8 serverless-clean rule). This static skeleton renders the honest
-               connecting state; js/main.js fills live values or row-level
-               "unavailable (RPC)" states when a read fails — never a fabricated number. -->
-          <aside class="hero-ledger" id="hero-ledger" aria-label="Live on-chain ledger: SPY / WETH pool and vault state">
-            <div class="hero-ledger-head">
-              <span class="hero-ledger-title">Live ledger</span>
-              <span class="hero-ledger-state" id="hero-ledger-state" aria-live="polite" data-skeleton>connecting to public RPC…</span><noscript><span class="hero-ledger-state">unavailable without JavaScript — every figure on this page is a public RPC call you can make yourself</span></noscript>
-            </div>
-            <span class="visually-hidden" id="hero-ledger-summary" aria-live="polite"></span>
-            <div class="hero-ledger-rows" id="hero-ledger-rows">
-              <!-- WOW-8 ledger stamp: when a live read lands, js/main.js stamps the
-                   row's value cell (data-stamp="slot0"|"balances" + .ledger-stamp)
-                   and the stylesheet renders a mono "✓ <read>" verification mark —
-                   data-carrying only, typographic, never ornamental. -->
-              <div class="ledger-row"><span class="ledger-k">SPY / WETH (pool slot0)</span><span class="ledger-v"><span class="state" data-skeleton>connecting to public RPC…</span><noscript><span class="state">unavailable without JavaScript</span></noscript></span></div>
-              <div class="ledger-row"><span class="ledger-k">Pool TVL (live)</span><span class="ledger-v"><span class="state" data-skeleton>connecting to public RPC…</span><noscript><span class="state">unavailable without JavaScript</span></noscript></span></div>
-              <div class="ledger-row"><span class="ledger-k">The pool owner's cut (live)</span><span class="ledger-v"><span class="state" data-skeleton>connecting to public RPC…</span><noscript><span class="state">unavailable without JavaScript</span></noscript></span></div>
-              <div class="ledger-row"><span class="ledger-k">Vault state</span><span class="ledger-v">deployed — yield phase live</span></div>
-            </div>
-            <p class="hero-ledger-note">Every figure above is read by your browser straight from public RPC nodes — no backend, no keys. When a read fails, the row says so instead of estimating.</p>
-            <!-- WS-ASSET-WIRE (2026-09-04): sleeve-point hand from the user-ratified
-                 design kit (docs/internal/design-kit/), overlapping the ledger card's
-                 edge — the ratified draft composition. Halftone-dithered cutout,
-                 self-hosted relative path (zero new origins), purely decorative
-                 (aria-hidden, alt=""). Static asset — no motion on this one; hidden
-                 <=640px so the stacked card keeps its full measure. -->
-            <img class="asset-point" src="img/compressed/hand-point.png" width="460" height="259" alt="" aria-hidden="true" loading="lazy">
-          </aside>
-          <!-- STRATTON-LEDGER-CARD (component a): the mint-ticket product card — a
-               SECOND hero card, deliberately coexisting with .hero-ledger above
-               (transitional state per the COEXISTENCE PIN; the hero-recompose goal
-               owns any merge). Rows reuse the .ledger-row anatomy; #mint-backed is
-               the live BACKED cell filled by main.js's single coverage seam.
-               .ledger-card is the component's own co-class (the stratton
-               ledger-card anatomy: 1px border, mono label rows, outline tag). -->
-          <aside class="mint-card ledger-card" aria-label="Deposit facts">
-            <span class="mint-card-tag">MINT TICKET</span>
-            <div class="ledger-row"><span class="ledger-k">DEPOSIT</span><span class="ledger-v">SPY (on-chain stock token)</span></div>
-            <div class="ledger-row"><span class="ledger-k">SETTLED AT</span><span class="ledger-v">Robinhood Chain (chainId 4663)</span></div>
-            <div class="ledger-row"><span class="ledger-k">YOU RECEIVE</span><span class="ledger-v">ws-SPY shares — never rebased</span></div>
-            <div class="ledger-row"><span class="ledger-k">BACKED</span><span class="ledger-v" id="mint-backed" aria-live="polite">coverage reads live from backingCoverage() on the vault at 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 (js/config.js); verify it yourself with any RPC client.</span></div>
-            <!-- WS3-DEGRADED #7 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES): the
-                 verify promise is state-INDEPENDENT — main.js never writes this
-                 line, so the check-it-yourself instruction survives every degrade
-                 (the pinned cell strings above still flip to "unavailable (RPC)").
-                 States only what exists: a public view + the one-seam duplication. -->
-            <p class="mint-card-verify">The BACKED figure is the vault's own <code>backingCoverage()</code> view — one public eth_call, decodable by any RPC client; the invariants card below carries the same seam.</p>
-            <div class="mint-card-callout">One token is one share. If the share value doubles, your tokens double. Nothing rebases.</div>
-          </aside>
-          <div class="hero-facts">
-            <div class="hero-fact">
-              <span class="k">Who holds the keys</span>
-              <span class="v">You. Vault shares are yours; redeems have no pause path.</span>
-            </div>
-            <div class="hero-fact">
-              <span class="k">Fee split</span>
-              <span class="v">90% depositors / 10% protocol (timelock-settable, hard-capped at 20%).</span>
-            </div>
-            <div class="hero-fact">
-              <span class="k">Where the numbers come from</span>
-              <span class="v">Your browser, reading public RPC nodes. No backend, no API keys.</span>
-            </div>
-            <div class="hero-fact">
-              <span class="k">Audit status</span>
-              <span class="v">None. Read the invariants and the threat model instead.</span>
-            </div>
+          <!-- WS5-SKELETON (2026-09-07): the ONE live hero stat — the Fleet count from
+               js/fleet.js's same-origin feed (WS.fleet.summary()). Static pre-JS is the
+               honest unavailable state ('—'); initFleet() fills the count, the
+               pay/no-pay label and the provenance window VERBATIM, and fails closed to
+               '—' — never a fabricated zero. Replaces the deleted hero-chips/ledger
+               redundancy (the audit's biggest finding). -->
+          <div id="hero-stat">
+            <span class="hero-stat-num" id="hero-stat-num">—</span>
+            <span class="hero-stat-label" id="hero-stat-label">books measured</span>
+            <span class="hero-stat-window" id="hero-stat-window"></span>
           </div>
+          <!-- WS-ASSET-WIRE (2026-09-04), relocated WS5-SKELETON (2026-09-07): the
+               sleeve-point hand from the user-ratified design kit (docs/internal/
+               design-kit/) — it pointed at the hero ledger's edge; that ledger died
+               in the three-movement rebuild, so the keeper now points at the ONE
+               live hero stat it precedes. Halftone-dithered cutout, self-hosted
+               relative path (zero new origins), purely decorative (aria-hidden,
+               alt=""). Static asset — no motion on this one; hidden <=640px so the
+               stacked hero keeps its full measure. -->
+          <img class="asset-point" src="img/compressed/hand-point.png" width="460" height="259" alt="" aria-hidden="true" loading="lazy">
           <div id="chain-badge" class="muted mt-16" aria-live="polite"></div>
         </div>
       </section>
 
-      <!-- ============ STATS BAND (WSV-STATS-REAL-FOOTER) ============
-           Count-up stats band carrying REAL pipeline figures — the same values
-           the hero chips show (SPY USD price, pool TVL in USD, the published
-           depositor APR projection), written by js/main.js through the same
-           snapshot flow; zero new fetch hosts. The 90/10 split + chain cell is
-           a ratified economic constant rendered once from js/config.js and
-           never counted up. The container is aria-hidden (hero-chips
-           precedent): every figure is a duplicate of a value the hero ledger
-           and vault cards already expose accessibly. Glyphs are the design
-           reference's display-font character set (< % * #). -->
-      <!-- WOW-1 (WOW_UPGRADES_2026-09-03): id="stat-tape" names the band as the
-           live tape surface — the tape EXTENDS this existing band (depth, not a
-           fifth duplicate surface): js/main.js re-rolls a cell when its published
-           value changed between refreshes and blinks a ▲/▼ delta tick beside it.
-           The ticks live only on the two LIVE cells (TVL, price); the projection
-           cell keeps its static "projected" marker and is EXCLUDED from the
-           re-roll (a count-up/tick would imply a live reading that does not
-           exist), and the split cell stays the ratified constant, never animated. -->
-      <section class="stat-band" id="stat-tape" aria-hidden="true">
-        <div class="wrap">
-          <div class="stat-grid">
-            <div class="stat-cell">
-              <span class="stat-glyph">&lt;</span>
-              <span class="stat-line"><span class="stat-value" id="stat-tvl">—</span><span class="stat-tick" id="stat-tick-tvl" aria-hidden="true"></span></span>
-              <span class="stat-label">Pool TVL, live</span>
-            </div>
-            <div class="stat-cell">
-              <span class="stat-glyph">*</span>
-              <span class="stat-line"><span class="stat-value" id="stat-price">—</span><span class="stat-tick" id="stat-tick-price" aria-hidden="true"></span></span>
-              <span class="stat-label">SPY USD (Chainlink)</span>
-            </div>
-            <div class="stat-cell">
-              <span class="stat-glyph">%</span>
-              <span class="stat-value" id="stat-apr">—</span>
-              <span class="stat-label">Depositor APR</span>
-              <span class="stat-marker">projected</span>
-              <span class="stat-baseline-note" id="stat-baseline-note" hidden>baseline</span><!-- WS3-DEGRADED #5: fallback provenance on the band; sibling to the pinned 'projected' marker, never a replacement -->
-            </div>
-            <div class="stat-cell">
-              <span class="stat-glyph">#</span>
-              <span class="stat-value" id="stat-split"></span>
-              <span class="stat-label">Depositor / protocol split</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============ LIVE MONEY-FLOW (WOW-2, WOW_UPGRADES_2026-09-03) ============
-           The deposit→pool→vault journey drawn from real values: node figures are
-           HTML bound by js/main.js to the SAME published pipeline reads the hero
-           ledger consumes (pool TVL, live-decoded slot0 cut — zero new fetches,
-           zero new hosts, D8); the connector paths are an aria-hidden inline SVG
-           (no files, no requests) whose dash-flow rate is class-bucketed from the
-           published pool net rate — a ratio, never an APR rendered as a velocity
-           number. The vault node's split bar renders the ratified 90/10 as
-           geometry; its terminal label (flow-yield) consumes the published
-           "~X% projected" string byte-for-byte — a footnote among flowing
-           quantities, never a headline. Pre-deploy the vault node renders the
-           site's own schematic register and auto-upgrades via the isDeployed
-           seam when the deploy lands. -->
-      <figure class="flow-figure" id="flow-diagram" aria-label="Live money flow: your deposit, the pool, the vault">
-        <div class="wrap">
-          <svg class="flow-svg" viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
-            <path class="flow-path flow-path--in" d="M300 70 H380" vector-effect="non-scaling-stroke"/>
-            <path class="flow-path flow-path--fees" d="M620 70 H700" vector-effect="non-scaling-stroke"/>
-            <path class="flow-path flow-path--cut" d="M500 96 V168" vector-effect="non-scaling-stroke"/>
-          </svg>
-          <div class="flow-nodes">
-            <div class="flow-node flow-node--deposit">
-              <span class="flow-node-k">Your deposit</span>
-              <span class="flow-node-v">SPY → ws-SPY shares</span>
-              <span class="flow-node-sub" id="flow-deposit-state">open — approve the vault, then deposit</span>
-            </div>
-            <div class="flow-node flow-node--pool">
-              <span class="flow-node-k">The pool</span>
-              <span class="flow-node-v" id="flow-pool-tvl">connecting to public RPC…</span>
-              <span class="flow-node-sub" id="flow-cut">protocol cut — connecting to public RPC…</span>
-            </div>
-            <div class="flow-node flow-node--vault flow-node--schematic">
-              <span class="flow-node-k">The vault</span>
-              <span class="flow-node-v" id="flow-vault-state">deployed — yield phase live</span>
-              <span class="flow-split" aria-hidden="true"><span class="flow-split-dep"></span><span class="flow-split-prot"></span></span>
-              <span class="flow-node-sub">90% depositors / 10% protocol (ratified)</span>
-              <span class="flow-yield" id="flow-yield"></span>
-            </div>
-          </div>
-          <figcaption class="flow-caption">
-            <span class="flow-caption-note">Fee income flows from real swap activity in the SPY/WETH pool; the owner-set cut is decoded live from the pool's slot0; the 90/10 split is the ratified constant. The projected depositor figure is a rate tied to a published methodology — a footnote among flowing quantities, never a promise.</span>
-          </figcaption>
-        </div>
-      </figure>
-
-      <!-- ============ LIVE VAULT CARDS ============ -->
-      <section class="block" id="vaults">
+      <!-- ============ THE FLEET (WS5-SKELETON, 2026-09-07) ============
+           Movement (b): the measured books, one column. The intro line carries the
+           PROTECTED launch-fact seam (#vaults-launch-fact — byte-identical text,
+           writer relocated with it), the wind-down honest line moved verbatim from
+           the retired #vaults family note, and the DEPLOY-GATED family truth as one
+           line (no gated cards — the family grid is deleted). #fleet-books renders
+           client-side from WS.fleet.rows() (js/fleet.js — the same-origin feed is a
+           file) grouped PAYS → HOOK → DEAD; every row is a stacked native-disclosure
+           card (zero-JS detail). The FLAGSHIP card is the static first card of the
+           column — a SIBLING that precedes the render target, never a child of
+           #fleet-books (renderFleetBooks() wipes that span on every path; see the
+           pass-2 fix note below): its detail hosts the vault-card reads (js/main.js
+           renders the live pipeline into #fleet-vault-reads), the four pillar fact
+           rows relocated byte-identical from the hero, the backingCoverage seam as
+           ONE line (#fleet-coverage), and the ENTIRE deposit widget — moved with all
+           ids/classes byte-unchanged. -->
+      <section class="block" id="fleet">
         <div class="wrap">
           <div class="block-head">
             <span class="index">01</span>
-            <h2>Vaults</h2>
+            <h2>The Fleet</h2>
             <span class="spacer"></span>
-            <span class="muted" id="vaults-updated">live on-chain reads</span>
+            <span class="muted">the feed is a file — every figure measured</span>
           </div>
           <p class="block-sub">
-            Token state, pool balances, the pool's price and its owner-set fee cut (decoded from the pool's own
-            <code>slot0</code>) — the raw reads, not a summary of them. <span id="vaults-launch-fact">The vault is on-chain — four contracts on Robinhood Chain, verifiable at the exact addresses these cards read.</span>
-            <!-- WS-MULTI-VAULT-FRONTEND (2026-09-05): the section is now the whole
-                 vault FAMILY. The flagship ws-SPY card reads live; every other tier
-                 renders the explicit gated state (config-pinned facts, zero live
-                 reads, zero yield figures — the honest APR note is the only APR a
-                 gated card carries). Tier + risk labels come from cfg.vaultFamily;
-                 the PACK tier carries the HIGH-RISK, dust-cap disclosure. -->
-            <strong>The family:</strong> the flagship <code>ws-SPY</code> vault is LIVE and reads live below. The SPY book is winding down — redemptions stay open. The rest of the
+            <span id="vaults-launch-fact">The vault is on-chain — four contracts on Robinhood Chain, verifiable at the exact addresses these cards read.</span>
+            The SPY book is winding down — redemptions stay open. The rest of the
             family — <code>ws-RBLX</code> (stock/stable, v3), the v4 stock/stable and stable/ETH rails tiers, and the
-            PACK meme/stock tier (HIGH RISK, dust-capped) — is DEPLOY-GATED: each gated card states its gate in plain text,
-            pins its fee book, and publishes no yield figure until measured harvests exist. Every APR on a gated card is the
-            same sentence: published post-deploy from measured harvests, backward-looking only.
+            PACK meme/stock tier (HIGH RISK, dust-capped) — is DEPLOY-GATED: nothing on this page renders a yield
+            figure for a gated tier until measured harvests exist.
           </p>
-          <!-- WS-VAULT-FAMILY-GRID (2026-09-04): the vault card is a REPEATABLE
-               TEMPLATE rendered by js/main.js from the cfg.vaults[] array in
-               js/config.js — one config entry = one bordered ledger card (mono
-               rows, green accent, the certificate keeper), zero markup change per
-               entry. This grid stays EMPTY in the static markup by design (cards
-               are JS-rendered like every live figure on this page); the
-               pending/deployed variant, the underlying, the fee pool and the
-               Chainlink feed all resolve per-entry from the config keys, and the
-               auto-fit grid below lays the family out in rows.
-               WS-MULTI-VAULT-FRONTEND (2026-09-05): the template's input is now the
-               FAMILY — cfg.vaults[] renders the flagship exactly as before
-               (byte-compatible single-vault callers), then cfg.vaultFamily adds the
-               gated tier cards (and upgrades any family entry whose vault deploys
-               into the live pipeline automatically). -->
-          <div id="vault-grid"></div>
-          <!-- WS3-DEGRADED #3: the no-JS vault-grid void gets its sentence — shown
-               only by the <noscript> style block at the top of <body>. -->
-          <noscript><div class="vault-grid-empty">The vault cards are rendered by your browser from live chain reads. Without JavaScript: the contracts are open source, and every figure is a public RPC call you can make yourself — the note above points at the docs.</div></noscript>
-          <div class="apr-footnote" id="apr-footnote">
-            <span class="lbl">Depositor APR — projected, methodology-linked</span>
-            <span id="apr-footnote-text"></span>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============ DEPOSIT / REDEEM WIDGET ============ -->
-      <section class="block" id="deposit">
+          <!-- WS5-SKELETON pass-2 fix (2026-09-07): the flagship fleet card is a
+               SIBLING that precedes #fleet-books, never a child of it. js/main.js's
+               renderFleetBooks() wipes the #fleet-books span wholesale on BOTH the
+               success and the fail-closed path (box.textContent='') — pass 1 nested
+               this card inside that span, so the deposit widget, the coverage seam
+               and the flagship live reads were destroyed in every JS-enabled browser
+               moments after load (the nav's #deposit anchor dangled with them).
+               Static flagship first, client-rendered books after; the render target
+               is empty in the static markup and hosts NOTHING static, ever. -->
+            <details class="fleet-card fleet-card--flagship">
+              <summary>
+                <span class="fleet-pair">ws-SPY</span>
+                <span class="fleet-apr" id="fleet-flagship-apr">—</span>
+                <span class="fleet-apr-mark">projected</span>
+                <span class="fleet-meta">the flagship vault — the one book you can deposit into</span>
+              </summary>
+              <div class="fleet-detail">
+                <p class="fleet-tier-note">The flagship ERC-4626 vault — shares mint on deposit and burn on redeem; one token is one share. Its live reads and the deposit widget live in this card.</p>
+                <div id="fleet-vault-reads"></div>
+                <!-- The four pillar fact rows, relocated byte-identical from the hero
+                     (WS5-SKELETON 2026-09-07): the hero carries ONE live stat now; the
+                     deposit-relevant facts live where the deposit decisions happen. -->
+                <div class="hero-facts">
+                  <div class="hero-fact">
+                    <span class="k">Who holds the keys</span>
+                    <span class="v">You. Vault shares are yours; redeems have no pause path.</span>
+                  </div>
+                  <div class="hero-fact">
+                    <span class="k">Fee split</span>
+                    <span class="v">90% depositors / 10% protocol (timelock-settable, hard-capped at 20%).</span>
+                  </div>
+                  <div class="hero-fact">
+                    <span class="k">Where the numbers come from</span>
+                    <span class="v">Your browser, reading public RPC nodes. No backend, no API keys.</span>
+                  </div>
+                  <div class="hero-fact">
+                    <span class="k">Audit status</span>
+                    <span class="v">None. Read the invariants and the threat model instead.</span>
+                  </div>
+                </div>
+                <!-- WS5-SKELETON (2026-09-07): the backingCoverage seam survives as ONE
+                     line (the mint-ticket cell and the invariants cell are retired with
+                     their sections). js/main.js's single fill point writes
+                     this cell; the read is isDeployed-gated and fails to the honest
+                     "unavailable (RPC)" state — never a fabricated figure. -->
+                <p class="fleet-coverage-line">Backing invariant: <span id="fleet-coverage" aria-live="polite">coverage reads live from backingCoverage() on the vault at 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 (js/config.js); verify it yourself with any RPC client.</span></p>
+                <!-- ============ DEPOSIT / REDEEM WIDGET ============
+                     Moved verbatim into the flagship fleet card's detail
+                     (WS5-SKELETON 2026-09-07) — ALL ids/classes byte-unchanged
+                     (widget-pause.test.js passes without an assert edit). -->
+                <section class="block" id="deposit">
         <div class="wrap">
           <div class="block-head">
             <span class="index">02</span>
@@ -482,33 +367,14 @@
           </div>
         </div>
       </section>
-
-      <!-- ============ INVARIANTS (STRATTON-LEDGER-CARD, component b) ============
-           Stratton-grammar transfer (reference item 6): the checkable-docs voice as
-           a layout — the invariant stated two-tone, the mono-label definition list,
-           and the "Backing Invariant" card carrying the live on-chain measurement
-           (#inv-stat — SAME published string as #mint-backed, one seam) plus a
-           definition-level mechanism disclosure. Describes the mechanism; never a
-           promise. -->
-      <section class="block" id="invariants">
-        <div class="wrap">
-          <div class="block-head">
-            <span class="index">03</span>
-            <h2>One token is one share.<br><span class="quiet">Not one dollar.</span></h2>
-            <span class="spacer"></span>
-            <span class="muted">defined below — measured live on-chain</span>
-          </div>
-          <dl class="inv-dl">
-            <div class="inv-dl-row"><dt class="inv-dt">BALANCE</dt><dd class="inv-dd">1 share</dd></div>
-            <div class="inv-dl-row"><dt class="inv-dt">NEVER REBASES</dt><dd class="inv-dd">Never</dd></div>
-            <div class="inv-dl-row"><dt class="inv-dt">MINT / REDEEM ARB</dt><dd class="inv-dd">Multiple</dd></div>
-          </dl>
-          <div class="inv-card">
-            <span class="inv-tag">DEFINITION-LEVEL GUARANTEE</span>
-            <h3>Backing Invariant</h3>
-            <p class="inv-stat-line"><span id="inv-stat" aria-live="polite">coverage reads live from backingCoverage() on the vault at 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 (js/config.js); verify it yourself with any RPC client.</span></p>
-            <div class="inv-disclosure">coverage = the vault's raw asset balance divided by the accounted figure (deposits plus credited yield — harvest credits raise it without minting shares), readable on-chain via <code>backingCoverage()</code>; 1e18 = exact cover (an empty vault reads 1e18: no accounted liability); above 1e18 is unaccounted excess (donations/uncredited yield); below 1.0 only after an issuer burn; redemptions are served until the balance is exhausted.</div>
-          </div>
+            </div>
+          </details>
+          <!-- The 95 measured books render here client-side (WS.fleet.rows(), grouped
+               PAYS → HOOK → DEAD by js/main.js's initFleet). Empty in the static
+               markup by design — the feed is a file, fetched same-origin by
+               js/fleet.js; any load/validation failure renders the designed
+               unavailable state ('—'), never a fake zero. -->
+          <div id="fleet-books"></div>
         </div>
       </section>
 
@@ -523,7 +389,9 @@
             <!-- WS-ASSET-WIRE (2026-09-04): magnify-hand in the Docs header — the
                  check-it-yourself motif (design-kit keeper, self-hosted, decorative).
                  Motion: one sweep while a vault re-read is in flight (hooked to the
-                 existing refresh cycle in js/main.js), reduced-motion = static. -->
+                 existing refresh cycle in js/main.js), reduced-motion = static.
+                 WS5-SKELETON (2026-09-07): the JS sweep hook retired with the
+                 hero motion wiring of that era — the keeper stays, static. -->
             <img class="asset-magnify" id="asset-magnify" src="img/compressed/hand-magnify.png" width="300" height="166" alt="" aria-hidden="true" loading="lazy">
           </div>
           <p class="block-sub">
@@ -576,6 +444,15 @@
             keyless reads, the approve/deposit/redeem flows, and the fail-closed rules an agent is held to.
             Same contracts. Same rules. Your agent reads the skill and runs the vault.
           </p>
+        </div>
+      </section>
+
+      <!-- ============ IF WE VANISH (WS5-SKELETON, 2026-09-07) ============
+           Movement (c), the disclosure: h2-free, one paragraph, verbatim per the
+           goal. No overclaim words — the honesty kill-list guard enforces it. -->
+      <section class="block" id="vanish">
+        <div class="wrap">
+          <p class="vanish-line">If we vanish, the chain does not. MIT code, public timelock, the feed is a file. Read it, run it, or fork it.</p>
         </div>
       </section>
     </main>
@@ -653,6 +530,7 @@
   <script src="js/apr.js"></script>
   <script src="js/wallet.js"></script>
   <script src="js/docs.js"></script>
+  <script src="js/fleet.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

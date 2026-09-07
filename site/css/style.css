@@ -11,19 +11,25 @@
    ============================================================ */
 
 :root {
-  --paper: #EDE9DC;       /* light-paper flip (2026-09-04): ratified cream substrate */
-  --paper-2: #E4DFD1;
-  --ink: #1C1A15;         /* freshly authored dark ink (not a dark-era leaver value) */
-  --ink-soft: #5C584C;
-  --line: #C8C1AD;
+  --paper: #0B0D0C;       /* dark-calm flip (2026-09-07, identity revision #5): near-black carbon substrate, freshly authored — not a dark-era leaver value */
+  --paper-2: #070908;     /* recess — one step INTO the page from base */
+  --ink: #EAE6DB;         /* warm near-white ink on carbon (freshly authored; 15.6:1 on --paper) */
+  --ink-soft: #A29C90;    /* muted-on-dark — 7.1:1 on --paper */
+  --line: #3B372F;        /* warm carbon hairline */
   --accent: #00A86B;      /* ratified green — FILL role: buttons/blocks/tags/strokes/chips/CTA */
-  --accent-ink: #1C1A15;  /* dark text on #00A86B fills — 5.6:1 */
-  --accent-text: #0d6b4f; /* NEW: accent-as-TEXT hue, 5.4:1 on --paper — #00A86B itself is 2.5:1 on cream and never renders as text */
-  --warn: #a33a24;        /* honest deep red — warnings, blocked, unavailable (4.9:1 on --paper-2) */
-  --code-bg: #E0D9C9;
+  --accent-ink: #0B0D0C;  /* carbon text on #00A86B fills — 6.3:1 */
+  --accent-text: #2FBF83; /* accent-as-TEXT step on carbon — 8.3:1 on --paper; the fill hue stays FILL-only by role law */
+  --warn: #D96A52;        /* honest red on dark — warnings, blocked, unavailable (5.8:1 on --paper-2) */
+  --code-bg: #050706;     /* deepest — code wells sink below the recess */
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --serif: "EB Garamond", Georgia, "Iowan Old Style", "Times New Roman", serif;
+  /* WS5-DOTO (2026-09-07) — the pairing rule, in tokens: machine truth wears
+     the machine face (Doto dot-matrix = display + every measured figure), the
+     human voice stays serif, labels/units stay mono. Fallbacks: display → serif,
+     numbers → mono, so a failed font swap degrades into the old grammar. */
+  --font-display: "Doto", "EB Garamond", Georgia, serif;
+  --font-num: "Doto", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   /* motion (R3 IMP-3): one expo family, three durations — timing design instead
      of a single 140ms ease. --motion stays the fast tick alias (V6 role, now
      re-curved); surfaces move at --t-base; the scroll reveal runs --t-slow.
@@ -55,6 +61,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Doto";
+  src: url('../fonts/doto-var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+} /* WS5-DOTO: subset (latin basic + em-dash/quote, wght 100-900 + ROND axes intact) — 3.5KB self-hosted, zero external origins */
+
 * { box-sizing: border-box; }
 
 /* R3 IMP-11: brand selection color (was the default UA blue on a green/black brand) */
@@ -81,7 +95,7 @@ body[data-geo-blocked="true"] { background: var(--paper); }
 a { color: var(--accent-text); text-decoration: underline; text-underline-offset: 2px; transition: color var(--motion), outline-color var(--motion); }
 a:visited { color: var(--accent-visited); }
 a, button, input, [tabindex] { outline: 2px solid transparent; outline-offset: 2px; }
-a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline-color: var(--accent-punch); } /* WS-A11Y-QUICK 2026-09-05: the keyboard-only ring must clear the 3:1 WCAG 1.4.11 floor — punch computes 5.42:1 on paper / 5.73:1 on paper-raised (--accent computed 2.54:1); mouse users never see :focus-visible */
+a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible, summary:focus-visible { outline-color: var(--accent-punch); } /* WS-A11Y-QUICK 2026-09-05: the keyboard-only ring must clear the 3:1 WCAG 1.4.11 floor — punch computes 11.05:1 on paper / 10.13:1 on paper-raised under the dark-calm table (--accent computed 6.33:1); mouse users never see :focus-visible. WS5-TREATMENT 2026-09-07: summary joins the ring rule — the fleet cards are native <details> disclosures and the whole summary is the tap zone. */
 
 /* ---------- screen-reader utilities (WS-A11Y-QUICK 2026-09-05) ---------- */
 /* clip-form sr-only: visually vanishes while STAYING in the tab order and the
@@ -147,7 +161,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
 .brand-tag { font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); text-transform: uppercase; letter-spacing: var(--track-label); } /* P-11/P-10: the one untracked mono metadata surface joins the label register */
 .site-nav { display: flex; flex-wrap: wrap; gap: var(--space-10) var(--space-16); align-items: center; }
 .site-nav a { color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); border-bottom: 2px solid transparent; padding: var(--space-4) var(--space-0); transition: border-bottom-color var(--motion), color var(--motion); } /* P-07: nav steps up one role to the small-text role; P-10: tracking rides --track-chrome */
-.site-nav a:hover { border-bottom-color: var(--ink-soft); } /* WS3-HEADER P2 (2026-09-06): the --line hover underline was 1.48:1 on paper — sub-perceptual; ink-soft is 5.85:1, a visible step below the active underline */
+.site-nav a:hover { border-bottom-color: var(--ink-soft); } /* WS3-HEADER P2 (2026-09-06): the --line hover underline is sub-perceptual by design; ink-soft is 7.14:1 on carbon, a visible step below the active underline */
 /* R2 header CTA — honest conversion affordance (copy reused verbatim from the footer;
    targets the #docs section, never the pre-deploy deposit widget). Specificity-bearing
    selector so the base .site-nav a rule cannot squash the pill. */
@@ -165,7 +179,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
 }
 .site-nav a.nav-cta:hover { background: var(--accent-hover); } /* WS3-HEADER P3 (2026-09-06): the shipped btn-primary:hover vocabulary */
 .site-nav a.nav-cta:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
-.site-nav a.active { border-bottom-color: var(--accent-punch); } /* WS3-HEADER P7 (2026-09-06): orientation green — accent marks where you are (5.42:1, passes 1.4.11); hover ink-soft and active punch now differ in kind, not degree */
+.site-nav a.active { border-bottom-color: var(--accent-punch); } /* WS3-HEADER P7 (2026-09-06): orientation green — accent marks where you are (11.05:1 on carbon, passes 1.4.11); hover ink-soft and active punch now differ in kind, not degree */
 
 /* ---------- jurisdiction banner ---------- */
 .jurisdiction-banner {
@@ -190,8 +204,9 @@ pre code { background: none; border: none; padding: var(--space-0); }
    regardless of content height. Mobile (<=640px) keeps the compact padding
    band — the stacked ledger already fills the viewport there. */
 /* Canyon hero backdrop (2026-09-05): dithered Wall-Street buildings framing the
-   headline, open center for the type. Positioning here; the vibration lives in
-   the WS-ASSET-WIRE motion section (no-preference gate + reduce pair). */
+   headline, open center for the type. Positioning here; WS5-TREATMENT
+   2026-09-07: the canyon is a DIM STATIC TEXTURE (≤8% opacity desktop, hidden
+   ≤640) — the vibration is retired with the one-signature motion purge. */
 /* WS3-ART P1 (2026-09-06, UI_IMPROVE2_ART-DIRECTION): edge-bleed ≥ the 6px max
    vibrate translate — the img box now overhangs the hero padding box by 8px on
    every side, so a burst can never expose a paper gap at any hero edge (.hero's
@@ -215,21 +230,22 @@ pre code { background: none; border: none; padding: var(--space-0); }
   justify-content: center;
 }
 .hero h1 {
-  font-family: var(--serif); /* V1 editorial-ledger display — R2 re-typed to the ens.domains display register */
+  font-family: var(--font-display); /* WS5-DOTO: the banner's dot-matrix display register (was V1 serif — the serif voice moved down to the quiet subline, the pairing rule) */
   font-size: var(--step-7); /* WS-TYPE-MOTION_FINAL 2026-09-06: the 7.8vw/6.25rem clamp retires onto the ratified step-7 rung — the page's loudest number */
-  font-weight: 400;
-  line-height: 0.96;
+  font-weight: 800;
+  font-variation-settings: 'ROND' 100; /* the round-dot variant of the matrix — display use (wght still rides font-weight) */
+  line-height: 1.06; /* the pixel grid clips at the serif's 0.96 */
   margin: 0 0 var(--space-24) 0; /* V10: larger gap headline -> lede */
-  letter-spacing: -0.035em;
+  letter-spacing: 0.01em; /* dot matrices need a hair of air; the serif's -0.035em collides pixels */
 }
-.hero h1 .punch { /* P-03: the ratified drafts' green BLOCK behind serif type — the law-compliant form: text rides --accent-ink on the --accent fill (5.6:1, an already-asserted pair; cream-on-green would be 2.5:1). box-decoration-break keeps the block whole across a wrap. --accent-punch stays live (section indices, stat ticks, focus ring). */
+.hero h1 .punch { /* P-03: the ratified drafts' green BLOCK behind serif type — the law-compliant form: text rides --accent-ink on the --accent fill (6.3:1, an already-asserted pair; near-white-on-green would be 2.5:1). box-decoration-break keeps the block whole across a wrap. --accent-punch stays live (section indices, stat ticks, focus ring). */
   color: var(--accent-ink);
   background: var(--accent);
   padding: 0 0.12em;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
-.hero h1 .quiet { color: var(--ink-soft); } /* two-tone deadpan: line 2 recedes, the joke reads quieter than the claim */
+.hero h1 .quiet { color: var(--ink-soft); font-family: var(--serif); font-weight: 400; line-height: 1.2; letter-spacing: normal; } /* two-tone deadpan: line 2 recedes, the joke reads quieter than the claim — WS5-DOTO: the serif human voice INSIDE the dot-matrix claim (the pairing rule made visible) */
 .hero .lede { max-width: 60ch; font-size: var(--step-6); margin: 0 0 var(--space-32) 0; color: var(--ink-soft); } /* R3 IMP-8 / WS-TYPE-MOTION_FINAL 2026-09-06: the lede rides the step-6 display rung (the ratified lede/section-h2 role) */
 .hero-facts {
   /* honest trust row — the reference's ring/pill treatment on the four existing hero facts;
@@ -244,8 +260,8 @@ pre code { background: none; border: none; padding: var(--space-0); }
   flex: 0 1 auto;
   padding: var(--space-14) var(--space-16);
   position: relative;
-  border: 1px solid var(--line); /* UI2-P4: was var(--ws-trust-border) — same value #C8C1AD, now a ladder name */
-  background: var(--paper-raised); /* UI2-P4: was var(--ws-trust-bg) — #F4F0E4 collapses into --paper-raised #F3EFE3 (one RGB step) */
+  border: 1px solid var(--line); /* UI2-P4: was var(--ws-trust-border) — the same hairline value, now a ladder name */
+  background: var(--paper-raised); /* UI2-P4: was var(--ws-trust-bg) — collapsed into the raised step of the substrate ladder (one RGB step) */
   border-radius: var(--radius);
   margin-left: calc(var(--ws-trust-size) * -0.42);
   min-width: 0;
@@ -256,7 +272,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
   font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: var(--track-label); /* P-10 */
-  color: var(--ink-soft); /* UI2-P4: was var(--ws-trust-text) — straight #5C584C alias, now a ladder name */
+  color: var(--ink-soft); /* UI2-P4: was var(--ws-trust-text) — a straight alias, now a ladder name */
 }
 .hero-fact .v {
   font-weight: 700;
@@ -486,16 +502,21 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 
 /* ---------- honest states (V5) — one component for "we're working, nothing faked" ----------
    Used by the live-read status row + APR placeholder in main.js and by the docs pane's
-   aria-busy loading state; the pulse ships WITH its prefers-reduced-motion nullification. */
+   aria-busy loading state.
+   WS5-TREATMENT (2026-09-07, one-signature motion): the looping state pulse is
+   RETIRED — the pulse meant "working", and a looping opacity pulse is motion off
+   the one ratified signature (the ledger stamp). Static state styling replaces it:
+   PENDING = dashed hairline + muted (the designed still state below); LIVE =
+   the stamp's solid accent tick (✓ + read name in --accent-text, the WS5-TREATMENT
+   stamp grammar on #fleet-coverage). No reduced-motion pair is owed: nothing moves. */
 .state, #doc-pane[aria-busy="true"] {
   font-family: var(--mono);
   font-size: var(--step-2);
   color: var(--ink-soft);
-  animation: ws-state-pulse 1.8s var(--ease-loop) infinite;
 }
-@keyframes ws-state-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+/* the pending register: still, dashed, muted — "we're working" without a pulse */
+.state:not(.state--final), #doc-pane[aria-busy="true"] {
+  border: 1px dashed var(--line);
 }
 
 /* ---------- footer ---------- */
@@ -566,8 +587,10 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
     animation: none !important;
     transition: none !important;
   }
-  /* explicit per-asset pairs (WS-ASSET-WIRE discipline): */
-  .hero-canyon { animation: none !important; }
+  /* WS5-TREATMENT 2026-09-07: the explicit .hero-canyon per-asset pair is
+     RETIRED with the canyon vibrate animation (one-signature motion) — the
+     canyon is a dim static texture now (WS3-ART L2 re-pin below), so there is
+     nothing left to nullify. The universal guard above remains authoritative. */
 }
 
 /* ---------- design tokens (v1.2, R2 foundation) — 1:1 aliases of the values this
@@ -576,27 +599,29 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    tracking literal stays by design (D14 retention); its font sizes joined the
    step scale (WS-TYPE-MOTION_FINAL 2026-09-06). ---------- */
 :root {
-  /* UI2-P4 (2026-09-06, WS3-COLOR): THE PAPER LADDER — one substrate family, four steps + two roles:
-     raised --paper-raised (cards, +1) · base --paper (body) ·
+  /* UI2-P4 (2026-09-06, WS3-COLOR), re-stepped by the dark-calm flip (2026-09-07):
+     THE CARBON LADDER — one substrate family, four steps + two roles:
+     raised --paper-raised (cards, +1 toward the viewer) · base --paper (body) ·
+     pending --paper-pending (scaffolding, between base and recess) ·
      recess --paper-2 (panel/tab heads, −1) · deep --code-bg (code, −2).
-     Roles: --paper-pending (pending scaffolding, between base and recess),
-     --ink-deep (footer band surface; ink-era misnomer retained for history).
-     INK FAMILY (the ink/footer split): --ink text · --ink-soft muted-on-paper ·
+     Role surface: --ink-deep (footer band surface; ink-era misnomer retained
+     for history).
+     INK FAMILY (the ink/footer split): --ink text · --ink-soft muted-on-carbon ·
      --footer-muted/-faint muted-on-footer (measured AA pairs, theme.test-pinned —
-     keep values). New paper surfaces MUST pick a step, never a new hex. */
+     keep values). New carbon surfaces MUST pick a step, never a new hex. */
   /* color aliases (existing hex values, named) */
-  --paper-raised: #F3EFE3;
-  --paper-pending: #E7E2D4;
-  --warn-bg: #EFD9D1;
-  --accent-visited: #3A6B58;
-  --accent-hover: #0FB879;
-  --line-dotted: #AFA892; /* opaque — dotted-border role only: the light-paper flip SPLIT the old dual-use (the tan chip background moved to --chip-tan below), so a translucent value here would just soften the dotted hairlines */
-  --chip-tan: #D9CFB4;    /* NEW (split from --line-dotted): .hero-chip--tan pill background; chip text stays var(--ink) ≈ 11.2:1 */
-  /* Light-paper flip (2026-09-04): the footer rides --ink-deep re-pinned into
-     the paper family — ink-on-paper footer. WCAG on the #E2DCCB footer surface:
-     #4E4939 = 6.6:1, #615C4C = 4.9:1 — both clear AA. */
-  --footer-muted: #4E4939;
-  --footer-faint: #615C4C;
+  --paper-raised: #151817;
+  --paper-pending: #090B0A;
+  --warn-bg: #30181A;
+  --accent-visited: #219167;
+  --accent-hover: #0CC07C;
+  --line-dotted: #2E2B25; /* opaque — dotted-border role only: the light-paper flip SPLIT the old dual-use (the tan chip background moved to --chip-tan below), so a translucent value here would just soften the dotted hairlines */
+  --chip-tan: #262218;    /* dark-calm flip (2026-09-07): .hero-chip--tan pill fill re-stepped onto carbon; chip text stays var(--ink) ≈ 12.7:1 */
+  /* Dark-calm flip (2026-09-07): the footer rides --ink-deep re-stepped onto the
+     carbon ladder — ink-on-carbon footer. WCAG on the #0E100F footer surface:
+     #A8A297 = 7.5:1, #948E83 = 5.9:1 — both clear AA. */
+  --footer-muted: #A8A297;
+  --footer-faint: #948E83;
   /* space scale (px, value-named) */
   --space-0: 0;
   --space-2: 2px;
@@ -660,9 +685,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
      names a live page state → pill.] */
   --radius: 999px;
   --radius-soft: 12px;
-  --shadow-soft: 0 20px 28px rgba(28, 26, 21, 0.10);
-  --shadow-soft-hover: 0 24px 40px rgba(28, 26, 21, 0.16);
-  --ink-deep: #E2DCCB; /* light-paper flip: footer band surface, re-pinned into the paper family */
+  --shadow-soft: 0 20px 28px rgba(0, 0, 0, 0.45);
+  --shadow-soft-hover: 0 24px 40px rgba(0, 0, 0, 0.60);
+  --ink-deep: #0E100F; /* dark-calm flip (2026-09-07): footer band surface, re-stepped onto the carbon ladder */
 }
 
 /* ============================================================
@@ -728,7 +753,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 .ledger-row:last-child { border-bottom: none; }
 .ledger-k { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); flex: 0 0 auto; } /* P-04: the last serif-in-data island joins the mono small-cap label register (one grammar across the hero ledger + mint ticket; rebased onto the P-10 label token). After this rule serif is display-only on the page. */ /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #1): the label RECEDES — micro mono keys (step-1, ink-soft on raised: the .card-note pairing) under dominant values; MONEY layers size+color onto P-04's mono register. */
-.ledger-v { text-align: right; font-family: var(--mono); font-size: var(--step-3); word-break: break-word; font-variant-numeric: tabular-nums; color: var(--ink); }
+.ledger-v { text-align: right; font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-3); word-break: break-word; font-variant-numeric: tabular-nums; color: var(--ink); } /* WS5-DOTO: measured values join the dot-matrix number register (labels .ledger-k stay mono); size/word-break/color untouched */
 .ledger-v .muted { font-size: var(--step-1); }
 .ledger-row-strong .ledger-v strong { color: var(--accent-text); font-size: var(--step-4); } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #1): strong values lead at body size — was step-8; the generic sibling rule lives in the WS3-MONEY EOF block. */
 .hero-ledger-note {
@@ -845,11 +870,12 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    ============================================================ */
 
 :root {
-  /* V10 color temperature, light-paper flip (2026-09-04): the punch direction
-     INVERTS — DEEPEST/most-saturated step of the hue family, because punch is
-     h1 TEXT on cream (the dark-era brightest-tint rule would put ~1.5:1 text
-     on the new paper); the chip palette below reuses ONLY existing token hues. */
-  --accent-punch: #006B45;
+  /* V10 color temperature, re-inverted by the dark-calm flip (2026-09-07): the
+     punch direction returns to the BRIGHTHEST text-safe step of the hue family,
+     because punch is text/outline on carbon again (the light-era deepest-step
+     rule would put a near-invisible green on the new paper); the chip palette
+     below reuses ONLY existing token hues. */
+  --accent-punch: #5BD9A4;
 }
 
 .hero-chips {
@@ -969,16 +995,16 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    undefined var() silently invalidates the declaration at
    computed-value time — invisible text on the stat band,
    undetectable by the suite. Token names re-pinned at dispatch to
-   the LANDED light-token contract (--ink #1C1A15 is the ink on
-   paper; --ink-soft #5C584C is the muted label color; --mono is
+   the LANDED dark-calm contract (--ink #EAE6DB is the ink on
+   carbon; --ink-soft #A29C90 is the muted label color; --mono is
    the stat glyph face). No CSS animation ships here: the
    count-up is JS rAF, guarded by main.js's matchMedia consult
    (CSS cannot stop a rAF loop); the page-level
    prefers-reduced-motion guard above stays authoritative.
    ============================================================ */
 .stat-band {
-  border-bottom: 2px solid var(--line, #C8C1AD);
-  background: var(--paper, #EDE9DC);
+  border-bottom: 2px solid var(--line, #3B372F);
+  background: var(--paper, #0B0D0C);
 }
 .stat-band .wrap {
   padding-top: var(--space-28, 28px);
@@ -1000,7 +1026,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-4);   /* P-05: decoration recedes below the data */
   line-height: 1;
-  color: var(--accent-text, #0d6b4f);
+  color: var(--accent-text, #2FBF83);
   opacity: 0.8;
 }
 .stat-value {
@@ -1009,7 +1035,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-weight: 500;
   letter-spacing: normal;                /* mono digits are self-tabular; no grotesque tracking */
   font-variant-numeric: tabular-nums;
-  color: var(--ink, #1C1A15);
+  color: var(--ink, #EAE6DB);
   min-height: 1.2em;
 }
 .stat-label {
@@ -1017,7 +1043,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-size: var(--step-2);
   text-transform: uppercase;
   letter-spacing: var(--track-label, 0.08em); /* P-10: label token, WSV-STATS mandatory literal fallback kept */
-  color: var(--ink-soft, #5C584C);
+  color: var(--ink-soft, #A29C90);
 }
 .stat-marker {
   display: inline-block;
@@ -1030,7 +1056,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: var(--track-label, 0.08em); /* P-10: label token, WSV-STATS mandatory literal fallback kept */
-  color: var(--accent-text, #0d6b4f);
+  color: var(--accent-text, #2FBF83);
 }
 @media (max-width: 720px) {
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1075,96 +1101,38 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    rest reveal or react to what the pipeline already shows.
    ============================================================ */
 
-/* ---- WOW-1 — live tape: the stat band as a terminal strip.
-   A re-roll on change (JS, main.js setStatValue) + a ▲/▼/– delta
-   tick that blinks ~1.2s beside the figure that moved, then one
-   soft settle-pulse of the band per changed cycle. The projection
-   cell carries NO tick and is never re-rolled (it is a projection,
-   not a live reading); the split cell is a ratified constant. */
-.stat-line {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-8, 8px);
-  min-width: 0;
-}
-.stat-tick {
-  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-2);
-  min-width: 1.1em;
-  opacity: 0;
-}
-.stat-tick:not(:empty) { animation: ws-tick-blink 1.2s var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) forwards; }
-@keyframes ws-tick-blink {
-  0% { opacity: 1; }
-  55% { opacity: 1; }
-  100% { opacity: 0; }
-}
-.stat-tick--up { color: var(--accent-punch, #006B45); }
-.stat-tick--down { color: var(--warn, #a33a24); }
-.stat-tick--flat { color: var(--ink-soft, #5C584C); }
-.stat-band--settle .stat-grid { animation: ws-band-settle 600ms var(--ease-enter, cubic-bezier(0.16, 1, 0.3, 1)) 1; }
-@keyframes ws-band-settle {
-  0% { opacity: 0.72; transform: translateY(2px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
+/* ---- WOW-1 — live tape: RETIRED 2026-09-07 (WS5-TREATMENT, one-signature motion).
+   The #stat-tape section and its JS re-roll died in WS5-SKELETON; the tick blink,
+   the band settle-pulse and their host rules (.stat-line / .stat-tick* /
+   .stat-band--settle) are deleted with them. The tick glyph grammar survives ONLY
+   as the pinned pure helper WS.wow.tickGlyph (no DOM consumer). */
 
-/* ---- WOW-7 — chain-pulse: the page visibly breathes with the chain.
-   Ledger rows whose published value changed between cycles get a
-   one-beat background flash (accent up / warn down) that decays in
-   ~600ms, with the ▲/▼ glyph as the non-color channel; the "live
-   on-chain reads" stamp pulses once per successful cycle (heartbeat)
-   and dims after a failed one; the ledger's connecting chip breathes
-   while connecting (is-connecting, removed when a real state lands). */
-.ledger-row.delta-up { animation: ws-delta-up 600ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1; }
-.ledger-row.delta-down { animation: ws-delta-down 600ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1; }
-@keyframes ws-delta-up {
-  0% { background-color: color-mix(in srgb, var(--accent) 16%, transparent); } /* UI2-P8: was the rgba(0, 168, 107, 0.16) literal — WOW-7 flash hue now derives from --accent; var() inside @keyframes resolves against the animating element */
-  100% { background-color: transparent; }
-}
-@keyframes ws-delta-down {
-  0% { background-color: color-mix(in srgb, var(--warn) 16%, transparent); } /* UI2-P8: was the rgba(163, 58, 36, 0.16) literal — now derives from --warn */
-  100% { background-color: transparent; }
-}
-.ledger-row.delta-up::after {
-  content: ' ▲';
-  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-1);
-  color: var(--accent-text, #0d6b4f);
-}
-.ledger-row.delta-down::after {
-  content: ' ▼';
-  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
-  font-size: var(--step-1);
-  color: var(--warn, #a33a24);
-}
-#vaults-updated.heartbeat {
-  color: var(--accent-text, #0d6b4f);
-  animation: ws-heartbeat 900ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) 1;
-}
-#vaults-updated.heartbeat-dim { color: var(--ink-soft, #5C584C); }
-@keyframes ws-heartbeat {
-  0% { opacity: 0.55; }
-  100% { opacity: 1; }
-}
-.hero-ledger-state.is-connecting {
-  animation: ws-state-pulse 1.8s var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) infinite;
-}
+/* ---- WOW-7 — chain-pulse: RETIRED 2026-09-07 (WS5-TREATMENT, one-signature motion).
+   The ledger delta flashes (both directions, with their ▲/▼ ::after glyph riders),
+   the heartbeat cycle beat and the is-connecting breathing state are deleted with
+   the hero-ledger surfaces they animated (WS5-SKELETON). What a verified read
+   gets now is THE one signature: the ledger stamp (✓ + the read name) —
+   data-carrying, still, and honest. */
 
-/* ---- WOW-8 — ledger stamp: one data-carrying verification accent.
-   The hero ledger's value cell stamps the NAME of the read that just
-   verified (✓ slot0 / ✓ balances) via data-stamp, held for a beat,
-   then faded. If a design pass ever strips the read name from the
-   content, kill the package — the stamp MUST carry data. */
-/* G4 (UI_IMPROVE2_GLYPHS): the coverage seam's second cell (#inv-stat — no
-   .ledger-v class) joins the stamp grammar. New selector sits FIRST so the
-   byte-pin on '.ledger-v.ledger-stamp::after {' (agent-first.test.js (vi))
-   still resolves to this rule's declaration span. */
-#inv-stat.ledger-stamp::after,
+/* ---- WOW-8 — ledger stamp: THE one signature motion (WS5-TREATMENT 2026-09-07).
+   The ONE surviving motion of the stylesheet: a value cell stamps the NAME of
+   the read that just verified (✓ backingCoverage) via data-stamp, held for a
+   beat, then faded. Applied to (a) any figure re-read — the coverage seam cell
+   main.js stamps on every re-read cycle — and (b) the fleet cards' first-render
+   arrival (staggered, reverse-played so the SAME keyframes stamp the cards in;
+   see the WS5-TREATMENT signature block at EOF). If a design pass ever strips
+   the read name from the content, kill the package — the stamp MUST carry data. */
+/* G4 (UI_IMPROVE2_GLYPHS), re-pointed WS5-TREATMENT 2026-09-07: the coverage
+   seam cell is #fleet-coverage now (the #inv-stat / #mint-backed pair retired
+   with the mint card + invariants in WS5-SKELETON). The seam selector sits
+   FIRST so the byte-pin on '.ledger-v.ledger-stamp::after {'
+   (agent-first.test.js (m1)(vi)) still resolves to this rule's declaration span. */
+#fleet-coverage.ledger-stamp::after,
 .ledger-v.ledger-stamp::after {
   content: '✓ ' attr(data-stamp);
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1);
-  color: var(--accent-text, #0d6b4f);
+  color: var(--accent-text, #2FBF83);
   margin-left: var(--space-8, 8px);
   opacity: 0;
   animation: ws-stamp-fade 900ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) forwards;
@@ -1174,9 +1142,10 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   55% { opacity: 1; }
   100% { opacity: 0; }
 }
-#hero-ledger-rows .ledger-row:nth-child(1) .ledger-stamp::after { animation-delay: 0ms; }
-#hero-ledger-rows .ledger-row:nth-child(2) .ledger-stamp::after { animation-delay: 140ms; }
-#hero-ledger-rows .ledger-row:nth-child(3) .ledger-stamp::after { animation-delay: 280ms; }
+/* WS5-TREATMENT 2026-09-07: the #hero-ledger-rows nth-child stamp delays are
+   RETIRED with the hero ledger (deleted outright in WS5-SKELETON). The stagger
+   re-homes to the fleet cards' first-render arrival — same beat pattern
+   (0/140/280ms), see the WS5-TREATMENT signature block at EOF. */
 
 /* ---- WOW-2 — live money-flow diagram: deposit → pool → vault.
    Node figures are HTML bound by main.js to the published pipeline
@@ -1191,8 +1160,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    The 90/10 split is geometry (the split bar), not a caption. */
 .flow-figure {
   position: relative;
-  border-bottom: 2px solid var(--line, #C8C1AD);
-  background: var(--paper-raised, #F3EFE3);
+  border-bottom: 2px solid var(--line, #3B372F);
+  background: var(--paper-raised, #151817);
   overflow: hidden;
   margin: 0;
 }
@@ -1215,7 +1184,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   stroke-dasharray: 6 6;
   opacity: 0.7;
 }
-.flow-path--cut { stroke: var(--ink-soft, #5C584C); }
+.flow-path--cut { stroke: var(--ink-soft, #A29C90); }
 /* WS-TYPE-MOTION_FINAL 2026-09-06: the flow-speed animation rules and the dash
    keyframes are retired by the one-signature motion budget. */
 /* schematic pre-deploy: the deposit→pool leg renders dimmed until the
@@ -1232,8 +1201,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   flex-direction: column;
   gap: var(--space-6, 6px);
   min-width: 0;
-  border: 2px solid var(--line, #C8C1AD);
-  background: var(--paper, #EDE9DC);
+  border: 2px solid var(--line, #3B372F);
+  background: var(--paper, #0B0D0C);
   padding: var(--space-14, 14px);
 }
 .flow-node-k {
@@ -1241,34 +1210,34 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: var(--track-label); /* P-10 */
-  color: var(--ink-soft, #5C584C);
+  color: var(--ink-soft, #A29C90);
 }
 .flow-node-v {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-3);
-  color: var(--ink, #1C1A15);
+  color: var(--ink, #EAE6DB);
   font-variant-numeric: tabular-nums;
   word-break: break-word;
 }
-.flow-node-sub { font-size: var(--step-2); color: var(--ink-soft, #5C584C); }
-.flow-node--schematic { border-style: dashed; background: var(--paper-pending, #E7E2D4); }
+.flow-node-sub { font-size: var(--step-2); color: var(--ink-soft, #A29C90); }
+.flow-node--schematic { border-style: dashed; background: var(--paper-pending, #090B0A); }
 .flow-node--live { border-color: var(--accent, #00a86b); }
 .flow-split {
   display: flex;
   height: 8px;
-  border: 1px solid var(--line, #C8C1AD);
+  border: 1px solid var(--line, #3B372F);
 }
 .flow-split-dep { flex: 0 0 90%; background: var(--accent, #00a86b); }
-.flow-split-prot { flex: 1; background: var(--paper-2, #E4DFD1); }
+.flow-split-prot { flex: 1; background: var(--paper-2, #070908); }
 .flow-yield {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-2);
-  color: var(--accent-text, #0d6b4f);
+  color: var(--accent-text, #2FBF83);
 }
 .flow-caption {
   margin-top: var(--space-16, 16px);
   font-size: var(--step-2);
-  color: var(--ink-soft, #5C584C);
+  color: var(--ink-soft, #A29C90);
 }
 .flow-caption-note { display: block; max-width: 72ch; }
 @media (max-width: 720px) {
@@ -1282,8 +1251,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    formula's INPUT share (size ÷ live pool TVL), transform-only. */
 .apr-sim {
   margin-top: var(--space-24, 24px);
-  border: 2px solid var(--line, #C8C1AD);
-  background: var(--paper-raised, #F3EFE3);
+  border: 2px solid var(--line, #3B372F);
+  background: var(--paper-raised, #151817);
   padding: var(--space-16, 16px);
   display: flex;
   flex-direction: column;
@@ -1302,14 +1271,14 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: var(--track-label); /* P-10 */
-  color: var(--ink-soft, #5C584C);
+  color: var(--ink-soft, #A29C90);
 }
 .sim-slider-label {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: var(--track-label); /* P-10 */
-  color: var(--ink-soft, #5C584C);
+  color: var(--ink-soft, #A29C90);
 }
 #sim-slider {
   width: 100%;
@@ -1328,7 +1297,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   flex-direction: column;
   gap: var(--space-6, 6px);
   min-width: 0;
-  border: 1px dotted var(--line-dotted, #AFA892);
+  border: 1px dotted var(--line-dotted, #2E2B25);
   padding: var(--space-12, 12px);
 }
 .sim-region-k {
@@ -1336,22 +1305,22 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-size: var(--step-1);
   text-transform: uppercase;
   letter-spacing: var(--track-label); /* P-10 */
-  color: var(--ink-soft, #5C584C);
+  color: var(--ink-soft, #A29C90);
 }
 .sim-region-v {
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace);
   font-size: var(--step-4);
-  color: var(--ink, #1C1A15);
+  color: var(--ink, #EAE6DB);
   font-variant-numeric: tabular-nums;
   word-break: break-word;
 }
-.sim-region-sub { font-size: var(--step-2); color: var(--ink-soft, #5C584C); }
-.sim-region--static .sim-region-v { color: var(--ink-soft, #5C584C); }
+.sim-region-sub { font-size: var(--step-2); color: var(--ink-soft, #A29C90); }
+.sim-region--static .sim-region-v { color: var(--ink-soft, #A29C90); }
 .sim-bar {
   display: block;
   height: 10px;
-  border: 1px solid var(--line, #C8C1AD);
-  background: var(--paper, #EDE9DC);
+  border: 1px solid var(--line, #3B372F);
+  background: var(--paper, #0B0D0C);
 }
 .sim-bar-fill {
   display: block;
@@ -1402,33 +1371,35 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    one-signature motion budget — the state swap is instant on launch day (the
    wow is the state change, not the motion). main.js still sets body.launch-flip
    ONLY off a real false→true isDeployed transition, once per browsing session;
-   the class now carries no animation. ws-band-settle survives via its WOW-1
-   data-change trigger (.stat-band--settle). */
+   the class now carries no animation. WS5-TREATMENT 2026-09-07: the WOW-1
+   band-settle trigger is retired too (see the WOW-1 retirement note above). */
 
-@keyframes ws-entrance-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.ws-entrance { animation: ws-entrance-in var(--t-slow) var(--ease-enter) backwards; animation-delay: var(--ws-entrance-delay, 0ms); } /* KEPT 2026-09-06: pinned by site-tests/agent-first.test.js (v) — keyframe + exact rule + gates[3] reduce restate are untouchable outside wow/render */
+/* WS5-TREATMENT 2026-09-07 (one-signature motion): the entrance keyframes and
+   their .ws-entrance arming rule are RETIRED — every motion on the page is now the
+   ledger stamp (the fleet cards' first-render arrival plays the SAME
+   ws-stamp-fade keyframes reversed; see the WS5-TREATMENT signature block at
+   EOF). The agent-first.test.js (m1)(iv)/(v) entrance pins are retired dated
+   in the same change. */
 
 /* ---- scoped reduced-motion pairing for EVERY animation this block
    ships (the global guard above already covers the page; this keeps
    the new surfaces guarded even if that one is ever edited). Under
-   reduced motion: the tape tick shows statically, the stamp stays
-   visible (data-carrying), the state swap is instant, the bar jumps. */
+   reduced motion: the stamp stays fully visible (data-carrying) and
+   the fleet cards' stamp-in arrival is instant; the bar jumps.
+   WS5-TREATMENT 2026-09-07: the tape/delta/heartbeat/entrance/static-pulse
+   selectors are retired with their animations (one-signature motion); the
+   stamp's reduce pair degrades to static at opacity 1. */
 @media (prefers-reduced-motion: reduce) {
-  .stat-tick, .stat-band--settle .stat-grid,
-  .ledger-row.delta-up, .ledger-row.delta-down,
-  #vaults-updated.heartbeat, .hero-ledger-state.is-connecting,
-  #inv-stat.ledger-stamp::after, /* G4 (UI_IMPROVE2_GLYPHS): the coverage seam's second cell joins the reduce pair */
+  #fleet-coverage.ledger-stamp::after, /* G4 (UI_IMPROVE2_GLYPHS): the coverage seam cell joins the reduce pair */
   .ledger-v.ledger-stamp::after,
   .sim-bar-fill,
   .scroll-reveal .ledger-row, .flow-figure.ws-reveal .flow-node {
     animation: none !important;
     transition: none !important;
   }
-  .stat-tick:not(:empty) { opacity: 1; }
-  #inv-stat.ledger-stamp::after, .ledger-v.ledger-stamp::after { opacity: 0.9; }
+  #fleet-coverage.ledger-stamp::after, .ledger-v.ledger-stamp::after { opacity: 1; }
   .scroll-reveal .ledger-row, .flow-figure.ws-reveal .flow-node { opacity: 1; transform: none; }
   .sim-bar-fill { transition: none; }
-  .ws-entrance { animation: none; opacity: 1; transform: none; }
   button.btn:active:not(:disabled) { transform: none; }
   .cta-solid:active:not(:disabled) { transform: none; }
   .cta-outline:active:not(:disabled) { transform: none; }
@@ -1510,39 +1481,21 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   .asset-press { transition: transform var(--t-fast) var(--ease-enter); }
   #btn-deposit:hover ~ .asset-press,
   #btn-deposit:focus-visible ~ .asset-press { transform: translateY(6px); }
-  /* magnify-hand: one sweep while a vault re-read is in flight — the class is
-     added by js/main.js on the existing refresh cycle (the WOW-8/ledger-stamp
-     trigger), gated there by the shared motionAllowed() matchMedia guard */
-  .asset-magnify.asset-sweep { animation: asset-magnify-sweep 900ms var(--ease-enter) 1 both; }
   /* curve divider: left-to-right draw-on on scroll-in — armed ONLY by
      js/main.js's IntersectionObserver (no-JS = always the full static stroke) */
   .asset-draw { transition: clip-path 900ms var(--ease-enter); }
   .asset-draw.asset-draw-arm { clip-path: inset(0 100% 0 0); }
   .asset-draw.asset-draw-in { clip-path: inset(0 0 0 0); }
-  /* canyon hero backdrop: a ~100ms shake burst inside every 1.62s cycle
-     (operator spec) — transform-only, compositor-friendly */
-  .hero-canyon { animation: ws-canyon-vibrate var(--ws-vibrate-period, 1.62s) linear infinite; }
-}
-@keyframes asset-magnify-sweep {
-  0% { transform: translateX(0) rotate(0deg); }
-  45% { transform: translateX(14px) rotate(6deg); }
-  100% { transform: translateX(0) rotate(0deg); }
-}
-@keyframes ws-canyon-vibrate {
-  0% { transform: translate(0, 0); }
-  2% { transform: translate(-6px, 4px); }
-  4% { transform: translate(5px, -5px); }
-  6% { transform: translate(-4px, -4px); }
-  8% { transform: translate(6px, 3px); }
-  10% { transform: translate(-3px, 5px); }
-  12% { transform: translate(0, 0); }
-  100% { transform: translate(0, 0); }
+  /* WS5-TREATMENT 2026-09-07 (one-signature motion): the magnify sweep
+     (the magnify keyframes) and the canyon vibrate (its own keyframes) are
+     RETIRED — the magnify hand's JS trigger died with the hero motion wiring
+     in WS5-SKELETON (the keeper is a static asset now) and the canyon is a
+     dim static texture (see the WS3-ART L2 re-pin below). Both reduce pairs
+     are deleted with them: nothing moves, so nothing needs nullifying. */
 }
 @media (prefers-reduced-motion: reduce) {
   .asset-press { transition: none; transform: none; }
-  .asset-magnify.asset-sweep { animation: none; }
   .asset-draw { clip-path: none; transition: none; }
-  .hero-canyon { animation: none; transform: none; }
 }
 
 /* mobile (<=640px): the hero point-hand hides so the stacked ledger card keeps
@@ -1786,9 +1739,9 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
    literal (theme.test.js sweeps untouched); no motion touched (the canyon's no-preference
    gate and both reduce pairs stay byte-identical above); no new reduce gate ((b5) count
    unchanged); P1/P2 landed as dated in-place edits in their home sections. */
-.hero-canyon { opacity: 0.30; }   /* UI2-L2: probe 0.25-0.35 at 1440x900 and 390x844; darkest dither blends to ~#B7AE9C vs --ink at 0.30 */
+.hero-canyon { opacity: 0.08; }   /* WS5-TREATMENT 2026-09-07 (supersedes UI2-L2's 0.30): the canyon is a DIM STATIC TEXTURE on desktop — ≤8% opacity per the one-screen hero contract; no motion (the vibrate retired above), no poster. */
 @media (max-width: 640px) {
-  .hero-canyon { opacity: 0.22; }  /* UI2-L2: phone — buildings dominate the crop; the ratified mobile fold is paper-first */
+  .hero-canyon { display: none; }  /* WS5-TREATMENT 2026-09-07 (supersedes UI2-L2's 0.22 dim): the canyon is HIDDEN ≤640 — the one-screen mobile hero carries type + the ONE live stat only */
 }
 /* ---------- end WS3-ART EOF block ---------- */
 /* ---------- WS3-COLOR (2026-09-06, UI_IMPROVE2_COLOR-TEXTURE P6) — border-taxonomy additive EOF block ----------
@@ -1838,7 +1791,7 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   font-size: var(--step-3);
   font-weight: 400;
   letter-spacing: 0;
-  color: var(--ink-soft, #5C584C);
+  color: var(--ink-soft, #A29C90);
 }
 /* #7: the verify-yourself promise persists in EVERY state — a static line under the
    mint-card BACKED row that main.js never writes (the pinned cell strings stay free
@@ -1861,4 +1814,160 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
    desktop clamp(88px,11vw,150px) register is untouched. */
 @media (max-width: 480px) {
   .asset-magnify { max-width: 80px; }
+}
+
+/* ============================================================
+   WS5-TREATMENT (2026-09-07) — the treatment pass (identity revision #5).
+   Card craft + the ONE signature motion. Everything below is additive
+   except where an in-place edit carries its own dated WS5-TREATMENT marker.
+   Tokens only; zero new external origins; no JS added (no rAF loops —
+   60fps by construction: the one motion animates opacity only).
+   ============================================================ */
+
+/* ---- the fleet cards (movement b) — measured books as stacked cards ----
+   1 column ≤640 / 2 columns ≥900. Data-surface register: hard 2px border, no
+   radius (the G6/D15 split — a ledger card is a ledger element). Numbers never
+   truncate: no overflow is hidden anywhere in the card; the fee-APR scales DOWN
+   the type scale as width fails and the summary row WRAPS so the figure and its
+   unit always travel together. */
+#fleet-books { display: grid; grid-template-columns: 1fr; gap: var(--space-12); margin-top: var(--space-16); }
+.fleet-group { display: contents; } /* the tier groups dissolve into the card grid; labels span the full row */
+.fleet-group-label { grid-column: 1 / -1; margin: var(--space-12) 0 0; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); }
+.fleet-card { border: 2px solid var(--line); background: var(--paper-raised); min-width: 0; }
+.fleet-card--flagship { margin-bottom: var(--space-20); } /* the static flagship precedes the rendered books (WIPE-SAFETY: never inside #fleet-books) */
+.fleet-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-6) var(--space-12); padding: var(--space-12) var(--space-14); min-height: 44px; cursor: pointer; } /* the whole summary is the tap zone */
+.fleet-tier { flex: 0 0 auto; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink); }
+.fleet-card--hook .fleet-tier { color: var(--warn); }    /* HOOK tier badge = warn token text: the honest red of a book that pays nobody */
+.fleet-card--dead .fleet-tier { color: var(--ink-soft); } /* DEAD = muted: no stream, no shout */
+.fleet-pair { flex: 0 1 auto; min-width: 0; font-family: var(--mono); font-size: var(--step-4); font-weight: 700; color: var(--ink); }
+/* WS5-OURS (2026-09-07): OURS chip on books where our capital sits — token-only
+   (accent-as-text green, hairline), static (no motion: the one-signature budget
+   stays at the ledger stamp). data-ours carries the status for honest sub-states
+   (SEEDED/WINDING-DOWN) without extra copy. */
+.fleet-ours { flex: 0 0 auto; font-family: var(--mono); font-size: var(--step-1); font-weight: 700; text-transform: uppercase; letter-spacing: var(--track-label); color: var(--accent-text); border: 1px solid var(--accent-text); padding: 0 0.4em; border-radius: var(--r-0, 0); }
+.fleet-apr { margin-left: auto; text-align: right; font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-3); font-variant-numeric: tabular-nums; color: var(--ink); min-width: 0; } /* right, tabular; scales down the rungs below — never clipped, never truncated */ /* WS5-DOTO: the fee-APR figure joins the dot-matrix number register; size scales/color untouched */
+.fleet-apr-mark { flex: 0 0 auto; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); }
+.fleet-meta { flex-basis: 100%; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); font-variant-numeric: tabular-nums; min-width: 0; } /* TVL + 24h vol keep their units; the row wraps as text — no overflow hidden on numbers */
+.fleet-detail { border-top: 1px solid var(--line); padding: var(--space-12) var(--space-14); font-size: var(--step-3); }
+.fleet-poolid { display: block; font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); overflow-wrap: anywhere; } /* THE long-hex line: anywhere is what keeps 390px scroll-free */
+.fleet-note { margin: var(--space-8) 0 0; font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); } /* the provenance window, verbatim, step-1 mono */
+.fleet-unavailable { margin: 0; border: 1px dashed var(--line); padding: var(--space-12) var(--space-14); font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); } /* the unavailable state is DESIGNED, not an error: — + muted prose + dashed hairline */
+@media (max-width: 640px) {
+  .fleet-apr { font-size: var(--step-2); } /* fee-APR scales to the step-1 floor as width fails (400px block below) — unit kept, never truncated */
+}
+@media (max-width: 400px) {
+  .fleet-apr { font-size: var(--step-1); }
+}
+@media (min-width: 900px) {
+  #fleet-books { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* two measured books side by side */
+}
+
+/* ---- movement (a)'s ONE live hero stat ----
+   Huge tabular mono number + muted label; the provenance window rides muted.
+   The unavailable register (static '—' pre-JS, or a failed feed) adds the dashed
+   hairline — detected via the window span being :empty (progressive :has; an
+   engine without it still shows the honest '—', just without the hairline). */
+#hero-stat { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); margin: var(--space-24) 0 var(--space-16); }
+.hero-stat-num { font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-7); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink); } /* WS5-DOTO: the hero's one live figure joins the dot-matrix number register; size/color/tabular-nums untouched */
+.hero-stat-label { font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+.hero-stat-window { font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); } /* the window line, muted */
+#hero-stat:has(#hero-stat-window:empty) { border: 1px dashed var(--line); padding: var(--space-12) var(--space-14); } /* unavailable = dashed hairline + the '—' (WS5-TREATMENT static state styling) */
+
+/* ---- movement (c): the plug-in cards + the vanish disclosure ----
+   The two skill pointers become card-like tap zones (one link each, whole-card
+   44px zone, equal height by identical geometry). NOTE (disclosed): the DOM
+   carries the pointers inline in the #agents prose (WS5-SKELETON's movement-c
+   form) — the card treatment is applied to the existing <a> carriers; no
+   markup was added (index.html is not this goal's file). */
+#agents-skill-link, #agents-skill-mirror-link {
+  display: inline-block; vertical-align: middle; margin: var(--space-2) 0;
+  min-height: 44px; padding: var(--space-10) var(--space-14);
+  border: 2px solid var(--line); background: var(--paper-raised);
+  color: var(--accent-text); text-decoration: none;
+  font-family: var(--mono); font-size: var(--step-2); line-height: 1.5;
+}
+#agents-skill-link:visited, #agents-skill-mirror-link:visited { color: var(--accent-text); text-decoration: none; }
+#vanish .wrap { text-align: center; }
+.vanish-line { font-family: var(--serif); font-size: var(--step-6); line-height: 1.2; color: var(--ink); max-width: 30ch; margin: 0 auto; } /* the h2-sized claim in the deadpan serif — --serif is already tokened, no new fonts */
+
+/* ============================================================
+   WS5-TREATMENT — THE ONE SIGNATURE MOTION (2026-09-07).
+   The ledger stamp is the page's only motion. The fleet cards' first-render
+   arrival plays the SAME ws-stamp-fade keyframes REVERSED (stamp in, hold,
+   stay) with the old ledger rows' staggered beat (0/140/280ms, extended to
+   700ms at the 6th card). Opacity only — compositor-friendly, 60fps by
+   construction; no JS, no rAF. The static flagship card (it hosts the deposit
+   widget) does not animate. Reduced motion: instant, opacity 1, no transform.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  #fleet-books .fleet-card { animation: ws-stamp-fade 900ms var(--ease-loop, cubic-bezier(0.65, 0, 0.35, 1)) reverse backwards; }
+  .fleet-group .fleet-card:nth-child(2) { animation-delay: 0ms; }
+  .fleet-group .fleet-card:nth-child(3) { animation-delay: 140ms; }
+  .fleet-group .fleet-card:nth-child(4) { animation-delay: 280ms; }
+  .fleet-group .fleet-card:nth-child(5) { animation-delay: 420ms; }
+  .fleet-group .fleet-card:nth-child(6) { animation-delay: 560ms; }
+  .fleet-group .fleet-card:nth-child(7) { animation-delay: 700ms; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #fleet-books .fleet-card { animation: none; opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   WS5-TREATMENT — the ONE-SCREEN mobile hero (2026-09-07).
+   At 390×846 the hero fits ≤100svh WITHOUT scroll: the grid reorders
+   h1 → pitch → CTA pair → hero-stat → lede. WS5-GATES (2026-09-07): the fold
+   probe measured the original lede-before-CTA order pushing the primary CTA
+   to y=914 at 390×846 — BELOW the 846px fold, failing the acceptance
+   5-second test (h1 + one number + primary CTA without scrolling). The CTA
+   now precedes the lede: re-probe measures h1 (197–536), CTA (~631–729) and
+   the hero number (~737–781) all above the fold, CTA in the thumb third.
+   The decorative keepers drop out (canyon hidden ≤640 above,
+   the point-hand already hidden), and the lede steps OFF the display rung
+   onto the body rung — the COPY is byte-pinned and untruncated (no line
+   clamp anywhere); only the type rung changes. Later in the file than the
+   WS-MOBILE-FIXES rank block, so this order wins the cascade.
+   ============================================================ */
+@media (max-width: 640px) {
+  /* the wrap's min-height subtracts the hero's 8px hatch border-bottom, so the
+     .hero ELEMENT lands at exactly one small viewport (wrap 838 + border 8 = 846) */
+  .hero .wrap { min-height: calc(100vh - 8px); min-height: calc(100svh - 8px); justify-content: flex-start; padding-top: var(--space-16); padding-bottom: var(--space-20); }
+  .hero .wrap > h1 { order: 1; margin-bottom: var(--space-8); }
+  .hero .wrap > p:not(.lede) { order: 2; margin: var(--space-8) 0; }
+  .hero .wrap > p.lede { order: 5; font-size: var(--step-4); line-height: 1.4; margin-bottom: var(--space-8); } /* rung + leading only — copy byte-identical, no clamp */
+  .hero .wrap > #hero-stat { order: 4; margin: var(--space-8) 0; }
+  .hero .wrap > .cta-row { order: 3; margin-top: var(--space-12); } /* WS5-GATES 2026-09-07: order 5→3 — the fold probe caught the CTA below the 846px fold at 390 (see block comment); full-width stacked (the ≤640 .cta-row block above), solid first, thumb third */
+  .hero .wrap > #chain-badge { order: 6; margin-top: var(--space-8); }
+}
+/* WS5-TREATMENT: the deposit widget now lives INSIDE the flagship fleet card's
+   detail — the page-level .widget-grid minimum (300px columns) exceeds the
+   card's inner measure at 390, so the card's own width governs (zero h-scroll
+   for EVERY section, goal contract). Scoped to the section id; byte-stable. */
+@media (max-width: 640px) {
+  #deposit .widget-grid { grid-template-columns: minmax(0, 1fr); }
+  #deposit .panel { min-width: 0; }
+  #deposit .panel-head { flex-wrap: wrap; }
+}
+/* ---------- end WS5-TREATMENT EOF block ---------- */
+
+/* ============================================================
+   WS5-GATES (2026-09-07) — probe 3-caught mobile-fold fix.
+   Measured at 390×846: the 136px header + ~224px of JS-written tape
+   family rows pushed the hero down so #hero-stat-num (y=913) and
+   a.cta-solid (y=1039) landed BELOW the 846px fold — the 5-second test
+   failed on its "one number + primary CTA" line (h1 passed). Fix, all
+   ≤640-only and presentation-only (copy byte-identical, no clamp): the
+   tape FAMILY rows drop out exactly like the canyon keeper already does
+   (the meta promise + chain cell stay — zero fabricated numbers), and
+   the two trust paragraphs step one type rung down (the WS5-TREATMENT
+   mechanism: rung change only). Re-measured post-fix: CTA bottom ≈ 815
+   ≤ 846. Also: probe 3's tap sweep measured the 'Docs' nav link at
+   34.3px wide (<44) at 390 — min-width floors it.
+   ============================================================ */
+@media (max-width: 640px) {
+  .tape-strip .wrap > .tape-strip-entry:not(.tape-strip-meta) { display: none; }
+  .hero .wrap > p:not(.lede) { font-size: var(--step-3); line-height: 1.4; }
+  .hero .wrap > p.lede { font-size: var(--step-3); } /* rung only — line-height 1.4 rides the WS5-TREATMENT lede rule above */
+  .hero .wrap { padding-top: var(--space-8); }
+  .hero .wrap > .cta-row { margin-top: var(--space-8); }
+  .site-nav a { min-width: 44px; } /* flex-item min-width: no layout disturbance at any ≤640 width */
 }

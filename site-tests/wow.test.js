@@ -191,13 +191,18 @@ test('launch fact single-sourced: one quoted literal per state, statics byte-equ
 
   // (b) BYTE-ONLY index.html pins (re-pinned 2026-09-04: Branch B in force — the
   // config carries the deployed addresses, so the statics carry the deployed
-  // register and the superseded dated prose is gone)
+  // register and the superseded dated prose is gone).
+  // re-pinned 2026-09-07 (WS5-SKELETON): the two statics that carried the short
+  // deployed register (the hero-ledger vault row + the flow node) are DELETED
+  // outright in the three-movement rebuild — the deployed register now ships ONLY
+  // through the JS writers (tape strip rows + the relocated #vaults-launch-fact
+  // span's prose form), so the static count is 0.
   assert.strictEqual((indexSrc.match(/deploy\(ed|s\) 20\d\d/g) || []).length, 0,
     'index.html never hard-dates the deploy fact');
   assert.strictEqual((indexSrc.match(/awaiting on-chain deploy — yield phase not started/g) || []).length, 0,
     'the pending long string occurs 0 times in the statics (Branch B)');
-  assert.strictEqual((indexSrc.match(/deployed — yield phase live/g) || []).length, 2,
-    'exactly the two statics (hero-ledger vault row + flow node) carry the deployed register');
+  assert.strictEqual((indexSrc.match(/deployed — yield phase live/g) || []).length, 0,
+    'the short deployed register ships via JS writers only (the hero-ledger row + flow node statics are retired)');
 
   // (c) the writer + its NULL-GUARD exist in main.js (this battery's DOM stub
   // returns null for EVERY id — init() must not throw)
@@ -228,13 +233,13 @@ test('P1 depositsOpen: a verified pause blocks the deposit side; unknown never d
   assert.strictEqual(wow2.depositsOpen(true, undefined), true, 'unknown read (undefined) → same');
 });
 
-// Honesty-string pins for the five WS-PRODUCT-GAPS strings (verbatim, one home
+// Honesty-string pins for the WS-PRODUCT-GAPS strings (verbatim, one home
 // each): the pause row states the pause + the redeem guarantee and never a
 // duration; the position line carries the share-price qualifier; the preview
-// names the chain as the final pricer (never "you will receive"); the flow
-// deposit node's pending sentence lives ONLY in main.js's writer (Branch B:
-// the deployed register is the static first paint); the stale pre-deploy
-// coverage claim is gone from the statics, replaced by the self-verify truth.
+// names the chain as the final pricer (never "you will receive"); the stale
+// pre-deploy coverage claim is gone from the statics, replaced by the
+// self-verify truth. (WS5-SKELETON 2026-09-07: the flow deposit node's pending
+// sentence retired WITH the flow figure — its pin retired dated below.)
 test('WS-PRODUCT-GAPS honesty strings: verbatim single-source pins, no overclaim', () => {
   assert.strictEqual((mainSrc.match(/Deposits are paused on the vault\. Redemptions are never pausable — exits stay open\./g) || []).length, 1,
     'the pause row is quoted exactly once in main.js');
@@ -244,14 +249,17 @@ test('WS-PRODUCT-GAPS honesty strings: verbatim single-source pins, no overclaim
 
   const indexSrc2 = fs.readFileSync(path.join(__dirname, '..', 'site', 'index.html'), 'utf8');
   assert.strictEqual(indexSrc2.indexOf('you will receive'), -1, 'never a receive-promise in the statics');
-  assert.strictEqual((indexSrc2.match(/open — approve the vault, then deposit/g) || []).length, 1,
-    'the flow deposit node ships the deployed register statically, exactly once');
+  // re-pinned 2026-09-07 (WS5-SKELETON): the flow deposit node's statics are
+  // RETIRED with the #flow-diagram figure (deleted outright in the three-movement
+  // rebuild) — the deployed register it carried ships via JS writers only, and
+  // FLOW_DEPOSIT_SUB (the pending sentence's writer constant) is retired from
+  // main.js with its consumer.
+  assert.strictEqual((indexSrc2.match(/open — approve the vault, then deposit/g) || []).length, 0,
+    'the flow node static is retired (the figure is deleted)');
   assert.strictEqual(indexSrc2.indexOf('deposits activate when the vault deploys'), -1,
     'the pending sentence never ships statically (Branch B)');
-  assert.ok(mainSrc.indexOf('deposits activate when the vault deploys') !== -1,
-    'the pending sentence lives in main.js\'s FLOW_DEPOSIT_SUB writer');
-  assert.strictEqual((indexSrc2.match(/verify it yourself with any RPC client/g) || []).length, 2,
-    'the noscript coverage truth is exactly the two static seam cells');
+  assert.strictEqual((indexSrc2.match(/verify it yourself with any RPC client/g) || []).length, 1,
+    'the coverage truth is exactly the ONE relocated seam cell (#fleet-coverage; the mint-card + invariants cells are retired)');
   assert.strictEqual(indexSrc2.indexOf('awaiting address wiring'), -1,
     'the stale pre-deploy coverage claim is gone from the statics');
   // the new strings carry no yield figure, no owner language, no VIBE

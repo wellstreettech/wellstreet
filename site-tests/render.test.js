@@ -129,23 +129,27 @@ global.document = {
 // and deposit-panel-head (the deposit panel-head hook the verified-pause warn tag
 // attaches to in appendWidgetTruthRows) — all three are static page ids in index.html
 // queried by main.js's WS3-DEGRADED seams.
-['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge', 'vault-grid', 'vaults-updated',
+// + WS5-SKELETON (2026-09-07) registry rewrite: the three-movement rebuild deletes
+// the hero ledger (hero-ledger/-state/-rows/-summary), the hero chips (chip-*), the
+// stats band (stat-tape/ticks/tvl/price/split/apr + the baseline notes), the money-
+// flow figure (flow-*), the mint card + invariants (mint-backed/inv-stat/
+// invariants) and the #vaults section (vaults/vault-grid/vaults-updated/apr-footnote
+// -text/apr-footnote) — all out of the registry. ADDED: the fleet surfaces (fleet,
+// fleet-books, fleet-flagship-apr, fleet-vault-reads, fleet-coverage) and the ONE
+// live hero stat (hero-stat + its num/label/window children). The sim ids stay (the
+// simulator moved into the flagship fleet card with ids intact); asset-magnify stays
+// (the docs keeper img is static markup, only its JS sweep hook retired).
+['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
- 'doc-tabs', 'doc-pane', 'footer-year', 'trademark-note', 'apr-footnote-text',
- 'apr-footnote', 'vaults', 'deposit', 'docs',
- 'hero-ledger', 'hero-ledger-state', 'hero-ledger-rows',
- 'chip-price', 'chip-tvl', 'chip-apr',
- 'wallet-picker',
- 'stat-tvl', 'stat-price', 'stat-split',
- 'stat-tape', 'stat-tick-tvl', 'stat-tick-price',
- 'flow-diagram', 'flow-pool-tvl', 'flow-cut', 'flow-vault-state', 'flow-yield',
- 'flow-deposit-state',
- 'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
- 'mint-backed', 'inv-stat', 'invariants',
+ 'doc-tabs', 'doc-pane', 'footer-year', 'trademark-note',
+ 'deposit', 'docs', 'fleet',
  'agents', 'agents-skill-link', 'agents-skill-mirror-link', 'asset-magnify',
- 'red-amount-label', 'redeem-preview', 'hero-ledger-summary',
- 'stat-baseline-note', 'chip-baseline-note', 'deposit-panel-head'
+ 'red-amount-label', 'redeem-preview', 'deposit-panel-head',
+ 'wallet-picker',
+ 'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
+ 'hero-stat', 'hero-stat-num', 'hero-stat-label', 'hero-stat-window',
+ 'fleet-books', 'fleet-flagship-apr', 'fleet-vault-reads', 'fleet-coverage'
 ].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');
@@ -153,24 +157,6 @@ global.document = {
     global.document.body.appendChild(node);
   }
 });
-
-// stat-apr (WSV-STATS-REAL-FOOTER): registered as the VALUE span inside a cell
-// that also carries the static 'projected' marker — index.html static markup this
-// stub never loads, so the registration recreates the structure assertions need
-// (same shape as the chip-apr value span + hero-chip-suffix pair at index.html).
-if (!REGISTRY['stat-apr']) {
-  const aprCell = makeEl('div');
-  aprCell.className = 'stat-cell';
-  const aprVal = makeEl('span');
-  aprVal.className = 'stat-value';
-  aprVal.setAttribute('id', 'stat-apr');
-  aprCell.appendChild(aprVal);
-  const aprMarker = makeEl('span');
-  aprMarker.className = 'stat-marker';
-  aprMarker.textContent = 'projected';
-  aprCell.appendChild(aprMarker);
-  global.document.body.appendChild(aprCell);
-}
 
 // ---------------- deterministic JSON-RPC mock (the "public RPC") ----------------
 const SPY = config.tokens.spy.address.toLowerCase();
@@ -418,28 +404,12 @@ test('rpc failover fired only through the configured endpoints under mock transp
 
 
 // -------- stats band riders (WSV-STATS-REAL-FOOTER: real figures, chip mirror, pure easing) --------
-
-test('stats band renders real pipeline figures, mirroring the hero chips byte-for-byte', async () => {
-  await settle(60);
-  // stat-price: the Chainlink read the same pass already made (mock pins $770.27)
-  assert.strictEqual(REGISTRY['stat-price'].textContent, '$770.27');
-  // stat-tvl === chip-tvl (byte-for-byte mirror) and non-empty
-  assert.ok(REGISTRY['chip-tvl'].textContent !== '', 'chip-tvl filled from live data');
-  assert.strictEqual(REGISTRY['stat-tvl'].textContent, REGISTRY['chip-tvl'].textContent);
-  assert.ok(REGISTRY['stat-tvl'].textContent !== '', 'stat-tvl non-empty');
-  // stat-apr === chip-apr, carries '~' and '%'
-  assert.strictEqual(REGISTRY['stat-apr'].textContent, REGISTRY['chip-apr'].textContent);
-  assert.ok(REGISTRY['stat-apr'].textContent.indexOf('~') !== -1, 'apr carries ~');
-  assert.ok(REGISTRY['stat-apr'].textContent.indexOf('%') !== -1, 'apr carries %');
-  // the stat-apr cell keeps its static 'projected' marker child
-  const marker = REGISTRY['stat-apr'].parentNode.querySelector('.stat-marker');
-  assert.ok(marker, 'projected marker present in the stat-apr cell');
-  assert.strictEqual(marker.textContent, 'projected');
-  // stat-split: ratified constant rendered from config (depositor share + chain id)
-  const split = REGISTRY['stat-split'].textContent;
-  assert.ok(split.indexOf('90') !== -1 && split.indexOf(String(config.chain.id)) !== -1,
-    'split cell shows depositor share + chain id, got: ' + split);
-});
+// RETIRED 2026-09-07 (WS5-SKELETON): 'stats band renders real pipeline figures,
+// mirroring the hero chips byte-for-byte' — the #stat-tape band and the hero
+// chips are DELETED outright in the three-movement rebuild (the audit's
+// redundancy finding); the band's value spans and the chip-* mirrors no longer
+// exist in index.html or main.js. The published fan-out teeth live on in the
+// rewritten WOW-6 test below (sim-projection === fleet-flagship-apr).
 
 test('WS.stats.easeOutCubic: pure easing math (f(0)=0, f(1)=1, f(0.5)=0.875, monotone)', () => {
   const e = global.WS.stats.easeOutCubic;
@@ -455,29 +425,20 @@ test('WS.stats.easeOutCubic: pure easing math (f(0)=0, f(1)=1, f(0.5)=0.875, mon
 });
 
 // -------- WS-WOW-BATCH riders (2026-09-03: money-flow binding + sim projection verbatim) --------
-
-test('WOW-2 money-flow: nodes bind the same published pipeline reads', async () => {
-  await settle(120);
-  // pool TVL node: the live figure the ledger already shows (WETH units)
-  assert.ok(REGISTRY['flow-pool-tvl'].textContent.indexOf('WETH') !== -1,
-    'flow pool TVL bound from the pool snapshot, got: ' + REGISTRY['flow-pool-tvl'].textContent);
-  // cut node: the live-decoded slot0 cut
-  assert.ok(REGISTRY['flow-cut'].textContent.indexOf('slot0') !== -1,
-    'flow cut bound from the live slot0 decode, got: ' + REGISTRY['flow-cut'].textContent);
-  // vault node: the site's own honest register (never a fake state).
-  // (The node-class toggle is DOM-nesting-dependent and the registry stub holds
-  // bare nodes — the honest-register TEXT is the assertable state here.)
-  // re-pinned 2026-09-04: config flipped to deployed addresses — the node binds the
-  // site's honest deployed register.
-  assert.ok(REGISTRY['flow-vault-state'].textContent.indexOf('deployed — yield phase live') !== -1,
-    'flow vault node renders the honest deployed register');
-});
+// RETIRED 2026-09-07 (WS5-SKELETON): 'WOW-2 money-flow: nodes bind the same
+// published pipeline reads' — the #flow-diagram figure is DELETED outright in
+// the three-movement rebuild; its node writers (setFlowPool/setFlowVaultState/
+// setFlowYield/setFlowRate) are gone from main.js and the pure flowRateClass
+// bucket stays pinned in wow.test.js.
 
 test('WOW-6 simulator: the projection region consumes the published string verbatim (never recomputed)', async () => {
   await settle(120);
-  // byte-for-byte: sim-projection === chip-apr === stat-apr (the publish fan-out)
-  assert.strictEqual(REGISTRY['sim-projection'].textContent, REGISTRY['chip-apr'].textContent,
-    'sim projection is the published "~X% projected" string, verbatim');
+  // re-pinned 2026-09-07 (WS5-SKELETON): the fan-out's surviving surfaces after
+  // the chip/stat-band/flow retirement are the flagship fleet card's summary
+  // cell (#fleet-flagship-apr) and the sim's projection region — byte-for-byte
+  // mirrors of ONE published string (never recomputed, never spectacularized).
+  assert.strictEqual(REGISTRY['sim-projection'].textContent, REGISTRY['fleet-flagship-apr'].textContent,
+    'sim projection is the published "~X% projected" string, verbatim (flagship summary mirror)');
   assert.ok(REGISTRY['sim-projection'].textContent.indexOf('~') === 0,
     'the projection carries the ~ register');
   // the default illustrative size renders
@@ -485,28 +446,80 @@ test('WOW-6 simulator: the projection region consumes the published string verba
 });
 
 // -------- STRATTON-LEDGER-CARD (2026-09-04: mint ticket + invariants seam) --------
+// RE-PINNED 2026-09-07 (WS5-SKELETON): the mint-ticket card and the invariants
+// section are DELETED outright in the three-movement rebuild; the backingCoverage
+// seam survives as ONE relocated line (#fleet-coverage) inside the flagship fleet
+// card's detail. The old 'BACKED cell renders the live coverage read...' test
+// (mint-backed === inv-stat, two cells) retired with those surfaces — the single
+// cell carries the same fill contract below.
 
-test('STRATTON-LEDGER-CARD: BACKED cell renders the live coverage read under the deployed config (one seam)', async () => {
+test('STRATTON-LEDGER-CARD: the coverage seam renders the live read under the deployed config (one relocated cell)', async () => {
   await settle(120);
-  // re-pinned 2026-09-04: config flipped to deployed addresses — the seam now reads
-  // the REAL vault address (the mock serves backingCoverage() = 1e18, an empty
-  // vault's exact cover) and publishes the formatted percentage to BOTH cells.
-  assert.strictEqual(REGISTRY['mint-backed'].textContent, '100.0%',
-    'mint-backed shows the live coverage read, got: ' + REGISTRY['mint-backed'].textContent);
-  // single seam: the invariants-section stat mirrors the mint-card cell byte-for-byte
-  assert.strictEqual(REGISTRY['inv-stat'].textContent, REGISTRY['mint-backed'].textContent,
-    'inv-stat === mint-backed (one published string, two cells)');
+  // the mock serves backingCoverage() = 1e18 (an empty vault's exact cover);
+  // the single fill point publishes the formatted percentage to #fleet-coverage.
+  assert.strictEqual(REGISTRY['fleet-coverage'].textContent, '100.0%',
+    'fleet-coverage shows the live coverage read, got: ' + REGISTRY['fleet-coverage'].textContent);
+});
+
+// -------- WS5-SKELETON pass-2 (2026-09-07: fleet render wipe-safety) --------
+// Pass-1 FATAL (caught in review, 2026-09-07): the static flagship fleet card —
+// hosting the ENTIRE #deposit widget, the #fleet-coverage seam and
+// #fleet-vault-reads — was nested INSIDE #fleet-books, and main.js's
+// renderFleetBooks() wipes that span wholesale via box.textContent='' on BOTH
+// the success and the fail-closed path (WS.fleet.load fires its callback either
+// way). The suite stayed green because this file's stub registry is FLAT (the
+// real parent/child nesting is reproduced nowhere), so the wipe cleared an
+// empty stub node while the real page lost the widget, the seam, the reads and
+// the nav's #deposit anchor in every JS-enabled browser. The invariant below is
+// pinned against the REAL index.html bytes — the flat stub cannot go blind to
+// it again: the wipe target hosts NO static flagship content, ever.
+
+test('WS5-SKELETON wipe-safety: the flagship fleet card lives OUTSIDE the #fleet-books render target (real bytes, not the flat stub)', () => {
+  const fs3 = require('node:fs');
+  const path3 = require('node:path');
+  const html3 = fs3.readFileSync(path3.join(__dirname, '..', 'site', 'index.html'), 'utf8');
+  const open = html3.indexOf('<div id="fleet-books">');
+  assert.ok(open !== -1, '#fleet-books render target present');
+  // balanced-div walk from the opening tag to its matching close (the span must
+  // stay free of static content; the walk survives benign future nesting)
+  let depth = 0;
+  let close = -1;
+  const re = /<\/?div\b/g;
+  re.lastIndex = open;
+  let m;
+  while ((m = re.exec(html3)) !== null) {
+    depth += (m[0] === '</div') ? -1 : 1;
+    if (depth === 0) { close = re.lastIndex; break; }
+  }
+  assert.ok(close !== -1, '#fleet-books span closes');
+  const span = html3.slice(open, close);
+  const markers = [
+    'id="deposit"', 'id="fleet-coverage"', 'id="fleet-vault-reads"',
+    'id="fleet-flagship-apr"', 'fleet-card--flagship'
+  ];
+  for (const marker of markers) {
+    assert.strictEqual(span.indexOf(marker), -1,
+      'the wiped span hosts no static ' + marker + ' (pass-1 FATAL regression pin)');
+    assert.ok(html3.indexOf(marker) !== -1,
+      marker + ' still present on the page (the pin must not be satisfiable by deletion)');
+  }
+  // document order: the static flagship precedes the render target it feeds
+  const flagship = html3.indexOf('fleet-card--flagship');
+  assert.ok(flagship !== -1 && flagship < open,
+    'the flagship card precedes #fleet-books (static flagship first, client-rendered books after)');
 });
 
 // -------- WS-ASSET-WIRE (2026-09-04: design-kit keepers + motion + agent-first) --------
 
 test('WS-ASSET-WIRE: the vault card carries the certificate keeper (decorative, self-hosted)', async () => {
   await settle(120);
-  // re-pinned 2026-09-04: config flipped to deployed addresses — the keeper rides the
-  // live card too (the deployed vault is empty); the decorative attributes pin holds.
-  const grid = REGISTRY['vault-grid'];
-  assert.ok(grid, 'vault grid rendered');
-  const cert = grid.querySelector('.asset-certificate');
+  // re-pinned 2026-09-07 (WS5-SKELETON): the flagship vault card renders into the
+  // fleet section now (#fleet-vault-reads — the vault grid is retired); the keeper
+  // rides the card exactly as before (the deployed vault is empty; the empty card
+  // is its state); the decorative attributes pin holds.
+  const reads = REGISTRY['fleet-vault-reads'];
+  assert.ok(reads, 'flagship reads mount rendered');
+  const cert = reads.querySelector('.asset-certificate');
   assert.ok(cert, 'the vault card carries the certificate img');
   assert.strictEqual(cert.getAttribute('src'), 'img/compressed/certificate.png',
     'certificate src is the relative self-hosted compressed path (WS-OG-PERF)');
@@ -587,108 +600,44 @@ test('WS-ASSET-WIRE: the skill-link upgrade seam is state-agnostic (repoUrl-driv
 
 // -------- WS-PRODUCT-GAPS (2026-09-05: pause gate is read-driven; flow deposit node) --------
 
-test('P1+P4: unpaused vault renders no pause row; the flow deposit node reads the deployed register', async () => {
+test('P1: unpaused vault renders no pause row (the negative half of the widget-pause teeth)', async () => {
   await settle(120);
   // P1 negative: the pause row is written ONLY from a VERIFIED paused=true read.
   // This mock serves depositsPaused() = false — the row must never appear and the
   // writer must not fabricate it from an unknown/false read.
+  // RE-PINNED 2026-09-07 (WS5-SKELETON): the P4 half (the flow deposit node's
+  // deployed register) retired with the #flow-diagram figure — the node and its
+  // writer are deleted outright in the three-movement rebuild.
   const status = allText(REGISTRY['widget-status']).join(' | ');
   assert.ok(status.indexOf('Deposits are paused on the vault.') === -1,
     'no pause row when depositsPaused() reads false, got: ' + status);
-  // P4: the deposit node's sub-label rides the SAME isDeployed seam — the deployed
-  // register is both the static first paint and the written state; the pending
-  // sentence lives only in main.js's writer (never shipped statically).
-  assert.strictEqual(REGISTRY['flow-deposit-state'].textContent,
-    'open — approve the vault, then deposit',
-    'flow deposit node carries the deployed register under the deployed config');
 });
 
 // -------- WS-VAULT-FAMILY-GRID (2026-09-04: the card is a repeatable template) --------
+// RETIRED 2026-09-07 (WS5-SKELETON), two tests with the surfaces they pinned:
+// 'WS-VAULT-FAMILY-GRID: one card per cfg.vaults entry, each self-contained
+// (template contract)' and 'WS-MULTI-VAULT-FRONTEND: every gated family card
+// renders the explicit DEPLOY-GATED state' — the #vaults family grid is DELETED
+// outright in the three-movement rebuild ("no cards"): the flagship vault card
+// renders into the fleet section and the DEPLOY-GATED family truth survives as
+// the ONE intro line in the #fleet block. The gated roster stays in
+// cfg.vaultFamily (pinned by vault-coverage.test.js; the header tape strip
+// still renders it).
 
-test('WS-VAULT-FAMILY-GRID: one card per cfg.vaults entry, each self-contained (template contract)', async () => {
-  await settle(120);
-  const grid = REGISTRY['vault-grid'];
-  assert.ok(grid, 'vault grid rendered');
-  const cardEls = grid.querySelectorAll('.vault-card');
-  // WS-MULTI-VAULT-FRONTEND (2026-09-05): the grid carries the single-vault cards
-  // (one per cfg.vaults entry, test fixture included) PLUS the gated family cards
-  // (cfg.vaultFamily entries whose id did not already render above).
-  const renderedIds = config.vaults.map(function (v) { return v.id; });
-  const familyExtras = (Array.isArray(config.vaultFamily) ? config.vaultFamily : [])
-    .filter(function (f) { return renderedIds.indexOf(f.id) === -1; });
-  assert.strictEqual(cardEls.length, config.vaults.length + familyExtras.length,
-    'one card per cfg.vaults entry + one per not-yet-rendered cfg.vaultFamily entry, got: ' + cardEls.length);
-  for (let i = 0; i < config.vaults.length; i++) {
-    const v = config.vaults[i];
-    const cardEl = cardEls[i];
-    assert.ok(cardEl, 'card ' + i + ' rendered');
-    assert.strictEqual(cardEl.getAttribute('data-vault-id'), v.id,
-      'card ' + i + ' carries its config entry id');
-    const t = allText(cardEl).join(' | ');
-    assert.ok(t.indexOf(v.displayName) !== -1, 'card ' + i + ' renders its display name');
-    assert.ok(t.indexOf(v.shareSymbol) !== -1, 'card ' + i + ' renders its share symbol');
-  }
-  // the test-only fixture entry carries the config's own PENDING_DEPLOY sentinel:
-  // the template must render the honest pending variant, never a deployed claim
-  const fixture = cardEls.filter(function (c) { return c.getAttribute('data-vault-id') === 'ws-family-fixture'; })[0];
-  assert.ok(fixture, 'the fixture entry rendered its card');
-  assert.ok(fixture.classList.contains('vault-card--pending'),
-    'a PENDING_DEPLOY entry renders the dashed pending variant');
-  const ft = allText(fixture).join(' | ');
-  assert.ok(ft.indexOf('pending deploy — deposits not open') !== -1,
-    'the pending card carries the honest pending status row');
-  assert.ok(ft.indexOf('deployed · ') === -1, 'the pending card never claims a deployed state');
-});
-
-test('WS-MULTI-VAULT-FRONTEND: every gated family card renders the explicit DEPLOY-GATED state', async () => {
-  await settle(120);
-  const grid = REGISTRY['vault-grid'];
-  assert.ok(grid, 'vault grid rendered');
-  const gatedEntries = (Array.isArray(config.vaultFamily) ? config.vaultFamily : [])
-    .filter(function (f) { return !WS.vault.isDeployed(f.vault); });
-  assert.ok(gatedEntries.length >= 4, 'the config carries >= 4 gated family entries');
-  for (const f of gatedEntries) {
-    const cardEl = grid.querySelectorAll('.vault-card')
-      .filter(function (c) { return c.getAttribute('data-vault-id') === f.id; })[0];
-    assert.ok(cardEl, 'gated family card rendered for ' + f.id);
-    assert.ok(cardEl.classList.contains('vault-card--pending'),
-      'gated card ' + f.id + ' uses the dashed pending variant');
-    const t = allText(cardEl).join(' | ');
-    assert.ok(t.indexOf('DEPLOY-GATED') !== -1,
-      'gated card ' + f.id + ' states the gated state in plain text');
-    assert.ok(t.indexOf(f.tierLabel) !== -1, 'gated card ' + f.id + ' renders its tier label');
-    assert.ok(t.indexOf('APR published post-deploy from measured harvests') !== -1,
-      'gated card ' + f.id + ' carries the honest APR note verbatim');
-    assert.ok(t.indexOf('pending deploy — deposits not open') !== -1,
-      'gated card ' + f.id + ' carries the honest pending status row');
-    if (f.riskLabel) {
-      assert.ok(t.indexOf(f.riskLabel) !== -1, 'gated card ' + f.id + ' renders its risk label');
-    }
-  }
-  // the PACK tier is the family's HIGH-RISK entry — its disclosure must ride the card
-  const pack = config.vaultFamily.filter(function (f) { return f.highRisk; })[0];
-  assert.ok(pack, 'the family carries a high-risk entry');
-  const packText = allText(grid.querySelectorAll('.vault-card')
-    .filter(function (c) { return c.getAttribute('data-vault-id') === pack.id; })[0]).join(' | ');
-  assert.ok(packText.indexOf('HIGH RISK') !== -1 && packText.indexOf('dust') !== -1,
-    'the high-risk card carries the HIGH-RISK + dust-cap disclosure');
-});
-
-test('WS-VAULT-FAMILY-GRID: hero-level surfaces stay primary-vault-scoped when a second card exists', async () => {
-  // The fixture card is PENDING_DEPLOY: an UNGATED coverage writer would overwrite
-  // the primary vault's live read with the wiring-truth string — this poll is the
-  // primary-scoping gate's teeth (the STRATTON seam's published string survives).
-  for (let i = 0; i < 100 && REGISTRY['mint-backed'].textContent !== '100.0%'; i++) { await settle(20); }
-  assert.strictEqual(REGISTRY['mint-backed'].textContent, '100.0%',
-    'the coverage seam keeps the PRIMARY vault\'s live read, got: ' + REGISTRY['mint-backed'].textContent);
-  assert.strictEqual(REGISTRY['inv-stat'].textContent, '100.0%', 'single seam intact (invariants cell)');
+test('WS-VAULT-FAMILY-GRID: hero-level surfaces stay primary-vault-scoped when a second config entry exists', async () => {
+  // The fixture entry (config.vaults[1]) is PENDING_DEPLOY: an UNGATED coverage
+  // writer would overwrite the primary vault's live read with the wiring-truth
+  // string — this poll is the primary-scoping gate's teeth (the STRATTON seam's
+  // published string survives). RE-PINNED 2026-09-07 (WS5-SKELETON): the seam is
+  // the single relocated #fleet-coverage cell and the fan-out mirrors are the
+  // flagship summary cell + the sim projection (the chip/stat/ledger surfaces
+  // are retired with their sections).
+  for (let i = 0; i < 100 && REGISTRY['fleet-coverage'].textContent !== '100.0%'; i++) { await settle(20); }
+  assert.strictEqual(REGISTRY['fleet-coverage'].textContent, '100.0%',
+    'the coverage seam keeps the PRIMARY vault\'s live read, got: ' + REGISTRY['fleet-coverage'].textContent);
   // the published projection fan-out is the primary card's, byte-for-byte
-  assert.ok(REGISTRY['chip-apr'].textContent !== '', 'chip-apr filled from the primary derivation');
-  assert.strictEqual(REGISTRY['stat-apr'].textContent, REGISTRY['chip-apr'].textContent, 'stat mirror intact');
-  assert.strictEqual(REGISTRY['sim-projection'].textContent, REGISTRY['chip-apr'].textContent, 'sim consumes the fan-out');
-  // the hero ledger stays the primary card's snapshot: still exactly the 4 pipeline rows
-  assert.strictEqual(REGISTRY['hero-ledger-rows'].children.length, 4,
-    'hero ledger renders the primary snapshot only');
+  assert.ok(REGISTRY['fleet-flagship-apr'].textContent !== '', 'flagship-apr filled from the primary derivation');
+  assert.strictEqual(REGISTRY['sim-projection'].textContent, REGISTRY['fleet-flagship-apr'].textContent, 'sim consumes the fan-out');
 });
 
 test('WS-VAULT-FAMILY-GRID source gate: per-entry config resolution, single canonical primary accessor', () => {
@@ -697,13 +646,13 @@ test('WS-VAULT-FAMILY-GRID source gate: per-entry config resolution, single cano
   const src = fs2.readFileSync(path2.join(__dirname, '..', 'site', 'js', 'main.js'), 'utf8');
   // The first-vault entry is indexed in exactly TWO places, BOTH by contract:
   //   1. the canonical primary-vault accessor (vaultCfg) — the seam every
-  //      primary-scoped surface (deposit widget, hero ledger/flow vault-state,
-  //      coverage fill, APR fan-out gating, token decimals) reads through;
+  //      primary-scoped surface (deposit widget, coverage fill, APR fan-out
+  //      gating, token decimals, the flagship card mount) reads through;
   //   2. the PROTECTED launch-fact writer — the goal pins the writer's form
   //      ("#vaults-launch-fact span + writer preserved") and the hardening
   //      batteries (wow.test.js + agent-first.test.js) pin it byte-exact.
-  // The CARD path itself has ZERO direct occurrences: cards render from the
-  // cfg.vaults[] loop with per-entry config resolution.
+  // re-pinned 2026-09-07 (WS5-SKELETON): the per-entry CARD loop is retired with
+  // the family grid — the flagship renders from vaultCfg() alone.
   assert.strictEqual((src.match(/cfg\.vaults\[0\]/g) || []).length, 2,
     'exactly the canonical accessor + the protected launch-fact writer index the first entry');
   // no card-path hardcode of vault #1's pool/feed/token anywhere in main.js
@@ -717,6 +666,6 @@ test('WS-VAULT-FAMILY-GRID source gate: per-entry config resolution, single cano
   assert.ok(src.indexOf('poolCfgFor(vaultCfg)') !== -1, 'the card loader resolves the pool per entry');
   assert.ok(src.indexOf('feedCfgFor(vaultCfg)') !== -1, 'the card loader resolves the feed per entry');
   assert.ok(src.indexOf('underlyingRow(u, vaultCfg)') !== -1, 'the underlying row resolves per entry');
-  // the template loop + per-card mounts remain the card source
-  assert.ok(src.indexOf('cfg.vaults.forEach') !== -1, 'cards render from the vaults[] loop');
+  // the flagship mounts through the canonical accessor (WS5-SKELETON re-pin)
+  assert.ok(src.indexOf('renderCardShell(vaultCfg())') !== -1, 'the flagship card renders from the canonical accessor');
 });

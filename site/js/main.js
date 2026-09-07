@@ -19,16 +19,10 @@
   // Undated by design (a hard date in code goes stale) and carries no yield promise.
   var LAUNCH_FACT = { pendingShort: 'awaiting on-chain deploy', pending: 'awaiting on-chain deploy — yield phase not started', deployed: 'deployed — yield phase live', prosePending: 'The vault is not yet on-chain — factory, timelock, harvester and vault land on Robinhood Chain; these cards read the pending state until then.', proseDeployed: 'The vault is on-chain — four contracts on Robinhood Chain, verifiable at the exact addresses these cards read.' };
 
-  // WS-PRODUCT-GAPS (2026-09-05): single-sourced strings for the widget's
-  // pause/position/preview truth surfaces and the flow-diagram deposit node's
-  // sub-label. The deposit node's static first paint carries the DEPLOYED
-  // sentence (Branch B precedent — the deployed register ships statically; a
-  // pending state is written by the seam, never shipped statically), so the
-  // pending sentence lives ONLY here.
-  var FLOW_DEPOSIT_SUB = {
-    deployed: 'open — approve the vault, then deposit',
-    pending: 'schematic — deposits activate when the vault deploys'
-  };
+  // WS5-SKELETON (2026-09-07): FLOW_DEPOSIT_SUB retired — the money-flow figure
+  // (its only consumer) is deleted outright in the three-movement rebuild; the
+  // wow.test.js pins that named the constant were retired dated in the same
+  // change. The widget's pause/position/preview strings below are untouched.
   // P1: the pause row states the pause and the redeem guarantee — it never
   // guesses a duration, promises a date, or implies an un-pause.
   var PAUSE_ROW = 'Deposits are paused on the vault. Redemptions are never pausable — exits stay open.';
@@ -51,10 +45,10 @@
   function fmtAddr(a) {
     return a && a.length > 14 ? a.slice(0, 8) + '…' + a.slice(-6) : String(a || '');
   }
-  function fmtUsd(v) {
-    if (v === null || v === undefined || !isFinite(v)) { return '—'; }
-    return '$' + v.toLocaleString('en-US', { maximumFractionDigits: 0 });
-  }
+  // WS5-SKELETON (2026-09-07): main.js's fmtUsd retired (its only consumers —
+  // the hero ledger's USD TVL row and the chips — are deleted); USD figures on
+  // the fleet column render through WS.fleet.fmtUsd (js/fleet.js), the feed's
+  // own fail-closed formatter.
   function fmtPct(v, digits) {
     if (v === null || v === undefined || !isFinite(v)) { return '—'; }
     return v.toFixed(digits == null ? 2 : digits) + '%';
@@ -89,9 +83,10 @@
     vaultDeployed: false,
     depositsPaused: null,     // P1: vault's own depositsPaused() — null = unknown (verified read only)
     underlyingState: null,    // P1: underlying token state ('active' | 'issuer-paused' | 'unknown')
-    lastUpdated: null,   // timestamp of the last successful card refresh
-    snap: null,          // {priceUsd, tvlWeth} — this cycle's snapshot (diffed for the tape's tick glyphs)
-    prevDeployed: undefined // previous isDeployed reading (WOW-3 launch-flip key)
+    lastUpdated: null    // timestamp of the last successful refresh
+    // WS5-SKELETON (2026-09-07): state.snap (the tape's diff input) and
+    // state.prevDeployed (the launch-flip key) retired with the tape and the
+    // flip wiring — the WOW-1 re-roll and WOW-3 beat had no other reader.
   };
 
   var cards = [];        // {vaultCfg, mounts} — refreshed on the live-refresh loop
@@ -99,54 +94,30 @@
   // ------------------------------------------------------------------
   // Live refresh (A1): the page claims "live on-chain reads" — that must stay
   // true over time, not only at load. Data refreshes every 60s (public-RPC
-  // polite, visibility-gated, paused while a wallet flow is in flight); the
-  // age stamp updates every 5s. Timers are unref'd so node --test exits.
+  // polite, visibility-gated, paused while a wallet flow is in flight). Timers
+  // are unref'd so node --test exits.
+  // WS5-SKELETON (2026-09-07): the 5s age stamp (the #vaults-updated surface is
+  // retired with the #vaults section), the per-cycle magnify sweep, the WOW-7
+  // heartbeat and the hero-ledger sr-only summary writer all retired with their
+  // host surfaces — the loop is the reads, nothing else.
   // ------------------------------------------------------------------
   var REFRESH_MS = 60000;
-  var STAMP_MS = 5000;
   var flowPending = false;
 
   function anyVisible() {
     return typeof document === 'undefined' || document.visibilityState !== 'hidden';
   }
 
-  function updateStamp() {
-    var n = $('vaults-updated');
-    if (!n) { return; }
-    if (!state.lastUpdated) { n.textContent = 'live on-chain reads — first load…'; return; }
-    n.textContent = 'live on-chain reads · updated ' +
-      fmtAge(Math.max(0, Math.round((Date.now() - state.lastUpdated) / 1000)));
-  }
-
   async function refreshCards() {
     if (flowPending || !anyVisible() || !state.client) { return; }
-    // WS-ASSET-WIRE: the magnify-hand sweeps once while THIS re-read is in
-    // flight (the same per-cycle trigger family as the WOW-8 ledger stamp).
-    sweepMagnifier();
-    var prevSnap = state.snap ? { priceUsd: state.snap.priceUsd, tvlWeth: state.snap.tvlWeth } : null;
     for (var i = 0; i < cards.length; i++) {
       await loadVaultData(cards[i].vaultCfg, cards[i].mounts);
     }
     state.lastUpdated = Date.now();
-    updateStamp();
-    // WOW-7 chain-pulse: the stamp pulses once per successful cycle and dims
-    // when the cycle's pool read failed (a dimmed heartbeat reads "not live",
-    // never broken). First cycle is a real cycle — the heartbeat may fire;
-    // the DELTA flashes below are the path that must skip the first render.
-    pulseStamp(!!state.pool);
-    // WS-A11Y-QUICK (2026-09-05): one polite line per COMPLETED cycle for screen
-    // readers, keyed off the same !!state.pool signal the stamp consumes. Skipped
-    // cycles (flow pending / tab hidden / no client) hit the early return above
-    // and announce nothing — claiming a failure for a cycle that never ran would
-    // lie. Byte-identical steady-state re-announcements are SR-dependent by
-    // design: no churn mechanisms, no counters.
-    var n = $('hero-ledger-summary'); if (n) { n.textContent = state.pool ? 'Ledger refreshed — re-read from public RPC' : 'Ledger refresh failed — the ledger shows unavailable states, never estimates'; }
   }
 
   function startTimers() {
-    var stamp = setInterval(updateStamp, STAMP_MS);
     var refresh = setInterval(refreshCards, REFRESH_MS);
-    if (stamp && typeof stamp.unref === 'function') { stamp.unref(); }
     if (refresh && typeof refresh.unref === 'function') { refresh.unref(); }
   }
 
@@ -309,76 +280,26 @@
   }
 
   // ------------------------------------------------------------------
-  // WS-MULTI-VAULT-FRONTEND (2026-09-05): the DEPLOY-GATED family cards.
-  // A gated family entry (cfg.vaultFamily, status DEPLOY-GATED) renders the
-  // explicit gated state: the frozen pending status row, its tier badge, its
-  // risk label (PACK carries the HIGH-RISK disclosure), its config-pinned fee
-  // book, and the honest APR note — VERBATIM, never a yield figure. Static
-  // config facts are labeled "pinned"; NO live reads are made for a gated
-  // entry (the family reader's pending:true path issues zero eth_calls — the
-  // isDeployed gates inside js/vault.js are the guarantee), and the card's
-  // note says exactly that.
+  // WS5-SKELETON (2026-09-07): the DEPLOY-GATED family card builders retired
+  // outright (tierRow / riskRow / familyBookRow / aprNoteRow / renderFamilyCard
+  // — the #vaults family grid is deleted; the DEPLOY-GATED family truth
+  // survives as the ONE intro line in the #fleet section). The gated roster
+  // itself stays in cfg.vaultFamily (js/vault.js's family reader still serves
+  // it; the header tape strip still renders its roster rows).
   // ------------------------------------------------------------------
-  function tierRow(f) {
-    var frag = document.createDocumentFragment();
-    frag.appendChild(el('span', 'share-symbol', f.tierLabel || 'family tier'));
-    return row('Tier', frag);
-  }
-
-  function riskRow(f) {
-    if (!f.riskLabel) { return null; }
-    return row('Risk disclosure', flagNode(false, f.riskLabel));
-  }
-
-  function familyBookRow(f) {
-    var frag = document.createDocumentFragment();
-    if (f.pool && cfg.pools && cfg.pools[f.pool]) {
-      var p = cfg.pools[f.pool];
-      frag.appendChild(el('span', null, p.label));
-      frag.appendChild(el('span', 'muted', ' · pinned pool ' + fmtAddr(p.address) + ' — fee tier ' + (p.feeTier != null ? p.feeTier / 1e4 + '%' : '—')));
-    } else if (f.poolId) {
-      frag.appendChild(el('span', null, 'v4 poolId ' + fmtAddr(f.poolId)));
-      frag.appendChild(el('span', 'muted', ' · PoolManager fork ' + fmtAddr(cfg.uniswapV4 && cfg.uniswapV4.poolManager) + ' (StateView-readable after the tier deploys)'));
-    } else {
-      // WS3-DEGRADED #2 (2026-09-06): settled fact renders STILL — the finality
-      // modifier re-derived live onto the family-grid surface per the goals doc's
-      // shared constraint 3 (the mapper's three anchors predate e30a51c).
-      frag.appendChild(el('span', 'state state--final', 'unavailable (RPC)'));
-    }
-    return row('Fee book (pinned)', frag);
-  }
-
-  function aprNoteRow(f) {
-    return row('Depositor APR', el('span', 'state', f.aprNote ||
-      'APR published post-deploy from measured harvests — backward-looking only'));
-  }
-
-  // Family card body: reuses renderCardShell (the PENDING_DEPLOY address flips it
-  // to the designed pending variant — same component the flagship used pre-deploy)
-  // and fills the gated rows. Nothing here fabricates a number: every row is a
-  // config-pinned fact, a gated-state statement, or the honest APR note.
-  function renderFamilyCard(f) {
-    var mounts = renderCardShell(f);
-    mounts.rows.appendChild(vaultStatusRow(f));
-    mounts.rows.appendChild(tierRow(f));
-    var risk = riskRow(f);
-    if (risk) { mounts.rows.appendChild(risk); }
-    mounts.rows.appendChild(familyBookRow(f));
-    mounts.rows.appendChild(aprNoteRow(f));
-    mounts.note.textContent = 'DEPLOY-GATED: this family tier is ratified but its contracts are not on chain yet — ' +
-      'this card carries config-pinned facts only, no live reads, and no yield figure. Addresses publish at deployment; ' +
-      'until then the honest state is the one above.';
-    return mounts;
-  }
 
   // ------------------------------------------------------------------
-  // Hero live ledger (WS-HERO-V9): a compact editorial-ledger panel under
-  // the hero lede. It CONSUMES the vault-card pipeline's already-fetched
-  // snapshots (pool slot0 / balances / Chainlink feed — the same
-  // config.rpc.endpoints, batching and failover; no new RPC calls, no new
-  // hosts, D8) and degrades row-by-row exactly like the cards: honest
-  // "unavailable (RPC)" states, never fabricated numbers. The USD TVL
-  // figure is the one deriveApr already derives — passed in, not recomputed.
+  // WS5-SKELETON (2026-09-07): the hero live ledger (WS-HERO-V9) and the hero
+  // chips (WS-HERO-CHIPS-V10) are RETIRED — deleted outright in the
+  // three-movement rebuild (the audit's redundancy finding: the chips were
+  // decorative duplicates of the ledger rows, the ledger a duplicate of the
+  // card rows; the hero now carries ONE live stat — #hero-stat, the Fleet
+  // count, rendered by initFleet below). renderLedger / setChipValue /
+  // renderChipsLive are gone; the ledger-row ANATOMY helper stays (the
+  // widget's position rows and the coverage line still speak it).
+  // The WOW-6 sim's dilution leg keeps its live-TV supply through the one
+  // seam the ledger used to own (the USD TVL deriveApr already derives —
+  // passed in, never recomputed):
   // ------------------------------------------------------------------
   function ledgerRow(label, valueNode, cls) {
     var r = el('div', 'ledger-row' + (cls ? ' ' + cls : ''));
@@ -390,180 +311,21 @@
     return r;
   }
 
-  function renderLedger(pool, price, tvlUsd) {
-    var rowsBox = $('hero-ledger-rows');
-    if (!rowsBox) { return; }
-    var chip = $('hero-ledger-state');
-    if (chip) {
-      chip.className = 'hero-ledger-state ' + (pool ? 'flag flag-ok' : 'flag flag-warn');
-      chip.textContent = pool ? 'live · chain ' + cfg.chain.id
-        : 'rpc unreachable — the rows below show the gap, not a guess';
-    }
-    rowsBox.textContent = '';
-
-    // 1. SPY / WETH price, live from the pool's own slot0 (token0 = WETH,
-    //    token1 = SPY, so the decoded pool price is SPY-per-WETH; SPY quoted
-    //    in WETH is its reciprocal).
-    var spyWeth = pool && pool.priceToken1PerToken0 && pool.priceToken1PerToken0 > 0
-      ? 1 / pool.priceToken1PerToken0 : null;
-    var rPrice = ledgerRow('SPY / WETH (pool slot0)',
-      spyWeth ? el('strong', null, spyWeth.toFixed(4) + ' WETH')
-              : el('span', 'state state--final', 'unavailable (RPC)'));
-    rowsBox.appendChild(rPrice);
-    if (spyWeth) { stampRow(rPrice, 'slot0'); }   // WOW-8: names the read that verified
-
-    // 2. Pool TVL — the same live tvlToken0 figure the vault cards show
-    //    (WETH units), with the pipeline's USD derivation when it has landed.
-    var tvlNode = document.createDocumentFragment();
-    if (pool && pool.tvlToken0) {
-      tvlNode.appendChild(el('strong', null, pool.tvlToken0.toFixed(2) + ' WETH'));
-      if (tvlUsd !== null && tvlUsd !== undefined && isFinite(tvlUsd)) {
-        tvlNode.appendChild(el('span', 'muted', ' · ≈ ' + fmtUsd(tvlUsd)));
-      }
-    } else {
-      tvlNode.appendChild(el('span', 'state state--final', 'unavailable (RPC)'));
-    }
-    var rTvl = ledgerRow('Pool TVL (live)', tvlNode);
-    rowsBox.appendChild(rTvl);
-    if (pool && pool.tvlToken0) { stampRow(rTvl, 'balances'); }
-
-    // 3. Protocol cut — decoded LIVE from slot0's feeProtocol word (the same
-    //    decode the cards render; consumed, not re-fetched).
-    var cutNode;
-    if (pool && pool.cut) {
-      var c = pool.cut;
-      var cf = document.createDocumentFragment();
-      cf.appendChild(el('span', null, (c.cutFraction * 100).toFixed(0) + '% of swap fees per side'));
-      cf.appendChild(el('span', 'muted', ' · slot0 (' + c.token0N + ',' + c.token1N + ') — LPs keep ' + (c.netMultiplier * 100).toFixed(0) + '%'));
-      cutNode = cf;
-    } else {
-      cutNode = el('span', 'state state--final', 'unavailable (RPC)');
-    }
-    var rCut = ledgerRow("The pool owner's cut (live)", cutNode);
-    rowsBox.appendChild(rCut);
-    if (pool && pool.cut) { stampRow(rCut, 'slot0'); }
-
-    // WOW-7 chain-pulse: one-beat delta flashes on rows whose published value
-    // changed since the previous cycle (first render never flashes).
-    applyLedgerDeltas(rowsBox, {
-      spyWeth: spyWeth,
-      tvl: pool && pool.tvlToken0 ? pool.tvlToken0 : null,
-      cut: pool && pool.cut ? pool.cut.cutFraction : null
-    });
-
-    // WOW-2 money-flow: the figure's nodes consume the same snapshot (no new reads).
-    setFlowPool(pool);
-    setFlowVaultState(WS.vault.isDeployed(vaultCfg().vault));
-
-    // 4. Vault state — the honest pending pipeline (never a fake number).
-    //    (R3 IMP-4 fact dedup: the ledger's static fee-split row was removed —
-    //    it duplicated the hero-fact pill verbatim. The split's canonical
-    //    verbal statement lives in the hero-facts row; the stat band keeps
-    //    its terse 90/10 + chain display cell.)
-    rowsBox.appendChild(ledgerRow('Vault state',
-      WS.vault.isDeployed(vaultCfg().vault)
-        ? flagNode(true, LAUNCH_FACT.deployed)
-        : flagNode(false, LAUNCH_FACT.pending),
-      'ledger-row-strong'));
-
-    // Hero chips (WS-HERO-CHIPS-V10): decorative duplicates of the rows above.
-    renderChipsLive(price, tvlUsd);
-  }
-
-  // ------------------------------------------------------------------
-  // Hero chips (WS-HERO-CHIPS-V10): ens.domains-style scatter around the
-  // hero, carrying REAL figures from the same pipeline snapshots the
-  // ledger consumes — no new RPC calls, no new fetch hosts (D8). Live
-  // chips degrade to label-only form (value span left empty) when a read
-  // fails; the static chips render unconditionally in index.html. The
-  // container is aria-hidden there: every chip figure is a decorative
-  // duplicate of a value the ledger/cards already expose. The value
-  // spans carry static ids (chip-price / chip-tvl / chip-apr) registered
-  // in the render test's static-ID registry.
-  // ------------------------------------------------------------------
-  function setChipValue(id, text) {
-    var n = $(id);
-    if (!n) { return; }
-    n.textContent = text || '';
-  }
-
-  function renderChipsLive(price, tvlUsd) {
-    // SPY USD price — the Chainlink feed read this same pass already made
-    // (the pool's slot0 ratio itself stays in the ledger row above).
-    // Each figure is computed ONCE and written to BOTH the chip and the stats
-    // band (WSV-STATS-REAL-FOOTER) — the band's value spans mirror the chips
-    // byte-for-byte, same fill semantics ('' when absent), same published value.
-    var priceText = price && price.usd != null && isFinite(price.usd)
-      ? '$' + price.usd.toFixed(2) : '';
-    // Pool TVL in USD — the derivation deriveApr already computes and hands
-    // to the ledger (tvlWeth x pool-derived WETH price); no recompute here.
-    var tvlText = tvlUsd !== null && tvlUsd !== undefined && isFinite(tvlUsd)
-      ? fmtUsd(tvlUsd) : '';
-    setChipValue('chip-price', priceText);
-    setChipValue('chip-tvl', tvlText);
-    setStatValue('stat-price', priceText);
-    setStatValue('stat-tvl', tvlText);
-    // WOW-6 sim: the dilution bar's live-TV leg is this same published USD TVL
-    // (consumed, never recomputed); the sim block re-renders its honest states.
+  function setSimTvlUsd(tvlUsd) {
     simState.tvlUsd = (tvlUsd !== null && tvlUsd !== undefined && isFinite(tvlUsd)) ? tvlUsd : null;
     renderSim();
   }
 
   // ------------------------------------------------------------------
-  // Stats band (WSV-STATS-REAL-FOOTER): a 4-cell count-up band under the
-  // hero carrying REAL pipeline figures. Three of the four cells are filled
-  // through the SAME snapshot flow as the hero chips (renderChipsLive above
-  // for SPY USD price + pool TVL in USD; publish() inside deriveApr for the
-  // published depositor APR projection) — the stat-* value spans mirror the
-  // chip-* spans byte-for-byte. The fourth cell (90/10 + chain) is a ratified
-  // economic constant rendered ONCE at init from cfg.economics/cfg.chain.id
-  // and never animated: counting it up would imply a live reading that does
-  // not exist. Degrade honestly: when a read fails the value span stays ''
-  // — never 0-as-fake. The reveal path needs IntersectionObserver +
-  // requestAnimationFrame + matchMedia; when ANY of the three is unavailable
-  // (the render-test stub ships none of them) or prefers-reduced-motion
-  // matches, finals are written synchronously via textContent and the path
-  // never throws. The easing fn is exposed pure as WS.stats.easeOutCubic
-  // (same namespaced-seam pattern as WS.rpc / WS.wallet).
+  // WS5-SKELETON (2026-09-07): the count-up stats band (WSV-STATS-REAL-FOOTER)
+  // is RETIRED — the #stat-tape section is deleted outright in the
+  // three-movement rebuild (its cells duplicated the hero chips, which are
+  // retired too). setStatValue / statsCanAnimate / animateStat / armStatsReveal
+  // / fmtStatNumber and their state are gone. KEPT: the two PURE helpers the
+  // unit batteries pin — WS.stats.easeOutCubic (render.test.js easing math)
+  // and splitStatFigure (tickGlyph's parser below) — same namespaced-seam
+  // pattern as WS.rpc / WS.wallet.
   // ------------------------------------------------------------------
-  var STAT_IDS = ['stat-tvl', 'stat-price', 'stat-apr'];   // animated three ONLY
-  var STAT_ANIM_BASE_MS = 1500;
-  var STAT_ANIM_STEP_MS = 80;
-  var STAT_STAGGER_BASE_MS = 480;
-  var STAT_STAGGER_STEP_MS = 90;
-  var statState = {};   // id -> { value, revealed }
-
-  function statsCanAnimate() {
-    if (typeof window === 'undefined') { return false; }
-    if (typeof window.IntersectionObserver !== 'function') { return false; }
-    if (typeof window.requestAnimationFrame !== 'function') { return false; }
-    if (typeof window.matchMedia !== 'function') { return false; }
-    try {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return false; }
-    } catch (e) { return false; }
-    return true;
-  }
-
-  function setStatValue(id, text) {
-    var n = $(id);
-    if (!n) { return; }
-    var st = statState[id] || (statState[id] = { value: '', revealed: false });
-    var prev = st.value;
-    st.value = text || '';
-    // Guard path (no IO/rAF/matchMedia, reduced motion, or already revealed):
-    // write the final figure synchronously — the honest value or '', never 0.
-    if (!statsCanAnimate() || st.revealed) { n.textContent = st.value; }
-    // WOW-1 tape: on a REVEALED live cell whose published value CHANGED between
-    // refreshes, re-roll the digits and blink a ▲/▼/– delta tick. The published
-    // projection cell (stat-apr) and the ratified-constant split cell are NOT in
-    // TAPE_TICK_IDS — excluded from the re-roll forever (a tick would imply a
-    // live reading that does not exist).
-    if (st.revealed && TAPE_TICK_IDS[id] && text !== prev && statsCanAnimate()) {
-      animateStat(id, STAT_IDS.indexOf(id));
-      showTapeTick(id, prev, text);
-      pulseBandSettle();
-    }
-  }
 
   // PURE: easeOutCubic — the count-up easing (no DOM, exposed for tests).
   function easeOutCubic(t) {
@@ -584,65 +346,17 @@
     return { prefix: m[1], num: num, decimals: decimals, suffix: m[3] };
   }
 
-  function fmtStatNumber(num, decimals) {
-    return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-  }
-
-  // ONE count-up reveal path. Runs once per stat (reveal marks all three
-  // revealed, so later 60s refreshes write finals directly via setStatValue).
-  function animateStat(id, idx) {
-    var n = $(id);
-    var st = statState[id];
-    if (!n || !st) { return; }
-    var fig = splitStatFigure(st.value);
-    if (!fig) { n.textContent = st.value; return; }   // nothing countable: final as-is
-    var dur = STAT_ANIM_BASE_MS + idx * STAT_ANIM_STEP_MS;
-    var delay = STAT_STAGGER_BASE_MS + idx * STAT_STAGGER_STEP_MS;
-    var start = null;
-    function frame(now) {
-      if (start === null) { start = now + delay; }
-      var t = (now - start) / dur;
-      if (t < 0) { t = 0; }
-      if (t >= 1) { n.textContent = st.value; return; }   // final byte-for-byte
-      n.textContent = fig.prefix + fmtStatNumber(fig.num * easeOutCubic(t), fig.decimals) + fig.suffix;
-      window.requestAnimationFrame(frame);
-    }
-    window.requestAnimationFrame(frame);
-  }
-
-  function armStatsReveal() {
-    if (!statsCanAnimate()) { return; }   // guard path: setStatValue already wrote finals
-    var band = document.body.querySelector('.stat-band');
-    if (!band) { return; }
-    var fired = false;
-    var io = new IntersectionObserver(function (entries) {
-      for (var i = 0; i < entries.length; i++) {
-        if (!entries[i].isIntersecting || fired) { continue; }
-        fired = true;                    // once
-        io.disconnect();
-        for (var k = 0; k < STAT_IDS.length; k++) {
-          var st = statState[STAT_IDS[k]] || (statState[STAT_IDS[k]] = { value: '', revealed: false });
-          st.revealed = true;
-        }
-        for (var j = 0; j < STAT_IDS.length; j++) { animateStat(STAT_IDS[j], j); }
-      }
-    }, { threshold: 0.25 });
-    io.observe(band);
-  }
-
   // ==================================================================
-  // WOW layer (WS-WOW-BATCH, WOW_UPGRADES_2026-09-03) — eight packages,
-  // one diff-driven voice. Every effect consumes the EXISTING snapshot
-  // fan-out (state.snap / statState / publish()) — zero new fetches,
-  // zero new hosts (D8); zero quantities recomputed. Pure helpers are
-  // exposed as WS.wow for the unit battery (same namespaced-seam
-  // pattern as WS.stats).
+  // WOW layer (WS-WOW-BATCH, WOW_UPGRADES_2026-09-03) — WS5-SKELETON state
+  // (2026-09-07): the DOM wiring for the deleted surfaces is RETIRED (the
+  // tape re-roll + band settle with #stat-tape, the ledger delta flashes +
+  // heartbeat + magnify sweep with the hero ledger, the flow-node writers
+  // with #flow-diagram, the launch-flip beat). KEPT: the PURE helpers the
+  // unit battery probes on WS.wow — tickGlyph / flowRateClass / simSharePct
+  // / launchFlipShouldAnimate / depositsOpen — and the coverage stamp
+  // (retargeted to the single relocated seam cell #fleet-coverage). Zero
+  // new fetches, zero new hosts (D8); zero quantities recomputed.
   // ==================================================================
-
-  // ---- WOW-1 tape: the two LIVE cells only (projection + split excluded) ----
-  var TAPE_TICK_IDS = { 'stat-tvl': 'stat-tick-tvl', 'stat-price': 'stat-tick-price' };
-  var tapeTimers = {};
-  var bandSettleTimer = null;
 
   // PURE: the sign glyph of a published-figure change ('▲' | '▼' | '–' | '').
   // Empty unless BOTH figures parse — a first fill is not a change.
@@ -655,115 +369,23 @@
     return '–';
   }
 
-  function showTapeTick(id, prev, next) {
-    var tick = $(TAPE_TICK_IDS[id]);
-    if (!tick) { return; }
-    var glyph = tickGlyph(prev, next);
-    tick.textContent = glyph;
-    tick.className = 'stat-tick' + (glyph === '▲' ? ' stat-tick--up' : glyph === '▼' ? ' stat-tick--down' : glyph === '–' ? ' stat-tick--flat' : '');
-    if (typeof setTimeout !== 'function') { return; }
-    if (tapeTimers[id] && typeof clearTimeout === 'function') { clearTimeout(tapeTimers[id]); }
-    tapeTimers[id] = setTimeout(function () { tick.textContent = ''; }, 1200);
-    if (typeof tapeTimers[id].unref === 'function') { tapeTimers[id].unref(); }
-  }
-
-  // One soft settle-pulse of the band per changed cycle (class remove/re-add
-  // restarts the CSS animation).
-  function pulseBandSettle() {
-    var band = document.body.querySelector('.stat-band');
-    if (!band || !band.classList || typeof setTimeout !== 'function') { return; }
-    band.classList.remove('stat-band--settle');
-    if (bandSettleTimer && typeof clearTimeout === 'function') { clearTimeout(bandSettleTimer); }
-    bandSettleTimer = setTimeout(function () { band.classList.add('stat-band--settle'); }, 30);
-    if (typeof bandSettleTimer.unref === 'function') { bandSettleTimer.unref(); }
-  }
-
-  // ---- shared motion gate: the accepted matchMedia guard form (STUB RIDER) ----
-  function motionAllowed() {
-    if (typeof window === 'undefined') { return false; }
-    if (typeof window.matchMedia === 'function') {
-      try {
-        return window.matchMedia('(prefers-reduced-motion: reduce)').matches !== true;
-      } catch (e) { return false; }
-    }
-    return false;   // no matchMedia (the render-test stub cohort): no motion
-  }
-
-  // ---- WOW-7 chain-pulse: delta classes on the ledger rows + stamp heartbeat ----
-  var prevLedgerSnap = null;
-  var stampTimer = null;
-
-  // Diff-driven, first-render-safe: prevLedgerSnap === null on the first render
-  // → no classes (no fake "change" on load). Rows are rebuilt every cycle, so
-  // the one-shot animation plays on fresh elements only.
-  function applyLedgerDeltas(rowsBox, snap) {
-    var rows = rowsBox.children || [];
-    var prev = prevLedgerSnap;
-    prevLedgerSnap = { spyWeth: snap.spyWeth, tvl: snap.tvl, cut: snap.cut };
-    if (!prev || !rows.length) { return; }
-    var pairs = [['spyWeth', rows[0]], ['tvl', rows[1]], ['cut', rows[2]]];
-    for (var i = 0; i < pairs.length; i++) {
-      var rowEl = pairs[i][1];
-      if (!rowEl || !rowEl.classList) { continue; }
-      var p = prev[pairs[i][0]];
-      var v = snap[pairs[i][0]];
-      if (p === null || p === undefined || v === null || v === undefined) { continue; }
-      rowEl.classList.remove('delta-up', 'delta-down');
-      if (v > p) { rowEl.classList.add('delta-up'); }
-      else if (v < p) { rowEl.classList.add('delta-down'); }
-    }
-  }
-
-  function pulseStamp(ok) {
-    var n = $('vaults-updated');
-    if (!n || !n.classList || typeof setTimeout !== 'function') { return; }
-    n.classList.remove('heartbeat', 'heartbeat-dim');
-    if (stampTimer && typeof clearTimeout === 'function') { clearTimeout(stampTimer); }
-    stampTimer = setTimeout(function () { n.classList.add(ok ? 'heartbeat' : 'heartbeat-dim'); }, 30);
-    if (typeof stampTimer.unref === 'function') { stampTimer.unref(); }
-  }
-
-  // ---- WS-ASSET-WIRE: the magnify-hand sweeps once while a vault re-read is in
-  // flight — hooked to the SAME per-cycle refresh trigger as the WOW-7 heartbeat,
-  // never to a value: a sweep is a "checking" gesture, not a signal about the
-  // data. Gated by the shared motionAllowed() matchMedia guard (reduced motion =
-  // static asset) and null-safe under every DOM stub. Re-trigger pattern mirrors
-  // pulseStamp (remove, re-add on a tick so the one-shot animation can replay). ----
-  var sweepTimer = null;
-  function sweepMagnifier() {
-    var n = $('asset-magnify');
-    if (!n || !n.classList || !motionAllowed() || typeof setTimeout !== 'function') { return; }
-    n.classList.remove('asset-sweep');
-    if (sweepTimer && typeof clearTimeout === 'function') { clearTimeout(sweepTimer); }
-    sweepTimer = setTimeout(function () { n.classList.add('asset-sweep'); }, 30);
-    if (typeof sweepTimer.unref === 'function') { sweepTimer.unref(); }
-  }
-
-  // ---- WOW-8 ledger stamp: the value cell names the read that verified ----
-  function stampRow(rowEl, readName) {
-    if (!rowEl) { return; }
-    var v = rowEl.querySelector ? rowEl.querySelector('.ledger-v') : null;
-    var t = v || rowEl;
-    if (!t.setAttribute) { return; }
-    t.setAttribute('data-stamp', readName);
-    if (t.classList) { t.classList.add('ledger-stamp'); }
-  }
-
-  // G4 (UI_IMPROVE2_GLYPHS): the WOW-8 stamp grammar extended to the coverage
-  // seam — the skeptic-facing cells name the read that verified them.
-  // Data-carrying only (✓ + the read name), same .ledger-stamp anatomy.
+  // G4 (UI_IMPROVE2_GLYPHS): the WOW-8 stamp grammar on the coverage seam —
+  // the skeptic-facing cell names the read that verified it. Data-carrying
+  // only (✓ + the read name), same .ledger-stamp anatomy. WS5-SKELETON
+  // (2026-09-07): the seam is ONE relocated cell now (#fleet-coverage; the
+  // #mint-backed / #inv-stat pair retired with the mint card + invariants).
   function stampCoverage() {
-    [$('mint-backed'), $('inv-stat')].forEach(function (c) {
+    [$('fleet-coverage')].forEach(function (c) {
       if (!c || !c.setAttribute) { return; }
       c.setAttribute('data-stamp', 'backingCoverage');
       if (c.classList) { c.classList.add('ledger-stamp'); }
     });
   }
 
-  // ---- WOW-2 money-flow: HTML nodes bound to the published pipeline reads ----
   // PURE: flow-speed bucket from the PUBLISHED pool net rate (a ratio encoding
   // via class — never an APR rendered as a velocity number). Unknown → null
-  // (paths render static: honest absence, never a fake pace).
+  // (paths render static: honest absence, never a fake pace). KEPT as a pinned
+  // pure unit: its DOM consumer (the flow figure) is retired.
   function flowRateClass(ratePct) {
     if (ratePct === null || ratePct === undefined || !isFinite(ratePct) || ratePct <= 0) { return null; }
     if (ratePct >= 40) { return 'flow-rate-fast'; }
@@ -771,82 +393,12 @@
     return 'flow-rate-slow';
   }
 
-  function setFlowRate(ratePct) {
-    var fig = document.body.querySelector('.flow-figure');
-    if (!fig || !fig.classList) { return; }
-    fig.classList.remove('flow-rate-fast', 'flow-rate-mid', 'flow-rate-slow');
-    var cls = flowRateClass(ratePct);
-    if (cls) { fig.classList.add(cls); }
-  }
-
-  function setFlowPool(pool) {
-    var tvl = $('flow-pool-tvl');
-    if (tvl) { tvl.textContent = pool && pool.tvlToken0 ? pool.tvlToken0.toFixed(2) + ' WETH' : 'unavailable (RPC)'; }
-    var cut = $('flow-cut');
-    if (cut) {
-      cut.textContent = pool && pool.cut
-        ? 'protocol cut ' + (pool.cut.cutFraction * 100).toFixed(0) + '% per side (live slot0 (' + pool.cut.token0N + ',' + pool.cut.token1N + '))'
-        : 'protocol cut — unavailable (RPC)';
-    }
-  }
-
-  function setFlowVaultState(deployed) {
-    var node = document.body.querySelector('.flow-node--vault');
-    if (node && node.classList) {
-      node.classList.remove('flow-node--schematic', 'flow-node--live');
-      node.classList.add(deployed ? 'flow-node--live' : 'flow-node--schematic');
-    }
-    var fig = document.body.querySelector('.flow-figure');
-    if (fig && fig.classList) {
-      if (deployed) { fig.classList.add('flow-live'); } else { fig.classList.remove('flow-live'); }
-    }
-    var v = $('flow-vault-state');
-    if (v) {
-      v.textContent = deployed
-        ? LAUNCH_FACT.deployed
-        : LAUNCH_FACT.pending;
-    }
-    // P4 (WS-PRODUCT-GAPS): the deposit node's sub-label rides the SAME
-    // isDeployed seam — every state-bearing surface reads the seam, this one
-    // was missed. Deployed is the static first paint; pending is written here.
-    var d = $('flow-deposit-state');
-    if (d) {
-      d.textContent = deployed ? FLOW_DEPOSIT_SUB.deployed : FLOW_DEPOSIT_SUB.pending;
-    }
-  }
-
-  function setFlowYield(text) {
-    var n = $('flow-yield');
-    if (n) { n.textContent = text || ''; }
-  }
-
   // ---- WOW-3 launch-flip: the one-time pending→live beat ----
   // PURE: fires ONLY on a real false→true transition, never pre-played, and
-  // only when this browsing session has not seen the flip yet.
+  // only when this browsing session has not seen the flip yet. KEPT as a
+  // pinned pure unit: its DOM wiring (maybeLaunchFlip) is retired.
   function launchFlipShouldAnimate(prevDeployed, deployed, sessionSeen) {
     return deployed === true && prevDeployed === false && sessionSeen !== true;
-  }
-
-  var launchFlipPlayed = false;
-
-  function maybeLaunchFlip(deployed) {
-    var prev = state.prevDeployed;
-    state.prevDeployed = deployed;
-    if (launchFlipPlayed || prev === undefined) { return; }
-    var seen = false;
-    try {
-      if (typeof sessionStorage !== 'undefined') {
-        seen = sessionStorage.getItem('ws-launch-flip') === '1';
-      }
-    } catch (e) { seen = false; }   // sessionless browsers: the flag guard degrades, never throws
-    if (!launchFlipShouldAnimate(prev, deployed, seen)) { return; }
-    launchFlipPlayed = true;
-    try {
-      if (typeof sessionStorage !== 'undefined') { sessionStorage.setItem('ws-launch-flip', '1'); }
-    } catch (e2) { /* storage refused: the flip still plays this page-view only */ }
-    if (typeof document !== 'undefined' && document.body && document.body.classList) {
-      document.body.classList.add('launch-flip');
-    }
   }
 
   /* WOW-6 SIM BEGIN — deposit simulator (WOW_UPGRADES_2026-09-03). Interaction-only
@@ -933,16 +485,18 @@
     return row('└ pool net fee APR (methodology input)', frag);
   }
 
-  // STRATTON-LEDGER-CARD: the mint-card BACKED row and the invariants-section live
-  // stat are ONE seam — this single fill point writes the IDENTICAL string into both
-  // cells (mirroring the stat-apr===chip-apr precedent). The PENDING_DEPLOY branch
-  // writes the wiring-truth string and NEVER issues the eth_call (isDeployed gate
-  // inside WS.vault.readBackingCoverage); a failed/undecodable live read renders
-  // "unavailable (RPC)" — never a fabricated figure, never a non-deployment claim.
+  // STRATTON-LEDGER-CARD, WS5-SKELETON (2026-09-07): the coverage seam is now
+  // ONE cell — #fleet-coverage, the single relocated line inside the flagship
+  // fleet card's detail (the #mint-backed / #inv-stat pair retired with the
+  // mint card and the invariants section). This is still the single fill point;
+  // the PENDING_DEPLOY branch writes the wiring-truth string and NEVER issues
+  // the eth_call (isDeployed gate inside WS.vault.readBackingCoverage); a
+  // failed/undecodable live read renders "unavailable (RPC)" — never a
+  // fabricated figure, never a non-deployment claim.
   var PENDING_COVERAGE_TEXT = 'awaiting address wiring — coverage goes live when the vault address is published';
 
   function fillBackingCoverage(client, vCfg) {
-    var cells = [$('mint-backed'), $('inv-stat')];
+    var cells = [$('fleet-coverage')];
     // MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #2): the verified
     // live decode is the ticket's one hot number — the coverage-live class
     // rides ONLY a successful read; pending wiring-truth and the unavailable
@@ -967,23 +521,19 @@
     });
   }
 
-  // WS3-DEGRADED #1 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES): the vault's own
-  // totalSupply() — 0n = no shares minted = the empty state (isomorphic to the
-  // skill's pre-broadcast "returns empty" rule). Honest null on a failed or
-  // undecodable read — never a claim. Read inline via the shared abi seam (the
-  // mapper's readVaultSupply helper lives in js/vault.js, outside this goal's
-  // declared region); the PENDING_DEPLOY branch NEVER issues the eth_call, and
-  // the selector is runtime-derived (the no-hardcoded-selector convention).
+  // WS3-DEGRADED #1 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES), rewired
+  // WS5-SKELETON (2026-09-07): the vault's own share supply — 0n = no shares
+  // minted = the empty state (isomorphic to the skill's pre-broadcast "returns
+  // empty" rule) — now rides readVaultSnapshot's ONE-batch read (the goal's
+  // named seam: the flagship fleet detail consumes WS.vault.readVaultSnapshot).
+  // Honest null when the address is not deployed (the PENDING_DEPLOY branch
+  // NEVER issues an eth_call — the gate is inside readVaultSnapshot) or the
+  // decode is empty — never a claim.
   var EMPTY_VAULT_TAG = 'empty — 0 shares minted';
 
   async function readVaultSupply(client, vaultAddr) {
-    if (!WS.vault.isDeployed(vaultAddr)) { return null; }
-    try {
-      var raw = await client.call('eth_call', [{ to: vaultAddr, data: WS.abi.selectorOf('totalSupply()') }, 'latest']);
-      return (raw && WS.abi.wordCount(raw) >= 1) ? WS.abi.decodeUint(raw, 0) : null;
-    } catch (e) {
-      return null;
-    }
+    var snap = await WS.vault.readVaultSnapshot(client, vaultAddr);
+    return (snap && snap.deployed) ? (snap.totalSupply === undefined ? null : snap.totalSupply) : null;
   }
 
   async function loadVaultData(vaultCfg, mounts) {
@@ -1035,27 +585,31 @@
     var pool = await poolP;
     var price = await priceP;
     var pause = pauseP ? await pauseP : null;
-    var harvest = harvestP ? await harvestP : null;
-    var supply = await supplyP;
-
+    // WS5-SKELETON (2026-09-07): the primary state fields land as soon as their
+    // OWN reads resolve — never gated on the slowest read in the pass (the
+    // snapshot-based supply read). The widget's pause gate renders from
+    // state.depositsPaused the moment the read lands; holding it hostage to the
+    // supply round-trip would race every connect-time widget render.
     if (primary) {
       state.pool = pool;
       state.depositsPaused = pause;
       state.underlyingState = u ? u.state : null;
-      // diff snapshot: the live quantities the tape's tick glyphs react to (refreshCards prevSnap).
-      state.snap = {
-        priceUsd: price && price.usd != null && isFinite(price.usd) ? price.usd : null,
-        tvlWeth: pool && pool.tvlToken0 ? pool.tvlToken0 : null
-      };
+    }
+    var harvest = harvestP ? await harvestP : null;
+    var supply = await supplyP;
 
-      // STRATTON-LEDGER-CARD: single shared fill point for #mint-backed + #inv-stat —
-      // placed BEFORE the renderLedger branch split so both the no-USD first paint and
-      // the live branch leave the two cells identical. Primary-scoped.
+    if (primary) {
+
+      // STRATTON-LEDGER-CARD: the single shared fill point (#fleet-coverage) —
+      // placed here so both the no-USD first paint and the live branch leave the
+      // cell in the same state. Primary-scoped (the family fixture entry never
+      // reaches this branch — the primary-scoping gate's teeth).
       fillBackingCoverage(client, vaultCfg);
 
-      // hero ledger (WS-HERO-V9): first paint from the same snapshot the primary
-      // card just rendered; the USD TVL lands via deriveApr below.
-      renderLedger(pool, price, null);
+      // WS5-SKELETON (2026-09-07): the hero ledger + chips are retired; the
+      // sim's dilution leg takes the no-USD first paint here (the USD TVL lands
+      // via deriveApr below).
+      setSimTvlUsd(null);
     }
 
     mounts.rows.textContent = '';
@@ -1113,28 +667,17 @@
     function publish(apr, isBaseline) {
       if (primary) {
         state.apr = apr;
-        // V10 chip + WSV-STATS-REAL-FOOTER band: the published projection's
-        // depositor figure, computed once, mirrored byte-for-byte in both
-        // (label-only '' when absent).
+        // WS5-SKELETON (2026-09-07): the published projection's fan-out is now the
+        // flagship fleet card's summary cell (#fleet-flagship-apr) + the sim's
+        // static projection region — computed once, mirrored byte-for-byte,
+        // label-only '' when absent. The chip / stat-band / flow surfaces are
+        // retired with their sections; the fallback still labels itself through
+        // the source row below (projBase.sourceLabel) — the WS3-DEGRADED #5
+        // baseline-provenance markers rode the band + chip and are retired too.
         var aprText = apr.depositorAprPct != null ? '~' + fmtPct(apr.depositorAprPct, 1) : '';
-        setChipValue('chip-apr', aprText);
-        setStatValue('stat-apr', aprText);
-        // WOW-2/WOW-6: the flow diagram's terminal label and the sim's static
-        // projection region consume the SAME published string byte-for-byte —
-        // never recomputed, never spectacularized.
-        setFlowYield(aprText);
+        var fa = $('fleet-flagship-apr');
+        if (fa) { fa.textContent = aprText; }
         setSimProjection(aprText);
-        // WOW-2: the dash-flow pace buckets from the PUBLISHED pool net rate.
-        setFlowRate(apr.poolNetAprPct);
-        // WS3-DEGRADED #5 (2026-09-06, UI_IMPROVE2_DEGRADED-STATES): the baseline
-        // provenance marker travels with the figure on BOTH quoted surfaces —
-        // hidden on a live-sample reading, shown only on the labeled fallback.
-        // The static 'projected' marker is untouched (render-degrade pin); the
-        // stat-apr cell gains no tick (still excluded from TAPE_TICK_IDS).
-        var bn = $('stat-baseline-note');
-        if (bn) { bn.hidden = !isBaseline; }
-        var cb = $('chip-baseline-note');
-        if (cb) { cb.hidden = !isBaseline; }
       }
       var rows = mounts.rows;
       var strong = rows.querySelector('.card-row-strong');
@@ -1159,7 +702,7 @@
     var wethUsd = (spyUsd && priceP) ? priceP * spyUsd : null;
     var tvlUsd = (tvlWeth && wethUsd) ? tvlWeth * wethUsd : null;
     if (primary) {
-      renderLedger(pool, price, tvlUsd); // hero ledger consumes the pipeline's USD TVL (primary-scoped)
+      setSimTvlUsd(tvlUsd); // the sim's dilution leg consumes the pipeline's USD TVL (primary-scoped, WS5-SKELETON)
     }
 
     var live = null;
@@ -1217,10 +760,9 @@
     var v = vaultCfg();
     var deployed = WS.vault.isDeployed(v.vault);
     state.vaultDeployed = deployed;
-    // WOW-3 launch-flip: keyed STRICTLY off the real isDeployed seam — the
-    // pending→live choreography fires only on a genuine false→true transition
-    // observed while the page is open (never simulated, never pre-played).
-    maybeLaunchFlip(deployed);
+    // WS5-SKELETON (2026-09-07): the WOW-3 launch-flip wiring retired — the
+    // beat had no reader after the ledger/tape surfaces died; the PURE gate
+    // stays on WS.wow (pinned).
 
     var connectBtn = $('btn-connect');
     var amountInput = $('dep-amount');
@@ -1594,7 +1136,7 @@
 
   function initScrollSpy() {
     if (typeof window === 'undefined' || !('IntersectionObserver' in window)) { return; }
-    var sections = ['vaults', 'deposit', 'docs'].map(function (id) { return $(id); }).filter(Boolean);
+    var sections = ['fleet', 'deposit', 'docs'].map(function (id) { return $(id); }).filter(Boolean);
     if (!sections.length) { return; }
     var io = new IntersectionObserver(function (entries) {
       // deepest section reached wins — adjacent sections co-intersect the band
@@ -1646,53 +1188,30 @@
   }
 
   // ---------------- scroll reveal (R3 IMP-3) ----------------
-  // One reveal primitive: static section heads + vault cards fade-up 12px once
-  // at --t-slow when they enter the viewport. Armed ONLY here (the .ws-reveal
-  // class is added by this function) — no-JS and no-IntersectionObserver
-  // environments never see the hidden state, so the static page renders fully
-  // visible exactly as before. Reduced motion is handled in CSS: the global
-  // guard nullifies the transition, so the class swap is an instant appear.
-  // Opacity/translate only — the reveal cannot restate or mask content.
+  // One reveal primitive: static section heads + the flagship vault card
+  // fade-up 12px once at --t-slow when they enter the viewport. Armed ONLY
+  // here (the .ws-reveal class is added by this function) — no-JS and
+  // no-IntersectionObserver environments never see the hidden state, so the
+  // static page renders fully visible exactly as before. Reduced motion is
+  // handled in CSS: the global guard nullifies the transition, so the class
+  // swap is an instant appear. Opacity/translate only — the reveal cannot
+  // restate or mask content.
+  // WS5-SKELETON (2026-09-07): the hero ENTRANCE arming (the ws-entrance
+  // class + the role→delay map — half its armed surfaces were the deleted
+  // hero ledger/mint-card/facts), the hero-ledger rows cascade and the
+  // apr-footnote/stat-band/flow-figure panel targets are retired with their
+  // surfaces. The reveal itself stays.
   function initReveal() {
     if (typeof window === 'undefined' || !('IntersectionObserver' in window)) { return; }
-    if (motionAllowed() && document.querySelector) {
-      var hw = document.querySelector('.hero .wrap');
-      var DELAYS = { 'h1': 0, 'p:not(.lede)': 80, 'p.lede': 80, '.cta-row': 160, 'aside.hero-ledger': 240, 'aside.mint-card': 240, '.hero-facts': 320, '#chain-badge': 400 };
-      for (var wi = 0; hw && hw.children && wi < hw.children.length; wi++) {
-        var kid = hw.children[wi];
-        if (!kid || !kid.classList) { continue; }
-        var tag = (kid.tagName || '').toUpperCase();
-        var role = tag === 'H1' ? 'h1'
-          : tag === 'P' ? (kid.classList.contains('lede') ? 'p.lede' : 'p:not(.lede)')
-          : kid.classList.contains('cta-row') ? '.cta-row'
-          : kid.classList.contains('hero-ledger') ? 'aside.hero-ledger'
-          : kid.classList.contains('mint-card') ? 'aside.mint-card'
-          : kid.classList.contains('hero-facts') ? '.hero-facts'
-          : kid.id === 'chain-badge' ? '#chain-badge' : null;
-        var d = DELAYS[role];
-        if (d === undefined) { continue; }
-        kid.classList.add('ws-entrance');
-        if (kid.style && typeof kid.style.setProperty === 'function') { kid.style.setProperty('--ws-entrance-delay', d + 'ms'); }
-      }
-    }
     var targets = [];
     var heads = document.body.querySelectorAll('.block-head');
     for (var i = 0; i < heads.length; i++) { targets.push(heads[i]); }
     for (var c = 0; c < cards.length; c++) { targets.push(cards[c].mounts.card); }
-    // WOW-5 scroll choreography (ADDITIVE-ONLY): broaden the armed coverage to
-    // the remaining panels — the band, the flow figure, the sim, the footnote.
-    // No section restructure, no copy edits: the reveal only re-times what the
-    // static page already shows, and the classes are added HERE (by JS) so
-    // no-JS and no-IO environments never see a hidden state.
-    var panels = document.body.querySelectorAll('.stat-band, .flow-figure, .apr-sim');
+    // The sim survives inside the relocated deposit block — its reveal arms
+    // with the section heads (it fires when the flagship card is opened).
+    var panels = document.body.querySelectorAll('.apr-sim');
     for (var p = 0; p < panels.length; p++) { targets.push(panels[p]); }
-    var footnote = $('apr-footnote');
-    if (footnote) { targets.push(footnote); }
-    // The hero ledger's rows settle in a top-to-bottom cascade on first view
-    // (its own class + per-row stagger tokens in the stylesheet).
-    var ledgerRows = $('hero-ledger-rows');
-    if (ledgerRows && ledgerRows.classList) { ledgerRows.classList.add('scroll-reveal'); }
-    if (!targets.length && !ledgerRows) { return; }
+    if (!targets.length) { return; }
     var io = new IntersectionObserver(function (entries) {
       for (var k = 0; k < entries.length; k++) {
         if (entries[k].isIntersecting && entries[k].target.classList) {
@@ -1702,8 +1221,6 @@
         }
       }
     }, { threshold: 0.15 });
-    // WS-MOTION-POLISH: the armed container was never observed — rows stayed hidden forever (.ws-reveal stays off it).
-    if (ledgerRows && ledgerRows.classList) { io.observe(ledgerRows); }
     for (var t = 0; t < targets.length; t++) {
       if (targets[t].classList) { targets[t].classList.add('ws-reveal'); io.observe(targets[t]); }
     }
@@ -1735,6 +1252,118 @@
   }
 
   // ------------------------------------------------------------------
+  // WS5-SKELETON (2026-09-07): the Fleet feed render — movement (b)'s book
+  // column + movement (a)'s ONE live hero stat. #fleet-books renders
+  // client-side from WS.fleet.rows() grouped PAYS → HOOK → DEAD; every row is
+  // a stacked native-disclosure card (<details class="fleet-card">, zero-JS
+  // detail): summary = pair · fee-APR · TVL · 24h-vol, detail = poolId + the
+  // provenance note verbatim (window + per-book truth) + the plain tier
+  // explanation (HOOK cards state it plainly: fees flow to the hook — LP
+  // earns 0). FAIL-CLOSED everywhere: a missing module, fetch failure,
+  // invalid payload or absent figures render the designed unavailable state
+  // ('—') — never a fake zero, never a fabricated count. One-shot on load:
+  // no re-roll interval (the tape's era ends here); the feed is a file.
+  // Guarded on WS.fleet so the render-stub cohort (which loads no fleet.js)
+  // boots cleanly into the unavailable state.
+  // ------------------------------------------------------------------
+  function renderHeroStat() {
+    var num = $('hero-stat-num');
+    var label = $('hero-stat-label');
+    if (!num || !label) { return; }
+    var win = $('hero-stat-window');
+    var summary = WS.fleet ? WS.fleet.summary() : null;
+    if (!summary) {
+      num.textContent = '—';
+      label.textContent = 'books measured — unavailable (feed)';
+      if (win) { win.textContent = ''; }
+      return;
+    }
+    num.textContent = String(summary.books);
+    label.textContent = 'books measured — ' + summary.paysLps + ' pay LPs · ' +
+      summary.hookMonetized + ' pay nothing';
+    // the provenance window, VERBATIM from the feed (WS5-SKELETON accessor)
+    var prov = WS.fleet.provenance ? WS.fleet.provenance() : null;
+    if (win) { win.textContent = (prov && prov.window) ? prov.window : ''; }
+  }
+
+  var FLEET_GROUPS = [
+    ['PAYS', 'PAYS — charged fees reach LPs'],
+    ['HOOK', 'HOOK — fees flow to the hook — LP earns 0'],
+    ['DEAD', 'DEAD — no fee stream exists to route']
+  ];
+
+  function fleetCardNode(b) {
+    var card = el('details', 'fleet-card fleet-card--' + String(b.tier || 'unknown').toLowerCase());
+    var sum = el('summary', 'fleet-summary');
+    sum.appendChild(el('span', 'fleet-tier', b.tier || '—'));
+    sum.appendChild(el('span', 'fleet-pair', b.pair || '—'));
+    // WS5-OURS (2026-09-07): badge books where OUR capital sits — data-driven from
+    // the feed's OURS map (empty today: $WELL not yet deployed; on launch day the
+    // pair's graduated poolId enters the builder map and the badge appears with
+    // the row's other measured data). textContent-only, no new ids (registry-safe).
+    var ours = WS.fleet && WS.fleet.isOurs ? WS.fleet.isOurs(b) : null;
+    if (ours) {
+      var ob = el('span', 'fleet-ours', 'OURS');
+      ob.setAttribute('data-ours', String(ours));
+      sum.appendChild(ob);
+    }
+    sum.appendChild(el('span', 'fleet-apr', WS.fleet.fmtPct(b.feeAprPct)));
+    sum.appendChild(el('span', 'fleet-meta', 'TVL ' + WS.fleet.fmtUsd(b.tvlUsd) + ' · 24h vol ' + WS.fleet.fmtUsd(b.vol24hUsd)));
+    card.appendChild(sum);
+    var det = el('div', 'fleet-detail');
+    det.appendChild(el('span', 'fleet-poolid', b.poolId || '—'));
+    // the provenance note VERBATIM (carries the measurement window + the
+    // per-book truth, e.g. 'fees flow to the hook — LP earns 0 (window a)')
+    if (b.note) { det.appendChild(el('p', 'fleet-note', b.note)); }
+    card.appendChild(det);
+    return card;
+  }
+
+  // WIPE-SAFETY CONTRACT (WS5-SKELETON pass 2, 2026-09-07): this function wipes
+  // the #fleet-books span wholesale on EVERY path (below) — the span must host
+  // NO static content, ever. The flagship fleet card (the deposit widget, the
+  // coverage seam, the vault reads) is a SIBLING that precedes it in
+  // index.html; nesting anything static inside #fleet-books destroys it in
+  // every JS-enabled browser moments after load (pass-1 FATAL, caught in
+  // review). render.test.js pins the invariant structurally.
+  function renderFleetBooks() {
+    var box = $('fleet-books');
+    if (!box) { return; }
+    var rows = WS.fleet ? WS.fleet.rows() : [];
+    if (!rows.length) {
+      box.textContent = '';
+      var p = el('p', 'fleet-unavailable');
+      p.appendChild(el('span', 'state state--final', '—'));
+      p.appendChild(el('span', null, ' the fleet feed is unavailable right now — the page shows the gap, never an estimate.'));
+      box.appendChild(p);
+      return;
+    }
+    box.textContent = '';
+    for (var g = 0; g < FLEET_GROUPS.length; g++) {
+      var tier = FLEET_GROUPS[g][0];
+      var books = WS.fleet.rows(tier);
+      if (!books.length) { continue; }
+      var group = el('div', 'fleet-group fleet-group--' + tier.toLowerCase());
+      group.appendChild(el('p', 'fleet-group-label', FLEET_GROUPS[g][1] + ' · ' + books.length +
+        (books.length === 1 ? ' book' : ' books')));
+      for (var i = 0; i < books.length; i++) { group.appendChild(fleetCardNode(books[i])); }
+      box.appendChild(group);
+    }
+  }
+
+  function initFleet() {
+    if (typeof WS.fleet !== 'object' || !WS.fleet || typeof WS.fleet.load !== 'function') {
+      renderHeroStat();
+      renderFleetBooks();
+      return;
+    }
+    WS.fleet.load(function () {
+      renderHeroStat();
+      renderFleetBooks();
+    });
+  }
+
+  // ------------------------------------------------------------------
   // init
   // ------------------------------------------------------------------
 
@@ -1743,10 +1372,10 @@
     var y = $('footer-year');
     if (y) { y.textContent = String(new Date().getFullYear()); }
 
-    // WOW-7: the ledger's state chip breathes while connecting; renderLedger's
-    // first real state write replaces the class wholesale — the chip goes still.
-    var chip = $('hero-ledger-state');
-    if (chip && chip.classList) { chip.classList.add('is-connecting'); }
+    // WS5-SKELETON (2026-09-07): the connecting-state chip block retired with
+    // the hero ledger; the apr-footnote fill retired with the #vaults section
+    // (the methodology footnote's content survives in the APR source rows and
+    // the docs).
 
     // WOW-6 deposit simulator: static regions render once (the projection region
     // stays '—' until the publish fan-out fills it verbatim).
@@ -1755,8 +1384,6 @@
     // honesty lines
     var tm = $('trademark-note');
     if (tm) { tm.textContent = cfg.branding.trademarkNote; }
-    var fn = $('apr-footnote-text');
-    if (fn) { fn.textContent = WS.apr.METHODOLOGY_FOOTNOTE; }
     var wc = $('widget-chain');
     if (wc) { wc.textContent = 'expects chain ' + cfg.chain.id + ' (' + cfg.chain.name + ')'; }
 
@@ -1764,20 +1391,11 @@
     // isDeployed seam the cards/ledger/flow read (the static first paint in
     // index.html carries the same prose for noscript users). NULL-GUARDED —
     // the wow-battery DOM stub returns null for every id; init() must not throw.
+    // WS5-SKELETON (2026-09-07): the span RELOCATED into the #fleet intro line
+    // (same id, byte-identical text, same writer form — the single-sourcing
+    // guard stays green).
     var n = $('vaults-launch-fact');
     if (n) { n.textContent = WS.vault.isDeployed(cfg.vaults[0].vault) ? LAUNCH_FACT.proseDeployed : LAUNCH_FACT.prosePending; }
-
-    // stats band (WSV-STATS-REAL-FOOTER): the 90/10 + chain cell is a ratified
-    // economic constant — final value rendered ONCE from config (never
-    // hardcoded), never animated; a count-up would imply a live reading that
-    // does not exist. The animated three arm their reveal separately.
-    var split = $('stat-split');
-    if (split) {
-      var econ = cfg.economics;
-      split.textContent = (100 - econ.protocolFeeBpsInitial / 100) + '/' +
-        (econ.protocolFeeBpsInitial / 100) + ' · chain ' + cfg.chain.id;
-    }
-    armStatsReveal();
 
     // rpc client (retry + failover per the CORS-find mitigation)
     state.client = WS.rpc.createRpcClient({
@@ -1792,39 +1410,22 @@
     // eip-6963 multi-wallet discovery (best-effort; legacy window.ethereum fallback)
     WS.wallet.startDiscovery();
 
-    // vault cards
-    var grid = $('vault-grid');
-    if (grid) {
-      cfg.vaults.forEach(function (v) {
-        var mounts = renderCardShell(v);
-        grid.appendChild(mounts.card);
-        mounts.rows.appendChild(row('Status', el('span', 'state', 'connecting to public RPC…')));
-        cards.push({ vaultCfg: v, mounts: mounts });
-      });
-      // WS-MULTI-VAULT-FRONTEND: the family cards. Family entries already rendered
-      // through the single-vault loop above (the flagship) are skipped by id. A
-      // family entry whose vault IS deployed joins the live pipeline (loadVaultData
-      // — the same reads the flagship card gets, including the harvest-count row);
-      // a DEPLOY-GATED entry renders the explicit gated card (renderFamilyCard:
-      // config-pinned facts only, zero live reads, the honest APR note — no yield
-      // figure exists for a gated tier anywhere on this page).
-      if (Array.isArray(cfg.vaultFamily)) {
-        cfg.vaultFamily.forEach(function (f) {
-          var exists = cards.some(function (c) { return c.vaultCfg.id === f.id; });
-          if (exists) { return; }
-          if (WS.vault.isDeployed(f.vault)) {
-            var liveMounts = renderCardShell(f);
-            grid.appendChild(liveMounts.card);
-            liveMounts.rows.appendChild(row('Status', el('span', 'state', 'connecting to public RPC…')));
-            cards.push({ vaultCfg: f, mounts: liveMounts });
-          } else {
-            var gatedMounts = renderFamilyCard(f);
-            grid.appendChild(gatedMounts.card);
-          }
-        });
-      }
-      refreshCards();
-    }
+    // WS5-SKELETON (2026-09-07): the flagship vault card renders INTO the fleet
+    // section — the static flagship fleet card's detail hosts it (#fleet-vault-
+    // reads), alongside the deposit widget and the coverage line. The vault-grid
+    // loop and the gated family cards are retired (the DEPLOY-GATED family
+    // truth survives as the #fleet intro line; the header tape strip still
+    // renders the family roster). One card, the primary, through THE canonical
+    // accessor — no per-entry loop anymore. The READ CYCLE starts regardless of
+    // the mount: the widget's state gates (depositsPaused, underlying state)
+    // consume these reads even where the card shell has no mount (the
+    // widget-pause stub cohort registers the widget ids, not the fleet ids).
+    var mounts = renderCardShell(vaultCfg());
+    mounts.rows.appendChild(row('Status', el('span', 'state', 'connecting to public RPC…')));
+    var readsMount = $('fleet-vault-reads');
+    if (readsMount) { readsMount.appendChild(mounts.card); }
+    cards.push({ vaultCfg: vaultCfg(), mounts: mounts });
+    refreshCards();
     startTimers();
 
     // widget wiring
@@ -1862,8 +1463,9 @@
     initDocs();
     initScrollSpy();
     initTapeStrip();  // WS3-HEADER P4: writes the header tape strip's family rows from config
-    initReveal();   // R3 IMP-3: after the cards render — arms .ws-reveal on section heads + vault cards
+    initReveal();   // R3 IMP-3: after the cards render — arms .ws-reveal on section heads + the flagship card
     initAssetDraw();  // WS-ASSET-WIRE: arms the curve divider's scroll-in draw-on
+    initFleet();  // WS5-SKELETON: the Fleet feed render (movement a's hero-stat + movement b's book column)
 
     // WS-ASSET-WIRE: the agent-first section's skill link ships pointing at the
     // relative repository path; it upgrades to the published repository URL the

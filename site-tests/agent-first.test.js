@@ -58,13 +58,19 @@ function countOccurrences(haystack, needle) {
 // every moving surface ships its static pair in the same change).
 //   [file, css class, moving?]
 const ASSET_MOTION = [
-  ['img/compressed/hand-point.png', 'asset-point', false],       // hero ledger edge — static by design (index.html comment)
+  ['img/compressed/hand-point.png', 'asset-point', false],       // hero-stat edge since WS5-SKELETON 2026-09-07 (relocated from the retired hero-ledger edge; static by design)
   ['img/compressed/hand-press.png', 'asset-press', true],        // dips ~6px on #btn-deposit hover/focus
-  ['img/compressed/hand-magnify.png', 'asset-magnify', true],    // one sweep per refresh cycle, motionAllowed()-gated
+  // RETIRED 2026-09-07 (WS5-TREATMENT, one-signature motion): the magnify hand is
+  // STATIC now — its sweep keyframes + rule + reduce pair are deleted from
+  // style.css (the JS trigger died with the hero motion wiring in WS5-SKELETON).
+  ['img/compressed/hand-magnify.png', 'asset-magnify', false],
   ['img/compressed/curve-stroke.png', 'asset-draw', true],       // clip-path draw-on, IO-armed only
   ['img/compressed/certificate.png', 'asset-certificate', false], // vault-card keeper (appended by main.js) — static
   ['img/logo-mark.png', 'brand-mark', false],                    // header logo mark (2026-09-04) — static, no motion by design
-  ['img/canyon-hero.png', 'hero-canyon', true]                   // hero backdrop (2026-09-05) — 1.62s vibrate cycle, nulled under reduce
+  // RETIRED 2026-09-07 (WS5-TREATMENT, one-signature motion): the canyon is a DIM
+  // STATIC TEXTURE (≤8% opacity desktop, hidden ≤640) — its vibrate keyframes +
+  // rule + reduce pairs are deleted from style.css.
+  ['img/canyon-hero.png', 'hero-canyon', false]
 ];
 
 // ---------------- (a) agent-first section ----------------
@@ -128,10 +134,13 @@ test('(b2) moving assets: explicit prefers-reduced-motion static pair in their s
   assert.ok(sectionStart !== -1, 'the WS-ASSET-WIRE section banner is present');
   const section = css.slice(sectionStart);
   const gateIdx = section.indexOf('@media (prefers-reduced-motion: no-preference)');
-  const keyframesIdx = section.indexOf('@keyframes', gateIdx);
-  assert.ok(gateIdx !== -1 && keyframesIdx > gateIdx,
+  // RE-SLICED 2026-09-07 (WS5-TREATMENT, one-signature motion): the asset
+  // keyframes are retired (magnify sweep + canyon vibrate deleted), so the gate
+  // block now closes at its reduce-pair block instead of the next @keyframes.
+  const reducePairIdx = section.indexOf('@media (prefers-reduced-motion: reduce)', gateIdx);
+  assert.ok(gateIdx !== -1 && reducePairIdx > gateIdx,
     'the no-preference motion gate is present in the asset section');
-  const gateBlock = section.slice(gateIdx, keyframesIdx);
+  const gateBlock = section.slice(gateIdx, reducePairIdx);
   const reduceIdx = section.indexOf('@media (prefers-reduced-motion: reduce)');
   assert.ok(reduceIdx > gateIdx, 'the reduce pairing block sits in the same section, after the gate');
   const reduceBlock = section.slice(reduceIdx, section.indexOf('@media', reduceIdx + 1));
@@ -140,18 +149,22 @@ test('(b2) moving assets: explicit prefers-reduced-motion static pair in their s
     assert.ok(gateBlock.indexOf('.' + cls) !== -1,
       cls + ' (' + file + ') motion is declared inside the no-preference gate');
   }
-  // the three exact reduce-block static pairs (the pairing rules themselves)
+  // the two exact reduce-block static pairs (the pairing rules themselves).
+  // RETIRED 2026-09-07 (WS5-TREATMENT): the magnify-hand reduce pair is deleted
+  // with its sweep — the asset is static, nothing left to nullify.
   assert.ok(reduceBlock.indexOf('.asset-press { transition: none; transform: none; }') !== -1,
     'press-hand reduce pair: transition + transform nullified');
-  assert.ok(reduceBlock.indexOf('.asset-magnify.asset-sweep { animation: none; }') !== -1,
-    'magnify-hand reduce pair: the sweep animation nullified');
   assert.ok(reduceBlock.indexOf('.asset-draw { clip-path: none; transition: none; }') !== -1,
     'curve-divider reduce pair: clip-path stays the full static stroke');
 });
 
 test('(b3) static assets: no motion shipped at all (pairing by construction)', () => {
   const gateIdx = css.indexOf('@media (prefers-reduced-motion: no-preference)');
-  const gateBlock = css.slice(gateIdx, css.indexOf('@keyframes', gateIdx));
+  // RE-SLICED 2026-09-07 (WS5-TREATMENT, one-signature motion): the gate block
+  // used to end at the next @keyframes (the retired asset sweeps); with every
+  // non-stamp keyframe deleted, the gate now closes at its own reduce-pair
+  // block — slice to that instead of to EOF.
+  const gateBlock = css.slice(gateIdx, css.indexOf('@media (prefers-reduced-motion: reduce)', gateIdx));
   for (const [file, cls, moving] of ASSET_MOTION) {
     if (moving) { continue; }
     const decl = css.match(new RegExp('\\.' + cls + ' \\{[^}]*\\}'));
@@ -163,15 +176,13 @@ test('(b3) static assets: no motion shipped at all (pairing by construction)', (
   }
 });
 
-test('(b4) the JS motion gate: motionAllowed() guards the magnify sweep', () => {
-  assert.ok(/function motionAllowed\(\)/.test(mainSrc), 'motionAllowed() is defined in main.js');
-  assert.ok(mainSrc.indexOf('(prefers-reduced-motion: reduce)') !== -1,
-    'the JS gate consults the same reduce query the stylesheet pairs against');
-  const sweepFn = mainSrc.slice(mainSrc.indexOf('function sweepMagnifier()'),
-    mainSrc.indexOf('function stampRow('));
-  assert.ok(sweepFn.indexOf('!motionAllowed()') !== -1,
-    'sweepMagnifier bails BEFORE adding .asset-sweep when motion is not allowed');
-  // the draw-on is armed only by the IntersectionObserver (no-JS = static stroke)
+test('(b4) the curve-divider draw-on is IO-armed in main.js', () => {
+  // RE-PINNED 2026-09-07 (WS5-SKELETON): the magnify sweep + its motionAllowed()
+  // JS gate are RETIRED — the hero-ledger-era motion wiring (sweepMagnifier and
+  // the shared gate, whose only remaining consumer was the sweep) is deleted in
+  // the three-movement rebuild; the keeper img stays static in the docs header.
+  // The draw-on pin survives: armed only by the IntersectionObserver
+  // (no-JS = static stroke).
   assert.strictEqual(countOccurrences(mainSrc, 'function initAssetDraw()'), 1,
     'initAssetDraw defined exactly once');
   assert.ok(mainSrc.indexOf('initAssetDraw();') !== -1, 'initAssetDraw is wired in init()');
@@ -190,31 +201,24 @@ test('(b5) the global page guard stays authoritative', () => {
 });
 
 // ---------------- (c) ledger card rows ----------------
-test('(c) ledger card rows: mono labels + the BACKED cell rides the coverage seam', () => {
-  assert.strictEqual(countOccurrences(html, '<aside class="mint-card ledger-card" aria-label="Deposit facts">'), 1,
-    'the mint-ticket ledger card is present exactly once');
-  for (const label of ['DEPOSIT', 'SETTLED AT', 'YOU RECEIVE', 'BACKED']) {
-    assert.strictEqual(countOccurrences(html, '<span class="ledger-k">' + label + '</span>'), 1,
-      'mono label row present exactly once: ' + label);
-  }
-  // the stratton grammar's mono small-cap treatment (row anatomy otherwise inherited)
-  assert.ok(css.indexOf('.mint-card .ledger-k { font-family: var(--mono); }') !== -1,
-    '.mint-card .ledger-k rides the mono stack');
-  // the BACKED cell = the read side of the single coverage seam
-  // re-pinned 2026-09-05 (WS-A11Y-QUICK): aria-live="polite" appended to the coverage-cell opening tags
-  assert.ok(html.indexOf('<span class="ledger-v" id="mint-backed" aria-live="polite">') !== -1,
-    'the BACKED cell is #mint-backed');
+// RE-PINNED 2026-09-07 (WS5-SKELETON): the mint-ticket ledger card and the
+// invariants section are DELETED outright in the three-movement rebuild — the
+// mono-label row pins (DEPOSIT / SETTLED AT / YOU RECEIVE / BACKED), the
+// .mint-card .ledger-k CSS pin and the two-cell seam are retired with them.
+// The backingCoverage seam survives as ONE relocated line (#fleet-coverage)
+// inside the flagship fleet card's detail; the same fill contract holds.
+test('(c) the coverage seam: one relocated cell rides the single fill point', () => {
+  // the relocated seam cell, aria-live polite (the WS-A11Y-QUICK treatment carries over)
+  assert.strictEqual(countOccurrences(html, '<span id="fleet-coverage" aria-live="polite">'), 1,
+    'the coverage seam is the single relocated #fleet-coverage cell');
   const fill = mainSrc.slice(mainSrc.indexOf('function fillBackingCoverage('),
     mainSrc.indexOf('async function loadVaultData('));
-  assert.ok(fill.indexOf("$('mint-backed')") !== -1 && fill.indexOf("$('inv-stat')") !== -1,
-    'fillBackingCoverage is the single fill point writing BOTH seam cells');
-  // re-pinned 2026-09-05 (WS-PRODUCT-GAPS P5): the vault is DEPLOYED (config.js pins
-  // the live address), so the static first paint no longer claims the address is
-  // unpublished — both cells now carry the self-verify truth string (the JS fill
-  // seam above is unchanged: isDeployed-gated, honest on failure).
+  assert.ok(fill.indexOf("$('fleet-coverage')") !== -1,
+    'fillBackingCoverage is the single fill point writing the relocated seam cell');
+  // the static first paint carries the self-verify truth string (deployed register)
   const staticCoverage = 'coverage reads live from backingCoverage() on the vault at 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 (js/config.js); verify it yourself with any RPC client.';
-  assert.strictEqual(countOccurrences(html, staticCoverage), 2,
-    'the noscript coverage truth is exactly the two static seam cells (identical by construction)');
+  assert.strictEqual(countOccurrences(html, staticCoverage), 1,
+    'the coverage truth is exactly the ONE relocated seam cell (identical string, single carrier)');
   assert.strictEqual(countOccurrences(html, 'awaiting address wiring'), 0,
     'the stale pre-deploy coverage claim is gone from the statics (false post-deploy)');
   // seam semantics: isDeployed-gated (no eth_call pre-deploy), honest on failure
@@ -226,12 +230,18 @@ test('(c) ledger card rows: mono labels + the BACKED cell rides the coverage sea
 });
 
 // ---------------- (d) CTA pair ----------------
-test('(d) CTA pair: solid->#deposit, outline->#docs, per-class :hover rules', () => {
-  assert.strictEqual(countOccurrences(html, '<a class="cta-solid" href="#deposit">'), 1,
-    'cta-solid anchors #deposit exactly once');
+// RE-PINNED 2026-09-07 (WS5-SKELETON): the solid primary anchors #fleet now —
+// the goal's movement (a) re-targets it ('Open the Fleet'); the deposit widget
+// moved into the flagship fleet card with its section id intact, so the
+// '#deposit section present' pin survives byte-identical. Per-class :hover
+// rules + the mobile stack pin are untouched (CSS-side, still green).
+test('(d) CTA pair: solid->#fleet, outline->#docs, per-class :hover rules', () => {
+  assert.strictEqual(countOccurrences(html, '<a class="cta-solid" href="#fleet">Open the Fleet</a>'), 1,
+    'cta-solid anchors #fleet exactly once (Open the Fleet, WS5-SKELETON re-pin)');
   assert.strictEqual(countOccurrences(html, '<a class="cta-outline" href="#docs">'), 1,
     'cta-outline anchors #docs exactly once');
   // no dead anchors: both targets are real sections in the page
+  // (the deposit section survives INSIDE the flagship fleet card's detail)
   assert.ok(html.indexOf('<section class="block" id="deposit">') !== -1, '#deposit section present');
   assert.ok(html.indexOf('<section class="block" id="docs">') !== -1, '#docs section present');
   // hover states are PER-CLASS on purpose (WS-LEDGER-STRUCTURE P3 comment): the
@@ -301,8 +311,12 @@ test('(e) LAUNCH_FACT single-source: quoted-literal counts, writer, byte-equal s
   assert.strictEqual(spanMatch[1], constMatch[1], 'the static span text is byte-equal to proseDeployed');
   assert.strictEqual((html.match(/awaiting on-chain deploy/g) || []).length, 0,
     'no pending launch-fact literal in the statics (Branch B: deployed register)');
-  assert.strictEqual((html.match(/deployed — yield phase live/g) || []).length, 2,
-    'exactly the two statics carry the deployed register (hero-ledger row + flow node)');
+  // re-pinned 2026-09-07 (WS5-SKELETON): the two statics that carried the short
+  // deployed register (the hero-ledger vault row + the flow node) are deleted
+  // outright in the three-movement rebuild — the short register ships via the JS
+  // writers only (tape strip rows); the statics keep the proseDeployed span.
+  assert.strictEqual((html.match(/deployed — yield phase live/g) || []).length, 0,
+    'the short deployed register ships via JS writers only (its two statics are retired)');
   assert.strictEqual((html.match(/deploy\(ed|s\) 20\d\d/g) || []).length, 0,
     'index.html never hard-dates the deploy fact');
 });
@@ -353,7 +367,10 @@ test('(f1) focus ring token clears the 3:1 WCAG 1.4.11 floor on every surface it
 
 test('(f2) skip link: first focusable in body, frozen copy, clip hidden / full un-clip reveal', () => {
   // byte-frozen anchor + byte-order first-focusable proof
-  const anchor = '<a class="skip-link" href="#vaults">Skip to content</a>';
+  // re-pinned 2026-09-07 (WS5-SKELETON): the skip target moved from #vaults
+  // (retired with the vault family grid) to #fleet — the first content movement.
+  // Copy byte-unchanged; position pins unchanged.
+  const anchor = '<a class="skip-link" href="#fleet">Skip to content</a>';
   assert.strictEqual(countOccurrences(html, anchor), 1,
     'the skip anchor ships exactly once in its byte-frozen form');
   const anchorAt = html.indexOf(anchor);
@@ -391,36 +408,28 @@ test('(f2) skip link: first focusable in body, frozen copy, clip hidden / full u
   }
 });
 
-test('(f3) aria-live: polite coverage cells + leading summary sibling, never the rows container', () => {
-  assert.strictEqual(countOccurrences(html, 'id="mint-backed" aria-live="polite"'), 1,
-    '#mint-backed announces its value changes');
-  assert.strictEqual(countOccurrences(html, 'id="inv-stat" aria-live="polite"'), 1,
-    '#inv-stat announces its value changes');
-  assert.strictEqual(countOccurrences(html, 'id="hero-ledger-rows" aria-live'), 0,
-    'the rows container is NEVER a live region (a 60s rebuild would dump the whole ledger into the queue)');
-  const summary = '<span class="visually-hidden" id="hero-ledger-summary" aria-live="polite"></span>';
-  assert.strictEqual(countOccurrences(html, summary), 1,
-    'the sr-only summary span ships in its byte-frozen form');
-  assert.ok(html.indexOf('id="hero-ledger-summary"') > html.indexOf('id="hero-ledger"'),
-    'the summary sits inside aside.hero-ledger');
-  assert.ok(html.indexOf('id="hero-ledger-summary"') < html.indexOf('id="hero-ledger-rows"'),
-    'the summary is the LEADING sibling of the rows div (never a child — its children count pins at 4)');
-  assert.strictEqual(countOccurrences(html, 'id="hero-ledger-state" aria-live="polite"'), 1,
-    '#hero-ledger-state keeps exactly its one aria-live and gains no new attributes');
+// RE-PINNED 2026-09-07 (WS5-SKELETON): the mint-backed / inv-stat polite cells
+// and the hero-ledger sr-only per-cycle summary are RETIRED with the mint card,
+// the invariants section and the hero ledger (deleted outright in the
+// three-movement rebuild). The a11y treatment carries over to the single
+// relocated seam cell (#fleet-coverage, aria-live=polite) and the page's other
+// live regions keep their one-aria-live discipline.
+test('(f3) aria-live: the relocated coverage cell announces its changes; live regions stay one-per-surface', () => {
+  assert.strictEqual(countOccurrences(html, 'id="fleet-coverage" aria-live="polite"'), 1,
+    '#fleet-coverage announces its value changes (the relocated seam cell)');
+  // the other live regions are untouched by the rebuild
+  assert.strictEqual(countOccurrences(html, 'id="wallet-balances" aria-live="polite"'), 1,
+    '#wallet-balances keeps its polite live region');
+  assert.strictEqual(countOccurrences(html, 'id="widget-status" aria-live="polite"'), 1,
+    '#widget-status keeps its polite live region');
 });
 
-test('(f4) the per-cycle summary writer: house form, after pulseStamp, frozen literals', () => {
-  assert.ok(/var n = \$\('hero-ledger-summary'\);\s*if \(n\)/.test(mainSrc),
-    'the writer is null-guarded in the house form (the var n = prefix is part of the pin — no implicit global)');
-  assert.strictEqual(countOccurrences(mainSrc, 'pulseStamp(!!state.pool)'), 1,
-    'the placement anchor is unique (the byte-order proof stays meaningful)');
-  assert.ok(mainSrc.indexOf("$('hero-ledger-summary')") > mainSrc.indexOf('pulseStamp(!!state.pool)'),
-    'the writer sits inside refreshCards AFTER the early-return gate and the pulseStamp call — not at module top-level where it would run once and go stale');
-  assert.strictEqual(countOccurrences(mainSrc, 'Ledger refreshed — re-read from public RPC'), 1,
-    'the success literal ships exactly once (never claims coverage was re-read — it fails independently)');
-  assert.strictEqual(countOccurrences(mainSrc, 'Ledger refresh failed — the ledger shows unavailable states, never estimates'), 1,
-    'the failure literal ships exactly once (the honest register)');
-});
+// RETIRED 2026-09-07 (WS5-SKELETON): '(f4) the per-cycle summary writer: house
+// form, after pulseStamp, frozen literals' — the hero ledger's sr-only per-cycle
+// summary span, the WOW-7 pulseStamp heartbeat it was ordered against and the
+// writer itself are deleted outright in the three-movement rebuild (the ledger
+// surface they served no longer exists; the refresh loop is the reads, nothing
+// else).
 
 // ---------------- (m1) WS-MOTION-POLISH: press grammar + entrance + stamp stagger ----------------
 // Source-grep pins ONLY (this file's charter: dependency-free node:test + node:fs).
@@ -471,23 +480,16 @@ test('(m1) WS-MOTION-POLISH: :active press grammar, hero entrance arming, stamp 
     '.site-nav a.nav-cta:active:not(:disabled) { transform: none; }']) {
     assert.ok(reduceBlock.indexOf(sel) !== -1, 'verbatim reduce restate inside the scoped block: ' + sel);
   }
-  assert.ok(reduceBlock.indexOf('.ws-entrance { animation: none; opacity: 1; transform: none; }') !== -1,
-    'the entrance static pair rides the same scoped reduce block');
-  // (v) entrance: one-shot keyframes + the exact plain single-class rule —
-  // (0,1,0), no !important, no combinator prefix, so the launch-flip ledger
-  // beat (0,2,1) keeps winning on launch day
-  assert.ok(css.indexOf('@keyframes ws-entrance-in {') !== -1
-    && css.indexOf('@keyframes ws-entrance-in {') < gates[3],
-    'the entrance keyframes exist and sit before the 4th reduce gate');
-  assert.strictEqual(countOccurrences(css, '.ws-entrance { animation: ws-entrance-in var(--t-slow) var(--ease-enter) backwards; animation-delay: var(--ws-entrance-delay, 0ms); }'), 1,
-    'the entrance base rule is the exact single-class form consuming the delay var once');
-  for (const line of css.split('\n')) {
-    if (line.indexOf('ws-entrance') !== -1) {
-      assert.ok(line.indexOf('!important') === -1, 'cascade purity: no ws-entrance line carries !important');
-    }
-  }
-  // (vi) stamp stagger: base opacity:0 + the FORWARDS shorthand byte-unchanged
-  // (a backwards fill would repaint the 0% frame during the delay) + id-form delays
+  // RETIRED 2026-09-07 (WS5-TREATMENT, one-signature motion): the entrance's
+  // reduce restate, keyframes, exact base rule and cascade-purity pins are
+  // retired with the entrance animation itself (deleted from style.css the
+  // same day) — every motion on the page is the ledger stamp now.
+  // (vi) stamp: base opacity:0 + the FORWARDS shorthand byte-unchanged
+  // (a backwards fill would repaint the 0% frame during the delay).
+  // RE-SCOPED 2026-09-07 (WS5-TREATMENT): the #hero-ledger-rows id-form delay
+  // pins are RETIRED with the hero ledger (the id died in WS5-SKELETON); the
+  // stagger re-homes to the fleet cards' first-render arrival in style.css's
+  // WS5-TREATMENT signature block (same 140ms beat, extended to the 6th card).
   const stampAt = css.indexOf('.ledger-v.ledger-stamp::after {');
   const stampSpan = css.slice(stampAt, css.indexOf('}', stampAt));
   assert.ok(stampSpan.indexOf('opacity: 0;') !== -1, 'stamp base carries opacity:0 (held invisible through its delay window)');
@@ -495,29 +497,16 @@ test('(m1) WS-MOTION-POLISH: :active press grammar, hero entrance arming, stamp 
     'the stamp animation shorthand stays byte-unchanged (forwards fill — never both/backwards)');
   assert.ok(css.indexOf('@keyframes ws-stamp-fade {\n  0% { opacity: 1; }\n  55% { opacity: 1; }\n  100% { opacity: 0; }\n}') !== -1,
     'the ws-stamp-fade keyframes stay byte-unchanged');
-  assert.strictEqual(countOccurrences(css, '#hero-ledger-rows .ledger-row:nth-child(1) .ledger-stamp::after { animation-delay: 0ms; }'), 1, 'row-1 stamp delay pinned (id form)');
-  assert.strictEqual(countOccurrences(css, '#hero-ledger-rows .ledger-row:nth-child(2) .ledger-stamp::after { animation-delay: 140ms; }'), 1, 'row-2 stamp delay pinned (id form)');
-  assert.strictEqual(countOccurrences(css, '#hero-ledger-rows .ledger-row:nth-child(3) .ledger-stamp::after { animation-delay: 280ms; }'), 1, 'row-3 stamp delay pinned (id form)');
-  // (vii) JS: gate restructure + observation + arming + the role→delay map
-  assert.strictEqual(countOccurrences(mainSrc, 'if (!targets.length && !ledgerRows) { return; }'), 1,
-    'the early-return gate keeps the armed container alive (the degenerate-case fix)');
-  assert.strictEqual(countOccurrences(mainSrc, 'if (ledgerRows && ledgerRows.classList) { io.observe(ledgerRows); }'), 1,
-    'the ledger container is OBSERVED — the armed-but-never-observed invisibility fix');
-  const irStart = mainSrc.indexOf('function initReveal()');
-  const armIdx = mainSrc.indexOf('if (motionAllowed() && document.querySelector) {', irStart);
-  const gateIdx = mainSrc.indexOf('if (!targets.length && !ledgerRows) { return; }');
-  const ioEndIdx = mainSrc.indexOf('}, { threshold: 0.15 });', irStart);
-  const obsIdx = mainSrc.indexOf('io.observe(ledgerRows)');
-  const loopIdx = mainSrc.indexOf('for (var t = 0; t < targets.length; t++)', irStart);
-  assert.ok(irStart !== -1 && armIdx > irStart && gateIdx > armIdx,
-    'arming sits inside initReveal AFTER the IO-presence guard and BEFORE the targets-empty gate');
-  assert.ok(ioEndIdx > gateIdx && obsIdx > ioEndIdx && loopIdx > obsIdx,
-    'io.observe(ledgerRows) sits after the IO construction, outside the targets loop');
-  assert.strictEqual(countOccurrences(mainSrc, "var DELAYS = { 'h1': 0, 'p:not(.lede)': 80, 'p.lede': 80, '.cta-row': 160, 'aside.hero-ledger': 240, 'aside.mint-card': 240, '.hero-facts': 320, '#chain-badge': 400 };"), 1,
-    'the role→delay map ships exactly once with the pinned six-beat schedule');
-  assert.ok(mainSrc.indexOf("kid.classList.add('ws-entrance')") !== -1, 'arming adds the ws-entrance class');
-  assert.ok(/kid\.style && typeof kid\.style\.setProperty === 'function'/.test(mainSrc),
-    'style.setProperty access is guarded (stub-safe arming — the makeEl cohort has no .style)');
-  const sweepFn = mainSrc.slice(mainSrc.indexOf('function sweepMagnifier()'), mainSrc.indexOf('function stampRow('));
-  assert.ok(sweepFn.indexOf('!motionAllowed()') !== -1, 'the (b4) sweep slice keeps its motionAllowed() gate (new JS never entered it)');
+  // (vii) RETIRED 2026-09-07 (WS5-SKELETON): the JS-side pins — the initReveal
+  // gate restructure + ledger-container observation, the hero ENTRANCE arming
+  // (the ws-entrance class + the role→delay map — half its armed surfaces were
+  // the deleted hero ledger/mint-card/facts) and the magnify sweep's
+  // motionAllowed() slice — are deleted outright with the hero-ledger-era
+  // motion wiring in the three-movement rebuild. The motion battery's
+  // behavioral half is retired dated in motion-polish.test.js the same day.
+  // (viii) WS5-TREATMENT 2026-09-07: the stamp remains the page's ONLY
+  // @keyframes — asserted here so the one-signature contract is teeth, not
+  // prose.
+  assert.strictEqual((css.match(/@keyframes/g) || []).length, 1,
+    'exactly ONE @keyframes ships (the ledger stamp, one-signature motion)');
 });

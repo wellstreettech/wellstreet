@@ -130,54 +130,31 @@ function boot(opts) {
   };
 }
 
+// WS5-SKELETON (2026-09-07): ALL THREE behavioral tests below are RETIRED with
+// the surfaces they pinned — the hero ledger (#hero-ledger-rows, the armed +
+// observed container of the ledger-invisibility fix) and the hero ENTRANCE
+// arming (the ws-entrance class + the role→delay map; half its armed surfaces
+// were the deleted hero ledger/mint-card/hero-facts) are deleted outright in
+// the three-movement rebuild, along with main.js's motionAllowed() gate and
+// sweepMagnifier (the entrance/sweep wiring's shared gate). The test SHells and
+// the boot harness stay; the asserts are retired, not weakened — the surfaces
+// no longer exist to observe.
 test('prerequisite: the armed ledger container IS observed and reveals on intersection (exact tokens)', () => {
-  const h = boot({});
-  try {
-    assert.strictEqual(h.ledgerRows.classList.contains('scroll-reveal'), true,
-      'the container is armed with .scroll-reveal');
-    const rec = h.revealIO();
-    assert.ok(rec, 'initReveal constructed its IntersectionObserver (threshold 0.15)');
-    assert.ok(rec.observed.indexOf(h.ledgerRows) !== -1,
-      'the armed container is OBSERVED — the armed-but-never-observed invisibility fix');
-    // degenerate-case proof: this stub page has NO .block-head/.stat-band/
-    // .apr-sim targets — the restructured gate keeps the container alive anyway
-    rec.cb([{ isIntersecting: true, target: h.ledgerRows }]);
-    assert.strictEqual(h.ledgerRows.classList.contains('scroll-reveal-in'), true,
-      'the shared callback delivers scroll-reveal-in on first intersection');
-    assert.strictEqual(h.ledgerRows.classList.contains('ws-reveal'), false,
-      'ws-reveal stays OFF the container — exact token check (its base class would hide the whole card body)');
-  } finally { h.restore(); }
+  // RETIRED 2026-09-07 (WS5-SKELETON): #hero-ledger-rows is gone from the page
+  // and initReveal no longer arms or observes a ledger container — the fix this
+  // test pinned died with its host surface (the reveal primitive itself
+  // survives on the section heads + flagship card).
 });
 
 test('entrance: all 8 hero .wrap children armed with ws-entrance + the pinned role→delay map', () => {
-  const h = boot({});
-  try {
-    const byRole = { 'h1': h.h1, 'p:not(.lede)': h.pitch, 'p.lede': h.lede, '.cta-row': h.ctaRow,
-      'aside.hero-ledger': h.ledger, 'aside.mint-card': h.mint, '.hero-facts': h.facts, '#chain-badge': h.badge };
-    for (const [role, delay] of PRESSED_DELAYS) {
-      const el = byRole[role];
-      assert.strictEqual(el.classList.contains('ws-entrance'), true,
-        role + ' carries the ws-entrance class (exact token)');
-      assert.strictEqual(el.styleProps['--ws-entrance-delay'], delay,
-        role + ' carries --ws-entrance-delay: ' + delay + ' per the pinned six-beat schedule');
-    }
-  } finally { h.restore(); }
+  // RETIRED 2026-09-07 (WS5-SKELETON): the hero entrance arming is deleted from
+  // main.js with the hero-ledger-era motion wiring; the CSS-side entrance pins
+  // remain in agent-first.test.js (m1)(v) until the treatment goal's motion
+  // purge re-pins them.
 });
 
 test('entrance: skipped entirely under prefers-reduced-motion (JS side of the double guard); the reveal fix is independent of it', () => {
-  const h = boot({ reduce: true });
-  try {
-    for (const el of [h.h1, h.pitch, h.ctaRow, h.lede, h.ledger, h.mint, h.facts, h.badge]) {
-      assert.strictEqual(el.classList.contains('ws-entrance'), false,
-        'no ws-entrance under reduce (motionAllowed() gate skips arming entirely)');
-      assert.strictEqual(el.styleProps['--ws-entrance-delay'], undefined,
-        'no entrance delay var is written under reduce');
-    }
-    const rec = h.revealIO();
-    assert.ok(rec && rec.observed.indexOf(h.ledgerRows) !== -1,
-      'the ledger container stays observed under reduce (the reveal is an instant appear there)');
-    rec.cb([{ isIntersecting: true, target: h.ledgerRows }]);
-    assert.strictEqual(h.ledgerRows.classList.contains('scroll-reveal-in'), true,
-      'the reveal still lands under reduce — only the motion is dropped, never the state');
-  } finally { h.restore(); }
+  // RETIRED 2026-09-07 (WS5-SKELETON): no JS arming remains to gate — the
+  // reduced-motion pairing for the surviving surfaces is CSS-carried (the
+  // global + scoped reduce guards, pinned in agent-first.test.js (b5)/(m1)).
 });

@@ -1,24 +1,26 @@
 'use strict';
-// FLIP-CARRIER-CONTRACT theme battery (2026-09-04) — light-paper flip contract
-// (supersedes the WSV-DARK-RESKIN-ALL dark contract; same assertion structure,
-// re-pinned to the ratified light palette: paper #EDE9DC family + accent #00A86B).
+// FLIP-CARRIER-CONTRACT theme battery (2026-09-07) — dark-calm flip contract,
+// identity revision #5 (light-paper 2026-09-04 -> dark-calm carbon; same
+// assertion STRUCTURE, expectations inverted; predecessor: the 09-04
+// FLIP-CARRIER-CONTRACT light rewrite, which this file's shape descends from).
 // Dependency-free: node:test + node:assert + node:fs ONLY (no npm, no new deps).
 // Assertions:
-//   (a) pinned light palette (tokens + shadows + deposit literal) present in style.css
-//       — 20 carried entries re-valued + the two flip-authored tokens --accent-text
-//       and --chip-tan = 22 authored entries
-//   (b) head metas: theme-color == the --paper token value, color-scheme light,
-//       dark metas ABSENT (dark-era pins inverted; the FIX-9 #f6f4ec absence survives)
-//   (c) WCAG contrast >= 4.5:1 for exactly the six text pairs — slot 3 re-pointed
-//       accent/paper -> accent-text/paper (the ratified #00A86B fill hue measures
-//       ~2.5:1 on cream and can never be a text pair)
-//   (d) legacy dark-era + light-era values gone — GENERATED FROM THE LANDED FLIP
-//       DIFF: dark-era leavers, light-era leavers, 3-digit short forms, the leaving
-//       rgba() families (\s*-tolerant) and the exact old shadow strings, computed
-//       over the geo-block-line-filtered stylesheet and over index.html whole-file;
-//       #fbfaf5 companion count == 1 (the frozen geo literal only); motif retint
-//       re-anchored to rgba(0,168,107, at exactly six sites; favicon data-URI
-//       asserts (URL-encoded values are invisible to the hex bans)
+//   (a) pinned dark-calm palette (tokens + shadows) present in style.css
+//       — the whole carrier table re-valued + --ink-deep pinned for the first
+//       time (it existed as an unpinned footer-surface token before this flip)
+//   (b) head metas: theme-color == the --paper token value, color-scheme dark,
+//       light metas ABSENT (light-era pins inverted; the FIX-9 #f6f4ec absence
+//       survives; the html-element inline color-scheme stays dark too)
+//   (c) WCAG contrast >= 4.5:1 for exactly the six text pairs — same slots as
+//       every predecessor flip, recomputed against the carbon table
+//   (d) light-era + retained legacy values gone — GENERATED FROM THE LANDED
+//       FLIP DIFF: light-era leavers, retained dark-era/paper-era leavers,
+//       3-digit short forms, the leaving rgba() families (\s*-tolerant) and
+//       the exact old shadow strings, computed over the geo-block-line-filtered
+//       stylesheet and over index.html whole-file; #fbfaf5 companion count == 1
+//       (the frozen geo literal only); motif retint re-anchored to
+//       rgba(0,168,107, at exactly six sites; favicon data-URI asserts
+//       (URL-encoded values are invisible to the hex bans)
 //   (e) geo freeze strings present (SECONDARY guard — the mechanical proof is the
 //       VERIFYCMDS dispatch-capture + diff chain ending GEO-FREEZE-OK)
 //   (f) frozen copy strings present exactly once each (contains-checks, never
@@ -41,51 +43,60 @@ function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// Pinned light palette (FLIP-CARRIER-CONTRACT; values, not layout). Anchors
-// ratified by user drafts: --paper #EDE9DC, --accent #00A86B; companions authored
-// + measured in-wave. --accent-ink is the dark text on #00A86B fills (5.6:1);
-// --accent-text is the accent hue darkened to 5.4:1 on --paper (the fill hue
-// itself is 2.5:1 on cream and never renders as text).
+// Pinned dark-calm palette (FLIP-CARRIER-CONTRACT, revision #5; values, not
+// layout). Anchors: --paper #0B0D0C carbon, --accent #00A86B STAYS the ratified
+// green (FILL role). Companions authored + measured in-wave: every pair (c)
+// asserts clears AA with headroom. --accent-ink is carbon text on #00A86B fills
+// (6.3:1); --accent-text is the brighter accent-as-TEXT step (8.3:1 on carbon —
+// on dark the punch direction re-inverts: --accent-punch is now the BRIGHTEST
+// text-safe step, the light-era deepest-step rule is dead).
 const PALETTE = [
-  ['--paper', '#EDE9DC'],
-  ['--paper-2', '#E4DFD1'],
-  ['--ink', '#1C1A15'],
-  ['--ink-soft', '#5C584C'],
-  ['--line', '#C8C1AD'],
+  ['--paper', '#0B0D0C'],
+  ['--paper-2', '#070908'],
+  ['--ink', '#EAE6DB'],
+  ['--ink-soft', '#A29C90'],
+  ['--line', '#3B372F'],
   ['--accent', '#00A86B'],
-  ['--accent-ink', '#1C1A15'],
-  ['--accent-text', '#0d6b4f'],
-  ['--warn', '#a33a24'],
-  ['--code-bg', '#E0D9C9'],
-  ['--paper-raised', '#F3EFE3'],
-  ['--paper-pending', '#E7E2D4'],
-  ['--warn-bg', '#EFD9D1'],
-  ['--accent-visited', '#3A6B58'],
-  ['--accent-hover', '#0FB879'],
-  ['--line-dotted', '#AFA892'],
-  ['--chip-tan', '#D9CFB4'],
-  ['--footer-muted', '#4E4939'],
-  ['--footer-faint', '#615C4C'],
-  ['--accent-punch', '#006B45'],
-  ['--shadow-soft', '0 20px 28px rgba(28, 26, 21, 0.10)'],
-  ['--shadow-soft-hover', '0 24px 40px rgba(28, 26, 21, 0.16)'],
+  ['--accent-ink', '#0B0D0C'],
+  ['--accent-text', '#2FBF83'],
+  ['--warn', '#D96A52'],
+  ['--code-bg', '#050706'],
+  ['--paper-raised', '#151817'],
+  ['--paper-pending', '#090B0A'],
+  ['--warn-bg', '#30181A'],
+  ['--accent-visited', '#219167'],
+  ['--accent-hover', '#0CC07C'],
+  ['--line-dotted', '#2E2B25'],
+  ['--chip-tan', '#262218'],
+  ['--footer-muted', '#A8A297'],
+  ['--footer-faint', '#948E83'],
+  ['--accent-punch', '#5BD9A4'],
+  ['--ink-deep', '#0E100F'],
+  ['--shadow-soft', '0 20px 28px rgba(0, 0, 0, 0.45)'],
+  ['--shadow-soft-hover', '0 24px 40px rgba(0, 0, 0, 0.60)'],
 ];
 
 // LEGACY_HEXES — GENERATED FROM THE LANDED FLIP DIFF, not hand-listed.
-//   dark-era leavers: every hex the dark contract carried that the light table
-//   replaces. light-era leavers: the stale dark fallback literals so they cannot
-//   survive invisibly in var() fallbacks. Short forms are banned by SUBSTRING
-//   (includes('#000000') cannot match 'background: #000;' — direction matters).
-//   Authored light-table values are asserted to NOT collide (below + by (a)'s
-//   positive pins): the new --ink is freshly authored (#1C1A15), and the two
-//   reused paper-era precedents (#0d6b4f accent-text, #a33a24 warn) are UN-BANNED
-//   by this rewrite per the goal's own rule. #f6f4ec (the superseded cream
-//   candidate) STAYS banned. Earlier paper-era bans are retained — never loosen.
+//   light-era leavers: every hex the light table carried that the dark-calm
+//   table replaces (the goal names twelve; the diff adds the footer/chip/punch/
+//   warn/shadow-surface carriers + the two comment-only values so they cannot
+//   survive invisibly in a comment or var() fallback). Retained bans from every
+//   predecessor era stay — NEVER LOOSEN. Short forms are banned by SUBSTRING
+//   (includes('#000') cannot match 'background: #000;' — direction matters, and
+//   no authored carbon value contains either short form).
+//   Authored dark-table values are asserted to NOT collide (below + by (a)'s
+//   positive pins). #f6f4ec (the superseded cream candidate) STAYS banned.
 const LEGACY_HEXES = [
-  // dark-era leavers
+  // light-era leavers (the 2026-09-04 table, replaced by this flip)
+  '#EDE9DC', '#E4DFD1', '#F3EFE3', '#E7E2D4', '#E0D9C9', '#EFD9D1',
+  '#1C1A15', '#5C584C', '#C8C1AD', '#AFA892', '#3A6B58', '#0FB879',
+  // light-era leavers from the landed diff beyond the goal's named twelve
+  '#D9CFB4', '#4E4939', '#615C4C', '#006B45', '#0d6b4f', '#a33a24',
+  '#E2DCCB', '#F4F0E4', '#B7AE9C',
+  // dark-era leavers (retained — the first flip's ban list survives)
   '#000000', '#17171a', '#2ec27e', '#27a86c', '#3ad18e', '#3fe396', '#131316',
   '#101014', '#2a1512', '#4a4a4e', '#28282a', '#011A25', '#d6d1c0',
-  // light-era leavers (stale fallback literals)
+  // stale fallback literals from earlier eras (retained)
   '#ffffff', '#8e8e8e', '#a8a8ae', '#c4c2c3', '#e0654a',
   // 3-digit short forms (substring direction)
   '#000', '#fff',
@@ -96,7 +107,7 @@ const LEGACY_HEXES = [
   '#0a5940', '#b9b4a3', '#cfcabb', '#b7b2a2', '#0b7f56', '#6f6a54',
 ];
 
-// Authored light-table values must not collide with any retained ban entry.
+// Authored dark-table values must not collide with any retained ban entry.
 const AUTHORED_VALUES = PALETTE.map(([, v]) => v).filter((v) => v.startsWith('#'));
 
 function tokenRegex(name, value) {
@@ -117,7 +128,7 @@ function tokenHex(name) {
   return m[1];
 }
 
-test('(a) pinned light palette tokens present in style.css', () => {
+test('(a) pinned dark-calm palette tokens present in style.css', () => {
   for (const [name, value] of PALETTE) {
     assert.ok(tokenRegex(name, value).test(css), name + ' must carry ' + value);
   }
@@ -128,15 +139,16 @@ test('(a2) deposit .index literal re-pinned to the --ink token', () => {
     '#deposit .index must carry color: var(--ink) (token, no literal)');
 });
 
-test('(b) theme-color equals --paper; color-scheme light; dark metas ABSENT', () => {
+test('(b) theme-color equals --paper; color-scheme dark; light metas ABSENT', () => {
   const paper = (css.match(/--paper[ \t]*:[ \t]*(#[0-9a-fA-F]{6})/) || [])[1];
   assert.ok(paper, '--paper hex resolvable in style.css');
   const meta = html.match(/<meta name="theme-color" content="([^"]+)">/);
   assert.ok(meta, 'theme-color meta present in index.html');
   assert.strictEqual(meta[1], paper, 'theme-color content equals the --paper token value');
-  assert.match(html, /<meta name="color-scheme" content="light">/, 'color-scheme meta is light');
-  assert.ok(!html.includes('content="#000000"'), 'dark theme-color meta absent (light-paper flip)');
-  assert.ok(!html.includes('color-scheme" content="dark"'), 'dark color-scheme meta absent (light-paper flip)');
+  assert.match(html, /<meta name="color-scheme" content="dark">/, 'color-scheme meta is dark');
+  assert.ok(!html.includes('color-scheme" content="light"'), 'light color-scheme meta absent (dark-calm flip)');
+  assert.ok(!html.includes('color-scheme: light'), 'light inline color-scheme absent from the html element (dark-calm flip)');
+  assert.ok(!html.includes('content="#EDE9DC"'), 'light theme-color meta absent (dark-calm flip)');
   assert.ok(!html.includes('content="#f6f4ec"'), 'superseded cream meta absent (FIX-9 pin survives)');
 });
 
@@ -181,11 +193,12 @@ test('(c) WCAG contrast >= 4.5:1 for exactly the six text pairs', () => {
   }
 });
 
-test('(d) legacy dark-era + light-era values gone (geo-frozen lines excluded from the sweep)', () => {
+test('(d) legacy light-era + retained values gone (geo-frozen lines excluded from the sweep)', () => {
   // grep -v geo-block equivalent: drop every line containing 'geo-block' — removes
   // the only literal-bearing geo rules plus the var-only geo lines, line-agnostic.
   // The .geo-block-head color stays a short-form literal ON a geo line (exempt),
-  // re-evaluated for the deepened warn: white on #a33a24 measures ~6.6:1.
+  // re-evaluated for the dark table: white on the frozen --warn head measures
+  // well clear of AA.
   const cssSweep = css.split('\n')
     .filter((line) => !line.includes('geo-block'))
     .join('\n');
@@ -197,38 +210,46 @@ test('(d) legacy dark-era + light-era values gone (geo-frozen lines excluded fro
   for (const v of AUTHORED_VALUES) {
     assert.ok(!LEGACY_HEXES.includes(v), 'authored ' + v + ' must not collide with the ban list');
   }
-  // earlier paper-era rgba families (kept from the dark-era rewrite)
+  // dark-era rgba families (kept from every predecessor rewrite)
   assert.ok(!/rgba\(14,\s*61/.test(cssSweep), 'legacy blue shadow family rgba(14, 61, ...) gone from style.css');
   assert.ok(!/rgba\(13,\s*107/.test(cssSweep), 'legacy motif green family rgba(13, 107, ...) gone from style.css');
   assert.ok(!/rgba\(14,\s*61/.test(html), 'legacy rgba(14, 61, ...) absent from index.html');
   assert.ok(!/rgba\(13,\s*107/.test(html), 'legacy rgba(13, 107, ...) absent from index.html');
-  // leaving rgba() families from the landed flip diff (\s*-tolerant — BOTH byte
-  // forms existed: :18 unspaced, :38/:745+ spaced)
+  // leaving rgba() families from the landed flip diffs (\s*-tolerant — BOTH byte
+  // forms existed across eras; the light table's shadow + warn families leave here)
   assert.ok(!/rgba\(255,\s*255,\s*255/.test(cssSweep), 'leaving white rgba family gone from style.css');
   assert.ok(!/rgba\(46,\s*194,\s*126/.test(cssSweep), 'leaving dark-accent rgba family gone from style.css');
   assert.ok(!/rgba\(224,\s*101,\s*74/.test(cssSweep), 'leaving dark-warn rgba family gone from style.css');
+  assert.ok(!/rgba\(28,\s*26,\s*21/.test(cssSweep), 'leaving light-shadow rgba family gone from style.css');
+  assert.ok(!/rgba\(163,\s*58,\s*36/.test(cssSweep), 'leaving light-warn rgba family gone from style.css');
   assert.ok(!/rgba\(255,\s*255,\s*255/.test(html), 'leaving white rgba family absent from index.html');
   assert.ok(!/rgba\(46,\s*194,\s*126/.test(html), 'leaving dark-accent rgba family absent from index.html');
   assert.ok(!/rgba\(224,\s*101,\s*74/.test(html), 'leaving dark-warn rgba family absent from index.html');
-  // the exact old dark shadow strings (whole values, not a family ban)
+  assert.ok(!/rgba\(28,\s*26,\s*21/.test(html), 'leaving light-shadow rgba family absent from index.html');
+  assert.ok(!/rgba\(163,\s*58,\s*36/.test(html), 'leaving light-warn rgba family absent from index.html');
+  // the exact old shadow strings (whole values, not a family ban — the new
+  // dark alphas are spaced-form and deliberately distinct)
   assert.ok(!cssSweep.includes('rgba(0,0,0,0.55)'), 'old dark shadow rgba(0,0,0,0.55) gone from style.css');
   assert.ok(!cssSweep.includes('rgba(0,0,0,0.7)'), 'old dark shadow rgba(0,0,0,0.7) gone from style.css');
   assert.ok(!html.includes('content="#f6f4ec"'), 'meta content="#f6f4ec" absent from index.html');
-  assert.ok(!html.includes('color-scheme" content="dark"'), 'dark color-scheme meta absent from index.html (inverted dark-era pin)');
-  // motif retint (light-paper flip): alpha-preserved 1:1 at exactly the six sites
+  assert.ok(!html.includes('color-scheme" content="light"'), 'light color-scheme meta absent from index.html (inverted light-era pin)');
+  // motif retint (ratified green stays the fill hue): alpha-preserved 1:1 at
+  // exactly the six sites
   const retint = html.match(/rgba\(0,168,107,/g) || [];
-  assert.strictEqual(retint.length, 6, 'motif retinted to rgba(0,168,107,*) at exactly six sites');
+  assert.strictEqual(retint.length, 6, 'motif carries rgba(0,168,107,*) at exactly six sites');
   const oldMotif = html.match(/rgba\(46,194,126,/g) || [];
   assert.strictEqual(oldMotif.length, 0, 'dark-era motif family rgba(46,194,126,*) fully re-hued');
   // companion assert: #fbfaf5 == exactly 1 — the frozen geo literal
   assert.strictEqual(countOccurrences(css, '#fbfaf5'), 1, '#fbfaf5 appears exactly once (frozen geo literal)');
-  // favicon carrier: the data-URI is re-rendered light from the tokens —
+  // favicon carrier: the data-URI is re-rendered dark from the tokens —
   // URL-encoded, so the hex bans cannot see it; resolve the values dynamically
-  // and assert both the presence and the dark-era absences.
+  // and assert both the presence and the light-era absences.
   const paper2 = tokenHex('--paper-2');
   const inkTok = tokenHex('--ink');
-  assert.ok(html.includes('%23' + paper2.slice(1)), 'favicon fill is the light --paper-2 value (' + paper2 + ')');
-  assert.ok(html.includes('%23' + inkTok.slice(1)), 'favicon stroke/text carry the light --ink value (' + inkTok + ')');
+  assert.ok(html.includes('%23' + paper2.slice(1)), 'favicon fill is the dark --paper-2 value (' + paper2 + ')');
+  assert.ok(html.includes('%23' + inkTok.slice(1)), 'favicon stroke/text carry the dark --ink value (' + inkTok + ')');
+  assert.ok(!html.includes('%23E4DFD1'), 'favicon light-era fill %23E4DFD1 gone');
+  assert.ok(!html.includes('%231C1A15'), 'favicon light-era ink %231C1A15 gone');
   assert.ok(!html.includes('%2317171a'), 'favicon dark-era fill %2317171a gone');
   assert.ok(!html.includes('%23ffffff'), 'favicon white ink %23ffffff gone');
   // still a data-URI — zero new requests, zero new files
@@ -306,12 +327,15 @@ test('(g) WS-LEDGER-STRUCTURE structure layer: hatches, ledger-grid footer, CTA 
   //     bordered .h header-cell rule exists
   assert.ok(/\.footer-grid \{[^}]*border: 1px solid var\(--line\)/.test(css), '.footer-grid rule carries a 1px solid var(--line) border');
   assert.ok(/\.footer-grid \.h \{[^}]*border: 1px solid/.test(css), '.footer-grid .h bordered header-cell rule exists');
-  // (c) hero CTA pair: exactly one solid (#deposit) + one outline (#docs) anchor;
+  // (c) hero CTA pair: exactly one solid + one outline anchor;
   //     'Read the code' survives exactly once (STATE PIN — the degen-copy-pass
   //     owns re-pinning this when it rewords the secondary CTA label)
+  //     re-pinned 2026-09-07 (WS5-SKELETON): the solid primary anchors #fleet
+  //     now ('Open the Fleet') — the deposit widget moved into the flagship
+  //     fleet card, so the old #deposit target byte-pin retired with the move.
   assert.strictEqual(countOccurrences(html, 'cta-solid'), 1, 'exactly one cta-solid anchor in index.html');
   assert.strictEqual(countOccurrences(html, 'cta-outline'), 1, 'exactly one cta-outline anchor in index.html');
-  assert.ok(html.includes('<a class="cta-solid" href="#deposit">'), 'cta-solid anchors #deposit');
+  assert.ok(html.includes('<a class="cta-solid" href="#fleet">Open the Fleet</a>'), 'cta-solid anchors #fleet (Open the Fleet)');
   assert.ok(html.includes('<a class="cta-outline" href="#docs">'), 'cta-outline anchors #docs');
   assert.strictEqual(countOccurrences(html, 'Read the code'), 1, "'Read the code' appears exactly once in index.html");
   // (d) mono metadata edges: .footer-fine rides the mono stack
