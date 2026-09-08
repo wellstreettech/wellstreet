@@ -89,6 +89,18 @@ function makeEl(tag) {
         p.children = p.children.filter(function (x) { return x !== this; }.bind(this));
       }
     },
+    get nextSibling() {
+      if (!this.parentNode) { return null; }
+      const i = this.parentNode.children.indexOf(this);
+      return this.parentNode.children[i + 1] || null;
+    },
+    insertBefore(node, ref) {
+      const idx = ref ? this.children.indexOf(ref) : -1;
+      if (idx === -1) { return this.appendChild(node); }
+      this.children.splice(idx, 0, node);
+      node.parentNode = this;
+      return node;
+    },
     setAttribute(k, v) { this.attrs[k] = String(v); if (k === 'id') { REGISTRY[v] = this; } },
     getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; },
     addEventListener(t, fn) { (this.listeners[t] = this.listeners[t] || []).push(fn); },
@@ -397,19 +409,30 @@ test('§delta-3 privacy: no 42-hex owner address renders in the table or the car
   const surfaceText = allText(REGISTRY['fleet-tbody']).concat(allText(REGISTRY['fleet-cards'])).join(' | ');
   assert.strictEqual(/0x[0-9a-fA-F]{40}/.test(surfaceText), false,
     'no owner-address-shaped (0x + 40 hex) text renders in the public surfaces — the 66-char pool ids must not leak into cells');
-  // the sheet is the ONE permitted surface: open a detail and find the pool key there
+  // DETAIL-INLINE: a known pool opens UNDER the clicked row/card — the
+  // footer aside stays closed; the pool key lives only in the detail nodes.
   fleetTable.openDetail(feed.books[0].poolId);
-  assert.strictEqual(REGISTRY['fleet-sheet'].hidden, false, 'the detail sheet opens');
-  const sheetText = allText(REGISTRY['fleet-sheet']).join(' | ');
-  assert.ok(sheetText.indexOf(feed.books[0].poolId) !== -1, 'the pool key renders in the sheet (permitted surface)');
-  // and the sheet mirrors the §3 JSON (pretty form) in its pre block
-  const pre = collect(REGISTRY['fleet-sheet'], '.fleet-sheet-json')[0];
-  assert.ok(pre, 'the sheet carries the position-params pre block');
+  const inlines = collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline')
+    .concat(collect(REGISTRY['fleet-cards'], '.fleet-sheet-inline'));
+  assert.strictEqual(inlines.length, 2, 'one detail node after the row, one after the card');
+  assert.strictEqual(REGISTRY['fleet-sheet'].hidden, true, 'a known pool never opens the footer aside');
+  const target = REGISTRY['fleet-tbody'].children.find(function (c) {
+    return c.getAttribute('data-pool') === feed.books[0].poolId;
+  });
+  assert.ok(target, 'the book row is findable by data-pool');
+  assert.strictEqual(target.nextSibling.className, 'ft-detail-row', 'the detail opens directly under the clicked row');
+  const sheetText = allText(inlines[0]).join(' | ');
+  assert.ok(sheetText.indexOf(feed.books[0].poolId) !== -1, 'the pool key renders in the inline detail (permitted surface)');
+  // and the detail mirrors the §3 JSON (pretty form) in its pre block
+  const pre = collect(inlines[0], '.fleet-sheet-json')[0];
+  assert.ok(pre, 'the detail carries the position-params pre block');
   const mirrored = JSON.parse(pre.textContent);
   for (const k of AGENT_KEYS) { assert.ok(k in mirrored, 'the mirrored JSON carries ' + k); }
   assert.strictEqual(mirrored.poolKey, feed.books[0].poolId, 'the mirror is the emitted object');
   fleetTable.closeSheet();
-  assert.strictEqual(REGISTRY['fleet-sheet'].hidden, true, 'the sheet closes');
+  assert.strictEqual(collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline').length, 0, 'Close removes the row detail');
+  assert.strictEqual(collect(REGISTRY['fleet-cards'], '.fleet-sheet-inline').length, 0, 'Close removes the card detail');
+  assert.strictEqual(REGISTRY['fleet-sheet'].hidden, true, 'the aside stays closed');
   await settle(0);
 });
 
@@ -543,13 +566,16 @@ test('Details wiring: [data-details] opens the renderer\'s sheet (the §3 mirror
 
   // (a) with the renderer loaded: G4's delegated handler calls WS.fleetTable.openDetail
   click(btn, PHASE1.body);
-  assert.strictEqual(REGISTRY['fleet-sheet'].hidden, false, 'the sheet opens');
-  let pre = collect(REGISTRY['fleet-sheet'], '.fleet-sheet-json')[0];
-  assert.ok(pre, 'the renderer\'s sheet carries the mirror pre block');
+  const inl = collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline');
+  assert.strictEqual(inl.length, 1, 'the renderer opens the detail inline under the clicked row');
+  assert.strictEqual(REGISTRY['fleet-sheet'].hidden, true, 'the footer aside stays closed (DETAIL-INLINE)');
+  let pre = collect(inl[0], '.fleet-sheet-json')[0];
+  assert.ok(pre, 'the inline detail carries the mirror pre block');
   let mirrored = JSON.parse(pre.textContent);
   for (const k of AGENT_KEYS) { assert.ok(k in mirrored, 'the mirrored JSON carries ' + k); }
   assert.strictEqual(mirrored.poolKey, b.poolId);
   fleetTable.closeSheet();
+  assert.strictEqual(collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline').length, 0, 'Close removes the inline detail');
 
   // (b) without the renderer: the seam's own minimal sheet (still the §3 JSON,
   //     still the only surface where the pool key renders)

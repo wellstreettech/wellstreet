@@ -325,10 +325,18 @@
   }
 
   // ------------------------------------------------------------------
-  // the detail sheet (§1 aside — G1 fills, G2 styles). The pool key renders
-  // HERE only (§delta-3). The §3 mirror: the sheet's pre block carries the
-  // copy-position JSON byte-for-byte once the copy seam (G4) is loaded —
-  // before that, the honest not-loaded line, never a fabricated object.
+  // the detail surfaces (§1 aside + DETAIL-INLINE 2026-09-08, user: the
+  // panel must open UNDER the clicked position, not at the foot of the
+  // mount). A known pool renders the SAME content into inline blocks: one
+  // .ft-detail-row (colspan-8 cell) immediately after the table row and
+  // one .fleet-sheet-inline block after the card — CSS decides which
+  // viewport shows which; the legacy #fleet-sheet aside remains the
+  // unknown-pool surface and the no-row fallback. The pool key renders in
+  // the detail surfaces only (§delta-3). The §3 mirror: each detail's pre
+  // block carries the copy-position JSON byte-for-byte once the copy seam
+  // (G4) is loaded — before that, the honest not-loaded line, never a
+  // fabricated object. Re-opening (the seam's delegated double-call is by
+  // design) is idempotent: the mount is cleared and rebuilt, never toggled.
   // ------------------------------------------------------------------
   function closeButton() {
     var b = el('button', 'ft-copy fleet-sheet-close', 'Close');
@@ -337,53 +345,39 @@
     return b;
   }
 
-  function openDetail(poolId) {
-    var sheet = $('fleet-sheet');
-    if (!sheet) { return; }
-    sheet.textContent = '';
-    var f = fleet();
-    var list = f && typeof f.rows === 'function' ? f.rows() : [];
-    var book = null;
-    for (var i = 0; i < list.length; i++) {
-      if (list[i] && list[i].poolId === poolId) { book = list[i]; break; }
-    }
-    if (!book) {
-      sheet.appendChild(el('p', 'fc-state', 'that pool is not in the feed right now — the file is the truth.'));
-      sheet.appendChild(closeButton());
-      sheet.hidden = false;
-      return;
-    }
+  function buildDetail(book, f) {
+    var node = el('div', 'fleet-sheet fleet-sheet-inline');
     var prov = f && typeof f.provenance === 'function' ? f.provenance() : null;
     var hours = windowHours(prov && prov.window);
     var head = el('div', 'fc-head');
     head.appendChild(el('span', 'fc-spine ' + spineClass('fc-spine', book)));
     head.appendChild(el('span', 'fc-pair', String(book.pair || '—')));
     appendChips(head, book);
-    sheet.appendChild(head);
+    node.appendChild(head);
     var badge = badgeInfo(book);
-    sheet.appendChild(el('div', 'fc-badge ' + badge.cls, badge.text));
+    node.appendChild(el('div', 'fc-badge ' + badge.cls, badge.text));
     // §delta-3: the pool key, in the one surface the contract permits it
-    sheet.appendChild(el('p', 'fleet-poolid', String(book.poolId || '—')));
+    node.appendChild(el('p', 'fleet-poolid', String(book.poolId || '—')));
     var metrics = el('div', 'fc-metrics');
     appendMetric(metrics, 'TVL', f.fmtUsd(book.tvlUsd));
     appendMetric(metrics, 'VOL 24H', f.fmtUsd(book.vol24hUsd));
     var suffix = windowSuffix(book, hours);
     appendMetric(metrics, suffix ? 'FEE APR (' + suffix + ')' : 'FEE APR', aprText(book));
-    sheet.appendChild(metrics);
-    sheet.appendChild(el('p', 'fc-state', stateLine(book)));
+    node.appendChild(metrics);
+    node.appendChild(el('p', 'fc-state', stateLine(book)));
     if (book.note) {
-      sheet.appendChild(el('h4', null, 'measured'));
-      sheet.appendChild(el('p', 'fleet-note', String(book.note)));
+      node.appendChild(el('h4', null, 'measured'));
+      node.appendChild(el('p', 'fleet-note', String(book.note)));
     }
     if (prov) {
-      sheet.appendChild(el('h4', null, 'provenance'));
-      if (prov.window) { sheet.appendChild(el('p', 'fleet-note', String(prov.window))); }
-      if (prov.method) { sheet.appendChild(el('p', 'fleet-note', String(prov.method))); }
-      if (prov.source) { sheet.appendChild(el('p', 'fleet-note', 'source: ' + prov.source)); }
+      node.appendChild(el('h4', null, 'provenance'));
+      if (prov.window) { node.appendChild(el('p', 'fleet-note', String(prov.window))); }
+      if (prov.method) { node.appendChild(el('p', 'fleet-note', String(prov.method))); }
+      if (prov.source) { node.appendChild(el('p', 'fleet-note', 'source: ' + prov.source)); }
     }
     var ours = isOurs(book);
-    if (ours) { sheet.appendChild(el('p', 'fleet-note', 'ours status: ' + ours)); }
-    sheet.appendChild(el('h4', null, 'position params'));
+    if (ours) { node.appendChild(el('p', 'fleet-note', 'ours status: ' + ours)); }
+    node.appendChild(el('h4', null, 'position params'));
     var pre = doc().createElement('pre');
     pre.className = 'fleet-sheet-json';
     // the pre stays wrap-safe (no horizontal scroll at 390px, §0 rule 9)
@@ -397,19 +391,86 @@
     } else {
       pre.textContent = 'position params unavailable — the copy seam is not loaded; nothing here is estimated.';
     }
-    sheet.appendChild(pre);
-    sheet.appendChild(closeButton());
-    sheet.hidden = false;
+    node.appendChild(pre);
+    node.appendChild(closeButton());
+    return node;
+  }
+
+  function removeInlines() {
+    var surface = $('fleet-surface');
+    // queried from the SURFACE element, not document: every inline detail
+    // lives inside it by construction, and this keeps the lookup element-
+    // level on both sides of the seam (browsers + the test DOM stub)
+    var nodes = surface && typeof surface.querySelectorAll === 'function'
+      ? surface.querySelectorAll('.fleet-sheet-inline') : [];
+    for (var i = nodes.length - 1; i >= 0; i--) {
+      if (nodes[i] && typeof nodes[i].remove === 'function') { nodes[i].remove(); }
+    }
+  }
+
+  function childByPool(parent, poolId) {
+    if (!parent || !parent.children) { return null; }
+    for (var i = 0; i < parent.children.length; i++) {
+      var c = parent.children[i];
+      if (c && typeof c.getAttribute === 'function' && c.getAttribute('data-pool') === poolId) { return c; }
+    }
+    return null;
+  }
+
+  function insertAfter(parent, node, ref) {
+    if (typeof parent.insertBefore === 'function') {
+      parent.insertBefore(node, ref.nextSibling || null);
+      return;
+    }
+    parent.appendChild(node);
+  }
+
+  function openDetail(poolId) {
+    var sheet = $('fleet-sheet');
+    removeInlines();
+    if (sheet) { sheet.textContent = ''; sheet.hidden = true; }
+    var f = fleet();
+    var list = f && typeof f.rows === 'function' ? f.rows() : [];
+    var book = null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].poolId === poolId) { book = list[i]; break; }
+    }
+    if (!book) {
+      // the unknown pool keeps the legacy aside: honest not-in-the-feed line
+      if (sheet) {
+        sheet.appendChild(el('p', 'fc-state', 'that pool is not in the feed right now — the file is the truth.'));
+        sheet.appendChild(closeButton());
+        sheet.hidden = false;
+      }
+      return;
+    }
+    var row = childByPool($('fleet-tbody'), poolId);
+    if (row && row.parentNode) {
+      var tr = doc().createElement('tr');
+      tr.className = 'ft-detail-row';
+      var td = doc().createElement('td');
+      td.setAttribute('colspan', '8'); // the §1 column count (spine..actions)
+      td.appendChild(buildDetail(book, f));
+      tr.appendChild(td);
+      insertAfter(row.parentNode, tr, row);
+    } else if (sheet) {
+      // no row surface to attach to: keep the detail reachable via the aside
+      sheet.appendChild(buildDetail(book, f));
+      sheet.hidden = false;
+    }
+    var card = childByPool($('fleet-cards'), poolId);
+    if (card && card.parentNode) { insertAfter(card.parentNode, buildDetail(book, f), card); }
   }
 
   function closeSheet() {
     var sheet = $('fleet-sheet');
-    if (sheet) { sheet.hidden = true; }
+    removeInlines();
+    if (sheet) { sheet.hidden = true; sheet.textContent = ''; }
   }
 
   // ------------------------------------------------------------------
   // wiring: ONE delegated click listener on the §1 surface resolves both
-  // [data-details] (G1's sheet) and [data-sheet-close]; the copy buttons
+  // [data-details] (the detail surfaces) and [data-sheet-close]; the copy buttons
   // ([data-copy-position]) stay for G4's delegated handler — this module
   // never touches the clipboard. Filters re-render rows(tier); 'all' is
   // rows(). init() self-registers its own WS.fleet.load (alongside main.js's

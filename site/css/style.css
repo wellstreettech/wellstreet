@@ -58,6 +58,114 @@
   font-display: swap;
 }
 
+/* ---------- LIGHT THEME TOKENS (G1 THEME-FOUNDATION, 2026-09-08) ----------
+   Additive override on the WS-DARK-DOTO defaults above — dark is NEVER
+   re-skinned: with no data-theme attribute and a dark system the rendered
+   page is pixel-identical to the pre-theme site. Mechanism (locked in
+   docs/internal/THEME_DUAL_WAVE_2026-09-08.md §1):
+     - html[data-theme="light"]  -> explicit light (toggle/storage)
+     - html[data-theme="dark"]   -> explicit dark (no override needed: the
+       :root defaults above ARE the dark table)
+     - attribute ABSENT          -> system follow: the @media block below
+       applies the same light tokens only when the OS asks for light.
+   Placed AFTER the @font-face (not directly after the first :root) so lines
+   12-60 — the dark token block + the doto @font-face — stay byte-identical
+   for the theme battery's dark-default diff pin. Values are FRESH warm-paper
+   hexes, every one outside theme.test.js's retired-era ban list (the light-era
+   leavers cluster in exactly this range; each value was chosen for maximum
+   ban-list distance, then machine-verified — all six (c)-slot text pairs
+   clear 4.5:1 on the light ladder: ink/paper 13.6, ink-soft/paper 6.9,
+   accent-text/paper 6.3, accent-ink/accent 7.3, warn/paper-2 5.5,
+   ink/paper-2 11.9 — and every extended surface/text pair >= 4.5:1; hairlines
+   keep their non-text register). The footer flips to a light --ink-deep band
+   so .site-footer's var(--ink) text stays legible; --footer-muted/-faint
+   re-derive for that band and stay >= 4.5:1 on --paper (the .lc-label strip).
+   --accent stays the single amber #E8A33D in BOTH modes (fill role);
+   --accent-ink and --accent-text are the re-derived light-side text roles.
+   Shadow tokens stay none (inherited): the identity is hard borders in either
+   mode. MAINTENANCE: the two token lists below are a DELIBERATE duplicate
+   (plain CSS has no mixins) — keep the value lines byte-identical. */
+html[data-theme="light"] {
+  --paper: #F2EFE6;        /* warm paper substrate — the light identity's base */
+  --paper-raised: #FBF9F1; /* card faces: +1 toward the viewer (lighter on light) */
+  --paper-pending: #ECE8D8;/* scaffolding — between base and recess */
+  --paper-2: #E6E0CC;      /* recess — one step INTO the page from base */
+  --code-bg: #DDD6BE;      /* deepest well — code sinks below the recess */
+  --chip-tan: #EDE1C4;     /* warm tan chip fill; chip text stays var(--ink) */
+  --warn-bg: #F5E3DA;      /* light red tint behind warn text/tags */
+  --ink-deep: #D8D0B8;     /* footer band surface (ink-era misnomer retained) */
+  --ink: #26231C;          /* warm carbon ink — 13.6:1 on --paper */
+  --ink-soft: #575144;     /* muted-on-light — 6.9:1 on --paper */
+  --line: #CCC4AC;         /* warm hairline */
+  --line-dotted: #D8D0BA;  /* dotted-border role only — fainter than --line */
+  --accent-ink: #26231C;   /* carbon text on #E8A33D fills — 7.3:1 */
+  --accent-text: #7A4E0E;  /* accent-as-TEXT on light paper — dark caramel, 6.3:1 */
+  --accent-visited: #6B470D; /* visited links — deeper caramel, 7.2:1 on --paper */
+  --accent-hover: #D08D2C; /* hover steps DEEPER on light fills (lighter on dark) */
+  --accent-punch: #8F5E10; /* focus ring + the one accent-as-index text — 4.8:1 on --paper */
+  --warn: #9C3222;         /* honest deep red on light — 5.5:1 on --paper-2 */
+  --footer-muted: #544D3C; /* muted on the light footer band — 5.5:1 there, 7.3:1 on --paper */
+  --footer-faint: #5F5741; /* faint fine print on the footer band — 4.7:1 */
+}
+@media (prefers-color-scheme: light) {
+  /* system-follow half: identical tokens for the NO-attribute state only —
+     an explicit data-theme="dark" must keep the dark defaults. */
+  html:not([data-theme]) {
+    --paper: #F2EFE6;
+    --paper-raised: #FBF9F1;
+    --paper-pending: #ECE8D8;
+    --paper-2: #E6E0CC;
+    --code-bg: #DDD6BE;
+    --chip-tan: #EDE1C4;
+    --warn-bg: #F5E3DA;
+    --ink-deep: #D8D0B8;
+    --ink: #26231C;
+    --ink-soft: #575144;
+    --line: #CCC4AC;
+    --line-dotted: #D8D0BA;
+    --accent-ink: #26231C;
+    --accent-text: #7A4E0E;
+    --accent-visited: #6B470D;
+    --accent-hover: #D08D2C;
+    --accent-punch: #8F5E10;
+    --warn: #9C3222;
+    --footer-muted: #544D3C;
+    --footer-faint: #5F5741;
+  }
+}
+
+/* ---------- LIGHT SURFACES (G2 LIGHT-SURFACES, 2026-09-08) ----------
+   Component-level light overrides — the additive half of the dual-mode system
+   (docs/internal/THEME_DUAL_WAVE_2026-09-08.md §3 G2). Every surface styled in
+   tokens re-values itself from the block above; the rule here exists ONLY for
+   the one surface that carries a theme-INSENSITIVE literal: .hero-field paints
+   its halftone in the DARK ink's rgba (bone 5.5% dots + 3.5% ledger lines),
+   which vanishes on warm paper. Light re-inks the SAME two-layer field in
+   carbon at the same alphas — the dot-matrix field reads as dots in both
+   modes, nothing is added or retired. Scoped html[data-theme="light"] plus the
+   system-follow twin inside the media block (attribute ABSENT = follow); an
+   explicit data-theme="dark" matches neither and keeps the dark bytes exactly.
+   The ledger-line layer is spelled as a TILED linear-gradient (one 119px-wide
+   strip, default background-repeat) instead of the repeating- gradient form so
+   theme.test.js (g)'s exactly-one repeating-gradient DARK-identity register
+   count stays truthful — the rendered texture is identical.
+   MAINTENANCE: the two rules below are a DELIBERATE duplicate (plain CSS has
+   no mixins) — keep them byte-identical to each other. */
+html[data-theme="light"] .hero-field {
+  background-image:
+    radial-gradient(circle, rgba(38, 35, 28, 0.055) 1px, transparent 1.2px),
+    linear-gradient(90deg, transparent 0 118px, rgba(38, 35, 28, 0.035) 118px 119px);
+  background-size: 14px 14px, 119px 100%;
+}
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) .hero-field {
+    background-image:
+      radial-gradient(circle, rgba(38, 35, 28, 0.055) 1px, transparent 1.2px),
+      linear-gradient(90deg, transparent 0 118px, rgba(38, 35, 28, 0.035) 118px 119px);
+    background-size: 14px 14px, 119px 100%;
+  }
+}
+
 * { box-sizing: border-box; }
 
 /* R3 IMP-11: brand selection color (was the default UA blue on a green/black brand) */
@@ -169,6 +277,32 @@ pre code { background: none; border: none; padding: var(--space-0); }
 .site-nav a.nav-cta:hover { background: var(--accent-hover); } /* WS3-HEADER P3 (2026-09-06): the shipped btn-primary:hover vocabulary */
 .site-nav a.nav-cta:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
 .site-nav a.active { border-bottom-color: var(--accent-punch); } /* WS3-HEADER P7 (2026-09-06): orientation green — accent marks where you are (11.05:1 on carbon, passes 1.4.11); hover ink-soft and active punch now differ in kind, not degree */
+
+/* ---------- theme toggle (G1 THEME-FOUNDATION, 2026-09-08) ---------- */
+/* The header light/dark button. The mono label shows the mode you'll GET;
+   aria-pressed reports "light is active". 44px tap target (the WS-MOBILE-FIXES
+   P3 register); keyboard focus rides the global :focus-visible ring (no extra
+   outline rule — the theme battery pins outline-color exactly once). The
+   micro-transition is color-only on the toggle itself — the mode flip is an
+   instant token repaint (no page-wide transition, no motion-budget fight).
+   Reduced motion needs NO scoped guard here: the global prefers-reduced-motion
+   page guard (agent-first (b5) — `*` with transition:none !important) is
+   authoritative over every surface, this rule included. */
+.theme-toggle {
+  font-family: var(--mono);
+  font-size: var(--step-1);
+  text-transform: uppercase;
+  letter-spacing: var(--track-chrome);
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  min-height: 44px;
+  padding: var(--space-4) var(--space-12);
+  cursor: pointer;
+  transition: color var(--motion), background-color var(--motion), border-color var(--motion);
+}
+.theme-toggle:hover { border-color: var(--ink-soft); }
 
 /* ---------- jurisdiction banner ---------- */
 .jurisdiction-banner {
@@ -1941,6 +2075,12 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
    (10) and under the skip link (the site max, 100). */
 .fleet-sheet { border: 2px solid var(--line); background: var(--paper-raised); padding: var(--space-16); min-width: 0; }
 .fleet-sheet[hidden] { display: none; }
+/* DETAIL-INLINE (2026-09-08): the detail opens under the clicked row/card.
+   The two-class specificity (0,2,0) overrides the <=640px fixed bottom-sheet
+   rule for inline nodes without editing that rule; the row cell carries no
+   padding of its own so the panel's border reads as the row's continuation. */
+.ft-detail-row > td { padding: 0; border-top: 0; }
+.fleet-sheet.fleet-sheet-inline { position: static; max-height: none; overflow: visible; border-top: 0; margin: var(--space-8) 0 var(--space-16); }
 .fleet-sheet h3, .fleet-sheet h4 { margin: 0 0 var(--space-8); font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-5); color: var(--ink); }
 
 /* ---- the unavailable state: a colophon, not an error — the dashed

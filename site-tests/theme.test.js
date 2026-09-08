@@ -13,7 +13,9 @@
 //   (a2) deposit .index literal re-pinned to the --ink token
 //   (b) head metas: theme-color == the --paper token value, color-scheme dark,
 //       light metas ABSENT (the FIX-9 #f6f4ec absence survives; the
-//       html-element inline color-scheme stays dark too)
+//       html-element inline color-scheme stays dark too). G1 2026-09-08 re-pin:
+//       the metas are runtime-synced by theme-toggle.js / the anti-FOUC script
+//       ('light dark' while following system) — the static bytes stay dark.
 //   (c) WCAG contrast >= 4.5:1 for exactly the six text pairs — same slots as
 //       every predecessor flip, recomputed against the doto table
 //   (d) retired-era + retained legacy values gone — GENERATED FROM THE LANDED
@@ -33,6 +35,16 @@
 //   (g) WS-DARK-DOTO structure-layer teeth: the halftone field, the amber
 //       hero rule, hard 2px band boundaries (hatches retired), the ledger-grid
 //       footer, the ONE CTA, mono metadata edges.
+//   (h) LIGHT THEME (G2 LIGHT-SURFACES, 2026-09-08) — additive slots, dark
+//       pins above untouched: (h1) the light token block and its system-follow
+//       twin carry byte-identical value lists (the MAINTENANCE duplicate);
+//       (h2) LIGHT CONTRAST TABLE — the same six text pairs as (c), recomputed
+//       against the light ladder resolved from the light block (NOT (c)'s
+//       first-match dark table); (h3) the header toggle button exists with its
+//       44px rule; (h4) the ws-theme-v1 persistence key stores 'light'|'dark'
+//       only; (h5) system-follow — the light ladder applies ONLY through the
+//       media-scoped html:not([data-theme]) block (an explicit data-theme=
+//       "dark" never matches a light rule; the attribute is absent by default).
 // If (d) fails the ban list is incomplete or a carrier was missed — fix the
 // CARRIER, never the assert; NEVER edit the geo-frozen lines to satisfy an assertion.
 
@@ -158,6 +170,15 @@ test('(b) theme-color equals --paper; color-scheme dark; light metas ABSENT', ()
   assert.ok(!html.includes('color-scheme: light'), 'light inline color-scheme absent from the html element (doto flip)');
   assert.ok(!html.includes('content="#E4DFD1"'), 'light-era theme-color meta absent (retained pin)');
   assert.ok(!html.includes('content="#f6f4ec"'), 'superseded cream meta absent (FIX-9 pin survives)');
+  // G1 THEME-FOUNDATION re-pin (2026-09-08): the metas are now RUNTIME-SYNCED —
+  // the toggle and system-follow write theme-color (the resolved --paper token)
+  // and color-scheme ('light'|'dark' pinned, 'light dark' while following the
+  // system) via js/theme-toggle.js; the head anti-FOUC script applies the stored
+  // theme before first paint. The STATIC bytes asserted above stay the dark
+  // default; the additions pin the dynamic mechanism without loosening anything.
+  assert.ok(html.includes('ws-theme-v1'), 'the persistence key ws-theme-v1 ships in the head anti-FOUC script (G1)');
+  assert.ok(html.includes("setAttribute('data-theme'"), 'the head script applies the stored theme via data-theme before first paint (G1)');
+  assert.ok(!/<html[^>]*data-theme=/.test(html), 'the html element ships with NO data-theme attribute (absent = system follow; dark default)');
 });
 
 test('(c) WCAG contrast >= 4.5:1 for exactly the six text pairs', () => {
@@ -354,4 +375,130 @@ test('(g) WS-DARK-DOTO structure layer: halftone field, amber rule, hard boundar
   assert.ok(/\.footer-fine \{[^}]*var\(--mono\)/.test(css), '.footer-fine rule contains var(--mono)');
   // (g) stale CTA comment gone from the hero
   assert.strictEqual(countOccurrences(html, 'no new classes/resources'), 0, "stale comment 'no new classes/resources' gone from index.html");
+});
+
+// ---------------- (h) LIGHT THEME — G2 LIGHT-SURFACES (2026-09-08) ----------------
+// Additive slots for the dual-mode system (docs/internal/THEME_DUAL_WAVE_2026-09-08.md
+// §2/§3 G2). DARK stays the ratified default: every (a)-(g) pin above keeps
+// resolving the dark table first and is untouched. These slots pin the LIGHT
+// half — the token block's internal consistency, its AA contrast table, the
+// toggle affordance, the storage contract and the system-follow scoping.
+
+// Resolve the CSS custom-property value list out of ONE declaration block
+// (found by its opening selector, block ends at the first '}') — returns
+// { name: value } for every --token line inside it.
+function blockTokens(cssText, selector) {
+  const at = cssText.indexOf(selector);
+  assert.ok(at !== -1, 'block selector resolvable: ' + selector);
+  const span = cssText.slice(at, cssText.indexOf('}', at));
+  const tokens = {};
+  const re = /(--[a-z0-9-]+)[ \t]*:[ \t]*(#[0-9a-fA-F]{6})/g;
+  let m;
+  while ((m = re.exec(span)) !== null) { tokens[m[1]] = m[2]; }
+  return tokens;
+}
+
+// The same WCAG 2.x helpers (c) uses — duplicated here on purpose so the light
+// table can resolve its palette from the LIGHT block instead of (c)'s
+// first-match (dark) resolution. Kept shape-identical to (c).
+function lightLuminance(hex) {
+  const chans = [0, 2, 4].map((i) => {
+    const v = parseInt(hex.slice(1 + i, 3 + i), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * chans[0] + 0.7152 * chans[1] + 0.0722 * chans[2];
+}
+function lightContrast(fg, bg) {
+  const l1 = lightLuminance(fg);
+  const l2 = lightLuminance(bg);
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+}
+
+const LIGHT_BLOCK_SELECTOR = 'html[data-theme="light"] {';
+const FOLLOW_BLOCK_SELECTOR = 'html:not([data-theme]) {';
+
+test('(h1) light token block == system-follow twin (the MAINTENANCE duplicate)', () => {
+  const explicit = blockTokens(css, LIGHT_BLOCK_SELECTOR);
+  const follow = blockTokens(css, FOLLOW_BLOCK_SELECTOR);
+  const names = Object.keys(explicit);
+  assert.ok(names.length >= 20, 'the light block re-values the full token ladder (got ' + names.length + ')');
+  assert.deepStrictEqual(Object.keys(follow).sort(), names.slice().sort(),
+    'the system-follow twin re-values exactly the same token set');
+  for (const name of names) {
+    assert.strictEqual(follow[name], explicit[name],
+      'token ' + name + ' is byte-identical across the two light blocks');
+  }
+  // the amber FILL role never re-values: #E8A33D in BOTH modes (locked §2)
+  assert.strictEqual(explicit['--accent'], undefined,
+    'the light block does NOT re-value --accent (the single amber stays the dark-table value)');
+});
+
+test('(h2) LIGHT CONTRAST TABLE — the six (c) text pairs clear 4.5:1 on the light ladder', () => {
+  const t = blockTokens(css, LIGHT_BLOCK_SELECTOR);
+  const pairs = [
+    ['ink/paper', t['--ink'], t['--paper']],
+    ['ink-soft/paper', t['--ink-soft'], t['--paper']],
+    ['accent-text/paper', t['--accent-text'], t['--paper']],
+    ['accent-ink/accent', t['--accent-ink'], '#E8A33D'], // the amber FILL is theme-constant
+    ['warn/paper-2', t['--warn'], t['--paper-2']],
+    ['ink/paper-2', t['--ink'], t['--paper-2']],
+  ];
+  assert.strictEqual(pairs.length, 6, 'exactly six asserted light text pairs (same slots as (c))');
+  for (const [label, fg, bg] of pairs) {
+    assert.ok(fg && bg, label + ': both hexes resolve from the light block');
+    const r = lightContrast(fg, bg);
+    assert.ok(r >= 4.5, label + ' light contrast ' + r.toFixed(2) + ' must be >= 4.5:1');
+  }
+  // the re-derived light text roles G1 authored: visited/hover/punch/footer band
+  // pairs all clear AA too (the extended ladder, machine-pinned here first time)
+  const extended = [
+    ['accent-visited/paper', t['--accent-visited'], t['--paper']],
+    ['footer-muted/footer-band', t['--footer-muted'], t['--ink-deep']],
+    ['footer-faint/footer-band', t['--footer-faint'], t['--ink-deep']],
+    ['footer-muted/paper', t['--footer-muted'], t['--paper']],
+  ];
+  for (const [label, fg, bg] of extended) {
+    const r = lightContrast(fg, bg);
+    assert.ok(r >= 4.5, label + ' light contrast ' + r.toFixed(2) + ' must be >= 4.5:1');
+  }
+});
+
+test('(h3) theme toggle button: header presence + the 44px rule', () => {
+  assert.ok(html.includes('<button id="theme-toggle" class="theme-toggle" type="button"'),
+    'the header ships the toggle button (id + class + type)');
+  assert.ok(html.includes('aria-label="switch theme"'), 'the toggle carries aria-label="switch theme"');
+  assert.ok(/id="theme-toggle"[^>]*aria-pressed=/.test(html), 'the toggle ships aria-pressed');
+  const at = css.indexOf('.theme-toggle {');
+  assert.ok(at !== -1, 'the .theme-toggle rule exists in style.css');
+  const span = css.slice(at, css.indexOf('}', at));
+  assert.ok(span.includes('min-height: 44px'), 'the toggle carries the 44px tap target');
+  assert.ok(span.includes('font-family: var(--mono)'), 'the toggle label rides the mono register');
+});
+
+test('(h4) ws-theme-v1 persistence key stores light|dark only', () => {
+  const jsPath = path.join(__dirname, '..', 'site', 'js', 'theme-toggle.js');
+  const js = fs.readFileSync(jsPath, 'utf8');
+  assert.ok(js.includes("'ws-theme-v1'"), 'theme-toggle.js stores under ws-theme-v1');
+  assert.ok(html.includes('ws-theme-v1'), 'the head anti-FOUC script reads ws-theme-v1 (G1 (b) companion)');
+  // the whitelist is the contract: any other stored value = follow the system
+  assert.ok(js.includes("t === 'light' || t === 'dark'"), "only 'light'|'dark' are honored (anything else = system follow)");
+  assert.ok(js.includes("localStorage.setItem(KEY, next)"), 'writes go through the same KEY constant');
+});
+
+test('(h5) system-follow: the light ladder applies ONLY when data-theme is ABSENT', () => {
+  // the media-scoped twin exists and is the ONLY no-attribute light path
+  assert.ok(/@media \(prefers-color-scheme: light\)[\s\S]*?html:not\(\[data-theme\]\) \{/.test(css),
+    'the light ladder ships inside @media (prefers-color-scheme: light) on html:not([data-theme])');
+  // an explicit dark attribute must never match a light rule: no RULE may open
+  // on a data-theme="dark" selector (the mechanism COMMENT mentions the
+  // attribute — line-anchored so prose mentions don't false-fail)
+  assert.ok(!/^html\[data-theme="dark"\][^{]*\{/m.test(css),
+    'no html[data-theme="dark"] RULE ships (explicit dark = the untouched defaults, by construction)');
+  // the page ships with the attribute ABSENT (dark default; (b) pins the same
+  // fact for the static bytes — this slot pins it as the SYSTEM-FOLLOW contract)
+  assert.ok(!/<html[^>]*data-theme=/.test(html), 'the html element ships with NO data-theme attribute (absent = follow)');
+  // the G2 light-surface overrides ride the same scoping: hero-field re-ink
+  assert.ok(/html\[data-theme="light"\] \.hero-field \{/.test(css), 'the hero-field light re-ink is scoped to explicit light');
+  assert.ok(/@media \(prefers-color-scheme: light\)[\s\S]*?html:not\(\[data-theme\]\) \.hero-field \{/.test(css),
+    'the hero-field re-ink has the system-follow twin');
 });
