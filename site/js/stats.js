@@ -49,7 +49,7 @@
   var WEI = 1000000000000000000n;
 
   // The honest waiting register (the brief's verbatim sentences).
-  var WAIT_SENT = 'waiting for first sweep — the roamer goes live at F-01';
+  var WAIT_SENT = 'waiting for the first sweep — this ledger lights up from the first burn';
   var WAIT_TIP = 'waiting for the first sweep — this figure reads Burned events from the roamer once it is live';
   var STRIP_NOTE = 'waiting for the first sweep — this strip updates from on-chain events';
   var ERROR_SENT = 'the burn read failed (RPC) — nothing is estimated here';

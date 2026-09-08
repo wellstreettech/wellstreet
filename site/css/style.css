@@ -1619,6 +1619,16 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .hero-meta { /* P-09 successor (WS-DARK-DOTO): the banner meta line — quiet ink-soft, narrowed measure */
   max-width: 46ch;
 }
+/* WS-MESSAGING-V3 (2026-09-08): THE PROTOCOL'S CUT: ZERO — the fee-lane truth in
+   the banner. Amber-as-TEXT only (the one filled amber stays the CTA), token
+   roles so both themes inherit correct contrast. */
+.hero-cut {
+  margin: var(--space-12) 0 var(--space-8);
+  font-family: var(--mono); font-size: var(--step-2);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.hero-cut-zero { color: var(--accent-text); font-size: var(--step-4); letter-spacing: 0; }
 #doc-pane h2:first-child, #doc-pane h3:first-child { margin-top: 0; } /* P-08 guard: no new gap under the title border when the renderer's first output is a heading; deep-link scroll-margin behavior unchanged */
 /* ---------- end WS3-TYPOGRAPHY EOF block ---------- */
 
