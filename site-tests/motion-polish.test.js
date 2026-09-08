@@ -19,6 +19,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const path = require('node:path');
+const fs = require('node:fs');
 
 const JS_DIR = path.join(__dirname, '..', 'site', 'js');
 // browser <script> order — main.js last, so init() runs against the full WS namespace
@@ -157,4 +158,134 @@ test('entrance: skipped entirely under prefers-reduced-motion (JS side of the do
   // RETIRED 2026-09-07 (WS5-SKELETON): no JS arming remains to gate — the
   // reduced-motion pairing for the surviving surfaces is CSS-carried (the
   // global + scoped reduce guards, pinned in agent-first.test.js (b5)/(m1)).
+});
+
+// ---------------- BTN-MOTION riders (2026-09-08, docs/internal/BTN_MOTION_2026-09-08.md) ----------------
+// CSS-register pins for the button shadow + fluid-motion amendment (user-authorized
+// identity revision: the flat register is re-scoped to BUTTONS ONLY — theme.test.js
+// (a-btn) owns the token decision record; these riders pin the MOTION contract):
+//   - every in-scope button tweens transform (compositor-only) on the existing
+//     --motion family and NEVER tweens its shadow (box-shadow swaps are instant
+//     paint — one shared token pair, no blur tween);
+//   - outline surfaces lift hover-only (translateY(-1px) + --shadow-btn-hover) and
+//     stay flat at rest; filled primaries alone rest on --shadow-btn;
+//   - every press settles under the finger: translateY(0) scale(0.985);
+//   - every new transform pairs to none under prefers-reduced-motion (the EOF
+//     button-register gate; selectors byte-identical to the rules they pair).
+const btnCss = fs.readFileSync(path.join(__dirname, '..', 'site', 'css', 'style.css'), 'utf8');
+
+function ruleSpanFor(cssText, head) {
+  const at = cssText.indexOf(head);
+  assert.ok(at !== -1, 'rule head resolvable: ' + head);
+  return cssText.slice(at, cssText.indexOf('}', at));
+}
+
+const BTN_OUTLINE_BASES = ['button.btn {', '.fleet-filter {', '.ft-copy, .ft-details {', '.st-toggle-btn {', '.theme-toggle {', '.mwg-link, .mwg-copy {'];
+const BTN_PRIMARY_BASES = ['button.btn-primary {', '.cta-solid {', '.site-nav a.nav-cta {'];
+const BTN_HOVER_HEADS = [
+  'button.btn:hover:not(:disabled)',
+  'button.btn-primary:hover:not(:disabled)',
+  '.cta-solid:hover:not(:disabled)',
+  '.site-nav a.nav-cta:hover:not(:disabled)',
+  '.fleet-filter:hover:not(:disabled)',
+  '.ft-copy:hover:not(:disabled), .ft-details:hover:not(:disabled)',
+  '.st-toggle-btn:hover:not(:disabled)',
+  '.theme-toggle:hover:not(:disabled)',
+  '.mwg-link:hover:not(:disabled), .mwg-copy:hover:not(:disabled)',
+];
+const BTN_ACTIVE_HEADS = [
+  'button.btn:active:not(:disabled)',
+  '.cta-solid:active:not(:disabled)',
+  '.site-nav a.nav-cta:active:not(:disabled)',
+  '.fleet-filter:active:not(:disabled)',
+  '.ft-copy:active:not(:disabled), .ft-details:active:not(:disabled)',
+  '.st-toggle-btn:active:not(:disabled)',
+  '.theme-toggle:active:not(:disabled)',
+  '.mwg-link:active:not(:disabled), .mwg-copy:active:not(:disabled)',
+];
+const BTN_EOF_GATE_SELECTORS = [
+  'button.btn:hover:not(:disabled)', 'button.btn:active:not(:disabled)',
+  'button.btn-primary:hover:not(:disabled)', 'button.btn-primary:active:not(:disabled)',
+  '.cta-solid:hover:not(:disabled)', '.cta-solid:active:not(:disabled)',
+  '.site-nav a.nav-cta:hover:not(:disabled)', '.site-nav a.nav-cta:active:not(:disabled)',
+  '.fleet-filter:hover:not(:disabled)', '.fleet-filter:active:not(:disabled)',
+  '.ft-copy:hover:not(:disabled)', '.ft-copy:active:not(:disabled)',
+  '.ft-details:hover:not(:disabled)', '.ft-details:active:not(:disabled)',
+  '.st-toggle-btn:hover:not(:disabled)', '.st-toggle-btn:active:not(:disabled)',
+  '.theme-toggle:hover:not(:disabled)', '.theme-toggle:active:not(:disabled)',
+  '.mwg-link:hover:not(:disabled)', '.mwg-link:active:not(:disabled)',
+  '.mwg-copy:hover:not(:disabled)', '.mwg-copy:active:not(:disabled)',
+];
+
+test('btn-motion register: hover-only lift + shadow swap on every surface, resting shadow on the filled primaries alone, transform-only tweens', () => {
+  // hover: every in-scope surface lifts 1px and swaps to the hover shadow token
+  for (const head of BTN_HOVER_HEADS) {
+    const span = ruleSpanFor(btnCss, head);
+    assert.ok(span.includes('transform: translateY(-1px)'), head + ' lifts -1px on hover');
+    assert.ok(span.includes('box-shadow: var(--shadow-btn-hover)'), head + ' swaps to --shadow-btn-hover on hover');
+  }
+  // press: every in-scope surface settles under the finger (0.985) and keeps the hover shadow
+  for (const head of BTN_ACTIVE_HEADS) {
+    const span = ruleSpanFor(btnCss, head);
+    assert.ok(span.includes('transform: translateY(0) scale(0.985)'), head + ' presses at translateY(0) scale(0.985)');
+    assert.ok(span.includes('box-shadow: var(--shadow-btn-hover)'), head + ' keeps the hover shadow while pressed');
+  }
+  // resting shadow: FILLED primaries only — the outline surfaces stay flat at rest
+  for (const base of BTN_PRIMARY_BASES) {
+    const span = ruleSpanFor(btnCss, base);
+    assert.ok(span.includes('box-shadow: var(--shadow-btn);'), base + ' (filled primary) rests on --shadow-btn');
+  }
+  for (const base of BTN_OUTLINE_BASES) {
+    const span = ruleSpanFor(btnCss, base);
+    assert.ok(!span.includes('box-shadow'), base + ' (outline) carries NO resting shadow (lift without resting weight)');
+  }
+  // tween discipline: every base that DECLARES a transition carries the transform
+  // component and NEVER tweens the shadow (box-shadow changes are instant paint).
+  // button.btn-primary declares none BY DESIGN — the companion override rides
+  // button.btn's extended list, so assert that inheritance explicitly.
+  for (const base of BTN_OUTLINE_BASES.concat(BTN_PRIMARY_BASES)) {
+    const span = ruleSpanFor(btnCss, base);
+    const t = span.match(/transition:([^;]*);/);
+    if (base === 'button.btn-primary {') {
+      assert.strictEqual(t, null, 'button.btn-primary stays a companion override (rides button.btn\'s transition list)');
+      continue;
+    }
+    assert.ok(t, base + ' carries a transition declaration');
+    assert.ok(t[1].includes('transform'), base + ' transition list includes the transform component');
+    assert.ok(!t[1].includes('box-shadow'), base + ' never tweens box-shadow (no blur tween — instant token swap)');
+  }
+});
+
+test('btn-motion pairing: every new hover/press transform pairs to none under prefers-reduced-motion; reduce blocks carry no transform literals', () => {
+  // the global page guard is intact (it kills every tween on the page)
+  assert.ok(btnCss.includes('animation: none !important') && btnCss.includes('transition: none !important'),
+    'the global prefers-reduced-motion page guard (animation/transition none) is intact');
+  // collect EVERY reduce gate (balanced-brace spans) — none may carry a transform
+  // literal, an individual-property literal, or a shadow declaration: reduced
+  // motion means the transforms themselves are nullified, not merely untweened
+  const gates = [];
+  let gi = -1;
+  while ((gi = btnCss.indexOf('@media (prefers-reduced-motion: reduce)', gi + 1)) !== -1) { gates.push(gi); }
+  assert.ok(gates.length >= 6, 'the reduce belt is intact (>= 6 gates incl. the EOF button-register gate, got ' + gates.length + ')');
+  for (const g of gates) {
+    const open = btnCss.indexOf('{', g);
+    let depth = 0, end = btnCss.length;
+    for (let i = open; i < btnCss.length; i++) {
+      if (btnCss[i] === '{') { depth++; }
+      else if (btnCss[i] === '}') { depth--; if (depth === 0) { end = i + 1; break; } }
+    }
+    const blk = btnCss.slice(g, end);
+    assert.ok(!blk.includes('translateY(') && !blk.includes('scale(') && !blk.includes('box-shadow'),
+      'reduce gate at offset ' + g + ' stays free of transform/shadow literals');
+  }
+  // the EOF button-register gate pairs EVERY in-surface hover/active rule with
+  // transform: none — selectors byte-identical to the rules they pair, so the
+  // equal-specificity later-source restatement wins the cascade
+  const btnGateStart = btnCss.indexOf('BTN-MOTION (2026-09-08) — scoped reduced-motion pairing');
+  assert.ok(btnGateStart !== -1, 'the EOF button-register gate comment is present');
+  const btnGate = btnCss.slice(btnGateStart, btnCss.indexOf('\n}', btnGateStart));
+  for (const sel of BTN_EOF_GATE_SELECTORS) {
+    assert.ok(btnGate.includes(sel), 'the EOF gate pairs: ' + sel);
+  }
+  assert.ok(btnGate.includes('transform: none;'), 'the EOF gate nullifies the transforms (transform: none)');
 });

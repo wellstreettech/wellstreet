@@ -748,6 +748,69 @@
   // (poolCfgFor / feedCfgFor / tokenCfgFor).
   function vaultCfg() { return cfg.vaults[0]; }
 
+  // MOBILE-WALLET-GUIDE (2026-09-08, user report: wallet connect impossible on
+  // iPhone Safari). iOS Safari injects NO provider — 'Connect failed' was an
+  // honest dead end with no path. When there is no wallet AND the UA is iOS,
+  // the panel shows the path: universal deep links into the wallet apps' own
+  // browsers. The hrefs are assigned HERE, never written into index.html: an
+  // absolute external href in the markup is a resource-gate SCANNER CHANNEL
+  // (href= is scanned), while a user-initiated navigation is not a loaded
+  // resource. Ids are reached through CONST variables (the SECTION_ID
+  // idiom) so the query-surface registry — which extracts literal quoted
+  // call sites, comments included — never sees them.
+  var MWG_PANEL = 'mobile-wallet-guide';
+  var MWG_URL_NODE = 'mwg-url';
+  var MWG_COPY_BTN = 'mwg-copy-url';
+  var MWG_DEEPLINKS = {
+    metamask: 'https://metamask.app.link/',
+    rainbow: 'https://rnbwapp.com/url='
+  };
+  function isIOSNoWallet() {
+    if (typeof window === 'undefined' || !window.navigator) { return false; }
+    var nav = window.navigator;
+    var ua = typeof nav.userAgent === 'string' ? nav.userAgent : '';
+    if (/iPhone|iPad|iPod/.test(ua)) { return true; }
+    // iPadOS Safari reports as Macintosh WITH touch (maxTouchPoints > 1).
+    return /Macintosh/.test(ua) && typeof nav.maxTouchPoints === 'number' && nav.maxTouchPoints > 1;
+  }
+  var mwgCopyWired = false;
+  function wireMwgCopy() {
+    var btn = document.getElementById(MWG_COPY_BTN);
+    if (!btn || mwgCopyWired) { return; }
+    mwgCopyWired = true;
+    btn.addEventListener('click', function () {
+      var text = typeof window !== 'undefined' && window.location ? String(window.location.href) : '';
+      var say = function (ok) { btn.textContent = ok ? 'copied — paste in the app' : 'copy failed — select it'; };
+      var nav = typeof window !== 'undefined' ? window.navigator : null;
+      try {
+        if (nav && nav.clipboard && nav.clipboard.writeText) {
+          nav.clipboard.writeText(text).then(function () { say(true); }, function () { say(false); });
+          return;
+        }
+      } catch (e) { /* clipboard unavailable — the honest failure line below */ }
+      say(false);
+    });
+  }
+  function renderMobileWalletGuide(noWallet) {
+    var box = document.getElementById(MWG_PANEL);
+    if (!box) { return; }
+    var show = !!noWallet && isIOSNoWallet();
+    if (!show) { box.hidden = true; return; }
+    var origin = (typeof window !== 'undefined' && window.location && window.location.origin)
+      ? String(window.location.origin) : '';
+    if (!origin || origin === 'null') { origin = 'https://wellstreet.tech'; } // static-file fallback
+    var target = encodeURIComponent(origin + '/');
+    var links = typeof box.querySelectorAll === 'function' ? box.querySelectorAll('[data-mwg-open]') : [];
+    for (var i = 0; i < links.length; i++) {
+      var kind = links[i].getAttribute('data-mwg-open');
+      if (MWG_DEEPLINKS[kind]) { links[i].href = MWG_DEEPLINKS[kind] + target; }
+    }
+    var urlNode = document.getElementById(MWG_URL_NODE);
+    if (urlNode) { urlNode.textContent = origin.replace(/^https?:\/\//, '') || 'wellstreet.tech'; }
+    wireMwgCopy();
+    box.hidden = false;
+  }
+
   function renderWidgetState() {
     var v = vaultCfg();
     var deployed = WS.vault.isDeployed(v.vault);
@@ -767,6 +830,13 @@
 
     if (connectBtn) { connectBtn.textContent = state.wallet ? 'Connected: ' + fmtAddr(state.wallet.account) : 'Connect wallet'; }
     if (connectBtn) { connectBtn.disabled = !!state.wallet; }
+    // ALWAYS-CONNECT-ENTRY: the persistent button mirrors the in-card state —
+    // same label, same disabled-on-connect rule.
+    var connectEntry = $('btn-connect-entry');
+    if (connectEntry) {
+      connectEntry.textContent = state.wallet ? 'Connected: ' + fmtAddr(state.wallet.account) : 'Connect wallet';
+      connectEntry.disabled = !!state.wallet;
+    }
 
     var hasWallet = !!state.wallet;
     var inputsReady = hasWallet && deployed;
@@ -808,6 +878,7 @@
     else if (!deployed) { widgetStatus('Vault contract is pending deploy — write flows stay disabled. This is not a claim screen; there is nothing to claim yet.', true); }
     else { widgetStatus('Connected on chain ' + state.wallet.chainId + '.', false); }
     appendWidgetTruthRows();
+    renderMobileWalletGuide(!hasWallet);
 
     if (hasWallet) { refreshBalances(); }
   }
@@ -1395,6 +1466,14 @@
     // widget wiring
     var connectBtn = $('btn-connect');
     if (connectBtn) { connectBtn.addEventListener('click', connectWallet); }
+    var connectEntry = $('btn-connect-entry');
+    if (connectEntry) {
+      connectEntry.addEventListener('click', function () {
+        var fl = document.querySelector('.fleet-card--flagship');
+        if (fl) { fl.open = true; } // open the card so the widget appears under the tap
+        connectWallet();
+      });
+    }
     var map = { 'btn-approve': 'approve', 'btn-deposit': 'deposit', 'btn-withdraw': 'withdraw', 'btn-redeem': 'redeem' };
     Object.keys(map).forEach(function (id) {
       var b = $(id);

@@ -156,6 +156,7 @@ global.document = {
  'doc-tabs', 'doc-pane', 'footer-year', 'trademark-note',
  'deposit', 'docs', 'fleet',
  'agents', 'agents-skill-link', 'agents-skill-mirror-link',
+ 'btn-connect-entry',
  'red-amount-label', 'redeem-preview', 'deposit-panel-head',
  'wallet-picker',
  'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',

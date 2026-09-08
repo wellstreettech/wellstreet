@@ -82,8 +82,10 @@
    re-derive for that band and stay >= 4.5:1 on --paper (the .lc-label strip).
    --accent stays the single amber #E8A33D in BOTH modes (fill role);
    --accent-ink and --accent-text are the re-derived light-side text roles.
-   Shadow tokens stay none (inherited): the identity is hard borders in either
-   mode. MAINTENANCE: the two token lists below are a DELIBERATE duplicate
+   Shadow tokens stay none (inherited) for cards and surfaces — the identity is
+   hard borders in either mode; --shadow-btn/-hover re-ink for BUTTONS only
+   (BTN-MOTION 2026-09-08, the one sanctioned shadow amendment).
+   MAINTENANCE: the two token lists below are a DELIBERATE duplicate
    (plain CSS has no mixins) — keep the value lines byte-identical. */
 html[data-theme="light"] {
   --paper: #F2EFE6;        /* warm paper substrate — the light identity's base */
@@ -106,6 +108,12 @@ html[data-theme="light"] {
   --warn: #9C3222;         /* honest deep red on light — 5.5:1 on --paper-2 */
   --footer-muted: #544D3C; /* muted on the light footer band — 5.5:1 there, 7.3:1 on --paper */
   --footer-faint: #5F5741; /* faint fine print on the footer band — 4.7:1 */
+  /* BTN-MOTION (2026-09-08): the button shadows re-ink for light — the warm-ink
+     rgba (the --ink family, rgb 38 35 28) at LOWER alpha than dark, because
+     paper shadows are subtle. Kept in BOTH light blocks per the MAINTENANCE
+     duplicate rule above. */
+  --shadow-btn: 0 1px 2px rgba(38, 35, 28, 0.14);
+  --shadow-btn-hover: 0 3px 8px rgba(38, 35, 28, 0.16);
 }
 @media (prefers-color-scheme: light) {
   /* system-follow half: identical tokens for the NO-attribute state only —
@@ -131,6 +139,12 @@ html[data-theme="light"] {
     --warn: #9C3222;
     --footer-muted: #544D3C;
     --footer-faint: #5F5741;
+    /* BTN-MOTION (2026-09-08): the button shadows re-ink for light — the warm-ink
+       rgba (the --ink family, rgb 38 35 28) at LOWER alpha than dark, because
+       paper shadows are subtle. Kept in BOTH light blocks per the MAINTENANCE
+       duplicate rule above. */
+    --shadow-btn: 0 1px 2px rgba(38, 35, 28, 0.14);
+    --shadow-btn-hover: 0 3px 8px rgba(38, 35, 28, 0.16);
   }
 }
 
@@ -272,10 +286,11 @@ pre code { background: none; border: none; padding: var(--space-0); }
   padding: var(--space-6) var(--space-16);
   font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); /* P-07: the CTA steps up one role; P-10: --track-chrome */
   line-height: 1; display: inline-flex; align-items: center; text-decoration: none;
+  box-shadow: var(--shadow-btn); /* BTN-MOTION (2026-09-08): the filled header primary rests on the button shadow */
   transition: background-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
 }
-.site-nav a.nav-cta:hover { background: var(--accent-hover); } /* WS3-HEADER P3 (2026-09-06): the shipped btn-primary:hover vocabulary */
-.site-nav a.nav-cta:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
+.site-nav a.nav-cta:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* WS3-HEADER P3 (2026-09-06): the shipped btn-primary:hover vocabulary; BTN-MOTION (2026-09-08): + the 1px lift and the hover shadow swap */
+.site-nav a.nav-cta:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: background-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08): the dip retires — the press settles under the finger at 0.985 */
 .site-nav a.active { border-bottom-color: var(--accent-punch); } /* WS3-HEADER P7 (2026-09-06): orientation green — accent marks where you are (11.05:1 on carbon, passes 1.4.11); hover ink-soft and active punch now differ in kind, not degree */
 
 /* ---------- theme toggle (G1 THEME-FOUNDATION, 2026-09-08) ---------- */
@@ -300,9 +315,10 @@ pre code { background: none; border: none; padding: var(--space-0); }
   min-height: 44px;
   padding: var(--space-4) var(--space-12);
   cursor: pointer;
-  transition: color var(--motion), background-color var(--motion), border-color var(--motion);
+  transition: color var(--motion), background-color var(--motion), border-color var(--motion), transform var(--motion);
 }
-.theme-toggle:hover { border-color: var(--ink-soft); }
+.theme-toggle:hover:not(:disabled) { border-color: var(--ink-soft); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* BTN-MOTION (2026-09-08): the outline toggle lifts hover-only — no resting shadow, flat register intact at rest */
+.theme-toggle:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: color var(--t-fast) var(--ease-enter), background-color var(--t-fast) var(--ease-enter), border-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08): the press settles under the finger */
 
 /* ---------- jurisdiction banner ---------- */
 .jurisdiction-banner {
@@ -528,11 +544,11 @@ button.btn {
   border-radius: var(--radius); /* R3 IMP-7: the action class unifies on the pill — same geometry as the nav CTA 40px away */
   min-height: 44px; /* money-path mobile ergonomics — ens.domains action targets measure 52px @400 / 72px @1280; 44 = platform floor; NOT an a11y-compliance claim */
 }
-button.btn:hover:not(:disabled) { background: var(--paper-2); }
+button.btn:hover:not(:disabled) { background: var(--paper-2); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* BTN-MOTION (2026-09-08): the outline surface lifts hover-only — shadow on hover/press, never at rest */
 button.btn:disabled { opacity: 1; background: var(--paper-2); color: var(--ink-soft); border-color: var(--line); cursor: not-allowed; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #5): the parked register mirrors .field input:disabled — no washed-green ghost; accent scarcity restored (pre-connect the only green is CONNECT, post-connect DEPOSIT). The btn-primary companion rule lives in the WS3-MONEY EOF block. */
-button.btn:active:not(:disabled) { transform: translateY(1px); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
-button.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--ink); }
-button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+button.btn:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08): the dip retires — the press settles under the finger at 0.985 */
+button.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--ink); box-shadow: var(--shadow-btn); } /* BTN-MOTION (2026-09-08): the filled primary rests on the button shadow (the one resting-weight register) */
+button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* BTN-MOTION (2026-09-08): + the 1px lift and the hover shadow swap */
 /* hero CTA (WS-DARK-DOTO): ONE anchor, the amber fill — the page's single
    primary. Geometry mirrors button.btn above (mono, uppercase, 2px border,
    44px min-height). This is an <a>, so the class explicitly overrides the
@@ -549,11 +565,12 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   padding: var(--space-10) var(--space-16); border: 2px solid var(--accent); background: var(--accent); color: var(--accent-ink);
   text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; border-radius: 0; cursor: pointer; /* WS-DARK-DOTO: the primary CTA joins the hard-border data register (no pill) */
+  box-shadow: var(--shadow-btn); /* BTN-MOTION (2026-09-08): the one solid CTA rests on the button shadow */
   transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
 }
 .cta-solid:visited { color: var(--accent-ink); text-decoration: none; }
-.cta-solid:hover { background: var(--accent-hover); color: var(--accent-ink); }
-.cta-solid:active:not(:disabled) { transform: scale(0.985); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); }
+.cta-solid:hover:not(:disabled) { background: var(--accent-hover); color: var(--accent-ink); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* BTN-MOTION (2026-09-08): + the 1px lift and the hover shadow swap */
+.cta-solid:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: background-color var(--t-fast) var(--ease-enter), color var(--t-fast) var(--ease-enter), outline-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08): the press settles under the finger */
 #widget-status { margin-top: var(--space-16); padding: var(--space-10) var(--space-12); border: 2px solid var(--line); background: var(--paper-2); font-size: var(--step-2); min-height: 40px; word-break: normal; overflow-wrap: anywhere; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #11 bug fix): break-all wrapped every status sentence mid-word; overflow-wrap:anywhere still breaks the long hashes/explorer URLs but only when a token cannot otherwise fit. */
 #wallet-balances { margin-top: var(--space-10); font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
 #acquire-note { margin: var(--space-14) 0 0 0; font-size: var(--step-2); color: var(--ink-soft); }
@@ -564,6 +581,28 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 #wallet-picker[hidden] { display: none; }
 #wallet-picker .picker-label { font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); color: var(--ink-soft); } /* P-10: a 0.06em site the mapper census omitted — re-pointed at the identical computed value (zero rendered change) to complete the cluster collapse */
 .noscript-note { padding-top: var(--space-16); padding-bottom: var(--space-16); font-size: var(--step-3); color: var(--ink-soft); border-bottom: 2px solid var(--line); }
+
+/* ---------- mobile wallet guide (MOBILE-WALLET-GUIDE, 2026-09-08) ----------
+   The iOS-Safari fallback card's interactive surfaces. The guide shipped them
+   unstyled (raw link/button registers); BTN-MOTION (2026-09-08) brings them
+   into the outline-button register so the motion system has a surface to read
+   on — the .fleet-filter chip anatomy (mono, hairline edge, raised paper,
+   square data radius, 44px zone) + the shared button motion pair: hover-only
+   shadow + lift, press at 0.985, never tweened shadow. */
+.mwg-link, .mwg-copy {
+  appearance: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; min-width: 44px;
+  padding: var(--space-8) var(--space-12);
+  background: var(--paper-raised); color: var(--accent-text);
+  border: 1px solid var(--line); border-radius: var(--r-0, 0);
+  font-family: var(--mono); font-size: var(--step-2);
+  text-decoration: none; cursor: pointer;
+  transition: color var(--motion), border-color var(--motion), transform var(--motion);
+}
+.mwg-link { margin: var(--space-2) var(--space-8) var(--space-2) 0; } /* chip-run spacing — the two inline app links need a gap */
+.mwg-link:hover:not(:disabled), .mwg-copy:hover:not(:disabled) { border-color: var(--accent-text); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* BTN-MOTION (2026-09-08): the .ft-copy hover vocabulary + lift + hover shadow */
+.mwg-link:active:not(:disabled), .mwg-copy:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: color var(--t-fast) var(--ease-enter), border-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08) */
 
 /* ---------- docs ---------- */
 .doc-tabs { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 2px solid var(--line); }
@@ -825,6 +864,17 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   --radius-soft: 12px;
   --shadow-soft: none;       /* WS-DARK-DOTO: flat — depth is the 2px border, never a shadow */
   --shadow-soft-hover: none; /* ditto — the hover registers on border/background only */
+  /* BTN-MOTION (2026-09-08, docs/internal/BTN_MOTION_2026-09-08.md): the flat
+     register above is amended for BUTTONS ONLY — the two 'none' pins are NOT
+     loosened (no card, section or text surface ever gains a shadow).
+     --shadow-btn rests under the FILLED primaries only (btn-primary, cta-solid,
+     nav-cta); --shadow-btn-hover is the hover/press swap on every in-scope
+     button. The rgba derives the deep substrate step (the --ink-deep family,
+     rgb 5 8 10) — never a black literal, never a gradient. The light ladder
+     re-inks both tokens in the warm-ink rgba at lower alpha (the light token
+     blocks). Swaps are never tweened: no transition list carries box-shadow. */
+  --shadow-btn: 0 1px 2px rgba(5, 8, 10, 0.4);
+  --shadow-btn-hover: 0 3px 8px rgba(5, 8, 10, 0.45);
   --ink-deep: #05080A; /* WS-DARK-DOTO: footer band surface, re-stepped onto the doto ladder */
 }
 
@@ -1769,7 +1819,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 #mint-backed.coverage-live, #inv-stat.coverage-live { font-weight: 700; color: var(--accent-text); font-size: var(--step-4); } /* #2: only a verified decode carries the class (writeAll live flag) — pending/unavailable states stay neutral */
 #wallet-balances:not(:empty) { border: 2px solid var(--line); background: var(--paper-raised); } /* #3: the data-element border on the holder's own money box; :not(:empty) keeps the pre-connect page free of an empty bordered panel (deviation from the mapper's unconditional rule — disclosed in the worker report) */
 #redeem-preview { font-size: var(--step-3); color: var(--ink); font-variant-numeric: tabular-nums; border-top: 1px dotted var(--line-dotted); padding-top: var(--space-10); margin-top: var(--space-12); } /* #6: the chain-priced preview promoted to a number line via the .card-row dotted-separator vocabulary; text untouched (the anti-promise wording is load-bearing) */
-button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft); border-color: var(--line); } /* #5: explicit parked-register companion (button.btn:disabled already out-ranks btn-primary on specificity) */
+button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft); border-color: var(--line); box-shadow: none; } /* #5: explicit parked-register companion (button.btn:disabled already out-ranks btn-primary on specificity); BTN-MOTION (2026-09-08): the parked register stays inert — the resting shadow never paints on :disabled */
 .inv-disclosure code { background: transparent; color: var(--paper); border-color: var(--paper); } /* #9: the mono code inside the ink callout stays legible */
 /* ---------- end WS3-MONEY EOF block ---------- */
 /* ---------- WS3-ART (2026-09-06) — RETIRED (WS-DARK-DOTO 2026-09-07) ----------
@@ -2072,9 +2122,10 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   font-family: var(--mono); font-size: var(--step-2);
   letter-spacing: var(--track-label); text-transform: lowercase;
   cursor: pointer;
-  transition: color var(--motion), border-color var(--motion);
+  transition: color var(--motion), border-color var(--motion), transform var(--motion); /* BTN-MOTION (2026-09-08): + the transform component (compositor-only) */
 }
-.fleet-filter:hover { color: var(--ink); border-color: var(--ink-soft); }
+.fleet-filter:hover:not(:disabled) { color: var(--ink); border-color: var(--ink-soft); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* BTN-MOTION (2026-09-08): the chip lifts hover-only — outline-flat at rest */
+.fleet-filter:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: color var(--t-fast) var(--ease-enter), border-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08): the press settles under the finger */
 .fleet-filter.is-active { color: var(--accent-text); border-color: var(--accent-text); font-weight: 700; }
 .fleet-filter-count { color: var(--ink-soft); margin-left: var(--space-4); } /* G4 #4 (2026-09-08): the chip census, filled by the renderer from WS.fleet.summary() — fail-closed (no summary, no count); stays muted even on the active chip: the amber is the selection, the count is data */
 
@@ -2106,9 +2157,10 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   border: 1px solid var(--line); border-radius: var(--r-0, 0);
   font-family: var(--mono); font-size: var(--step-2);
   cursor: pointer; white-space: nowrap;
-  transition: color var(--motion), border-color var(--motion);
+  transition: color var(--motion), border-color var(--motion), transform var(--motion); /* BTN-MOTION (2026-09-08): + the transform component (compositor-only) */
 }
-.ft-copy:hover, .ft-details:hover { border-color: var(--accent-text); }
+.ft-copy:hover:not(:disabled), .ft-details:hover:not(:disabled) { border-color: var(--accent-text); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* BTN-MOTION (2026-09-08): the action chip lifts hover-only — outline-flat at rest */
+.ft-copy:active:not(:disabled), .ft-details:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: color var(--t-fast) var(--ease-enter), border-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08): the press settles under the finger */
 
 /* ---- the terminal table (R1). Mobile-first: hidden ≤640, table ≥641.
    Row pitch ≈40px via cell height; separators are 1px hairlines (--line),
@@ -2275,9 +2327,10 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   font-family: var(--mono); font-size: var(--step-2);
   letter-spacing: var(--track-label); text-transform: lowercase;
   cursor: pointer;
-  transition: color var(--motion), border-color var(--motion);
+  transition: color var(--motion), border-color var(--motion), transform var(--motion); /* BTN-MOTION (2026-09-08): + the transform component (compositor-only) */
 }
-.st-toggle-btn:hover { color: var(--ink); border-color: var(--ink-soft); }
+.st-toggle-btn:hover:not(:disabled) { color: var(--ink); border-color: var(--ink-soft); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* BTN-MOTION (2026-09-08): the window chip lifts hover-only — outline-flat at rest */
+.st-toggle-btn:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: color var(--t-fast) var(--ease-enter), border-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08): the press settles under the finger */
 .st-toggle-btn.is-active { color: var(--accent-text); border-color: var(--accent-text); font-weight: 700; }
 
 /* ---- the flat bento card grid (the R3 4-col exemplar at our scale:
@@ -2345,4 +2398,31 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   .st-grid, .st-books { grid-template-columns: minmax(0, 1fr); }
   .st-card, .st-book { padding: var(--space-14); }
   .lc-strip { gap: var(--space-6) var(--space-10); padding: var(--space-10); }
+}
+
+/* ============================================================
+   BTN-MOTION (2026-09-08) — scoped reduced-motion pairing for the
+   button register (docs/internal/BTN_MOTION_2026-09-08.md). The global
+   page guard (animation/transition none) kills the tween; this
+   re-nullifies the press/lift transforms themselves — EVERY new
+   hover/press transform pairs to none. Placed at EOF, AFTER the
+   chip/toggle sections it pairs (equal specificity, later source
+   wins the cascade). The shadow swaps stay: they are instant paint,
+   not motion. Selectors are byte-identical to the base hover/active
+   rules they pair.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  button.btn:hover:not(:disabled), button.btn:active:not(:disabled),
+  button.btn-primary:hover:not(:disabled), button.btn-primary:active:not(:disabled),
+  .cta-solid:hover:not(:disabled), .cta-solid:active:not(:disabled),
+  .site-nav a.nav-cta:hover:not(:disabled), .site-nav a.nav-cta:active:not(:disabled),
+  .fleet-filter:hover:not(:disabled), .fleet-filter:active:not(:disabled),
+  .ft-copy:hover:not(:disabled), .ft-copy:active:not(:disabled),
+  .ft-details:hover:not(:disabled), .ft-details:active:not(:disabled),
+  .st-toggle-btn:hover:not(:disabled), .st-toggle-btn:active:not(:disabled),
+  .theme-toggle:hover:not(:disabled), .theme-toggle:active:not(:disabled),
+  .mwg-link:hover:not(:disabled), .mwg-link:active:not(:disabled),
+  .mwg-copy:hover:not(:disabled), .mwg-copy:active:not(:disabled) {
+    transform: none;
+  }
 }

@@ -209,9 +209,12 @@ test('(d) the one CTA: solid->#fleet, amber fill, per-class :hover rule', () => 
   // (the deposit section survives INSIDE the flagship fleet card's detail)
   assert.ok(html.indexOf('<section class="block" id="deposit">') !== -1, '#deposit section present');
   // the hover is PER-CLASS on purpose (never a shared comma-joined hover rule):
-  // the fill shifts one amber step brighter.
-  assert.ok(css.indexOf('.cta-solid:hover { background: var(--accent-hover); color: var(--accent-ink); }') !== -1,
-    'cta-solid has its own :hover rule (amber fill shift)');
+  // the fill shifts one amber step brighter. RE-PINNED 2026-09-08 (BTN-MOTION,
+  // docs/internal/BTN_MOTION_2026-09-08.md): the per-class rule gains the 1px
+  // lift + the hover shadow swap + the :not(:disabled) guard — the fill-shift
+  // contract itself is unchanged.
+  assert.ok(css.indexOf('.cta-solid:hover:not(:disabled) { background: var(--accent-hover); color: var(--accent-ink); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); }') !== -1,
+    'cta-solid has its own :hover rule (amber fill shift + the BTN-MOTION lift/shadow)');
   // the CTA keeps its transition so the hover state animates at all
   assert.ok(/\.cta-solid \{[^}]*transition:/.test(css), 'cta-solid carries its transition');
   // <=640px: the CTA stacks full-width inside the mobile media block
@@ -395,19 +398,25 @@ test('(f3) aria-live: the relocated coverage cell announces its changes; live re
 // site-tests/motion-polish.test.js. Map authority:
 // docs/inventory/UI_IMPROVE_MOTION_2026-09-04.md proposals 1, 2 and 4 (+ the
 // ledger-invisibility prerequisite fix) at the 2026-09-05 dispatch anchors.
-test('(m1) WS-MOTION-POLISH: :active press grammar + stamp stagger (doto re-pin)', () => {
+test('(m1) WS-MOTION-POLISH: :active press grammar + stamp stagger (doto re-pin; BTN-MOTION re-pin 2026-09-08)', () => {
   // (i) the five per-class press rules — one rule per line, uniform :active:not(:disabled)
-  //     (the sixth, .cta-outline, retired with the outline CTA)
-  for (const sel of ['button.btn:active:not(:disabled) { transform: translateY(1px); transition:',
-    '.cta-solid:active:not(:disabled) { transform: scale(0.985); transition:',
+  //     (the sixth, .cta-outline, retired with the outline CTA).
+  //     RE-PINNED 2026-09-08 (BTN-MOTION, docs/internal/BTN_MOTION_2026-09-08.md):
+  //     the press register REPLACES the 1px dip with the settle-under-the-finger
+  //     form — translateY(0) scale(0.985) + the hover shadow held — for the three
+  //     button-register surfaces (btn, cta-solid, nav-cta); doc-tab and code-copy
+  //     are OUT of the button register and keep the 1px dip. The full press
+  //     pairing (lift + every outline chip) is pinned in motion-polish.test.js.
+  for (const sel of ['button.btn:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition:',
+    '.cta-solid:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition:',
     '.doc-tab:active:not(:disabled) { transform: translateY(1px); transition:',
     '.code-copy:active:not(:disabled) { transform: translateY(1px); transition:',
-    '.site-nav a.nav-cta:active:not(:disabled) { transform: translateY(1px); transition:']) {
+    '.site-nav a.nav-cta:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition:']) {
     assert.strictEqual(countOccurrences(css, sel), 1,
       'the press rule ships exactly once in the per-class form: ' + sel.slice(0, 44) + '…');
   }
-  assert.strictEqual(countOccurrences(css, 'translateY(1px)'), 4, 'pill/nav/tab/copy press = a 1px dip');
-  assert.strictEqual(countOccurrences(css, 'scale(0.985)'), 1, 'the one hero CTA presses at 0.985');
+  assert.strictEqual(countOccurrences(css, 'translateY(1px)'), 2, 'tab/copy keep the 1px dip (out of the button register)');
+  assert.strictEqual(countOccurrences(css, 'scale(0.985)'), 8, 'the button register presses at 0.985 (btn, cta, nav-cta + the five chip/toggle surfaces)');
   // (ii) release rides the EXTENDED base lists — never a competing second
   // transition property (it would kill the fill/color transitions while pressed)
   for (const base of ['button.btn {', '.cta-solid {', '.doc-tab {', '.code-copy {']) {

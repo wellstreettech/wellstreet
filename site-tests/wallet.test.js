@@ -108,3 +108,22 @@ test('waitForReceipt: an empty-object "receipt" is treated as pending, not mined
   assert.deepStrictEqual(out, { status: '0x0' });
   assert.strictEqual(client.calls.length, 2);
 });
+
+// MOBILE-WALLET-GUIDE + ALWAYS-CONNECT-ENTRY (2026-09-08, user reports on
+// iPhone Safari): the entry button must be visible outside the collapsed
+// flagship, and the guide must ship WITHOUT absolute external hrefs in the
+// markup (the resource-gate scans href= as a load channel — deep links are
+// assigned by main.js at show time).
+test('wallet-connect is discoverable: persistent entry + iOS guide ship honest', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const site = path.join(__dirname, '..', 'site');
+  const html = fs.readFileSync(path.join(site, 'index.html'), 'utf8');
+  const js = fs.readFileSync(path.join(site, 'js', 'main.js'), 'utf8');
+  assert.ok(html.includes('id="btn-connect-entry"'), 'the always-visible Connect entry exists at block 02 (all viewports)');
+  assert.ok(html.includes('id="mobile-wallet-guide"'), 'the iOS guide panel exists');
+  assert.ok(/id="mobile-wallet-guide"[^>]*hidden/.test(html), 'the guide defaults to hidden (desktop never sees it)');
+  assert.strictEqual((html.match(/data-mwg-open=/g) || []).length, 2, 'the two wallet-app deep-link anchors exist');
+  assert.ok(!/href="https:\/\/(metamask|rnbwapp)/.test(html), 'no absolute external hrefs in markup — resource-gate stays green');
+  assert.ok(js.includes('metamask.app.link') && js.includes('rnbwapp.com/url='), 'main.js assigns the universal-link hrefs at show time');
+});

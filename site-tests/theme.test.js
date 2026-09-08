@@ -9,7 +9,11 @@
 // Assertions:
 //   (a) pinned dot-matrix palette (tokens + shadows) present in style.css
 //       — the whole carrier table re-valued; the shadow tokens pin FLAT
-//       (none) for the first time: depth is the 2px border, never a shadow
+//       (none) for the first time: depth is the 2px border, never a shadow.
+//       BTN_MOTION_2026-09-08 AMENDMENT (user-authorized): the flat register
+//       is re-scoped to BUTTONS ONLY — the (a) surface pins here are
+//       unchanged (--shadow-soft/-hover stay 'none'); the button register
+//       carries its own tokens, pinned in (a-btn) below.
 //   (a2) deposit .index literal re-pinned to the --ink token
 //   (b) head metas: theme-color == the --paper token value, color-scheme dark,
 //       light metas ABSENT (the FIX-9 #f6f4ec absence survives; the
@@ -90,6 +94,11 @@ const PALETTE = [
   ['--footer-faint', '#7E796F'],
   ['--accent-punch', '#F5C069'],
   ['--ink-deep', '#05080A'],
+  // SHADOW REGISTER — DECISION RECORD (BTN_MOTION_2026-09-08, user-authorized
+  // identity revision): these two pins STAY 'none'. The flat card/surface
+  // register is NOT loosened — no card, section or text surface gains a
+  // shadow. The amendment is BUTTONS ONLY: --shadow-btn / --shadow-btn-hover
+  // exist for the button register and are pinned in (a-btn) below.
   ['--shadow-soft', 'none'],
   ['--shadow-soft-hover', 'none'],
 ];
@@ -157,6 +166,47 @@ test('(a) pinned dot-matrix palette tokens present in style.css', () => {
 test('(a2) deposit .index literal re-pinned to the --ink token', () => {
   assert.ok(/#deposit \.index \{ color: var\(--ink\); \}/.test(css),
     '#deposit .index must carry color: var(--ink) (token, no literal)');
+});
+
+// (a-btn) BTN-MOTION 2026-09-08 (docs/internal/BTN_MOTION_2026-09-08.md) — the
+// shadow-slot re-pin. DECISION RECORD: the flat register ("depth is the 2px
+// border, never a shadow") is amended for BUTTONS ONLY, by explicit user
+// authorization. The (a) pins above are NOT loosened: --shadow-soft /
+// --shadow-soft-hover stay 'none'. The two tokens below exist solely for the
+// button register: --shadow-btn rests under the FILLED primaries (btn-primary,
+// cta-solid, nav-cta); --shadow-btn-hover is the hover/press swap on every
+// in-scope button. Dark values derive the deep substrate step (the --ink-deep
+// family, rgb 5 8 10 — never a black rgba literal); the light ladder re-inks
+// both in the warm-ink rgba (the --ink family, rgb 38 35 28) at LOWER alpha,
+// in BOTH light token blocks per the MAINTENANCE duplicate rule.
+function blockSpanFor(cssText, selector) {
+  const at = cssText.indexOf(selector);
+  assert.ok(at !== -1, 'block selector resolvable: ' + selector);
+  return cssText.slice(at, cssText.indexOf('}', at));
+}
+const BTN_SHADOW_DARK = ['--shadow-btn', '0 1px 2px rgba(5, 8, 10, 0.4)'];
+const BTN_SHADOW_DARK_HOVER = ['--shadow-btn-hover', '0 3px 8px rgba(5, 8, 10, 0.45)'];
+const BTN_SHADOW_LIGHT = '--shadow-btn: 0 1px 2px rgba(38, 35, 28, 0.14)';
+const BTN_SHADOW_LIGHT_HOVER = '--shadow-btn-hover: 0 3px 8px rgba(38, 35, 28, 0.16)';
+
+test('(a-btn) BTN-MOTION 2026-09-08: button shadow tokens — the sanctioned flat-register amendment, buttons only', () => {
+  // the dark :root carries both tokens at the pinned substrate-derived values
+  assert.ok(tokenRegex(BTN_SHADOW_DARK[0], BTN_SHADOW_DARK[1]).test(css),
+    '--shadow-btn (dark resting, --ink-deep-derived rgba) present in :root');
+  assert.ok(tokenRegex(BTN_SHADOW_DARK_HOVER[0], BTN_SHADOW_DARK_HOVER[1]).test(css),
+    '--shadow-btn-hover (dark hover/press swap) present in :root');
+  // the light override block AND its system-follow twin re-ink both tokens
+  for (const sel of [LIGHT_BLOCK_SELECTOR, FOLLOW_BLOCK_SELECTOR]) {
+    const span = blockSpanFor(css, sel);
+    assert.ok(span.includes(BTN_SHADOW_LIGHT), sel.trim() + ' re-inks --shadow-btn for light (warm-ink rgba, lower alpha)');
+    assert.ok(span.includes(BTN_SHADOW_LIGHT_HOVER), sel.trim() + ' re-inks --shadow-btn-hover for light');
+  }
+  // buttons-only scope holds: the card/panel surfaces stay token-none — no
+  // --shadow-btn (or -hover) may appear on an off-button surface
+  for (const sel of ['.vault-card {', '.panel {', '.hero-ledger {', '.st-card {']) {
+    const span = blockSpanFor(css, sel);
+    assert.ok(!span.includes('--shadow-btn'), sel.trim() + ' carries NO button shadow (the flat register holds off-buttons)');
+  }
 });
 
 test('(b) theme-color equals --paper; color-scheme dark; light metas ABSENT', () => {

@@ -190,6 +190,13 @@
             <span id="vaults-launch-fact">The vault is on-chain — four contracts, verifiable at the addresses these cards read.</span>
             The SPY book is winding down — redemptions stay open. The rest of the family is WAITING (DEPLOY-GATED) — nothing shows a yield figure until measured harvests exist. The flagship's figure is the one projection — every book below is measured.
           </p>
+          <!-- ALWAYS-CONNECT-ENTRY (2026-09-08, user: the Connect wallet button
+               was buried inside the collapsed flagship — visible at every
+               viewport now; one tap opens the card AND runs the same connect
+               flow, state mirrored by renderWidgetState. -->
+          <div class="btn-row connect-lane">
+            <button type="button" class="btn btn-primary" id="btn-connect-entry">Connect wallet</button>
+          </div>
           <details class="fleet-card fleet-card--flagship">
             <summary class="fleet-summary">
               <span class="fleet-pair">ws-SPY</span>
@@ -288,6 +295,24 @@
                   <div id="wallet-picker" hidden></div>
                   <div id="wallet-balances" aria-live="polite"></div>
                   <div id="widget-status" aria-live="polite"></div>
+                  <!-- MOBILE-WALLET-GUIDE (2026-09-08): iOS Safari injects NO
+                       provider — without this the honest 'Connect failed' is a
+                       dead end. Shown by js/main.js only when no wallet exists
+                       AND the UA is iOS. hrefs are assigned in JS: absolute
+                       external hrefs in markup would break the resource-gate
+                       (href= is a scanned channel); a user-initiated
+                       navigation is not a loaded resource. -->
+                  <div id="mobile-wallet-guide" class="mwg" hidden>
+                    <p class="mwg-lead">Safari carries no wallet of its own. Open Wellstreet inside your wallet app's browser:</p>
+                    <a class="mwg-link" data-mwg-open="metamask" target="_blank" rel="noopener">MetaMask — open the app</a>
+                    <a class="mwg-link" data-mwg-open="rainbow" target="_blank" rel="noopener">Rainbow — open the app</a>
+                    <div class="mwg-row">
+                      <span class="mwg-note">Coinbase Wallet — open the app, browse to:</span>
+                      <span class="mwg-url" id="mwg-url">wellstreet.tech</span>
+                      <button type="button" class="mwg-copy" id="mwg-copy-url">copy</button>
+                    </div>
+                    <p class="mwg-foot">Nothing above this card needs a wallet — every number is a public read.</p>
+                  </div>
                   <p id="acquire-note" class="muted"></p>
 
                   <!-- ============ DEPOSIT SIMULATOR (WOW-6) ============
