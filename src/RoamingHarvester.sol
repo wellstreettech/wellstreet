@@ -459,7 +459,7 @@ contract RoamingHarvester is ReentrancyGuard {
     ///         blind (future donations silently absorbed) and a zero-balance accrued
     ///         token would revert the whole sweep on a zero-quote burn (ROAMER-AUDIT F-5).
     function rescueToTreasury(address token) external onlyTimelock nonReentrant {
-        uint256 accounted = accountedAccrued[token];
+        uint256 accounted = accountedAccrued[token]; _revertIfVaultPositionsOpen(); // ROAMVAULT item 3: fail-closed custody — vault capital is rescueable ONLY through the vault's own egress seam, never by treasury rescue
         if (token == address(0)) {
             uint256 bal = address(this).balance;
             if (bal > accounted) _forwardNative(bal - accounted);
@@ -614,7 +614,7 @@ contract RoamingHarvester is ReentrancyGuard {
         BookKey memory key = abi.decode(fromKey, (BookKey));
         bytes32 fromHash = keccak256(abi.encode(key.poolKey, key.tickLower, key.tickUpper, key.salt));
         Position storage pos = positions[fromHash];
-        if (pos.liquidity == 0) revert UnknownPosition(fromHash);
+        if (pos.liquidity == 0) revert UnknownPosition(fromHash); if (_isVaultPosition[fromHash]) revert VaultPositionProtected(fromHash); // ROAMVAULT item 3: fail-closed custody — vault-tagged capital exits ONLY through the vault's own egress seam, never to an arbitrary treasury
 
         uint128 liquidity = pos.liquidity;
         _activeAction = ACTION_EXIT;
@@ -678,6 +678,16 @@ contract RoamingHarvester is ReentrancyGuard {
             _migrateCallback(data);
             return "";
         }
+        if (action == ACTION_VSWEEP) {
+            _vSweepCallback();
+            return "";
+        }
+        if (action == ACTION_VDEPLOY) {
+            return _vDeployCallback(data);
+        }
+        if (action == ACTION_VEGRESS) {
+            return _vEgressCallback(data);
+        }
         revert CallbackNotActive(msg.sender, action);
     }
 
@@ -721,12 +731,7 @@ contract RoamingHarvester is ReentrancyGuard {
         //    PER-POSITION ISOLATION (ROAMER-AUDIT F-3): a hook reverting inside
         //    modifyLiquidity reverts THIS position's collect only (skipped via
         //    CollectSkipped); its fees stay in the pool and the sweep continues.
-        uint256 n = openKeys.length;
-        for (uint256 i = 0; i < n; i++) {
-            (bool okC, bytes memory errC) =
-                address(this).call(abi.encodeCall(this.collectOnePosition, (openKeys[i])));
-            if (!okC) emit CollectSkipped(openKeys[i], _skipReason(errC));
-        }
+        _collectAllFees();
         // 2) Per-token junk split + swap-to-WELL + burn (must run INSIDE the lock) —
         //    PER-TOKEN ISOLATION (ROAMER-AUDIT F-3): one unrouteable/reverting token
         //    (missing route, paused/blacklisted token, degenerate quote) is SKIPPED
@@ -739,13 +744,41 @@ contract RoamingHarvester is ReentrancyGuard {
                 address(this).call(abi.encodeCall(this.sweepOneToken, (accountedTokens[i], well)));
             if (!ok) emit SweepSkipped(accountedTokens[i], _skipReason(err));
         }
+        // 3) ROAMVAULT item 7: the VAULT-YIELD push rides the same sweep (isolated
+        //    per-token pass — a stuck push can never brick the burn tail).
+        _pushVaultYieldAll();
+    }
+
+    /// @dev ROAMVAULT item 7 (extracted verbatim from the sweep callback): the
+    ///      per-position fee-collect loop, shared by the burn sweep and the
+    ///      vault-yield sweep (the collect loop FILLS the vault bucket).
+    function _collectAllFees() internal {
+        uint256 n = openKeys.length;
+        for (uint256 i = 0; i < n; i++) {
+            (bool okC, bytes memory errC) =
+                address(this).call(abi.encodeCall(this.collectOnePosition, (openKeys[i])));
+            if (!okC) emit CollectSkipped(openKeys[i], _skipReason(errC));
+        }
+    }
+
+    /// @dev ROAMVAULT item 7: the per-token vault-yield push loop (isolated — a stuck
+    ///      token emits VaultYieldSkipped and the rest of the lane continues). WELL-
+    ///      INDEPENDENT: this lane never consults wellToken.
+    function _pushVaultYieldAll() internal {
+        uint256 v = _vaultAccrualTokens.length;
+        for (uint256 i = 0; i < v; i++) {
+            (bool okV, bytes memory errV) =
+                address(this).call(abi.encodeCall(this.pushVaultYieldOne, (_vaultAccrualTokens[i])));
+            if (!okV) emit VaultYieldSkipped(_vaultAccrualTokens[i], _skipReason(errV));
+        }
     }
 
     /// @dev ISOLATED per-position fee collect (F-3 liveness). NOT a public surface:
     ///      only the sweep's own unlock callback may drive it (guarded self-call —
-    ///      an external frame is what makes the per-position revert catchable).
+    ///      an external frame is what makes the per-position revert catchable). Both
+    ///      sweep actions (burn + vault-yield) may drive it.
     function collectOnePosition(bytes32 kHash) external {
-        if (msg.sender != address(this) || _activeAction != ACTION_SWEEP) {
+        if (msg.sender != address(this) || (_activeAction != ACTION_SWEEP && _activeAction != ACTION_VSWEEP)) {
             revert CallbackNotActive(msg.sender, _activeAction);
         }
         _collectOne(kHash);
@@ -788,8 +821,12 @@ contract RoamingHarvester is ReentrancyGuard {
         (int128 d0, int128 d1) = _decodeDeltas(delta);
         uint256 c0 = _takePositive(pos.poolKey.currency0, d0);
         uint256 c1 = _takePositive(pos.poolKey.currency1, d1);
-        if (c0 > 0) _creditAccrual(pos.poolKey.currency0, c0);
-        if (c1 > 0) _creditAccrual(pos.poolKey.currency1, c1);
+        // ROAMVAULT item 7: provenance split at the credit choke point — vault-tagged
+        // fees credit the VAULT bucket (90% depositors / 10% burn), POL fees stay
+        // 100% burn.
+        bool vaultLane = _isVaultPosition[kHash];
+        if (c0 > 0) _creditAccrualLane(pos.poolKey.currency0, c0, vaultLane);
+        if (c1 > 0) _creditAccrualLane(pos.poolKey.currency1, c1, vaultLane);
         emit FeesCollected(kHash, keccak256(abi.encode(pos.poolKey)), c0, c1);
     }
 
@@ -801,8 +838,39 @@ contract RoamingHarvester is ReentrancyGuard {
         leg.claimedGain = claimedGain;
         _collectAndClose(fromKey, leg);
         _takeAndConvert(fromKey, toKey, leg);
+        // ROAMVAULT item 5: the to-position's vault tag is set at completion
+        // (_emitMigration) — the residual lane is bracketed EXPLICITLY here so a
+        // vault migration's deploy residual returns to the vault, never the accrual.
+        _vaultResidualLane = _isVaultPosition[fromHash];
+        _vaultResidualReturned = 0;
+        // ROAMVAULT items 1+5: the vault path is single-sided after _convertCapital
+        // (the sold leg lands entirely in the shared currency), so the to-book's
+        // deficit buy carries the fee+impact wedge — plan at the margin-scaled capital
+        // (see VAULT_DEPLOY_MARGIN_BPS); the margin returns as residual below.
+        if (_vaultResidualLane) _applyVaultPlanMargin(leg.ds);
         Deployed memory dep = _deployToBand(toKey, leg.ds);
         _bookAndEmit(toKey, minOuts, leg, dep);
+        // ROAMVAULT item 5 (the residual's idle-book credit): the routed residual
+        // arrived at the vault as a RAW transfer — unaccounted excess by the storage
+        // accounting, invisible to the share price and stranded outside the books.
+        // The excess-bounded harvest() seam (the declared yield-push mechanism)
+        // credits exactly what physically arrived, so depositor principal coming home
+        // lands in the IDLE book. The realized-IL mark above stays RAW: it writes the
+        // migration's fee/valuation wedges down ONCE (deployed book), while this
+        // credit returns the un-deployed margin — no double count, books conserve.
+        if (_vaultResidualReturned > 0) IRoamVaultVault(vault).harvest(_vaultResidualReturned);
+        _vaultResidualLane = false;
+        _vaultResidualReturned = 0;
+    }
+
+    /// @dev ROAMVAULT items 1+5: shrink a vault-lane DeployState's planned amounts to
+    ///      (BPS − VAULT_DEPLOY_MARGIN_BPS) of the tracked capital — the deploy-plan
+    ///      headroom that keeps the deficit buy's fee+impact wedge inside the physical
+    ///      balance (see VAULT_DEPLOY_MARGIN_BPS). The margin itself is depositor
+    ///      capital: the residual routing returns it to the vault.
+    function _applyVaultPlanMargin(DeployState memory ds) internal pure {
+        ds.amtA = Math.mulDiv(ds.amtA, BPS - VAULT_DEPLOY_MARGIN_BPS, BPS);
+        if (ds.amtB > 0) ds.amtB = Math.mulDiv(ds.amtB, BPS - VAULT_DEPLOY_MARGIN_BPS, BPS);
     }
 
     /// @dev One migration's accumulator: the released capital, the honest-ledger
@@ -843,8 +911,11 @@ contract RoamingHarvester is ReentrancyGuard {
         (int128 d0, int128 d1) = _decodeDeltas(delta);
         leg.collected0 = _takePositive(fromKey.poolKey.currency0, d0);
         leg.collected1 = _takePositive(fromKey.poolKey.currency1, d1);
-        if (leg.collected0 > 0) _creditAccrual(fromKey.poolKey.currency0, leg.collected0);
-        if (leg.collected1 > 0) _creditAccrual(fromKey.poolKey.currency1, leg.collected1);
+        // ROAMVAULT item 7: provenance split — vault-tagged harvest-before-move fees
+        // credit the VAULT bucket, POL fees stay 100% burn.
+        bool vaultLane = _isVaultPosition[leg.fromHash];
+        if (leg.collected0 > 0) _creditAccrualLane(fromKey.poolKey.currency0, leg.collected0, vaultLane);
+        if (leg.collected1 > 0) _creditAccrualLane(fromKey.poolKey.currency1, leg.collected1, vaultLane);
         emit FeesCollected(leg.fromHash, leg.fromPid, leg.collected0, leg.collected1);
 
         // ---- Step 2: close the from-position (principal out) ----
@@ -870,7 +941,10 @@ contract RoamingHarvester is ReentrancyGuard {
         leg.ilCurrency = _sharedCurrency(fromKey.poolKey, toKey.poolKey);
         leg.sIsFromC0 = fromKey.poolKey.currency0 == leg.ilCurrency;
 
-        uint32 feeBps = migrationFeeBps;
+        // ROAMVAULT item 4 (the migrationFee vault-branch guard): the roaming take on
+        // VAULT capital is exactly the principal-take the 90/10 ruling forbids — the
+        // vault path charges STRUCTURALLY ZERO. POL positions keep migrationFeeBps.
+        uint32 feeBps = _isVaultPosition[leg.fromHash] ? 0 : migrationFeeBps;
         leg.fee0 = Math.mulDiv(leg.principal0, feeBps, BPS);
         leg.fee1 = Math.mulDiv(leg.principal1, feeBps, BPS);
         if (leg.fee0 > 0) _creditAccrual(fromKey.poolKey.currency0, leg.fee0);
@@ -934,7 +1008,19 @@ contract RoamingHarvester is ReentrancyGuard {
         // Honest realized-IL mark (in the shared currency, at the pools' own spots).
         bytes32 toPid = keccak256(abi.encode(toKey.poolKey));
         (uint160 toSqrtP, , , ) = IStateView(FORK_STATE_VIEW).getSlot0(toPid);
-        emit RealizedIL(leg.fromHash, _realizedIL(leg, toKey, toSqrtP, dep), leg.ilCurrency);
+        int256 il = _realizedIL(leg, toKey, toSqrtP, dep);
+        emit RealizedIL(leg.fromHash, il, leg.ilCurrency);
+        if (_isVaultPosition[leg.fromHash]) {
+            // ROAMVAULT item 6 (the vault-IL report, in the _emitMigration completion
+            // chain): the to-position INHERITS the vault tag (vault capital stays
+            // vault capital across a migration), its par-USDG mark is set from the
+            // deployed amounts at the to-book spot (observable state, no oracle), and
+            // the realized-IL mark pushes to the vault's deployed book — the vault
+            // re-values via applyRealizedIL (losses write the share price DOWN).
+            _isVaultPosition[toHash] = true;
+            _positionDeployedUsdg[toHash] = _deployedUsdgValue(toKey, dep, toSqrtP);
+            IRoamVaultVault(vault).applyRealizedIL(il, leg.ilCurrency);
+        }
     }
 
     struct DeployState {
@@ -1133,8 +1219,14 @@ contract RoamingHarvester is ReentrancyGuard {
         (int128 d0, int128 d1) = _decodeDeltas(delta);
         dep.owed0 = _payNegative(toKey.poolKey.currency0, d0);
         dep.owed1 = _payNegative(toKey.poolKey.currency1, d1);
-        if (bal0 > dep.owed0) _creditAccrual(toKey.poolKey.currency0, bal0 - dep.owed0);
-        if (bal1 > dep.owed1) _creditAccrual(toKey.poolKey.currency1, bal1 - dep.owed1);
+        // ROAMVAULT item 5 (the deploy-residual return-to-vault routing): on a
+        // vault-tagged target the rounding/sizing-margin residual is DEPOSITOR
+        // capital — it returns to the vault, NEVER the burn-stream accrual (the
+        // house bal-owed credit at this site would burn depositor dust). POL targets
+        // keep the house accrual credit.
+        bytes32 toHash = keccak256(abi.encode(toKey.poolKey, toKey.tickLower, toKey.tickUpper, dep.salt));
+        _routeResidual(toKey.poolKey.currency0, bal0 > dep.owed0 ? bal0 - dep.owed0 : 0, toHash);
+        _routeResidual(toKey.poolKey.currency1, bal1 > dep.owed1 ? bal1 - dep.owed1 : 0, toHash);
     }
 
     /// @dev Observable-state band plan: the all-capital deployment targets for the
@@ -1282,9 +1374,13 @@ contract RoamingHarvester is ReentrancyGuard {
         if (balance == 0) return;
 
         // Junk guard (house force-sent-token pattern): raw excess above the accounted
-        // accrual forwards to the TREASURY — never the burn stream.
-        if (balance > accounted) {
-            uint256 junk = balance - accounted;
+        // accrual forwards to the TREASURY — never the burn stream. ROAMVAULT item 7
+        // custody: the VAULT accrual bucket's tokens are physically here between
+        // collect and push — they are DEPOSITOR money, never junk and never burn; the
+        // split excludes the vault bucket and the vault-yield push drains it.
+        uint256 vaultBucket = vaultAccrued[token];
+        if (balance > accounted + vaultBucket) {
+            uint256 junk = balance - accounted - vaultBucket;
             if (token == address(0)) {
                 _forwardNative(junk);
             } else {
@@ -1442,11 +1538,44 @@ contract RoamingHarvester is ReentrancyGuard {
     // ------------------------------------------------------------------
 
     function _creditAccrual(address token, uint256 amount) internal {
-        if (!_accountedTokenSeen[token]) {
-            _accountedTokenSeen[token] = true;
-            accountedTokens.push(token);
+        _creditAccrualLane(token, amount, false);
+    }
+
+    /// @dev ROAMVAULT item 7 (the provenance split): POL revenue credits 100% to the
+    ///      burn accrual (house path, unchanged). VAULT-TAGGED revenue splits by the
+    ///      vault's NAMED constants — BURN_BPS (1000) onto the existing burn accrual
+    ///      and DEPOSITOR_BPS (9000) into the VAULT accrual bucket (vaultAccrued),
+    ///      which the vault-yield lane later swaps to USDG and pushes into the vault
+    ///      for the excess-bounded harvest() credit. The 90% lane NEVER passes through
+    ///      the WELL gate: it accumulates here WELL-independently, while the 10% sits
+    ///      as BURN-PENDING accounted accrual until setWellToken (conserved, never
+    ///      treasury, never junk-forwarded — the junk guard excludes this bucket).
+    function _creditAccrualLane(address token, uint256 amount, bool vaultLane) internal {
+        if (!vaultLane) {
+            if (!_accountedTokenSeen[token]) {
+                _accountedTokenSeen[token] = true;
+                accountedTokens.push(token);
+            }
+            accountedAccrued[token] += amount;
+            return;
         }
-        accountedAccrued[token] += amount;
+        IRoamVaultVault v = IRoamVaultVault(vault);
+        uint256 burnCut = Math.mulDiv(amount, v.BURN_BPS(), v.BPS());
+        if (burnCut > 0) {
+            if (!_accountedTokenSeen[token]) {
+                _accountedTokenSeen[token] = true;
+                accountedTokens.push(token);
+            }
+            accountedAccrued[token] += burnCut;
+        }
+        uint256 depositorCut = Math.mulDiv(amount, v.DEPOSITOR_BPS(), v.BPS());
+        if (depositorCut > 0) {
+            if (!_vaultAccrualSeen[token]) {
+                _vaultAccrualSeen[token] = true;
+                _vaultAccrualTokens.push(token);
+            }
+            vaultAccrued[token] += depositorCut;
+        }
     }
 
     function _deletePosition(bytes32 kHash) internal {
@@ -1618,4 +1747,421 @@ contract RoamingHarvester is ReentrancyGuard {
         if (_migrationTimes.length >= maxMigrationsPerPeriod) revert MigrationCapReached(maxMigrationsPerPeriod);
         _migrationTimes.push(uint64(block.timestamp));
     }
+
+    // ==================================================================
+    // ROAMVAULT additions (GOAL 2026-09-08 MINIMAL-DIFF PIN: the SEVEN
+    // declared items + THREE named helper touch-points; appended AFTER the
+    // last protected declaration so the audited line numbers above hold).
+    // ==================================================================
+
+    uint8 internal constant ACTION_VDEPLOY = 5;
+    uint8 internal constant ACTION_VEGRESS = 6;
+    uint8 internal constant ACTION_VSWEEP = 7;
+
+    /// @notice ROAMVAULT deploy-plan margin (items 1 + 5): vault capital arrives
+    ///         SINGLE-SIDED (all USDG), so the band plan deficit-buys the other leg.
+    ///         The plan reserves the deficit at the SPOT price (fee-exclusive) but the
+    ///         executed exact-output swap pays pool fee + price impact (the fill is
+    ///         price-limit capped at ±SWAP_SLIPPAGE_BPS) on top — deploying 100% of
+    ///         the capital then demands more of the paid leg than physically remains
+    ///         (_payNegative reverts SwapInputAboveBalance inside the whole deploy).
+    ///         The plan therefore sizes at (BPS − VAULT_DEPLOY_MARGIN_BPS) of the
+    ///         capital; the un-deployed margin is DEPOSITOR capital and returns to the
+    ///         vault as deploy residual (items 1+5 routing — never accrual, never
+    ///         treasury). 500 bps covers the ±1% fill limit + any realistic pool fee
+    ///         (SPY/USDG fixed 0.3%; the dynamic-fee USDG/ETH book read 0 live) with
+    ///         headroom; a wedge beyond the margin fails CLOSED (revert), never a loss.
+    uint256 public constant VAULT_DEPLOY_MARGIN_BPS = 500;
+
+    /// @notice The bound RoamVault (ONE-SHOT — zero-address and re-set both revert).
+    address public vault;
+    /// @notice The vault's USDG asset, bound together with the vault: every vault
+    ///         book must pair it, so egress can always convert legs back on the
+    ///         position's own venue.
+    address public vaultAsset;
+    /// @notice Custody tag: position key hash => vault capital (DECISION 3i).
+    mapping(bytes32 => bool) internal _isVaultPosition;
+    /// @notice Par-USDG mark per vault position (deploy value minus released slices).
+    mapping(bytes32 => uint256) internal _positionDeployedUsdg;
+    /// @notice The VAULT accrual bucket (the 90% depositor lane, WELL-independent).
+    mapping(address => uint256) public vaultAccrued;
+    address[] internal _vaultAccrualTokens;
+    mapping(address => bool) internal _vaultAccrualSeen;
+    /// @dev Transient residual lane (bracketed around _deployToBand — the to-position
+    ///      tag lands only at completion, see _migrateCallback).
+    bool internal _vaultResidualLane;
+    /// @dev Transient USDG residual accumulator for the vaultDeploy seam (what the
+    ///      residual routes physically returned to the vault in the vault's own
+    ///      denomination; consumed by _vDeployCallback).
+    uint256 internal _vaultResidualReturned;
+
+    event VaultSet(address indexed vault, address indexed vaultAsset);
+    event VaultBookDeployed(bytes32 indexed keyHash, uint256 capital, uint256 deployedVal, uint256 residual);
+    event VaultResidualReturned(address indexed token, uint256 amount, address indexed to);
+    event VaultYieldPushed(address indexed token, uint256 usdgPushed);
+    event VaultYieldSkipped(address indexed token, bytes32 reason);
+
+    error VaultNotSet();
+    error VaultAlreadySet(address current);
+    error NotVault(address caller);
+    error VaultPositionProtected(bytes32 keyHash);
+    error VaultBookNotPaired(address vaultAsset);
+    error ZeroDeploy();
+    error ZeroEgress();
+    error NoVaultRoute(address token);
+
+    /// @notice ITEM 2: ONE-SHOT, fail-closed, timelock-only vault binding. Re-set and
+    ///         zero revert. Bind together with the vault's USDG asset (the vault-book
+    ///         pairing constraint keys on it).
+    function setVault(address vault_, address usdgAsset_) external onlyTimelock {
+        if (vault != address(0)) revert VaultAlreadySet(vault);
+        if (vault_ == address(0) || usdgAsset_ == address(0)) revert ZeroAddress();
+        vault = vault_;
+        vaultAsset = usdgAsset_;
+        emit VaultSet(vault_, usdgAsset_);
+    }
+
+    /// @notice Custody-tag read (DECISION 3i): is this position key vault capital?
+    function isVaultPosition(bytes32 kHash) external view returns (bool) {
+        return _isVaultPosition[kHash];
+    }
+
+    /// @dev ROAMVAULT item 3 (the rescueToTreasury guard, body-inline above): while
+    ///      ANY vault-tagged position exists, the treasury rescue is fail-closed —
+    ///      the vault's own egress seam is the ONLY custody path for depositor
+    ///      capital (a rescue could otherwise move roamer-held value that backs
+    ///      vault redemptions, and the vault accrual buckets read as "junk" to the
+    ///      raw-balance split).
+    function _revertIfVaultPositionsOpen() internal view {
+        uint256 n = openKeys.length;
+        for (uint256 i = 0; i < n; i++) {
+            if (_isVaultPosition[openKeys[i]]) revert VaultPositionProtected(openKeys[i]);
+        }
+    }
+
+    /// @notice ITEM 7: permissionless vault-yield sweep — collect live fees (which
+    ///         FILLS the vault bucket with the 90% depositor cut) then push the
+    ///         bucket to the vault (swap-to-USDG + transfer + excess-bounded
+    ///         harvest() credit). WELL-INDEPENDENT: runs before setWellToken (the
+    ///         10% burn lane stays BURN-PENDING); no tip — the output lands in the
+    ///         vault, nothing to farm.
+    function sweepVaultYield() external nonReentrant {
+        _activeAction = ACTION_VSWEEP;
+        IPoolManagerV4(poolManager).unlock("");
+        _activeAction = ACTION_NONE;
+    }
+
+    /// @notice ITEM 1 (the deploy half of the vault-authorized pair): deploy
+    ///         `capitalUsdg` of vault capital into the allowlisted book `key`
+    ///         (BookKey payload, salt 0). ONLY the bound vault calls this (the
+    ///         Safe-queued vault.vaultDeploy forwards here after transferring the
+    ///         capital). The band is capital-driven (sized by the roamer's own
+    ///         band math from the capital actually received). Returns (deployedVal,
+    ///         residual): the USDG value locked into the position and the
+    ///         un-deployed USDG leftover (returned to the vault — NEVER the burn
+    ///         accrual). The position is VAULT-TAGGED.
+    function vaultDeploy(bytes calldata key, uint256 capitalUsdg)
+        external
+        nonReentrant
+        returns (uint256 deployedVal, uint256 residual)
+    {
+        if (vault == address(0)) revert VaultNotSet();
+        if (msg.sender != vault) revert NotVault(msg.sender);
+        if (capitalUsdg == 0) revert ZeroDeploy();
+        BookKey memory bk = abi.decode(key, (BookKey));
+        if (bk.salt != bytes32(0)) revert SaltMustBeZero(bk.salt);
+        _validateBand(bk);
+        bytes32 pid = keccak256(abi.encode(bk.poolKey));
+        if (!allowlist.isListed(pid)) revert UnknownPosition(pid);
+        // Custody constraint: the vault asset must be a currency of the book so the
+        // egress can always convert the legs back to USDG on the book's own venue.
+        if (bk.poolKey.currency0 != vaultAsset && bk.poolKey.currency1 != vaultAsset) {
+            revert VaultBookNotPaired(vaultAsset);
+        }
+        _activeAction = ACTION_VDEPLOY;
+        bytes memory ret = IPoolManagerV4(poolManager).unlock(abi.encode(bk, capitalUsdg));
+        _activeAction = ACTION_NONE;
+        (bytes32 kHash, uint256 deployed, uint256 resid) = abi.decode(ret, (bytes32, uint256, uint256));
+        emit VaultBookDeployed(kHash, capitalUsdg, deployed, resid);
+        return (deployed, resid);
+    }
+
+    /// @notice ITEM 1 (the egress half of the vault-authorized pair): close pro-rata
+    ///         DECREASE-ONLY slices of open vault-tagged positions until at least
+    ///         `shortfallUsdg` USDG is raised (or every vault position is exhausted).
+    ///         ONLY the bound vault calls this (the vault's redeem settlement). NOT a
+    ///         migration: never consumes MAX_MIGRATIONS_PER_PERIOD, NEVER gated by
+    ///         MIN_HOLD (depositor exits are never gated). Fee-collect runs FIRST per
+    ///         slice (the accrual lane, house _collectOne) so the redeemer payout is
+    ///         principal-side; non-USDG legs convert on the position's OWN venue with
+    ///         the fresh-quote house band (never a zero floor).
+    function vaultEgress(uint256 shortfallUsdg) external nonReentrant returns (uint256 proceedsUsdg) {
+        if (vault == address(0)) revert VaultNotSet();
+        if (msg.sender != vault) revert NotVault(msg.sender);
+        if (shortfallUsdg == 0) revert ZeroEgress();
+        _activeAction = ACTION_VEGRESS;
+        bytes memory ret = IPoolManagerV4(poolManager).unlock(abi.encode(shortfallUsdg));
+        _activeAction = ACTION_NONE;
+        return abi.decode(ret, (uint256));
+    }
+
+    /// @dev ISOLATED per-token vault-yield push (F-3 liveness shape). NOT a public
+    ///      surface: only the sweep callbacks may drive it (guarded self-call).
+    function pushVaultYieldOne(address token) external {
+        if (
+            msg.sender != address(this)
+                || (_activeAction != ACTION_SWEEP && _activeAction != ACTION_VSWEEP)
+        ) {
+            revert CallbackNotActive(msg.sender, _activeAction);
+        }
+        _pushVaultYield(token);
+    }
+
+    /// @dev The vault-yield sweep callback (ACTION_VSWEEP): collect fees (fills the
+    ///      vault bucket) then push. No burn leg — the 10% cut stays BURN-PENDING
+    ///      until a setWellToken'd sweepToBurn picks it up.
+    function _vSweepCallback() internal {
+        _collectAllFees();
+        _pushVaultYieldAll();
+    }
+
+    /// @dev The vaultDeploy unlock callback: open the capital-driven band, tag the
+    ///      position, mark its par-USDG value, and settle deployed-vs-residual from
+    ///      the tracked balances (pre-existing roamer balances excluded — idle vault
+    ///      capital never idles here and POL accrual is never counted as deployed).
+    function _vDeployCallback(bytes calldata data) internal returns (bytes memory) {
+        (BookKey memory bk, uint256 capital) = abi.decode(data, (BookKey, uint256));
+        address usdg = vaultAsset;
+        uint256 preExisting = IERC20(usdg).balanceOf(address(this)) - capital;
+        // ROAMVAULT items 1+5: the band plan sizes at the margin-scaled capital —
+        // vault capital is single-sided, so the deficit buy's fee+impact wedge would
+        // otherwise strand the second leg (see VAULT_DEPLOY_MARGIN_BPS). The margin
+        // itself is depositor capital and returns below.
+        DeployState memory ds = DeployState({
+            curA: usdg,
+            amtA: Math.mulDiv(capital, BPS - VAULT_DEPLOY_MARGIN_BPS, BPS),
+            curB: address(0),
+            amtB: 0,
+            fromSqrtP: 0
+        });
+        _vaultResidualLane = true; // residual is depositor money from the first wei
+        _vaultResidualReturned = 0;
+        Deployed memory dep = _deployToBand(bk, ds);
+        _vaultResidualLane = false;
+        bytes32 pid = keccak256(abi.encode(bk.poolKey));
+        bytes32 kHash = keccak256(abi.encode(bk.poolKey, bk.tickLower, bk.tickUpper, dep.salt));
+        positions[kHash] = Position({
+            poolKey: bk.poolKey,
+            tickLower: bk.tickLower,
+            tickUpper: bk.tickUpper,
+            salt: dep.salt,
+            liquidity: dep.liquidity,
+            createdAt: uint64(block.timestamp),
+            lastMigrationAt: 0
+        });
+        openKeys.push(kHash);
+        _isVaultPosition[kHash] = true;
+        // ROAMVAULT item 5 (physical exactness): sweep whatever un-deployed USDG still
+        // sits here (the plan margin + any un-routed dust) home BEFORE the residual is
+        // computed — the vault is about to credit its idle book by `residual`, and the
+        // idle book must be FULLY physical (backingCoverage 1e18) and never idle inside
+        // the roamer (DECISION 3ii).
+        uint256 leftover = IERC20(usdg).balanceOf(address(this)) - preExisting;
+        if (leftover > 0) {
+            IERC20(usdg).safeTransfer(vault, leftover);
+            emit VaultResidualReturned(usdg, leftover, vault);
+        }
+        // The residual = everything un-deployed that returned in the vault's own
+        // denomination: what the residual routes physically transferred back
+        // (_vaultResidualReturned) plus the leftover just swept above.
+        uint256 residual = _vaultResidualReturned + leftover;
+        _vaultResidualReturned = 0;
+        uint256 deployedVal = capital - residual;
+        _positionDeployedUsdg[kHash] = deployedVal;
+        _emitDirectionalRangeIfDirectional(pid, bk.tickLower, bk.tickUpper);
+        emit BookOpened(kHash, pid, dep.liquidity, bk.tickLower, bk.tickUpper, dep.salt);
+        return abi.encode(kHash, deployedVal, residual);
+    }
+
+    /// @dev The vaultEgress unlock callback: pro-rata slice selection across open
+    ///      vault-tagged positions (decrease-only), each slice fee-collected FIRST
+    ///      (accrual lane) then principal-decreased, non-USDG legs converted on the
+    ///      position's own venue, and the USDG proceeds transferred to the vault.
+    function _vEgressCallback(bytes calldata data) internal returns (bytes memory) {
+        uint256 shortfall = abi.decode(data, (uint256));
+        address usdg = vaultAsset;
+        uint256 n = openKeys.length;
+        bytes32[] memory keys = new bytes32[](n);
+        uint256 totalMarked;
+        for (uint256 i = 0; i < n; i++) {
+            keys[i] = openKeys[i];
+            if (_isVaultPosition[keys[i]]) totalMarked += _positionDeployedUsdg[keys[i]];
+        }
+        uint256 proceeds;
+        if (totalMarked > 0) {
+            uint256 remaining = shortfall;
+            for (uint256 i = 0; i < n && remaining > 0; i++) {
+                bytes32 kHash = keys[i];
+                if (!_isVaultPosition[kHash]) continue;
+                Position storage pos = positions[kHash];
+                if (pos.liquidity == 0) continue;
+                uint256 marked = _positionDeployedUsdg[kHash];
+                if (marked == 0) continue;
+                uint256 sliceMarked = Math.min(remaining, marked);
+                uint128 sliceLiq = uint128(
+                    Math.min(
+                        pos.liquidity,
+                        Math.mulDiv(pos.liquidity, sliceMarked, marked, Math.Rounding.Ceil)
+                    )
+                );
+                if (sliceLiq == 0) continue;
+                proceeds += _egressSlice(pos, kHash, sliceLiq, sliceMarked);
+                remaining -= sliceMarked;
+            }
+        }
+        if (proceeds > 0) IERC20(usdg).safeTransfer(vault, proceeds);
+        return abi.encode(proceeds);
+    }
+
+    /// @dev ONE slice close: fee-collect into the accrual lane FIRST (the redeemer
+    ///      payout stays principal-side), then the principal-only decrease, then the
+    ///      non-USDG leg conversion on the position's OWN venue, then the record and
+    ///      mark shrink. Returns the slice's USDG proceeds.
+    function _egressSlice(Position storage pos, bytes32 kHash, uint128 sliceLiq, uint256 sliceMarked)
+        internal
+        returns (uint256 usdgOut)
+    {
+        address usdg = vaultAsset;
+        _collectOne(kHash); // fees first — the accrual lane, never the redeemer payout
+        (int256 delta, ) = IPoolManagerV4(poolManager).modifyLiquidity(
+            pos.poolKey,
+            IPoolManagerV4.ModifyLiquidityParams({
+                tickLower: pos.tickLower,
+                tickUpper: pos.tickUpper,
+                liquidityDelta: -int256(uint256(sliceLiq)), // decrease-only by construction
+                salt: pos.salt
+            }),
+            ""
+        );
+        (int128 d0, int128 d1) = _decodeDeltas(delta);
+        uint256 leg0 = _takePositive(pos.poolKey.currency0, d0);
+        uint256 leg1 = _takePositive(pos.poolKey.currency1, d1);
+        if (pos.poolKey.currency0 == usdg) {
+            usdgOut = leg0 + _sellLeg(pos.poolKey, pos.poolKey.currency1, usdg, leg1);
+        } else {
+            usdgOut = leg1 + _sellLeg(pos.poolKey, pos.poolKey.currency0, usdg, leg0);
+        }
+        if (pos.liquidity > sliceLiq) {
+            pos.liquidity -= sliceLiq;
+            _positionDeployedUsdg[kHash] = sliceMarked < _positionDeployedUsdg[kHash]
+                ? _positionDeployedUsdg[kHash] - sliceMarked
+                : 0;
+        } else {
+            _deletePosition(kHash);
+            delete _positionDeployedUsdg[kHash];
+            delete _isVaultPosition[kHash]; // the tag record goes with the position
+        }
+    }
+
+    /// @dev The per-token vault-yield push: 90%-bucket -> USDG (the token's own vault
+    ///      book IS the venue) -> transfer to the vault -> excess-bounded harvest()
+    ///      credit (assets transferred FIRST — the push can never credit more than
+    ///      physically arrived).
+    function _pushVaultYield(address token) internal {
+        uint256 amount = vaultAccrued[token];
+        if (amount == 0) return;
+        address usdg = vaultAsset;
+        uint256 outUsdg;
+        if (token == usdg) {
+            outUsdg = amount;
+        } else {
+            IPoolManagerV4.PoolKey memory route = _findVaultRoute(token, usdg);
+            if (route.currency0 == address(0) && route.currency1 == address(0)) revert NoVaultRoute(token);
+            outUsdg = _sellLeg(route, token, usdg, amount);
+        }
+        if (outUsdg > 0) {
+            IERC20(usdg).safeTransfer(vault, outUsdg);
+            IRoamVaultVault(vault).harvest(outUsdg);
+        }
+        vaultAccrued[token] = 0;
+        emit VaultYieldPushed(token, outUsdg);
+    }
+
+    /// @dev The venue for a vault-bucket token's USDG conversion: a currently-open
+    ///      vault-tagged position whose pool pairs (token, USDG). None open -> the
+    ///      push skips (isolated, conserved) until a fresh vault position pairs it.
+    function _findVaultRoute(address token, address usdg)
+        internal
+        view
+        returns (IPoolManagerV4.PoolKey memory)
+    {
+        uint256 n = openKeys.length;
+        for (uint256 i = 0; i < n; i++) {
+            if (!_isVaultPosition[openKeys[i]]) continue;
+            IPoolManagerV4.PoolKey memory k = positions[openKeys[i]].poolKey;
+            if ((k.currency0 == token && k.currency1 == usdg) || (k.currency1 == token && k.currency0 == usdg)) {
+                return k;
+            }
+        }
+        return IPoolManagerV4.PoolKey({currency0: address(0), currency1: address(0), fee: 0, tickSpacing: 0, hooks: address(0)});
+    }
+
+    /// @dev ITEM 5: the deploy-residual router. Vault-lane residuals are DEPOSITOR
+    ///      capital — they return to the VAULT (physical transfer, NEVER the
+    ///      burn-stream accrual); the vaultDeploy seam books the USDG part of what
+    ///      returned (_vaultResidualReturned + leftover) as its residual and the rest
+    ///      sits as unaccounted excess backing. The transfer CLAMPS to the physically
+    ///      present balance: the house plan tracker can be stale by the deficit-buy
+    ///      payment (the plan tracks capital, the payment leaves the real balance), so
+    ///      the raw bal-owed figure is an upper bound — clamping keeps POL accrual
+    ///      semantics byte-unchanged while making the vault lane physically exact.
+    ///      POL lane keeps the house accrual credit.
+    function _routeResidual(address token, uint256 amount, bytes32 toHash) internal {
+        if (amount == 0) return;
+        if (_isVaultPosition[toHash] || _vaultResidualLane) {
+            // Native-safe read (a same-pool vault migration into the USDG/ETH book can
+            // carry an ETH residual — IERC20(address(0)) has no code).
+            uint256 bal = token == address(0) ? address(this).balance : IERC20(token).balanceOf(address(this));
+            if (bal == 0) return;
+            if (amount > bal) amount = bal;
+            if (token == address(0)) {
+                // Native residual: custody goes to the VAULT (never treasury, never
+                // accrual — DECISION 3ii/3iii). RoamVault accepts native via receive()
+                // and holds it as unaccounted native excess (the storage accounting
+                // keys on the USDG asset — donations are deliberately uncredited).
+                (bool ok,) = vault.call{value: amount}("");
+                if (!ok) revert NativeForwardFailed();
+            } else {
+                IERC20(token).safeTransfer(vault, amount);
+            }
+            if (token == vaultAsset) _vaultResidualReturned += amount;
+            emit VaultResidualReturned(token, amount, vault);
+        } else {
+            _creditAccrual(token, amount);
+        }
+    }
+
+    /// @dev A to-band's deployed value in the vault's USDG denomination, valued at the
+    ///      observable to-book spot (no oracle). Unreachable third branch: vault
+    ///      books are USDG-paired by the deploy constraint.
+    function _deployedUsdgValue(BookKey memory toKey, Deployed memory dep, uint160 toSqrtP)
+        internal
+        view
+        returns (uint256)
+    {
+        address usdg = vaultAsset;
+        if (toKey.poolKey.currency0 == usdg) return dep.owed0 + _c1ToC0(dep.owed1, toSqrtP);
+        if (toKey.poolKey.currency1 == usdg) return _c0ToC1(dep.owed0, toSqrtP) + dep.owed1;
+        return 0;
+    }
+}
+
+/// @dev The bound vault's surface the roamer consumes (RoamVault implements it; the
+///      harvest(uint256) signature is the audited chassis excess-bounded credit).
+interface IRoamVaultVault {
+    function BPS() external view returns (uint256);
+    function DEPOSITOR_BPS() external view returns (uint256);
+    function BURN_BPS() external view returns (uint256);
+    function harvest(uint256 assets) external;
+    function applyRealizedIL(int256 il, address ilCurrency) external;
 }
