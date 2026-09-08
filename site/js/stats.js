@@ -9,7 +9,7 @@
  * WS.fleet.summary(). Footer proof strip (#live-counters) rides the same reads.
  *
  * Deploy seam (PENDING_DEPLOY convention, mirrors js/config.js + main.js): the
- * roamer address lands in cfg.contracts.roamer at the F-01 broadcast. ABSENT or
+ * roamer address lands in cfg.contracts.roamer at the deploy broadcast. ABSENT or
  * PENDING_DEPLOY means PRE-DEPLOY: the honest "waiting for first sweep" state IS
  * the correct default render, and NO RPC call is issued (the isDeployed-gate
  * precedent — a pre-deploy page never touches the chain for a figure it cannot
@@ -22,10 +22,12 @@
  *     partial sum would dress itself as truth);
  *   - feed counts come ONLY from WS.fleet.summary() — no count is hardcoded,
  *     "402" is the fee-screen universe elsewhere, not this feed;
- *   - the FLYWHEEL bars render ONLY from a same-unit pair: the burn lane is
- *     WELL-denominated (Burned.wellBurned), the treasury lane is a COUNT of
- *     Forwarded junk events (raw fee tokens, mixed denominations) — so until a
- *     WELL-denominated treasury figure exists the bars stay honestly empty.
+ *   - the FLYWHEEL bars render from a same-unit pair — SINCE G5 (SECTION_IMPROVE
+ *     2026-09-08) the pair is COUNTED EVENTS: the Burned-event count vs the
+ *     Forwarded-event count (both integers, one unit — disclosed 'counted in
+ *     events'), so the bars draw while the lane VALUES keep their own
+ *     denominations (the burn lane keeps its $WELL total, the treasury lane
+ *     counts events). A missing count keeps the bars honestly empty.
  *
  * Zero new origins, zero /api: the reads go through the existing WS.rpc client
  * factory on the configured public endpoints; feed counts through the existing
@@ -55,6 +57,15 @@
   var ERROR_SENT = 'the burn read failed (RPC) — nothing is estimated here';
   var ERROR_TIP = 'the eth_getLogs read failed — the figure stays unavailable, never estimated';
   var FEED_FAIL_SENT = 'the feed file did not load — no numbers are shown';
+  // G5 pending register (SECTION_IMPROVE 2026-09-08): the chips + lines ship in
+  // the static markup (the static paint IS the pending state); the live and error
+  // branches hide them — a chip that outlives its state lies. Ids are
+  // variable-mediated (the SECTION_ID idiom) so the query-surface registry never
+  // sees them.
+  var PENDING_CHIP_IDS = ['st-pending-chip-total', 'st-pending-chip-window'];
+  var PENDING_LINE_IDS = ['st-pending-line-total', 'st-pending-line-window'];
+  var UNIT_WINDOW_ID = 'st-unit-window'; // the windowed card's unit line greys while pending/error
+  var TOGGLE_PENDING_TIP = 'applies once the roamer is live';
   // the BOOKS-grid static explainers are the success copy; renderBooks can run
   // BEFORE WS.fleet.load settles, so the originals are snapshotted on the first
   // render and restored when the feed arrives (numbers live + fail sentence is
@@ -150,18 +161,19 @@
     return q.toString() + '.' + d.toString() + 'M';
   }
 
-  // PURE: lane shares as 0..1 fractions — ONLY from a same-unit pair. The
-  // treasury lane ships as a COUNT of Forwarded events (raw fee tokens, mixed
-  // denominations), so the live call passes null and the bars stay empty:
-  // two lanes with different units must never render as comparable bars.
-  function laneShares(burnWellWei, treasuryWellWei) {
-    if (typeof burnWellWei !== 'bigint' || typeof treasuryWellWei !== 'bigint') { return null; }
-    var total = burnWellWei + treasuryWellWei;
-    if (total <= 0n) { return null; }
-    var burnNum = Number(burnWellWei);
-    var totNum = Number(total);
-    if (!isFinite(burnNum) || !isFinite(totNum) || totNum <= 0) { return null; }
-    return { burn: burnNum / totNum, treasury: 1 - burnNum / totNum };
+  // PURE: lane shares as 0..1 fractions — ONLY from a same-unit pair. SINCE G5
+  // (SECTION_IMPROVE 2026-09-08) the pair is COUNTED EVENTS: the burn lane's
+  // Burned-event count vs the treasury lane's Forwarded-event count (both
+  // non-negative finite numbers, one unit). The pre-G5 form (a $WELL bigint vs
+  // a null treasury figure) returns null — two lanes with different units must
+  // never render as comparable bars, and a missing count keeps them empty.
+  function laneShares(burnEvents, treasuryEvents) {
+    if (typeof burnEvents !== 'number' || typeof treasuryEvents !== 'number') { return null; }
+    if (!isFinite(burnEvents) || !isFinite(treasuryEvents)) { return null; }
+    if (burnEvents < 0 || treasuryEvents < 0) { return null; }
+    var total = burnEvents + treasuryEvents;
+    if (!(total > 0)) { return null; }
+    return { burn: burnEvents / total, treasury: treasuryEvents / total };
   }
 
   // ------------------------------------------------------------------
@@ -178,16 +190,62 @@
     var n = $(id);
     if (n) { n.textContent = text; }
   }
+  // G5: the empty register is stamped on the TRACK as well as the fill —
+  // .st-bar[data-empty] paints the absence idiom (transparent + 1px dashed);
+  // without it the track's solid paper-2 read as a filled bar in light mode.
+  // The live branch clears BOTH stamps and any stale empty-title (a title that
+  // outlives its state lies).
+  var EMPTY_BAR_TIP = 'bars compare counted Burned and Forwarded events — no counted pair yet, so neither bar is drawn';
   function setBar(id, share) {
     var n = $(id);
     if (!n) { return; }
-    if (typeof share === 'number' && isFinite(share) && share >= 0 && share <= 1) {
+    var p = n.parentElement; // the .st-bar track wraps the fill (index.html)
+    var track = (p && typeof p.className === 'string' && p.className.indexOf('st-bar') !== -1) ? p : null;
+    var ok = typeof share === 'number' && isFinite(share) && share >= 0 && share <= 1;
+    if (ok) {
       n.setAttribute('style', 'transform: scaleX(' + share + ')');
-      if (n.removeAttribute) { n.removeAttribute('data-empty'); }
+      if (n.removeAttribute) { n.removeAttribute('data-empty'); n.removeAttribute('title'); }
+      if (track && track.removeAttribute) { track.removeAttribute('data-empty'); track.removeAttribute('title'); }
     } else {
       n.setAttribute('style', 'transform: scaleX(0)');
       n.setAttribute('data-empty', 'true');
-      n.setAttribute('title', 'bars need one denomination across lanes — the burn lane is $WELL, the treasury lane is a count of junk events, so neither bar is drawn');
+      n.setAttribute('title', EMPTY_BAR_TIP);
+      if (track && track.setAttribute) {
+        track.setAttribute('data-empty', 'true');
+        track.setAttribute('title', EMPTY_BAR_TIP);
+      }
+    }
+  }
+
+  // G5 dual-state register: pending shows the chips + lines (the static default);
+  // live and error hide them — a 'pending' chip next to a figure or a failure
+  // sentence lies. The toggle title + the windowed unit grey ride pending/error
+  // and clear on live (the goal's toggle-honesty pair).
+  function setPendingRegister(state) {
+    var showChip = state === 'pending';
+    PENDING_CHIP_IDS.forEach(function (id) {
+      var n = $(id);
+      if (n) { n.hidden = !showChip; }
+    });
+    PENDING_LINE_IDS.forEach(function (id) {
+      var n = $(id);
+      if (n) { n.hidden = !showChip; }
+    });
+    var surface = surfaceEl();
+    if (surface && typeof surface.querySelector === 'function') {
+      var group = surface.querySelector('.st-toggle');
+      if (group) {
+        if (state === 'live') {
+          if (group.removeAttribute) { group.removeAttribute('title'); }
+        } else if (group.setAttribute) {
+          group.setAttribute('title', TOGGLE_PENDING_TIP);
+        }
+      }
+    }
+    var unit = $(UNIT_WINDOW_ID);
+    if (unit && unit.classList) {
+      if (state === 'live') { unit.classList.remove('is-pending'); }
+      else { unit.classList.add('is-pending'); }
     }
   }
 
@@ -213,6 +271,11 @@
     setCell('st-books-count', s ? String(s.books) : '—', s ? tip : 'the fleet feed is unavailable — the count renders when the file loads');
     setCell('st-books-pays', s ? String(s.paysLps) : '—', s ? tip : 'the fleet feed is unavailable — the count renders when the file loads');
     setCell('st-books-hook', s ? String(s.hookMonetized) : '—', s ? tip : 'the fleet feed is unavailable — the count renders when the file loads');
+    // G5 fleet census: the grid leads with the split (the black-hole truth) —
+    // feed-fed counts only, never hardcoded; fail-closed to '—' + a title.
+    setCell('st-census-split',
+      s ? (s.paysLps + ' books pay their LPs — ' + s.hookMonetized + ' pay nothing') : '—',
+      s ? tip : 'the fleet feed is unavailable — the split renders when the file loads');
     if (!bookSentOriginal) {
       bookSentOriginal = {};
       ['st-books-count-sent', 'st-books-pays-sent', 'st-books-hook-sent'].forEach(function (id) {
@@ -237,6 +300,7 @@
   function renderBurn(state, payload) {
     var days = currentDays;
     if (state === 'pending') {
+      setPendingRegister('pending');
       setCell('st-burn-total', '—', WAIT_TIP);
       setCell('st-burn-window', '—', WAIT_TIP);
       setSent('st-burn-sent', WAIT_SENT);
@@ -248,6 +312,7 @@
       return;
     }
     if (state === 'error') {
+      setPendingRegister('error');
       setCell('st-burn-total', '—', ERROR_TIP);
       setCell('st-burn-window', '—', ERROR_TIP);
       setSent('st-burn-sent', ERROR_SENT);
@@ -258,10 +323,11 @@
       setCell('lc-burned', '—', ERROR_TIP);
       return;
     }
-    // live: payload = { allTime: BigInt|null, win: BigInt|null, forwards: number|null }
+    // live: payload = { allTime: BigInt|null, win: BigInt|null, forwards: number|null, burnEvents: number|null }
     var p = payload || {};
-    var totalTip = 'all Burned events since F-01 · sweepToBurn burn tail · eth_getLogs on the roamer · chain 4663';
+    var totalTip = 'all Burned events on record · sweepToBurn burn tail · eth_getLogs on the roamer · chain 4663';
     var winTip = 'Burned events in the last ' + days + ' days · eth_getLogs on the roamer · chain 4663 — a range the node refuses renders unavailable, never an estimate';
+    setPendingRegister('live');
     setCell('st-burn-total', fmtWell(p.allTime), totalTip);
     setCell('st-burn-window', fmtWell(p.win), winTip);
     setSent('st-burn-sent', 'measured from the roamer\'s Burned events — the buyback-and-burn tail runs permissionless, every figure replays on chain 4663');
@@ -269,9 +335,10 @@
     setCell('st-lane-treasury-value',
       (typeof p.forwards === 'number' && isFinite(p.forwards)) ? groupThousands(String(p.forwards)) + ' events' : '—',
       'junk the sweep forwarded to the treasury — raw fee tokens of mixed denominations, counted in events and never summed into $WELL');
-    // bars: the pair is not same-unit (burn = $WELL, treasury = events) —
-    // laneShares returns null and both bars stay honestly empty
-    var shares = laneShares(p.allTime, null);
+    // bars: the same-unit pair is COUNTED EVENTS (G5) — the Burned-event count
+    // vs the Forwarded-event count; the lane VALUES above keep their own
+    // denominations and both bars are disclosed 'counted in events'
+    var shares = laneShares(p.burnEvents, p.forwards);
     setBar('st-lane-burn-bar', shares ? shares.burn : null);
     setBar('st-lane-treasury-bar', shares ? shares.treasury : null);
     setCell('lc-burned', fmtWell(p.allTime), totalTip);
@@ -324,13 +391,16 @@
     if (!client || !burnedTopic || !fwdTopic) { renderBurn('error'); return; }
     var cfg = root.WS.config;
 
-    // all-time Burned stream — the headline figure
+    // all-time Burned stream — the headline figure + the event count (G5: the
+    // bars' same-unit half; the count rides the same read, fails with it)
     var allTime = null;
+    var burnEvents = null;
     try {
       var logs = await client.call('eth_getLogs', [{
         address: roamer, topics: [burnedTopic], fromBlock: '0x0', toBlock: 'latest'
       }]);
       allTime = sumBurnField(logs, 1); // malformed decode poisons the read — never a partial sum
+      burnEvents = Array.isArray(logs) ? logs.length : null;
     } catch (e) { allTime = null; }
 
     // windowed Burned stream — the toggle's figure (independent, fails alone)
@@ -358,7 +428,7 @@
 
     if (seq !== refreshSeq) { return; } // a newer toggle superseded this read — never render it
     if (allTime === null) { if (seq === refreshSeq) { renderBurn('error'); } return; }
-    var payload = { allTime: allTime, win: win, forwards: forwards };
+    var payload = { allTime: allTime, win: win, forwards: forwards, burnEvents: burnEvents };
     lastLive = payload;
     renderBurn('live', payload);
   }
@@ -444,6 +514,8 @@
     sumBurnField: sumBurnField,
     windowFromBlock: windowFromBlock,
     fmtWell: fmtWell,
-    laneShares: laneShares
+    laneShares: laneShares,
+    setBar: setBar,
+    setPendingRegister: setPendingRegister
   };
 });

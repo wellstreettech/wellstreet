@@ -379,7 +379,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
   letter-spacing: 0.06em;
   color: var(--ink-soft);
 }
-.hero-meta-dot { color: var(--accent-text); } /* the banner's amber dot flag */
+.hero-meta-dot { color: var(--ink-soft); } /* SECTION-IMPROVE G1 #8 (2026-09-08): amber budget — the banner's dot drops out of the accent register (amber stays rule + CTA + ZERO text); ink-soft matches the meta line it punctuates */
 .hero-facts {
   /* honest trust row — the reference's ring/pill treatment on the four existing hero facts;
      the fabricated enterprise-logos row and its icon-font CDN host are rejected — no icon
@@ -607,6 +607,28 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 }
 .doc-toc a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid transparent; transition: color var(--motion), border-bottom-color var(--motion); }
 .doc-toc a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+/* SECTION_IMPROVE G2 item 6 (2026-09-08): at reading widths the 72ch pane left a
+   dead right column inside the wrap; the runtime TOC (buildToc's nav — the pane's
+   first child) becomes the RIGHT RAIL, filling the column without moving the
+   left-aligned editorial stack. Below 900px, and for panes whose doc renders no
+   TOC (buildToc returns null), the nav keeps its inline top-of-pane position —
+   this block only repositions an existing child. */
+@media (min-width: 900px) {
+  #doc-pane { position: relative; }
+  #doc-pane .doc-toc {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    width: clamp(190px, 24vw, 300px);
+    margin: 0 0 0 var(--space-24);
+    max-height: 100%;
+    overflow: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-6);
+    padding-bottom: var(--space-8);
+  }
+}
 .code-copy {
   font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-chrome); /* P-10: --track-chrome */
   padding: var(--space-2) var(--space-8); border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-soft);
@@ -767,6 +789,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
      were re-pointed in the same pass, fallbacks dropped). New text MUST pick
      one of these seven rungs — a new token needs a written justification. */
   --step-1: 0.6875rem;                    /* 11px — micro */
+  --step-0: 0.625rem;                     /* 10px — sub-micro, ≤640 metric labels ONLY. JUSTIFICATION (the scale law's written-exception clause): SECTION-IMPROVE G4 #2 (2026-09-08) — 'FEE APR (2.8h)' wrapped and broke the 3-metric baseline at 390px; the label rungs down one step (the ratified .fleet-apr rung-down idiom) so white-space:nowrap fits the third-width column. No other selector may take this rung. */
   --step-2: 0.8125rem;                    /* 13px — chrome/small merged */
   --step-3: 0.875rem;                     /* 14px — data */
   --step-4: 1rem;                         /* 16px — body (the iOS no-zoom input floor) */
@@ -1180,6 +1203,13 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   transition: opacity var(--t-slow) var(--ease-enter), transform var(--t-slow) var(--ease-enter);
 }
 .ws-reveal.ws-reveal-in { opacity: 1; transform: translateY(0); }
+/* G3 SECTION-IMPROVE (2026-09-08): the flagship's interior (.fleet-detail) sits
+   inside a CLOSED <details> at load — IntersectionObserver never sees the armed
+   targets in there (.apr-sim) while the card is closed, so the band can stay
+   opacity:0 after the user opens it. Inside the flagship detail the reveal is
+   disabled: always visible, no translate. Scoped to the flagship interior only —
+   every other reveal on the page animates exactly as before. */
+.fleet-detail .ws-reveal { opacity: 1; transform: none; }
 
 /* ============================================================
    WS-WOW-BATCH (2026-09-03) — the eight spectacular packages of
@@ -1530,7 +1560,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   /* P3 — the nav becomes one nowrap horizontally-scrollable strip; tap-target
      height lives ON the links (min-height 44px), never as vertical padding on
      .site-nav itself (its clientHeight must stay <= 48). */
-  .site-nav { flex-wrap: nowrap; overflow-x: auto; width: 100%; }
+  .site-nav { flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-right: var(--space-16); } /* SECTION-IMPROVE G1 #4 (2026-09-08): the scrollable strip's last item sat flush at the right edge — end-pad gives the clip affordance; tap sizes untouched (min-height stays on the links, clientHeight still <= 48) */
   .site-nav a { flex: 0 0 auto; white-space: nowrap; min-height: 44px; }
   .site-nav a.nav-cta { min-height: 44px; } /* must out-rank the base 38px nav-cta min-height */
   /* P2 — phone-first hero fold (WS-DARK-DOTO re-rank): the DOM order IS the
@@ -1594,12 +1624,19 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase;
   letter-spacing: 0.1em; color: var(--ink-soft);
 } /* ink-soft on paper = 5.85:1 at 11px — above the 4.5 small-text floor */
-.tape-strip-entry + .tape-strip-entry::before {
-  content: '·'; margin-right: var(--space-10); color: var(--accent-punch);
-} /* 5.42:1 — the sanctioned separator accent */
+/* SECTION-IMPROVE G1 #1 (2026-09-08): the entry is its own inline-flex run —
+   main.js appends sym|tier|state spans with no whitespace between them, so without
+   this rule the cells run on inside one entry (the old CSS only separated
+   BETWEEN entries). column-gap does the intra-entry separation. */
+.tape-strip-entry { display: inline-flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--space-6); }
+/* SECTION-IMPROVE G1 #2 (2026-09-08): the '·' ::before glyph wrapped into orphan
+   dots at strip wrap edges — a border-left separator dies with its own entry.
+   border-LEFT 1px: deliberately does not touch the (g) pins (border-bottom 2px
+   count == 11; gradient counts) — no re-pin owed. */
+.tape-strip-entry + .tape-strip-entry { border-left: 1px solid var(--line); padding-left: var(--space-10); }
 .tape-strip-sym { color: var(--ink); } /* the symbol is the row's strongest cell */
 .tape-strip-tier { color: var(--ink-soft); }
-.tape-strip-state { font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; color: var(--accent-text); } /* WS-DARK-DOTO: the family STATUS rides the machine register with the amber flag */
+.tape-strip-state { font-family: var(--mono); font-weight: 700; color: var(--accent-text); } /* SECTION-IMPROVE G1 #3 (2026-09-08): Doto at 11px smears the status sentence — the machine register drops to mono 700; color unchanged. No theme/font-doto pin rides this selector (grepped) */
 .tape-strip-entry--gated .tape-strip-sym { color: var(--ink-soft); } /* a gated tier never shouts */
 /* P6 — mobile lockup: the brand tag drops to its own clean ledger line instead of
    internally wrapping into a ragged two-line squeeze (measured 34.1px vs 17
@@ -1628,7 +1665,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--ink-soft);
 }
-.hero-cut-zero { color: var(--accent-text); font-size: var(--step-4); letter-spacing: 0; }
+.hero-cut-zero { color: var(--accent-text); font-family: var(--mono); font-weight: 700; font-size: var(--step-5); letter-spacing: 0; } /* SECTION-IMPROVE G1 #7 (2026-09-08): 16px Doto = smudge — the ZERO word reads mono 700 at --step-5 (.doto dropped from the markup, same span); stays --accent-text (no second fill) */
 #doc-pane h2:first-child, #doc-pane h3:first-child { margin-top: 0; } /* P-08 guard: no new gap under the title border when the renderer's first output is a heading; deep-link scroll-margin behavior unchanged */
 /* ---------- end WS3-TYPOGRAPHY EOF block ---------- */
 
@@ -1687,6 +1724,21 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
    right. Same two children, zero markup; agent-first.test.js pins are href/content
    greps (unaffected by CSS). The .block-head's spacer/muted wrap inside the narrow
    column is accepted (probe 900-1024). */
+/* SECTION_IMPROVE G2 (2026-09-08): the L8 col-1 narrowness wrapped the short display
+   phrase mid-word ('PLUG / IN.'). The phrase is short by design and never wraps —
+   #agents h2 only (other section h2s keep normal wrapping). */
+#agents h2 { white-space: nowrap; }
+/* G2 item 2: the capability lines — what the skill actually does, in the machine
+   register. Tokens only; the em-dash lead rides the accent-as-text role. */
+.agents-caps {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; gap: var(--space-8);
+  font-family: var(--mono); font-size: var(--step-2);
+  color: var(--ink-soft);
+  max-width: var(--measure-copy);
+}
+.agents-caps li { position: relative; padding-left: var(--space-16); }
+.agents-caps li::before { content: '—'; position: absolute; left: 0; color: var(--accent-text); }
 @media (min-width: 900px) {
   #agents .wrap {
     display: grid;
@@ -1695,6 +1747,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
   }
   #agents .wrap > .block-head { grid-column: 1; grid-row: 1; align-self: start; }
   #agents .wrap > .block-sub { grid-column: 2; grid-row: 1; margin: 0; }
+  /* G2: the capability list is the wrap's third child — it belongs under the
+     prose in the right column, never auto-placed under the headline. */
+  #agents .wrap > .agents-caps { grid-column: 2; grid-row: 2; }
 }
 /* UI2-L4 (>=1280): the draft's dominant move — type IS the composition (welldis.jpg
    measures ~10-11vw). WS-TYPE-MOTION_FINAL 2026-09-06: the 9vw override retires onto
@@ -1818,9 +1873,41 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
    (SEEDED/WINDING-DOWN) without extra copy. */
 .fleet-ours { flex: 0 0 auto; font-family: var(--mono); font-size: var(--step-1); font-weight: 700; text-transform: uppercase; letter-spacing: var(--track-label); color: var(--accent-text); border: 1px solid var(--accent-text); padding: 0 0.4em; border-radius: var(--r-0, 0); }
 .fleet-apr { margin-left: auto; text-align: right; font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-3); font-variant-numeric: tabular-nums; color: var(--ink); min-width: 0; } /* right, tabular; scales down the rungs below — never clipped, never truncated */ /* WS5-DOTO: the fee-APR figure joins the dot-matrix number register; size scales/color untouched */
-.fleet-apr-mark { flex: 0 0 auto; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); }
+.fleet-apr-mark { flex: 0 0 auto; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); border: 1px solid var(--line); padding: 0 0.4em; border-radius: var(--r-0, 0); } /* G3 SECTION-IMPROVE (2026-09-08): the flagship's one PROJECTION is chipped like .fleet-ours, but with the neutral --line edge (ours owns the amber-edged register) — honesty: projected ≠ measured, the two registers must not share a dress */
 .fleet-meta { flex-basis: 100%; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); font-variant-numeric: tabular-nums; min-width: 0; } /* TVL + 24h vol keep their units; the row wraps as text — no overflow hidden on numbers */
 .fleet-detail { border-top: 1px solid var(--line); padding: var(--space-12) var(--space-14); font-size: var(--step-3); }
+/* G3 SECTION-IMPROVE (2026-09-08): the flagship disclosure affordance. The static
+   flagship <summary> now rides .fleet-summary (flex) — which retires the UA ::marker
+   triangle — so the card carries an EXPLICIT affordance instead: an amber mono '+'
+   after the figure, flipping to '−' when the card is open. order:4 slots the glyph
+   after .fleet-apr-mark; the flagship's .fleet-meta steps to order:5 so its 100%
+   basis still wraps to its own line (without the swap the ::after strands alone on
+   a third line). Flagship-only: the rendered books keep their own row grammar. */
+.fleet-card--flagship > summary { list-style: none; } /* belt-and-braces: flex already retires the marker in modern engines */
+.fleet-card--flagship > summary::after {
+  content: '+';
+  order: 4;
+  flex: 0 0 auto;
+  color: var(--accent-text);
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: var(--step-3);
+  line-height: 1;
+}
+.fleet-card--flagship[open] > summary::after { content: '−'; }
+.fleet-card--flagship > summary .fleet-meta { order: 5; }
+/* G3 SECTION-IMPROVE (2026-09-08): the deposit section nests INSIDE the flagship
+   detail — the page-level section chrome (64/48 wrap verticals + the hard 2px band
+   boundary) would double-pad the disclosure and draw a divider inside the card.
+   Scope-down: trim the wrap to the detail's own rhythm, drop the boundary; the
+   '03' index head stays. CASCADE NOTE: this is an OVERRIDE, not a removal — the
+   (g)-pinned hard-boundary rule at :423 (the 2px bottom rule on section.block)
+   remains in source, so the (g) count (11) is unchanged by this rule. The exact
+   pinned literal is deliberately NOT restated here: the (g) counter reads raw
+   css text INCLUDING comments, so quoting it in prose would add a phantom
+   occurrence and trip the register. */
+#fleet .fleet-detail section.block { border-bottom: 0; }
+#fleet .fleet-detail section.block .wrap { padding: var(--space-16) var(--space-0); }
 .fleet-poolid { display: block; font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); overflow-wrap: anywhere; } /* THE long-hex line: anywhere is what keeps 390px scroll-free */
 .fleet-note { margin: var(--space-8) 0 0; font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); } /* the provenance window, verbatim, step-1 mono */
 .fleet-unavailable { margin: 0; border: 1px dashed var(--line); padding: var(--space-12) var(--space-14); font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); } /* the unavailable state is DESIGNED, not an error: — + muted prose + dashed hairline */
@@ -1835,15 +1922,21 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 }
 
 /* ---- movement (a)'s ONE live hero stat ----
-   Huge tabular mono number + muted label; the provenance window rides muted.
-   The unavailable register (static '—' pre-JS, or a failed feed) adds the dashed
-   hairline — detected via the window span being :empty (progressive :has; an
-   engine without it still shows the honest '—', just without the hairline). */
+   Huge tabular mono number + muted label. SECTION-IMPROVE G1 #6 (2026-09-08):
+   the raw provenance window string ("05 win key …") no longer renders here —
+   provenance stays in the fleet surface tooltip/detail; the window span stays
+   in the markup (render.test.js pins the three ids) but is never written.
+   The unavailable register (static '—' pre-JS, or a failed feed) adds the
+   dashed hairline via a JS-TOGGLED class (#hero-stat carries it statically
+   for no-JS; renderHeroStat removes it when a summary lands, re-adds it on
+   the null path) — the old :has(:empty) detector would match forever now
+   that the span is permanently empty, pinning the dashed band onto the live
+   state. */
 #hero-stat { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); margin: var(--space-24) 0 var(--space-16); }
 .hero-stat-num { font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-7); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink); } /* WS5-DOTO: the hero's one live figure joins the dot-matrix number register; size/color/tabular-nums untouched */
 .hero-stat-label { font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
-.hero-stat-window { font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); } /* the window line, muted */
-#hero-stat:has(#hero-stat-window:empty) { border: 1px dashed var(--line); padding: var(--space-12) var(--space-14); } /* unavailable = dashed hairline + the '—' (WS5-TREATMENT static state styling) */
+.hero-stat-window { font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); } /* the window line, muted (span kept for the render pins; never written — provenance lives in the fleet surface) */
+#hero-stat.hero-stat--unavailable { border: 1px dashed var(--line); padding: var(--space-12) var(--space-14); } /* unavailable = dashed hairline + the '—' (WS5-TREATMENT static state styling; class toggled by js/main.js renderHeroStat) */
 
 /* ---- movement (c): the plug-in cards + the vanish disclosure ----
    The two skill pointers become card-like tap zones (one link each, whole-card
@@ -1983,6 +2076,7 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 }
 .fleet-filter:hover { color: var(--ink); border-color: var(--ink-soft); }
 .fleet-filter.is-active { color: var(--accent-text); border-color: var(--accent-text); font-weight: 700; }
+.fleet-filter-count { color: var(--ink-soft); margin-left: var(--space-4); } /* G4 #4 (2026-09-08): the chip census, filled by the renderer from WS.fleet.summary() — fail-closed (no summary, no count); stays muted even on the active chip: the amber is the selection, the count is data */
 
 /* ---- the Doto register class the §1 contract carries on measured figures
    (.fc-metric-value.doto): the machine face for the machine truth. */
@@ -2046,13 +2140,29 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 @media (min-width: 641px) and (pointer: fine) {
   .ft-actions .ft-copy, .ft-actions .ft-details { min-height: 0; padding: var(--space-4) var(--space-10); } /* the R1 compact chip — fine pointers only; the 44px zone holds everywhere else */
 }
-/* Narrow-desktop column diet: IL + age render '—' today, so below the full
-   wrap width they step aside (the sheet/detail surface carries the full
-   record). Presentation-layer only — the DOM contract is untouched. */
-@media (min-width: 641px) and (max-width: 819px) {
+/* DECISION-2 (SECTION-IMPROVE G4 #3, 2026-09-08): the IL + age diet is
+   UNBOUNDED — the columns render '—' until the feed carries the figures, so
+   they step aside at EVERY table width (the colophon under the table says
+   so). Presentation-layer only — the cells are still emitted; the DOM
+   contract is untouched. The narrow-band padding trim stays scoped to its
+   original band (it belongs to the narrow fit, not to the diet). */
+@media (min-width: 641px) {
   .fleet-table thead th:nth-child(6), .fleet-table tbody td:nth-child(6),
   .fleet-table thead th:nth-child(7), .fleet-table tbody td:nth-child(7) { display: none; }
+}
+@media (min-width: 641px) and (max-width: 819px) {
   .fleet-table th, .fleet-table td { padding-inline: var(--space-6); }
+}
+
+/* G4 #7 (2026-09-08): the terminal register — the header row stays readable
+   while the 95-book table scrolls. top clears the sticky site header,
+   measured from the live render (74px single-row nav; the 641-758 band's
+   nav wraps → 108.14px, same probe method as the P3 scroll-margin work).
+   z-index 5: under the sticky header (10), the mobile sheet (60) and the
+   copy toast (200). */
+.fleet-table thead th { position: sticky; top: 74px; background: var(--paper); z-index: 5; }
+@media (min-width: 641px) and (max-width: 758px) {
+  .fleet-table thead th { top: 109px; }
 }
 
 /* ---- the card stack (R2 Snowball anatomy, ≤640px). Base grid; hidden
@@ -2099,11 +2209,16 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 .fleet-unavailable { margin: var(--space-16) 0 0; border: 1px dashed var(--line); padding: var(--space-12) var(--space-14); font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
 .fleet-unavailable p { margin: 0; }
 
+/* ---- the colophon (G4 #3 / DECISION-2, 2026-09-08): the honesty line for
+   the diet — table-surface only (the columns it explains exist ≥641). ---- */
+.fleet-colophon { display: none; margin: var(--space-8) 0 0; font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); }
+
 /* ---- the visibility switch: table ≥641, cards ≤640 (base grid above) ---- */
 @media (min-width: 641px) {
   .fleet-table { display: table; }
   .fleet-cards { display: none; }
   .fleet-sheet { margin: var(--space-16) 0 0; } /* desktop: the detail is an inline panel under the table */
+  .fleet-colophon { display: block; }
 }
 
 /* ---- mobile sheet + the metric rung-down (the .fleet-apr idiom: the
@@ -2122,6 +2237,13 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 }
 @media (max-width: 400px) {
   .fc-metric-value { font-size: var(--step-4); }
+}
+/* G4 #2 (2026-09-08): the label rung-down — 'FEE APR (2.8h)' wrapped and
+   broke the 3-metric baseline at 390. The label takes the --step-0 rung
+   (written justification at the token block), tightens its tracking and
+   holds one line; the VALUE above it is untouched. */
+@media (max-width: 640px) {
+  .fc-metric-label { font-size: var(--step-0); letter-spacing: .02em; white-space: nowrap; }
 }
 
 /* ============================================================
@@ -2171,8 +2293,8 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 
 /* ---- the flywheel lanes: burn vs treasury-junk. The bar is a TRACK —
    the fill rides transform: scaleX (compositor-only) and stays at 0
-   until a same-unit pair exists; the JS stamps data-empty + the
-   honest-title when the lanes' units differ. ---- */
+   until a counted-event pair exists; the JS stamps data-empty on the
+   fill AND the track + the honest-title whenever no pair has landed. ---- */
 .st-lane { padding: var(--space-10) 0; border-bottom: 1px solid var(--line); }
 .st-lane:first-of-type { padding-top: 0; }
 .st-lane:last-of-type { border-bottom: none; padding-bottom: 0; }
@@ -2189,15 +2311,33 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 .st-book .st-value { font-size: var(--step-5); }
 .st-book .st-sent { margin-top: var(--space-8); }
 
+/* ---- G5 STATS/FLYWHEEL (SECTION_IMPROVE 2026-09-08): the absence + pending
+   registers. The bars' empty state stamps data-empty on the TRACK: transparent
+   + 1px dashed = the absence idiom — the solid paper-2 track read as a filled
+   bar in light mode. 1px dashed only: the (g) hard-boundary register counts its
+   2px bottom-band rules at exactly 11 and must not move (this comment is worded
+   to avoid quoting the pinned byte string — a substring count sees comments). ---- */
+.st-bar[data-empty] { background: transparent; border: 1px dashed var(--line); }
+.st-pending-chip { display: inline-block; margin-left: var(--space-6); padding: 0 var(--space-6); border: 1px dashed var(--line); background: var(--paper-pending); color: var(--ink-soft); }
+.st-pending-chip[hidden], .st-pending-line[hidden] { display: none; } /* the JS clears the register on live/error — an inline-block chip would out-rank the UA [hidden] rule */
+.st-pending-line { margin: var(--space-6) 0 0; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+.st-unit.is-pending { opacity: .55; } /* the windowed unit greys while pending/error; no new color — the existing ink-soft dims */
+.st-streams { margin-top: var(--space-16); max-width: var(--measure-copy); }
+.st-stream { margin: 0; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+.st-stream + .st-stream { margin-top: var(--space-6); }
+.st-stream-name { color: var(--ink); }
+.st-census-head { margin-top: var(--space-16); }
+.st-census-head .st-sent { margin-top: var(--space-4); }
+.st-census-link { margin: var(--space-4) 0 0; font-family: var(--mono); font-size: var(--step-2); }
+
 /* ---- the footer live proof strip (every page). Footer-band tokens
    (--footer-muted/-faint carry the measured AA pairs); the numerals
    take the accent-text register — the strip is the page's one amber
    proof moment. ---- */
 .lc-strip { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-8) var(--space-12); border: 1px solid var(--line); background: var(--paper-2); padding: var(--space-10) var(--space-12); margin-bottom: var(--space-20); min-width: 0; }
 .lc-item { display: inline-flex; align-items: baseline; gap: var(--space-6); min-width: 0; }
-.lc-num { font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-variant-numeric: tabular-nums; font-size: var(--step-4); color: var(--accent-text); overflow-wrap: anywhere; }
-.lc-label { font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: lowercase; color: var(--footer-muted); }
-.lc-sep { font-family: var(--mono); color: var(--footer-faint); }
+.lc-num { font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-variant-numeric: tabular-nums; font-size: var(--step-5); color: var(--accent-text); overflow-wrap: anywhere; } /* SECTION-IMPROVE G1 #5 (2026-09-08): the footer counters step up one role — step-4 under-read against the labels */
+.lc-label { font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: lowercase; color: var(--footer-muted); } /* the .lc-sep rule retired with its two decorative '|' spans (G1 #5 — the strip's flex gap separates) */
 .lc-note { flex-basis: 100%; font-family: var(--mono); font-size: var(--step-1); color: var(--footer-faint); }
 
 /* ---- mobile: one column, the strip tightens ---- */

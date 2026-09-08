@@ -135,7 +135,10 @@
       'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:200;' +
       'margin:0;padding:12px 18px;background:var(--paper, #0A0E12);color:var(--ink, #EDE9DC);' +
       'border:2px solid var(--accent, #E8A33D);font-family:var(--mono, monospace);font-size:13px;' +
-      'letter-spacing:0.02em;white-space:nowrap;');
+      // G4 #1 (2026-09-08): white-space:nowrap with no width clamp rendered a
+      // 427px toast on a 390px viewport. The clamp keeps 16px gutters; the
+      // toast wraps as text (the copy never truncates).
+      'letter-spacing:0.02em;max-width:calc(100vw - 32px);white-space:normal;');
     d.body.appendChild(node);
     currentNode = node;
     if (pendingTimer) { clearTimeout(pendingTimer); }

@@ -48,7 +48,7 @@
   var FILTERS = { all: true, PAYS: true, HOOK: true, DEAD: true };
   var TIER_BADGE = { PAYS: 'PAYS-LPS', HOOK: 'HOOK-MONETIZED', DEAD: 'DEAD' };
   var TIER_BADGE_SUFFIX = { PAYS: ' · IN THE FLEET', HOOK: ' · LP EARNS 0', DEAD: ' · NO FEE STREAM' };
-  var COLUMN_COUNT = 8; // spine / pair / TVL / vol 24h / fee APR / IL / age / actions (G2's diet hides 6+7)
+  var COLUMN_COUNT = 8; // spine / pair / TVL / vol 24h / fee APR / IL / age / actions (the DECISION-2 diet hides 6+7 at ≥641 — cells still emitted)
 
   var currentFilter = 'all';
   var wired = false;
@@ -300,9 +300,33 @@
     if (!list.length) { appendEmptyState(tbody, cards); }
   }
 
+  // G4 #4 (2026-09-08): the chip census. Every count comes from
+  // WS.fleet.summary() — the same file-driven counts the page already
+  // trusts — and renders into a .fleet-filter-count span inside each chip.
+  // Fail-closed both ways: no summary → no counts (and any stale spans are
+  // removed), and a key the summary does not carry gets no span. Never a
+  // hardcoded universe figure.
+  var SUMMARY_COUNTS = { all: 'books', PAYS: 'paysLps', HOOK: 'hookMonetized', DEAD: 'dead' };
+  function renderCounts(summary) {
+    var surface = $('fleet-surface');
+    if (!surface || typeof surface.querySelectorAll !== 'function') { return; }
+    var chips = surface.querySelectorAll('.fleet-filter');
+    for (var i = 0; i < chips.length; i++) {
+      var btn = chips[i];
+      var stale = typeof btn.querySelector === 'function' ? btn.querySelector('.fleet-filter-count') : null;
+      if (stale && typeof stale.remove === 'function') { stale.remove(); }
+      var key = btn.getAttribute('data-filter');
+      var field = key !== null ? SUMMARY_COUNTS[key] : null;
+      var n = (summary && field && typeof summary[field] === 'number' && isFinite(summary[field]))
+        ? summary[field] : null;
+      if (n !== null) { btn.appendChild(el('span', 'fleet-filter-count', String(n))); }
+    }
+  }
+
   function renderAll() {
     var f = fleet();
     var summary = f && typeof f.summary === 'function' ? f.summary() : null;
+    renderCounts(summary); // fail-closed: no summary, no counts (stale spans cleared)
     if (!summary) { showUnavailable(); return; } // fail-closed: no load, fetch failure or invalid payload
     hideUnavailable();
     renderRows(currentFilter);
@@ -375,7 +399,12 @@
       if (prov.method) { node.appendChild(el('p', 'fleet-note', String(prov.method))); }
       if (prov.source) { node.appendChild(el('p', 'fleet-note', 'source: ' + prov.source)); }
     }
-    var ours = isOurs(book);
+    // G4 #5 (2026-09-08): the status WORD from the data layer (WS.fleet.isOurs
+    // returns 'LIVE'|'SEEDED'|'WINDING-DOWN' or null) — the boolean helper
+    // here rendered the literal 'ours status: true'. Dormant today (the
+    // census is 0); rider-tested both paths.
+    var fmod = fleet();
+    var ours = (fmod && typeof fmod.isOurs === 'function') ? fmod.isOurs(book) : null;
     if (ours) { node.appendChild(el('p', 'fleet-note', 'ours status: ' + ours)); }
     node.appendChild(el('h4', null, 'position params'));
     var pre = doc().createElement('pre');
@@ -425,6 +454,16 @@
     parent.appendChild(node);
   }
 
+  // G4 #6 (2026-09-08): the inline panel can open below the fold (the mobile
+  // card surface) — nudge it into view with the minimal scroll ('nearest':
+  // a visible panel does not move). Guarded — scroll is a nicety, never a
+  // failure path, and the test DOM stub does not implement scrollIntoView.
+  function scrollNearest(node) {
+    if (node && typeof node.scrollIntoView === 'function') {
+      try { node.scrollIntoView({ block: 'nearest' }); } catch (e) { /* no scroll, no harm */ }
+    }
+  }
+
   function openDetail(poolId) {
     var sheet = $('fleet-sheet');
     removeInlines();
@@ -450,16 +489,22 @@
       tr.className = 'ft-detail-row';
       var td = doc().createElement('td');
       td.setAttribute('colspan', '8'); // the §1 column count (spine..actions)
-      td.appendChild(buildDetail(book, f));
+      var rowDetail = buildDetail(book, f);
+      td.appendChild(rowDetail);
       tr.appendChild(td);
       insertAfter(row.parentNode, tr, row);
+      scrollNearest(rowDetail); // the visible surface's panel (the other is display:none — a no-op)
     } else if (sheet) {
       // no row surface to attach to: keep the detail reachable via the aside
       sheet.appendChild(buildDetail(book, f));
       sheet.hidden = false;
     }
     var card = childByPool($('fleet-cards'), poolId);
-    if (card && card.parentNode) { insertAfter(card.parentNode, buildDetail(book, f), card); }
+    if (card && card.parentNode) {
+      var cardDetail = buildDetail(book, f);
+      insertAfter(card.parentNode, cardDetail, card);
+      scrollNearest(cardDetail);
+    }
   }
 
   function closeSheet() {

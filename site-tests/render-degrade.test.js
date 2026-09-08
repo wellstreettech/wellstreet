@@ -154,3 +154,18 @@ test('degrade world: coverage + APR fallback fail honestly under total RPC failu
     'pool TVL unavailable — the dilution bar will not invent a denominator',
     'the dilution input states the missing denominator honestly');
 });
+
+// SECTION-IMPROVE G1 #6 rider (2026-09-08): the degrade world re-pin — the
+// unavailable register rides the JS-toggled class (WS.fleet is absent here, so
+// renderHeroStat's null-summary path runs at boot) and the raw provenance
+// window string never lands in #hero-stat-window.
+test('degrade world: the hero stat unavailable register is the toggled class and the window stays empty', async () => {
+  assert.strictEqual(REGISTRY['hero-stat-num'].textContent, '—',
+    'the hero stat renders the honest em-dash under total RPC failure');
+  assert.strictEqual(REGISTRY['hero-stat-label'].textContent, 'books measured — unavailable (feed)',
+    'the unavailable label renders the honest feed-failure clause');
+  assert.ok(REGISTRY['hero-stat'].classList.contains('hero-stat--unavailable'),
+    'the unavailable register is stamped as a class on #hero-stat');
+  assert.strictEqual(REGISTRY['hero-stat-window'].textContent, '',
+    'the raw window string is never written into #hero-stat-window');
+});

@@ -398,15 +398,18 @@
     // ------------------------------------------------------------------
     docs: {
       docsDir: '../docs/public',
+      // SECTION_IMPROVE G2 (2026-09-08): the first pane proves the thesis —
+      // 'Vaults for agents' (the agent-native surface) leads, 'Run it yourself'
+      // follows; the compliance/legal register moves behind the substance.
       index: [
-        { id: 'compliance',      title: 'Compliance posture',     file: 'compliance.md' },
-        { id: 'guarantees',      title: 'Contract guarantees',    file: 'guarantees.md' },
-        { id: 'not-guaranteed',  title: 'What is not guaranteed', file: 'not-guaranteed.md' },
-        { id: 'risk-disclosure', title: 'Risk disclosure',        file: 'risk-disclosure.md' },
+        { id: 'agent-vault-ops', title: 'Vaults for agents',      file: 'agent-vault-ops.md' },
         { id: 'run-it-yourself', title: 'Run it yourself',        file: 'run-it-yourself.md' },
         { id: 'methodology',     title: 'APR methodology',        file: 'methodology.md' },
-        { id: 'tokenomics',      title: 'Tokenomics',             file: 'tokenomics.md' },
-        { id: 'agent-vault-ops', title: 'Vaults for agents',      file: 'agent-vault-ops.md' }
+        { id: 'risk-disclosure', title: 'Risk disclosure',        file: 'risk-disclosure.md' },
+        { id: 'not-guaranteed',  title: 'What is not guaranteed', file: 'not-guaranteed.md' },
+        { id: 'guarantees',      title: 'Contract guarantees',    file: 'guarantees.md' },
+        { id: 'compliance',      title: 'Compliance posture',     file: 'compliance.md' },
+        { id: 'tokenomics',      title: 'Tokenomics',             file: 'tokenomics.md' }
       ]
     },
 

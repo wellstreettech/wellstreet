@@ -346,7 +346,12 @@ test('page renders fully from mocked live RPC data (serverless-clean)', async ()
   assert.ok(text.indexOf('SPY') !== -1, 'underlying symbol rendered');
 
   // live values from the mock
-  assert.ok(text.indexOf('chain 4663') !== -1, 'chain badge shows 4663');
+  // SECTION-IMPROVE G1 #9 re-pin (2026-09-08): the badge is MISMATCH-ONLY —
+  // the mock's eth_chainId returns 0x1237 (4663, the expected chain), so the
+  // match renders NOTHING (match-quiet; the old always-on amber flag retired
+  // with the amber budget, G1 #8).
+  assert.strictEqual(REGISTRY['chain-badge'].textContent, '',
+    'chain badge is match-quiet on the expected chain (mismatch-only render)');
   assert.ok(text.indexOf('$770.27') !== -1, 'Chainlink SPY price rendered, got: ' + text);
   assert.ok(text.indexOf('fee tier 0.05%') !== -1, 'pool fee tier (live) rendered');
   assert.ok(text.indexOf('TVL') !== -1, 'pool TVL rendered');
@@ -364,6 +369,21 @@ test('page renders fully from mocked live RPC data (serverless-clean)', async ()
   //  source label reads "live sampling unavailable")
   assert.ok(text.indexOf('live sampling unavailable') === -1, 'baseline fallback NOT used when live sampling works');
   assert.ok(/\d+\.\d+%/.test(text), 'a percentage figure is rendered');
+});
+
+// SECTION-IMPROVE G1 #6 rider (2026-09-08): the hero provenance window is
+// retired from #hero-stat-window (the raw "05 win key …" string never renders
+// there — provenance stays in the fleet surface tooltip/detail) and the
+// unavailable register is a JS-toggled class, not :has(:empty). This render
+// world loads neither fleet.js nor a feed, so the null-summary path runs.
+test('SECTION-IMPROVE G1 rider: hero window never written; unavailable register rides a JS-toggled class', async () => {
+  await settle(120);
+  assert.strictEqual(REGISTRY['hero-stat-num'].textContent, '—',
+    'the hero stat renders the honest em-dash with no feed');
+  assert.ok(REGISTRY['hero-stat'].classList.contains('hero-stat--unavailable'),
+    'the unavailable register is stamped as a class on #hero-stat');
+  assert.strictEqual(REGISTRY['hero-stat-window'].textContent, '',
+    'the raw window string is never written into #hero-stat-window');
 });
 
 test('docs tab renders the honest not-yet-published state (relative fetch path)', async () => {

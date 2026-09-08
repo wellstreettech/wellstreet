@@ -502,3 +502,64 @@ test('(h5) system-follow: the light ladder applies ONLY when data-theme is ABSEN
   assert.ok(/@media \(prefers-color-scheme: light\)[\s\S]*?html:not\(\[data-theme\]\) \.hero-field \{/.test(css),
     'the hero-field re-ink has the system-follow twin');
 });
+
+// ---------------- (i) G5 STATS/FLYWHEEL — absence + pending registers (2026-09-08) ----------------
+// SECTION_IMPROVE G5 additive slots (docs/internal/SECTION_IMPROVE_2026-09-08.md):
+//   the flywheel bars' empty state is the ABSENCE register (dashed transparent TRACK —
+//   the solid paper-2 track read as a filled bar in light mode); the pending register
+//   ships in the static paint and the live branch clears every piece of it; the books
+//   grid leads as 'the fleet census' with the feed-fed pay/pay-nothing split + the
+//   #fleet cross-link; the two-stream story is a labeled mini-list with byte-identical
+//   sentences. The (g) hard-boundary counts are RE-ASSERTED here UNCHANGED — the G5
+//   additions are 1px dashed hairlines and shorthand 1px borders, which never match
+//   the pinned strings (delta: +0 to every (g) count; rationale recorded in style.css).
+test('(i) G5 stats: absence register, pending dual-state, fleet census, stream list', () => {
+  // the absence register on the track — exact form, 1px dashed (never the 2px band register)
+  assert.ok(/\.st-bar\[data-empty\] \{ background: transparent; border: 1px dashed var\(--line\); \}/.test(css),
+    '.st-bar[data-empty] paints the absence idiom (transparent track + 1px dashed)');
+  // (g) re-pin, explicit: the G5 CSS adds ZERO sites to the frozen structure counts
+  assert.strictEqual(countOccurrences(css, 'border-bottom: 2px solid var(--line)'), 11,
+    '(g) unchanged: the 2px hard-boundary register stays at exactly 11');
+  assert.strictEqual(countOccurrences(css, 'repeating-linear-gradient'), 1,
+    '(g) unchanged: still exactly one repeating-linear-gradient (the halftone ledger lines)');
+  assert.strictEqual(countOccurrences(css, 'radial-gradient(circle, rgba(237, 233, 220, 0.055) 1px, transparent 1.2px)'), 1,
+    '(g) unchanged: the halftone dot grid still ships exactly once');
+  // the pending register ships in the static paint (the static state IS pending)
+  ['st-pending-chip-total', 'st-pending-chip-window', 'st-pending-line-total', 'st-pending-line-window', 'st-unit-window']
+    .forEach((id) => {
+      assert.ok(html.includes('id="' + id + '"'), 'the pending register id ships in index.html: ' + id);
+    });
+  assert.strictEqual(countOccurrences(html, "this will read the roamer's Burned events — replayable from the first sweep"), 2,
+    'the pending line ships on both burned cards');
+  assert.ok(html.includes('title="applies once the roamer is live"'),
+    'the toggle group carries the pending title in the static paint');
+  assert.ok(html.includes('<span class="st-unit is-pending" id="st-unit-window">'),
+    'the windowed unit line greys statically (is-pending), live clears it');
+  // dual-state: the live branch clears every pending affordance (grep the module)
+  const statsJs = fs.readFileSync(path.join(__dirname, '..', 'site', 'js', 'stats.js'), 'utf8');
+  assert.ok(statsJs.includes("setPendingRegister('live')"), 'the live branch clears the pending register');
+  assert.ok(statsJs.includes("setPendingRegister('pending')") && statsJs.includes("setPendingRegister('error')"),
+    'the pending and error states are wired through the same register');
+  assert.ok(statsJs.includes("classList.remove('is-pending')"), 'live clears the windowed unit grey');
+  assert.ok(statsJs.includes("group.removeAttribute('title')"), 'live clears the toggle title');
+  // the bars draw from COUNTED EVENTS (the null→count change)
+  assert.ok(statsJs.includes('laneShares(p.burnEvents, p.forwards)'),
+    'live bars render from the counted-event pair');
+  assert.ok(!statsJs.includes('laneShares(p.allTime, null)'), 'the pre-G5 null form is gone');
+  assert.ok(statsJs.includes("burnEvents = Array.isArray(logs) ? logs.length : null"),
+    'the Burned-event count rides the all-time read');
+  // fleet census + cross-link
+  assert.ok(html.includes('>the fleet census</span>'), "the books grid leads as 'the fleet census'");
+  assert.ok(html.includes('<a href="#fleet">the same census the fleet table is built on</a>'),
+    'the census cross-links the fleet table');
+  assert.ok(html.includes('id="st-census-split"'), 'the split line is feed-fed (st-census-split), never hardcoded');
+  // the two-stream mini-list: labels + byte-identical sentences
+  assert.ok(html.includes('<div class="st-streams">'), 'the stream list ships');
+  assert.ok(html.includes("Two streams. Zero dev take."), 'the ratified lead line survives byte-identical');
+  assert.ok(html.includes("<span class=\"st-stream-name\">to holders —</span> Trading fees route to holders through Pons' distributor.</p>"),
+    'stream line 1: label added, sentence byte-identical');
+  assert.ok(html.includes('<span class="st-stream-name">to the burn —</span> LP fees buy back and burn.</p>'),
+    'stream line 2: label added, sentence byte-identical');
+  assert.ok(html.includes('<span class="st-stream-name">$WELL —</span> the token that accrues the burn — launches on Pons.</p>'),
+    'stream line 3: the $WELL label carries the sentence opening byte-identically');
+});

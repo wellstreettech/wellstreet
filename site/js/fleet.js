@@ -86,15 +86,21 @@
     return r === undefined ? 9 : r; // not `|| 9` — HOOK's rank 0 is falsy
   }
 
+  // SECTION-IMPROVE G4 #8 (2026-09-08, DECISION-1): the tier order is
+  // untouched (TIER_RANK — HOOK-first stands); ONLY the within-tier key
+  // changed: tvlUsd DESCENDING (the fee key scattered same-pair duplicates
+  // across the tier), poolId ASC as the deterministic tie-break, and a tvl
+  // the source lacks sorts LAST — never first. The name stays (call sites
+  // and the wave docs pin it); the key is tvl.
   function byTierThenApr(a, b) {
     var r = tierRank(a.tier) - tierRank(b.tier);
     if (r !== 0) return r;
-    var fa = isNum(a.feeAprPct) ? a.feeAprPct : null;
-    var fb = isNum(b.feeAprPct) ? b.feeAprPct : null;
-    if (fa !== null || fb !== null) {
-      if (fa === null) return 1;  // figures the source lacks sort last — never first
-      if (fb === null) return -1;
-      if (fb !== fa) return fb - fa;
+    var ta = isNum(a.tvlUsd) ? a.tvlUsd : null;
+    var tb = isNum(b.tvlUsd) ? b.tvlUsd : null;
+    if (ta !== null || tb !== null) {
+      if (ta === null) return 1;  // figures the source lacks sort last — never first
+      if (tb === null) return -1;
+      if (tb !== ta) return tb - ta; // within the tier: TVL descending
     }
     if (a.poolId < b.poolId) return -1;
     if (a.poolId > b.poolId) return 1;

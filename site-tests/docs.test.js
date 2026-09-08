@@ -158,11 +158,14 @@ test('renderMarkdown handles null/undefined and CRLF line endings', () => {
 
 test('docs index lists exactly the 8 published docs', () => {
   assert.strictEqual(config.docs.index.length, 8);
+  // SECTION_IMPROVE G2 (2026-09-08): the order re-pin — the first pane proves the
+  // thesis ('Vaults for agents' leads, 'Run it yourself' follows; the compliance/
+  // legal register moves behind the substance). Same 8 members, new ratified order.
   assert.deepStrictEqual(
     config.docs.index.map(function (d) { return d.id; }),
-    ['compliance', 'guarantees', 'not-guaranteed',
-     'risk-disclosure', 'run-it-yourself', 'methodology', 'tokenomics',
-     'agent-vault-ops']
+    ['agent-vault-ops', 'run-it-yourself', 'methodology',
+     'risk-disclosure', 'not-guaranteed', 'guarantees', 'compliance',
+     'tokenomics']
   );
 });
 

@@ -340,6 +340,26 @@ test('MIRROR SITE-PATH RIDER: site/skills/wellstreet-vaults.md mirrors the canon
     'no fabricated absolute mirror URL in static markup (the mirror stays relative)');
 });
 
+// ---------------- CANONICAL SITE-PATH RIDER (SECTION_IMPROVE G2, 2026-09-08) ----------------
+// G2's rank-1 defect: the #agents pointer to skills/wellstreet-vaults/SKILL.md 404'd
+// on the served site (only the .md mirror existed under site/skills/). The fix makes
+// the canonical path RESOLVE: it ships a byte-exact served copy at
+// site/skills/wellstreet-vaults/SKILL.md — same re-copy-fresh-at-build-time
+// discipline as the .md mirror above — and the index pointer stays a RELATIVE href.
+// This rider fails loudly if the served canonical ever drifts from the repository
+// skill or the pointer disappears.
+test('CANONICAL SITE-PATH RIDER: site/skills/wellstreet-vaults/SKILL.md serves the canonical skill byte-for-byte (the #agents secondary pointer resolves)', () => {
+  const servedCanonical = path.join(SITE_DIR, 'skills', 'wellstreet-vaults', 'SKILL.md');
+  const canonicalPath = path.join(SITE_DIR, '..', 'skills', 'wellstreet-vaults', 'SKILL.md');
+  assert.ok(fs.existsSync(servedCanonical),
+    'site/skills/wellstreet-vaults/SKILL.md exists (the served canonical path)');
+  assert.strictEqual(fs.readFileSync(servedCanonical, 'utf8'), fs.readFileSync(canonicalPath, 'utf8'),
+    'served canonical bytes equal the repository SKILL.md byte-for-byte (re-copy fresh at build time)');
+  const indexHtml2 = fs.readFileSync(path.join(SITE_DIR, 'index.html'), 'utf8');
+  assert.ok(indexHtml2.indexOf('href="skills/wellstreet-vaults/SKILL.md"') !== -1,
+    'index.html carries the relative canonical href (the secondary pointer)');
+});
+
 // ---------------- ZERO-IMAGE RIDER (WS-DARK-DOTO, 2026-09-07) ----------------
 // RE-PINNED from the WS-OG-PERF COMPRESSED-KEEPER RIDER: the dot-matrix identity
 // ships ZERO bitmap resources — the keeper set, the canyon and the brand mark

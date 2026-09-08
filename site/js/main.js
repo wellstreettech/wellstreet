@@ -535,13 +535,19 @@
 
     if (primary) {
       // chain identity badge (one page-level badge, primary-scoped)
+      // SECTION-IMPROVE G1 #9 (2026-09-08): mismatch-only — fail-visible,
+      // match-quiet. The old always-on match flag carried the page's chrome
+      // amber dot (G1 #8 amber budget); a matching chain now renders nothing.
+      // aria-live (markup) is kept: a mismatch announce still reaches AT.
       try {
         var chainIdHex = await client.call('eth_chainId', []);
         var okChain = Number.parseInt(chainIdHex, 16) === cfg.chain.id;
         var badge = $('chain-badge');
         if (badge) {
           badge.textContent = '';
-          badge.appendChild(flagNode(okChain, 'chain ' + Number.parseInt(chainIdHex, 16) + (okChain ? ' (expected 4663)' : ' — UNEXPECTED, expected 4663')));
+          if (!okChain) {
+            badge.appendChild(flagNode(false, 'chain ' + Number.parseInt(chainIdHex, 16) + ' — UNEXPECTED, expected 4663'));
+          }
         }
       } catch (e) {
         var badge2 = $('chain-badge');
@@ -1118,6 +1124,52 @@
     if (first) { WS.docs.loadDoc(cfg, first, pane); }
   }
 
+  // ---------------- flagship disclosure opener (G3 SECTION-IMPROVE, 2026-09-08) ----------------
+  // #deposit lives INSIDE the flagship <details class="fleet-card--flagship"> —
+  // while the card is closed the section has no box, so the nav 'Deposit' anchor
+  // and a raw #deposit hash both dead-end (no scroll, and the scrollspy can never
+  // see the section to highlight it). Every navigation path opens any closed
+  // <details> ancestor FIRST, then lets the scroll happen: anchor clicks (capture
+  // phase — before the browser's default fragment scroll), hashchange, and the
+  // load-time hash. Widget ids and the summary's own toggle are untouched — this
+  // only ever OPENS a closed ancestor, never closes an open one.
+  function openAncestorDetails(node) {
+    var opened = false;
+    var d = node;
+    while (d && d !== document.body) {
+      if (d.nodeName === 'DETAILS' && !d.open) { d.open = true; opened = true; }
+      d = d.parentNode;
+    }
+    return opened;
+  }
+  function initDisclosureNav() {
+    if (typeof document === 'undefined' || !document.addEventListener) { return; }
+    document.addEventListener('click', function (ev) {
+      var a = ev.target && ev.target.closest ? ev.target.closest('a[href^="#"]') : null;
+      if (!a) { return; }
+      var id = (a.getAttribute('href') || '').slice(1);
+      if (!id) { return; }
+      var t = document.getElementById(id);
+      if (t) { openAncestorDetails(t); } // opens BEFORE the default fragment scroll runs
+    }, true);
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      window.addEventListener('hashchange', function () {
+        var id = (location.hash || '').slice(1);
+        var t = id && document.getElementById(id);
+        // rescroll only when WE opened something — the browser's own fragment
+        // scroll already ran (and missed the hidden box) before hashchange fired
+        if (t && openAncestorDetails(t) && typeof t.scrollIntoView === 'function') { t.scrollIntoView(); }
+      });
+    }
+    var h = (typeof location !== 'undefined') ? location.hash : '';
+    if (h && h.length > 1) {
+      var lt = document.getElementById(h.slice(1));
+      if (lt && openAncestorDetails(lt) && typeof lt.scrollIntoView === 'function') {
+        lt.scrollIntoView(); // the load-time fragment scroll already missed the hidden box — retarget now
+      }
+    }
+  }
+
   // ---------------- header scrollspy (R2): one .active anchor max ----------------
 
   function initScrollSpy() {
@@ -1239,19 +1291,26 @@
     var label = $('hero-stat-label');
     if (!num || !label) { return; }
     var win = $('hero-stat-window');
+    // SECTION-IMPROVE G1 #6 (2026-09-08): the unavailable register rides a
+    // JS-toggled class (index.html carries it statically for the no-JS paint) —
+    // the old :has(:empty) detector would match forever now that the window
+    // span is never written.
+    var stat = $('hero-stat');
     var summary = WS.fleet ? WS.fleet.summary() : null;
     if (!summary) {
       num.textContent = '—';
       label.textContent = 'books measured — unavailable (feed)';
-      if (win) { win.textContent = ''; }
+      if (win) { win.textContent = ''; } // NEVER written — the raw provenance window string stays in the fleet surface tooltip/detail
+      if (stat && stat.classList) { stat.classList.add('hero-stat--unavailable'); }
       return;
     }
+    if (stat && stat.classList) { stat.classList.remove('hero-stat--unavailable'); }
     num.textContent = String(summary.books);
     label.textContent = 'books measured — ' + summary.paysLps + ' pay LPs · ' +
       summary.hookMonetized + ' pay nothing';
-    // the provenance window, VERBATIM from the feed (WS5-SKELETON accessor)
-    var prov = WS.fleet.provenance ? WS.fleet.provenance() : null;
-    if (win) { win.textContent = (prov && prov.window) ? prov.window : ''; }
+    // SECTION-IMPROVE G1 #6: the raw provenance window ("05 win key …") retired
+    // from this surface — it stays verbatim in the fleet surface tooltip/detail.
+    if (win) { win.textContent = ''; }
   }
 
   function initFleet() {
@@ -1366,6 +1425,7 @@
     renderWidgetState();
 
     initDocs();
+    initDisclosureNav();  // G3 SECTION-IMPROVE: open the flagship disclosure before any #deposit navigation
     initScrollSpy();
     initTapeStrip();  // WS3-HEADER P4: writes the header tape strip's family rows from config
     initReveal();   // R3 IMP-3: after the cards render — arms .ws-reveal on section heads + the flagship card

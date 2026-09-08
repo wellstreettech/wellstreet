@@ -111,7 +111,7 @@
           <p class="hero-meta">every number is a raw RPC call<span class="hero-meta-dot"> ●</span><br>replay them yourself</p>
           <!-- WS-MESSAGING-V3 (2026-09-08): the fee-lane truth in five words —
                amber as TEXT here, never a second filled CTA. -->
-          <p class="hero-cut">THE PROTOCOL'S CUT: <span class="doto hero-cut-zero">ZERO</span></p>
+          <p class="hero-cut">THE PROTOCOL'S CUT: <span class="hero-cut-zero">ZERO</span></p>
           <div class="cta-row">
             <a class="cta-solid" href="#fleet">Open the Fleet</a>
           </div>
@@ -119,7 +119,12 @@
                same-origin feed. Static pre-JS is the honest unavailable state
                (em-dash); initFleet fills it and fails closed, never a
                fabricated zero. -->
-          <div id="hero-stat">
+          <!-- SECTION-IMPROVE G1 #6 (2026-09-08): the container carries the
+               unavailable class statically (no-JS keeps the dashed hairline);
+               js/main.js renderHeroStat removes it when a live summary lands.
+               The window span is never written — provenance lives in the
+               fleet surface. -->
+          <div id="hero-stat" class="hero-stat--unavailable">
             <span class="hero-stat-num" id="hero-stat-num">—</span>
             <span class="hero-stat-label" id="hero-stat-label">books measured</span>
             <span class="hero-stat-window" id="hero-stat-window"></span>
@@ -133,7 +138,12 @@
            (FLEET-UI-V2 follow-up 2026-09-08, user: lift it higher.) Card
            hrefs stay RELATIVE forever; only the repo pointer is repoUrl-
            upgraded by main.js the moment cfg.branding.repoUrl lands — it is
-           PENDING_IDENTITY until identity ops, never a fabricated URL). -->
+           PENDING_IDENTITY until identity ops, never a fabricated URL).
+           SECTION_IMPROVE G2 (2026-09-08): the WORKING link leads — the served
+           mirror is the primary pointer (the bare repo path 404'd in prod while
+           repoUrl is PENDING_IDENTITY); the canonical skill path follows as the
+           secondary pointer, now backed by a served byte-copy under
+           skills/wellstreet-vaults/ so BOTH hrefs resolve. -->
       <section class="block" id="agents">
         <div class="wrap">
           <div class="block-head">
@@ -144,10 +154,15 @@
           </div>
           <p class="block-sub">
             We press launch. Agents press everything. One skill file — any agent can operate this protocol. Same contracts. Same rules.
-            <a id="agents-skill-link" href="skills/wellstreet-vaults/SKILL.md">skills/wellstreet-vaults/SKILL.md</a>
-            — mirrored on this site at
             <a id="agents-skill-mirror-link" href="skills/wellstreet-vaults.md">skills/wellstreet-vaults.md</a>
+            — canonical source:
+            <a id="agents-skill-link" href="skills/wellstreet-vaults/SKILL.md">skills/wellstreet-vaults/SKILL.md</a>
           </p>
+          <ul class="agents-caps">
+            <li>Keyless reads: a 17-read cast battery covers totalAssets, share price, backing coverage, harvest history.</li>
+            <li>Writes fail closed: approvals go to pinned addresses only, depositsPaused() gates every deposit, exits price through previewRedeem immediately before the send.</li>
+            <li>Sourced reporting: every figure carries its window and formula chain — backward-looking, never a promise.</li>
+          </ul>
         </div>
       </section>
 
@@ -173,10 +188,10 @@
           </div>
           <p class="block-sub">
             <span id="vaults-launch-fact">The vault is on-chain — four contracts, verifiable at the addresses these cards read.</span>
-            The SPY book is winding down — redemptions stay open. The rest of the family is WAITING (DEPLOY-GATED) — nothing shows a yield figure until measured harvests exist.
+            The SPY book is winding down — redemptions stay open. The rest of the family is WAITING (DEPLOY-GATED) — nothing shows a yield figure until measured harvests exist. The flagship's figure is the one projection — every book below is measured.
           </p>
           <details class="fleet-card fleet-card--flagship">
-            <summary>
+            <summary class="fleet-summary">
               <span class="fleet-pair">ws-SPY</span>
               <span class="fleet-apr" id="fleet-flagship-apr">—</span>
               <span class="fleet-apr-mark">projected</span>
@@ -338,6 +353,11 @@
               </thead>
               <tbody id="fleet-tbody"></tbody>
             </table>
+            <!-- G4 #3 / DECISION-2 (2026-09-08): the il/age columns diet to
+                 '—' at every width until the feed carries the figures — this
+                 colophon is the honesty line for that absence. Cells are
+                 still emitted (the §1 DOM contract is untouched). -->
+            <p class="fleet-colophon">il + age render when the feed carries them</p>
             <div class="fleet-cards" id="fleet-cards"></div>
             <aside class="fleet-sheet" id="fleet-sheet" hidden></aside>
             <div class="fleet-unavailable" id="fleet-unavailable" hidden>
@@ -364,7 +384,7 @@
             <span class="index">04</span>
             <h2>Everything the protocol has burned</h2>
             <span class="spacer"></span>
-            <div class="st-toggle" role="group" aria-label="measurement window">
+            <div class="st-toggle" role="group" aria-label="measurement window" title="applies once the roamer is live">
               <button class="st-toggle-btn is-active" data-window="7" type="button">7d</button>
               <button class="st-toggle-btn" data-window="30" type="button">30d</button>
             </div>
@@ -373,47 +393,55 @@
             The burn ledger reads the roamer's sweepToBurn events straight from chain 4663 —
             every figure is an eth_getLogs your own browser ran, windowed and replayable.
           </p>
-          <!-- WS-MESSAGING-V3 (2026-09-08): the two-stream holder story + the
-               $WELL link, plain sentences, ratified fee-lane truth only. -->
-          <p class="block-sub">
-            Trading fees route to holders through Pons' distributor. LP fees buy back and burn.
-            Two streams. Zero dev take. $WELL — the token that accrues the burn — launches on Pons.
-          </p>
+          <!-- WS-MESSAGING-V3 (2026-09-08) → G5 restructure (SECTION_IMPROVE
+               2026-09-08): the two-stream holder story as a labeled mini-list;
+               sentences byte-identical to the ratified copy. -->
+          <div class="st-streams">
+            <span class="st-label">Two streams. Zero dev take.</span>
+            <p class="st-stream"><span class="st-stream-name">to holders —</span> Trading fees route to holders through Pons' distributor.</p>
+            <p class="st-stream"><span class="st-stream-name">to the burn —</span> LP fees buy back and burn.</p>
+            <p class="st-stream"><span class="st-stream-name">$WELL —</span> the token that accrues the burn — launches on Pons.</p>
+          </div>
           <div class="st-grid" aria-live="polite">
             <article class="st-card">
-              <span class="st-label">burned · all time</span>
+              <span class="st-label">burned · all time<span class="st-pending-chip" id="st-pending-chip-total">pending</span></span>
               <span class="st-value doto" id="st-burn-total" title="waiting for the first sweep — this figure reads Burned events from the roamer once it is live">—</span>
               <span class="st-unit">$WELL to the dead address</span>
               <p class="st-sent" id="st-burn-sent">waiting for the first sweep — this ledger lights up from the first burn</p>
+              <p class="st-pending-line" id="st-pending-line-total">this will read the roamer's Burned events — replayable from the first sweep</p>
             </article>
             <article class="st-card">
-              <span class="st-label" id="st-burn-window-label">burned · last 7 days</span>
+              <span class="st-label" id="st-burn-window-label">burned · last 7 days<span class="st-pending-chip" id="st-pending-chip-window">pending</span></span>
               <span class="st-value doto" id="st-burn-window" title="Burned events in the selected window — a range the node refuses renders unavailable, never an estimate">—</span>
-              <span class="st-unit">$WELL in the window</span>
+              <span class="st-unit is-pending" id="st-unit-window">$WELL in the window</span>
               <p class="st-sent">the window is block-derived from the chain's own measured block time — nothing here is sampled or extrapolated</p>
+              <p class="st-pending-line" id="st-pending-line-window">this will read the roamer's Burned events — replayable from the first sweep</p>
             </article>
             <article class="st-card st-card--wide">
               <span class="st-label">flywheel</span>
               <div class="st-lane">
                 <span class="st-lane-name">burn lane</span>
                 <span class="st-lane-value" id="st-lane-burn-value">—</span>
-                <span class="st-bar" role="img" aria-label="share of the sweep that reached the burn"><span class="st-bar-fill" id="st-lane-burn-bar"></span></span>
-                <p class="st-lane-sent">fees the roamer buys $WELL back with and sends to the burn address — replayable from Burned events</p>
+                <span class="st-bar" role="img" aria-label="share of counted events that reached the burn"><span class="st-bar-fill" id="st-lane-burn-bar"></span></span>
+                <p class="st-lane-sent">fees the roamer buys $WELL back with and sends to the burn address — the figure stays $WELL, the bar is counted in events</p>
               </div>
               <div class="st-lane">
                 <span class="st-lane-name">treasury lane</span>
                 <span class="st-lane-value" id="st-lane-treasury-value">—</span>
-                <span class="st-bar" role="img" aria-label="junk the sweep forwarded to the treasury"><span class="st-bar-fill" id="st-lane-treasury-bar"></span></span>
+                <span class="st-bar" role="img" aria-label="share of counted events forwarded to the treasury"><span class="st-bar-fill" id="st-lane-treasury-bar"></span></span>
                 <p class="st-lane-sent">raw-balance junk the sweep forwards to the treasury instead of the burn — counted in events, never summed into $WELL</p>
               </div>
             </article>
           </div>
+          <!-- G5 (SECTION_IMPROVE 2026-09-08): the books grid leads as 'the fleet
+               census' — the pay / pay-nothing split first (the black-hole truth,
+               feed-fed, never hardcoded), the cross-link points at the table. -->
+          <div class="st-census-head">
+            <span class="st-label">the fleet census</span>
+            <p class="st-sent" id="st-census-split" title="counts render from the fleet feed — windowed and sourced">—</p>
+            <p class="st-census-link"><a href="#fleet">the same census the fleet table is built on</a></p>
+          </div>
           <div class="st-books">
-            <article class="st-book">
-              <span class="st-label">books measured</span>
-              <span class="st-value doto" id="st-books-count" title="counts render from the fleet feed — windowed and sourced">—</span>
-              <p class="st-sent" id="st-books-count-sent">every book in the fleet feed, measured by replaying real swaps</p>
-            </article>
             <article class="st-book">
               <span class="st-label">paying LPs</span>
               <span class="st-value doto" id="st-books-pays" title="counts render from the fleet feed — windowed and sourced">—</span>
@@ -423,6 +451,11 @@
               <span class="st-label">zero-fee books</span>
               <span class="st-value doto" id="st-books-hook" title="counts render from the fleet feed — windowed and sourced">—</span>
               <p class="st-sent" id="st-books-hook-sent">books where the fees flow to the hook — LPs earn zero — we measured</p>
+            </article>
+            <article class="st-book">
+              <span class="st-label">books measured</span>
+              <span class="st-value doto" id="st-books-count" title="counts render from the fleet feed — windowed and sourced">—</span>
+              <p class="st-sent" id="st-books-count-sent">every book in the fleet feed, measured by replaying real swaps</p>
             </article>
           </div>
         </div>
@@ -457,9 +490,7 @@
              figure, never a fake zero. -->
         <div class="lc-strip" id="live-counters" title="waiting for the first sweep — this strip updates from on-chain events">
           <span class="lc-item"><span class="lc-num doto" id="lc-books">—</span><span class="lc-label">books measured</span></span>
-          <span class="lc-sep" aria-hidden="true">|</span>
           <span class="lc-item"><span class="lc-num doto" id="lc-burned">—</span><span class="lc-label">$WELL burned</span></span>
-          <span class="lc-sep" aria-hidden="true">|</span>
           <span class="lc-item"><span class="lc-num doto" id="lc-fees">—</span><span class="lc-label">fees routed</span></span>
           <span class="lc-note" id="lc-note">waiting for the first sweep — this strip updates from on-chain events</span>
         </div>

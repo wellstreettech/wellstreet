@@ -79,7 +79,7 @@ function makeEl(tag) {
     tagName: String(tag || 'div').toUpperCase(),
     children: [], attrs: {}, listeners: {}, parentNode: null,
     className: '', _text: '', innerHTML: '', hidden: false, disabled: false,
-    value: '', title: '', href: '', target: '', rel: '',
+    value: '', title: '', href: '', target: '', rel: '', _scrolls: [],
     get textContent() { return this._text; },
     set textContent(v) { this._text = String(v == null ? '' : v); this.children = []; },
     appendChild(c) { this.children.push(c); c.parentNode = this; return c; },
@@ -106,6 +106,9 @@ function makeEl(tag) {
     addEventListener(t, fn) { (this.listeners[t] = this.listeners[t] || []).push(fn); },
     querySelector(sel) { return collect(this, sel, [])[0] || null; },
     querySelectorAll(sel) { return collect(this, sel, []); },
+    // G4 #6 rider: the stub records scroll intents instead of scrolling —
+    // real browsers run the minimal 'nearest' scroll on the visible surface.
+    scrollIntoView(opts) { el._scrolls.push(opts || null); },
     classList: null
   };
   el.classList = {
@@ -681,4 +684,139 @@ test('the seam is same-origin only, UMD-exported, and carries the §3 literals v
   const src2 = fs.readFileSync(FLEET_TABLE_JS_PATH, 'utf8');
   assert.strictEqual(src2.indexOf('http://'), -1, 'fleet-table.js must not reference an absolute origin');
   assert.strictEqual(src2.indexOf('https://'), -1, 'fleet-table.js must not reference an absolute origin');
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// G4 SECTION-IMPROVE RIDERS (2026-09-08, docs/internal/SECTION_IMPROVE_
+// 2026-09-08.md) — the surface defects the audit wave pins at unit level.
+// The real-DOM probes (toast scrollWidth at 390, sticky thead, the 3-metric
+// baseline screenshot) are MAIN-SESSION (post-wave re-crawl); these riders
+// pin the contracts the units can see: the style string, the file-driven
+// counts, the status word, the scroll intent, the source rules.
+// ════════════════════════════════════════════════════════════════════════
+
+test('G4 #1: the copy toast clamps to the viewport and wraps — the 427px-on-390 overflow stays dead', async () => {
+  // source pins: the clamp and the wrap live IN the inline style string
+  const src = fs.readFileSync(COPY_POSITION_JS_PATH, 'utf8');
+  assert.ok(src.indexOf('max-width:calc(100vw - 32px)') !== -1, 'the toast clamps to the viewport minus 16px gutters');
+  assert.ok(src.indexOf("white-space:normal;');") !== -1, 'the toast style ends in the wrap, not nowrap');
+  // live: a real toast node carries both properties (the scrollWidth<=innerWidth
+  // probe at 390 is MAIN-SESSION — here the unit contract is the style string)
+  installSurface();
+  serveFeed(feed);
+  fleetTable.init();
+  copyPosition.init();
+  await settle(150);
+  const b = feed.books.find(function (x) { return x.tier === 'PAYS'; });
+  const btn = collect(rowsByPool().get(b.poolId), '[data-copy-position]')[0];
+  stubNavigator({ clipboard: { writeText: function () { return Promise.resolve('ok'); } } });
+  try {
+    click(btn, global.document.body);
+    await settle(20);
+    const toasts = toastsOn(global.document.body);
+    assert.strictEqual(toasts.length, 1, 'one toast');
+    const style = toasts[0].getAttribute('style');
+    assert.ok(style.indexOf('max-width:calc(100vw - 32px)') !== -1, 'the live toast carries the clamp');
+    assert.ok(style.indexOf('white-space:normal') !== -1, 'the live toast carries the wrap');
+    assert.strictEqual(style.indexOf('white-space:nowrap'), -1, 'the live toast carries no nowrap');
+  } finally {
+    restoreNavigator();
+  }
+});
+
+test('G4 #4: the filter chips carry their counts from WS.fleet.summary() — fail-closed: no summary, no counts', async () => {
+  // (a) a valid feed fills every chip from the file's own summary
+  installSurface();
+  serveFeed(feed);
+  fleetTable.init();
+  await settle(150);
+  const chips = collect(REGISTRY['fleet-surface'], '.fleet-filter');
+  assert.strictEqual(chips.length, 4, 'the §1 chips are present');
+  const expected = {
+    all: feed.summary.books,
+    PAYS: feed.summary.paysLps,
+    HOOK: feed.summary.hookMonetized,
+    DEAD: feed.summary.dead
+  };
+  for (const chip of chips) {
+    const key = chip.getAttribute('data-filter');
+    const spans = collect(chip, '.fleet-filter-count');
+    assert.strictEqual(spans.length, 1, 'chip ' + key + ' carries exactly one count span');
+    assert.strictEqual(spans[0].textContent, String(expected[key]),
+      'the ' + key + ' count is the file-driven summary figure');
+  }
+  // the counts are the books recount — never a hardcoded universe figure
+  const recount = { all: feed.books.length, PAYS: 0, HOOK: 0, DEAD: 0 };
+  for (const b of feed.books) { recount[b.tier] += 1; }
+  assert.deepStrictEqual(expected, recount, 'the chip counts equal the books recount');
+
+  // (b) an invalid payload → the unavailable state and NO counts anywhere
+  installSurface();
+  serveFeed({ books: 'garbage' });
+  fleetTable.init();
+  await settle(150);
+  assert.strictEqual(REGISTRY['fleet-unavailable'].hidden, false, 'the unavailable state shows');
+  assert.strictEqual(collect(REGISTRY['fleet-surface'], '.fleet-filter-count').length, 0,
+    'no summary, no counts — a stale span would lie');
+});
+
+test('G4 #5: the detail\'s ours line renders the feed status WORD, never a boolean — both paths', async () => {
+  const mutated = JSON.parse(JSON.stringify(feed));
+  mutated.books[0].ours = { pair: mutated.books[0].pair, status: 'SEEDED' };
+  mutated.summary.ours = 1; // keep the injected feed self-consistent
+  installSurface();
+  serveFeed(mutated);
+  fleetTable.init();
+  await settle(150);
+  // (1) a tagged book: the status word renders
+  fleetTable.openDetail(mutated.books[0].poolId);
+  let inl = collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline');
+  assert.strictEqual(inl.length, 1, 'the row detail opened');
+  const text = allText(inl[0]).join(' | ');
+  assert.ok(text.indexOf('ours status: SEEDED') !== -1, 'the status word renders');
+  assert.strictEqual(text.indexOf('ours status: true'), -1, 'the boolean literal is dead');
+  // (2) an untagged book: no ours line at all
+  fleetTable.openDetail(mutated.books[1].poolId);
+  inl = collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline');
+  assert.strictEqual(allText(inl[0]).join(' | ').indexOf('ours status'), -1,
+    'an untagged book renders no ours line');
+});
+
+test('G4 #6: opening an inline detail nudges it into view (scrollIntoView block:nearest); re-opening stays idempotent — never a toggle', async () => {
+  installSurface();
+  serveFeed(feed);
+  fleetTable.init();
+  await settle(150);
+  const b = feed.books[0];
+  fleetTable.openDetail(b.poolId);
+  let inl = collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline')
+    .concat(collect(REGISTRY['fleet-cards'], '.fleet-sheet-inline'));
+  assert.strictEqual(inl.length, 2, 'both inline surfaces carry the detail');
+  for (const node of inl) {
+    assert.deepStrictEqual(node._scrolls, [{ block: 'nearest' }],
+      'the inline detail scrolled minimally into view');
+  }
+  // re-open (the seam's delegated double-call is by design): an idempotent
+  // rebuild — the same detail nodes return with the same scroll, nothing closes
+  fleetTable.openDetail(b.poolId);
+  inl = collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline')
+    .concat(collect(REGISTRY['fleet-cards'], '.fleet-sheet-inline'));
+  assert.strictEqual(inl.length, 2, 'a re-open rebuilds, never toggles');
+  for (const node of inl) {
+    assert.deepStrictEqual(node._scrolls, [{ block: 'nearest' }],
+      'the rebuilt detail re-fires the minimal scroll');
+  }
+});
+
+test('G4 #2/#3: the ≤640 metric-label rung holds the 3-metric baseline; the il/age diet is unbounded with its colophon', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'site', 'css', 'style.css'), 'utf8');
+  assert.ok(css.indexOf('.fc-metric-label { font-size: var(--step-0); letter-spacing: .02em; white-space: nowrap; }') !== -1,
+    'the ≤640 label rule exists (rung-down + tight tracking + one line)');
+  assert.ok(css.indexOf('--step-0:') !== -1, 'the sub-micro rung is defined (written justification at the token block)');
+  // DECISION-2: the column hide is unbounded — no max-width cap on the diet
+  assert.ok(/@media \(min-width: 641px\) \{\n  \.fleet-table thead th:nth-child\(6\)/.test(css),
+    'the il/age hide runs at every table width');
+  const html = fs.readFileSync(path.join(ROOT, 'site', 'index.html'), 'utf8');
+  assert.ok(html.indexOf('il + age render when the feed carries them') !== -1, 'the colophon renders under the table');
+  assert.ok(html.indexOf('class="fleet-colophon"') !== -1, 'the colophon rides the honesty register');
 });

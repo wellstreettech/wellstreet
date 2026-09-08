@@ -247,7 +247,7 @@ test('fail-closed: fetch failure, non-ok response and invalid payload all yield 
   }
 });
 
-test('rows(): HOOK books render first-class, unknown tiers fail closed to [], null fees sort last within a tier', async () => {
+test('rows(): HOOK books render first-class, unknown tiers fail closed to [], null tvl sorts last within a tier (DECISION-1: the within-tier key is tvlUsd desc)', async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = function () {
     return Promise.resolve({ ok: true, json: function () { return Promise.resolve(readFeed()); } });
@@ -258,19 +258,19 @@ test('rows(): HOOK books render first-class, unknown tiers fail closed to [], nu
     const rank = { HOOK: 0, PAYS: 1, DEAD: 2 };
     let lastRank = -1;
     const nullSeen = {};
-    const lastFeeSeen = {};
+    const lastTvlSeen = {};
     for (const b of all) {
       const r = rank[b.tier];
       assert.ok(r >= lastRank, 'tier order must be HOOK → PAYS → DEAD');
       lastRank = r;
-      if (b.feeAprPct === null) {
+      if (b.tvlUsd === null) {
         nullSeen[b.tier] = true;
       } else {
-        assert.ok(!nullSeen[b.tier], 'within a tier, null fees sort last — never before a measured figure');
-        if (lastFeeSeen[b.tier] !== undefined) {
-          assert.ok(b.feeAprPct <= lastFeeSeen[b.tier], 'within a tier, measured fees sort descending');
+        assert.ok(!nullSeen[b.tier], 'within a tier, null tvl sorts last — never before a measured figure');
+        if (lastTvlSeen[b.tier] !== undefined) {
+          assert.ok(b.tvlUsd <= lastTvlSeen[b.tier], 'within a tier, tvl sorts descending (DECISION-1, 2026-09-08)');
         }
-        lastFeeSeen[b.tier] = b.feeAprPct;
+        lastTvlSeen[b.tier] = b.tvlUsd;
       }
     }
     const hooks = fleet.rows('HOOK');
@@ -278,9 +278,48 @@ test('rows(): HOOK books render first-class, unknown tiers fail closed to [], nu
     for (const b of hooks) assert.strictEqual(b.tier, 'HOOK');
     assert.deepStrictEqual(fleet.rows('NOT-A-TIER'), []);
     const pays = fleet.rows('PAYS');
-    assert.strictEqual(pays[pays.length - 1].feeAprPct, null, 'the one source-less APR sorts last');
+    const measuredPaysTvl = readFeed().books
+      .filter((b) => b.tier === 'PAYS' && b.tvlUsd !== null)
+      .map((b) => b.tvlUsd);
+    assert.strictEqual(pays[pays.length - 1].tvlUsd, Math.min(...measuredPaysTvl),
+      'the smallest measured TVL sorts last within the tier (the old fee key is gone)');
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test('DECISION-1 tie-breaks (synthetic feed): equal tvl orders poolId ascending; a null tvl sorts last within its tier', async () => {
+  const originalFetch = globalThis.fetch;
+  const mutated = JSON.parse(JSON.stringify(readFeed()));
+  const paysBooks = mutated.books.filter((b) => b.tier === 'PAYS');
+  assert.ok(paysBooks.length >= 2, 'the feed exercises the tie-break');
+  paysBooks[0].tvlUsd = 5000;
+  paysBooks[1].tvlUsd = 5000; // an exact tie — the fee key used to scatter these
+  const hookBook = mutated.books.find((b) => b.tier === 'HOOK');
+  hookBook.tvlUsd = null;     // a figure the source lacks — last, never first
+  globalThis.fetch = function () {
+    return Promise.resolve({ ok: true, json: function () { return Promise.resolve(mutated); } });
+  };
+  try {
+    await new Promise((resolve) => fleet.load(resolve));
+    const all = fleet.rows();
+    const posA = all.findIndex((b) => b.poolId === paysBooks[0].poolId);
+    const posB = all.findIndex((b) => b.poolId === paysBooks[1].poolId);
+    assert.ok(posA !== -1 && posB !== -1);
+    const firstId = all[Math.min(posA, posB)].poolId;
+    assert.strictEqual(firstId, paysBooks[0].poolId < paysBooks[1].poolId ? paysBooks[0].poolId : paysBooks[1].poolId,
+      'equal tvl ties order poolId ascending (deterministic — no hex scatter)');
+    const hooks = all.filter((b) => b.tier === 'HOOK');
+    assert.strictEqual(hooks[hooks.length - 1].poolId, hookBook.poolId,
+      'the null-tvl book sorts last within its tier');
+    assert.ok(hooks.slice(0, -1).every((b) => b.tvlUsd !== null), 'no measured book sits behind a null');
+  } finally {
+    globalThis.fetch = originalFetch;
+    // restore the real feed so later reads of this module see the file's order
+    globalThis.fetch = function () {
+      return Promise.resolve({ ok: true, json: function () { return Promise.resolve(readFeed()); } });
+    };
+    await new Promise((resolve) => fleet.load(resolve));
   }
 });
 
