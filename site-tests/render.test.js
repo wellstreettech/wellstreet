@@ -141,6 +141,15 @@ global.document = {
 // + WS-DARK-DOTO (2026-09-07) registry rewrite: asset-magnify is OUT — the docs
 // keeper img is deleted outright with the zero-image identity (no rule, no markup,
 // no JS query), so the registry drops the id with its surface.
+// + FLEET-UI-V2 G1 (2026-09-07) registry add -> the §1 fleet surface ids
+// (fleet-surface + fleet-table + fleet-tbody + fleet-cards + fleet-sheet +
+// fleet-unavailable; all six static in index.html, five queried by
+// js/fleet-table.js); fleet-books is RETIRED outright with its v1 renderer
+// and drops out of the registry with its surface (the WS5-SKELETON precedent).
+// NOTE: the G3 stats ids are deliberately NOT here — js/stats.js routes every
+// lookup through variable-mediated helpers (setCell/setSent/setBar + a
+// SECTION_ID const), so the query-surface regexes extract nothing from it and
+// no registry requirement arises; the registry rider belongs to G4 (brief §5).
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
@@ -151,7 +160,9 @@ global.document = {
  'wallet-picker',
  'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
  'hero-stat', 'hero-stat-num', 'hero-stat-label', 'hero-stat-window',
- 'fleet-books', 'fleet-flagship-apr', 'fleet-vault-reads', 'fleet-coverage'
+ 'fleet-flagship-apr', 'fleet-vault-reads', 'fleet-coverage',
+ 'fleet-surface', 'fleet-table', 'fleet-tbody', 'fleet-cards', 'fleet-sheet',
+ 'fleet-unavailable'
 ].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');
@@ -466,24 +477,29 @@ test('STRATTON-LEDGER-CARD: the coverage seam renders the live read under the de
 // -------- WS5-SKELETON pass-2 (2026-09-07: fleet render wipe-safety) --------
 // Pass-1 FATAL (caught in review, 2026-09-07): the static flagship fleet card —
 // hosting the ENTIRE #deposit widget, the #fleet-coverage seam and
-// #fleet-vault-reads — was nested INSIDE #fleet-books, and main.js's
-// renderFleetBooks() wipes that span wholesale via box.textContent='' on BOTH
-// the success and the fail-closed path (WS.fleet.load fires its callback either
+// #fleet-vault-reads — was nested INSIDE the fleet render mount, and the
+// renderer wipes its mounts wholesale via mount.textContent='' on BOTH the
+// success and the fail-closed path (WS.fleet.load fires its callback either
 // way). The suite stayed green because this file's stub registry is FLAT (the
 // real parent/child nesting is reproduced nowhere), so the wipe cleared an
 // empty stub node while the real page lost the widget, the seam, the reads and
 // the nav's #deposit anchor in every JS-enabled browser. The invariant below is
 // pinned against the REAL index.html bytes — the flat stub cannot go blind to
 // it again: the wipe target hosts NO static flagship content, ever.
+// RE-PINNED 2026-09-07 (FLEET-UI-V2 G1): the render mount is the §1 surface
+// skeleton now (the v1 mount is retired outright with its renderer); the
+// mounts the v2 renderer wipes are #fleet-tbody + #fleet-cards, children of
+// the surface — the same invariant, same real-bytes pin.
 
-test('WS5-SKELETON wipe-safety: the flagship fleet card lives OUTSIDE the #fleet-books render target (real bytes, not the flat stub)', () => {
+test('WS5-SKELETON wipe-safety: the flagship fleet card lives OUTSIDE the fleet render surface (real bytes, not the flat stub)', () => {
   const fs3 = require('node:fs');
   const path3 = require('node:path');
   const html3 = fs3.readFileSync(path3.join(__dirname, '..', 'site', 'index.html'), 'utf8');
-  const open = html3.indexOf('<div id="fleet-books">');
-  assert.ok(open !== -1, '#fleet-books render target present');
-  // balanced-div walk from the opening tag to its matching close (the span must
-  // stay free of static content; the walk survives benign future nesting)
+  const open = html3.indexOf('<div id="fleet-surface"');
+  assert.ok(open !== -1, '#fleet-surface render target present');
+  // balanced-div walk from the opening tag to its matching close (the surface
+  // must stay free of static flagship content; the walk survives benign future
+  // nesting)
   let depth = 0;
   let close = -1;
   const re = /<\/?div\b/g;
@@ -493,7 +509,7 @@ test('WS5-SKELETON wipe-safety: the flagship fleet card lives OUTSIDE the #fleet
     depth += (m[0] === '</div') ? -1 : 1;
     if (depth === 0) { close = re.lastIndex; break; }
   }
-  assert.ok(close !== -1, '#fleet-books span closes');
+  assert.ok(close !== -1, '#fleet-surface span closes');
   const span = html3.slice(open, close);
   const markers = [
     'id="deposit"', 'id="fleet-coverage"', 'id="fleet-vault-reads"',
@@ -501,14 +517,14 @@ test('WS5-SKELETON wipe-safety: the flagship fleet card lives OUTSIDE the #fleet
   ];
   for (const marker of markers) {
     assert.strictEqual(span.indexOf(marker), -1,
-      'the wiped span hosts no static ' + marker + ' (pass-1 FATAL regression pin)');
+      'the wiped surface hosts no static ' + marker + ' (pass-1 FATAL regression pin)');
     assert.ok(html3.indexOf(marker) !== -1,
       marker + ' still present on the page (the pin must not be satisfiable by deletion)');
   }
   // document order: the static flagship precedes the render target it feeds
   const flagship = html3.indexOf('fleet-card--flagship');
   assert.ok(flagship !== -1 && flagship < open,
-    'the flagship card precedes #fleet-books (static flagship first, client-rendered books after)');
+    'the flagship card precedes the fleet surface (static flagship first, client-rendered books after)');
 });
 
 // -------- WS-ASSET-WIRE (2026-09-04) — RETIRED WS-DARK-DOTO (2026-09-07) --------
@@ -642,4 +658,69 @@ test('WS-VAULT-FAMILY-GRID source gate: per-entry config resolution, single cano
   assert.ok(src.indexOf('underlyingRow(u, vaultCfg)') !== -1, 'the underlying row resolves per entry');
   // the flagship mounts through the canonical accessor (WS5-SKELETON re-pin)
   assert.ok(src.indexOf('renderCardShell(vaultCfg())') !== -1, 'the flagship card renders from the canonical accessor');
+});
+
+// -------- FLEET-UI-V2 G4 (2026-09-07: copy-position seam rider — ADDITIVE) --------
+// §3 of docs/internal/FLEET_UI_V2_WAVE_2026-09-07.md: WS.copyPosition.build(book)
+// is the ONE serializer for both the clipboard and the sheet mirror, byte-exact
+// key order, the five §4 agent keys ALWAYS present (null when the feed lacks
+// them — the consuming agent skill parses them by name), fail-closed null for
+// anything that is not a book. The full renderer + delegation battery lives in
+// site-tests/fleet-table.test.js; this rider pins the seam inside the loaded-page
+// cohort. Update riders, never delete existing assertions (§0 rule 10).
+const copyPosition = require('../site/js/copy-position.js');
+
+test('FLEET-UI-V2 G4 rider: WS.copyPosition.build emits the §3 contract byte-exact (five agent keys always present, nulls allowed, fail-closed)', () => {
+  assert.ok(global.WS.copyPosition && typeof global.WS.copyPosition.build === 'function',
+    'the seam registers on the WS namespace beside the renderer');
+  const book = {
+    poolId: '0x' + 'ab'.repeat(32), pair: 'WELL/ETH', tier: 'PAYS',
+    chargedFeeBps: 10990.0, feeAprPct: 128, tvlUsd: 12831, vol24hUsd: 4092,
+    paysNothingToLps: false, ours: null,
+    note: 'charged-fee wavg 10990.0 bps over 14 swaps (window a)'
+  };
+  const obj = global.WS.copyPosition.build(book);
+  assert.deepStrictEqual(Object.keys(obj), [
+    'v', 'protocol', 'chainId', 'action', 'poolKey', 'pair', 'feeTierBps',
+    'tickLower', 'tickUpper', 'minOuts', 'expectedGainBps', 'measured', 'honesty'
+  ], 'the §3 key order is byte-exact');
+  for (const k of ['poolKey', 'tickLower', 'tickUpper', 'minOuts', 'expectedGainBps']) {
+    assert.ok(k in obj, 'the §4 agent key ' + k + ' is present even when the feed lacks it');
+  }
+  assert.strictEqual(obj.v, 1);
+  assert.strictEqual(obj.protocol, 'wellstreet');
+  assert.strictEqual(obj.chainId, 4663);
+  assert.strictEqual(obj.action, 'mirror-position');
+  assert.strictEqual(obj.poolKey, book.poolId);
+  assert.strictEqual(obj.feeTierBps, 10990.0);
+  assert.strictEqual(obj.tickLower, null);
+  assert.strictEqual(obj.tickUpper, null);
+  assert.strictEqual(obj.minOuts, null);
+  assert.strictEqual(obj.expectedGainBps, null);
+  assert.deepStrictEqual(obj.measured, {
+    tvlUsd: 12831, vol24hUsd: 4092, feeAprPct: 128, tier: 'PAYS', window: 'a'
+  });
+  assert.strictEqual(obj.honesty,
+    'ticks/minOuts/expectedGain not in the fleet feed — null until measured; verify on-chain');
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(obj)), obj, 'the object round-trips JSON verbatim');
+  // a book with null figures keeps every null a null — never a fake zero
+  const deadish = { poolId: '0x' + 'cd'.repeat(32), pair: 'X/Y', tier: 'DEAD', chargedFeeBps: null,
+    feeAprPct: null, tvlUsd: null, vol24hUsd: null, note: 'no swaps in the measured window — no fee stream (window c)', ours: null };
+  const empty = global.WS.copyPosition.build(deadish);
+  assert.strictEqual(empty.feeTierBps, null);
+  assert.strictEqual(empty.measured.feeAprPct, null);
+  assert.strictEqual(empty.measured.tvlUsd, null);
+  assert.strictEqual(empty.measured.window, 'c', 'the window letter parses from the note');
+  // fail-closed: no book, no object — never a fabricated skeleton
+  assert.strictEqual(global.WS.copyPosition.build(null), null);
+  assert.strictEqual(global.WS.copyPosition.build(undefined), null);
+  assert.strictEqual(global.WS.copyPosition.build({}), null);
+});
+
+test('FLEET-UI-V2 G4 rider: the copy seam is same-origin only (zero absolute origins in its source)', () => {
+  const fs4 = require('node:fs');
+  const path4 = require('node:path');
+  const src4 = fs4.readFileSync(path4.join(__dirname, '..', 'site', 'js', 'copy-position.js'), 'utf8');
+  assert.strictEqual(src4.indexOf('http://'), -1, 'copy-position.js must not reference an absolute origin');
+  assert.strictEqual(src4.indexOf('https://'), -1, 'copy-position.js must not reference an absolute origin');
 });

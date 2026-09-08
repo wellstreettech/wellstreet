@@ -108,12 +108,14 @@
            The measured books, one column. The intro carries the PROTECTED
            launch-fact seam (#vaults-launch-fact, byte-synced with main.js's
            writer) and the wind-down and gated-family truths as two label-ish
-           sentences. #fleet-books renders client-side from WS.fleet.rows()
-           grouped PAYS, HOOK, DEAD; the FLAGSHIP card is the static first
-           card — a SIBLING that precedes the render target, never a child of
-           it (renderFleetBooks wipes that span on every path). Its detail
-           hosts the live vault reads, the four fact rows, the coverage seam
-           and the ENTIRE deposit widget, ids byte-unchanged. -->
+           sentences. The books render client-side from WS.fleet.rows() through
+           the FLEET-UI-V2 surface skeleton below (terminal table >=641px, card
+           stack <=640px — both DOMs always render, CSS decides visibility);
+           the FLAGSHIP card is the static first card — a SIBLING that precedes
+           the render target, never a child of it (the renderer wipes its
+           mounts wholesale on every path). Its detail hosts the live vault
+           reads, the four fact rows, the coverage seam and the ENTIRE deposit
+           widget, ids byte-unchanged. -->
       <section class="block" id="fleet">
         <div class="wrap">
           <div class="block-head">
@@ -259,11 +261,42 @@
               </section>
             </div>
           </details>
-          <!-- the 95 measured books render here client-side, grouped
-               PAYS, HOOK, DEAD. Empty in the static markup by design — any
-               load or validation failure renders the designed unavailable
-               state, never a fake zero. -->
-          <div id="fleet-books"></div>
+          <!-- FLEET-UI-V2 (2026-09-07, G1): the books mount, per the byte-frozen
+               §1 DOM/class contract in docs/internal/FLEET_UI_V2_WAVE_2026-09-07.md.
+               The table and the card stack both render client-side from
+               WS.fleet.rows() on every load (CSS decides which is visible; no
+               resize JS); the sheet fills on Details; any load or validation
+               failure unhides the designed unavailable state — never a fake
+               zero, never a fabricated count. Empty in the static markup by
+               design. -->
+          <div id="fleet-surface" aria-live="polite">
+            <div class="fleet-filters">
+              <button class="fleet-filter is-active" data-filter="all" type="button">all</button>
+              <button class="fleet-filter" data-filter="PAYS" type="button">paying</button>
+              <button class="fleet-filter" data-filter="HOOK" type="button">zero-fee</button>
+              <button class="fleet-filter" data-filter="DEAD" type="button">dead</button>
+            </div>
+            <table class="fleet-table" id="fleet-table">
+              <thead>
+                <tr>
+                  <th class="ft-th" scope="col"><span class="visually-hidden">status</span></th>
+                  <th class="ft-th" scope="col">book</th>
+                  <th class="ft-th" scope="col">tvl</th>
+                  <th class="ft-th" scope="col">vol 24h</th>
+                  <th class="ft-th" scope="col">fee apr</th>
+                  <th class="ft-th" scope="col">il</th>
+                  <th class="ft-th" scope="col">age</th>
+                  <th class="ft-th" scope="col">actions</th>
+                </tr>
+              </thead>
+              <tbody id="fleet-tbody"></tbody>
+            </table>
+            <div class="fleet-cards" id="fleet-cards"></div>
+            <aside class="fleet-sheet" id="fleet-sheet" hidden></aside>
+            <div class="fleet-unavailable" id="fleet-unavailable" hidden>
+              <p>the feed file did not load or failed validation — no numbers are shown</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -290,13 +323,88 @@
         </div>
       </section>
 
+      <!-- ============ MOVEMENT 4 — THE BURN LEDGER (STATS) ============
+           FLEET-UI-V2 G3 (2026-09-07), the R3 exemplar's "OUR VERSION":
+           the burn ledger + flywheel + books grid. The static first paint
+           carries the honest waiting register ('—' + plain sentences) — the
+           roamer is PRE-F-01, so "waiting for first sweep" IS the correct
+           default render, never a fabricated total. JS fills from
+           WS.statsPage (js/stats.js): Burned events via eth_getLogs on the
+           roamer (the address lands in cfg.contracts.roamer at the F-01
+           broadcast; absent = pending, and NO RPC call is issued), the BOOKS
+           census from WS.fleet.summary(), every figure titled with its
+           window + source. -->
+      <section class="block" id="stats">
+        <div class="wrap">
+          <div class="block-head">
+            <span class="index">04</span>
+            <h2>Everything the protocol has burned</h2>
+            <span class="spacer"></span>
+            <div class="st-toggle" role="group" aria-label="measurement window">
+              <button class="st-toggle-btn is-active" data-window="7" type="button">7d</button>
+              <button class="st-toggle-btn" data-window="30" type="button">30d</button>
+            </div>
+          </div>
+          <p class="block-sub">
+            The burn ledger reads the roamer's sweepToBurn events straight from chain 4663 —
+            every figure is an eth_getLogs your own browser ran, windowed and replayable.
+          </p>
+          <div class="st-grid" aria-live="polite">
+            <article class="st-card">
+              <span class="st-label">burned · all time</span>
+              <span class="st-value doto" id="st-burn-total" title="waiting for the first sweep — this figure reads Burned events from the roamer once it is live">—</span>
+              <span class="st-unit">$WELL to the dead address</span>
+              <p class="st-sent" id="st-burn-sent">waiting for first sweep — the roamer goes live at F-01</p>
+            </article>
+            <article class="st-card">
+              <span class="st-label" id="st-burn-window-label">burned · last 7 days</span>
+              <span class="st-value doto" id="st-burn-window" title="Burned events in the selected window — a range the node refuses renders unavailable, never an estimate">—</span>
+              <span class="st-unit">$WELL in the window</span>
+              <p class="st-sent">the window is block-derived from the chain's own measured block time — nothing here is sampled or extrapolated</p>
+            </article>
+            <article class="st-card st-card--wide">
+              <span class="st-label">flywheel</span>
+              <div class="st-lane">
+                <span class="st-lane-name">burn lane</span>
+                <span class="st-lane-value" id="st-lane-burn-value">—</span>
+                <span class="st-bar" role="img" aria-label="share of the sweep that reached the burn"><span class="st-bar-fill" id="st-lane-burn-bar"></span></span>
+                <p class="st-lane-sent">fees the roamer buys $WELL back with and sends to the burn address — replayable from Burned events</p>
+              </div>
+              <div class="st-lane">
+                <span class="st-lane-name">treasury lane</span>
+                <span class="st-lane-value" id="st-lane-treasury-value">—</span>
+                <span class="st-bar" role="img" aria-label="junk the sweep forwarded to the treasury"><span class="st-bar-fill" id="st-lane-treasury-bar"></span></span>
+                <p class="st-lane-sent">raw-balance junk the sweep forwards to the treasury instead of the burn — counted in events, never summed into $WELL</p>
+              </div>
+            </article>
+          </div>
+          <div class="st-books">
+            <article class="st-book">
+              <span class="st-label">books measured</span>
+              <span class="st-value doto" id="st-books-count" title="counts render from the fleet feed — windowed and sourced">—</span>
+              <p class="st-sent" id="st-books-count-sent">every book in the fleet feed, measured by replaying real swaps</p>
+            </article>
+            <article class="st-book">
+              <span class="st-label">paying LPs</span>
+              <span class="st-value doto" id="st-books-pays" title="counts render from the fleet feed — windowed and sourced">—</span>
+              <p class="st-sent" id="st-books-pays-sent">books whose charged fees reach the liquidity providers</p>
+            </article>
+            <article class="st-book">
+              <span class="st-label">zero-fee books</span>
+              <span class="st-value doto" id="st-books-hook" title="counts render from the fleet feed — windowed and sourced">—</span>
+              <p class="st-sent" id="st-books-hook-sent">books where the fees flow to the hook — LPs earn zero — we measured</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <!-- Card two: the docs pane (markdown, rendered locally — the
            explanatory prose lives here and under /docs/public/, not repeated
            on the page) and the vanish disclosure. -->
       <section class="block" id="docs">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">04</span>
+            <span class="index">05</span>
             <h2>Docs</h2>
             <span class="spacer"></span>
             <span class="muted">markdown, rendered locally</span>
@@ -312,6 +420,19 @@
 
     <footer class="site-footer">
       <div class="wrap">
+        <!-- FLEET-UI-V2 G3 (2026-09-07): the live proof strip, the R3
+             exemplar's footer-counter pattern on every page. N renders from
+             the fleet feed's own census; X/Y stay '—' with the waiting
+             sentence until on-chain Burned events exist — never a fabricated
+             figure, never a fake zero. -->
+        <div class="lc-strip" id="live-counters" title="waiting for the first sweep — this strip updates from on-chain events">
+          <span class="lc-item"><span class="lc-num doto" id="lc-books">—</span><span class="lc-label">books measured</span></span>
+          <span class="lc-sep" aria-hidden="true">|</span>
+          <span class="lc-item"><span class="lc-num doto" id="lc-burned">—</span><span class="lc-label">$WELL burned</span></span>
+          <span class="lc-sep" aria-hidden="true">|</span>
+          <span class="lc-item"><span class="lc-num doto" id="lc-fees">—</span><span class="lc-label">fees routed</span></span>
+          <span class="lc-note" id="lc-note">waiting for the first sweep — this strip updates from on-chain events</span>
+        </div>
         <div class="footer-grid">
           <div class="footer-col">
             <div class="h">Protocol</div>
@@ -365,6 +486,9 @@
   <script src="js/wallet.js"></script>
   <script src="js/docs.js"></script>
   <script src="js/fleet.js"></script>
+  <script defer src="./js/fleet-table.js"></script>
+  <script defer src="js/stats.js"></script>
+  <script defer src="js/copy-position.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

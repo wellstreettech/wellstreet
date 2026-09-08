@@ -1217,19 +1217,22 @@
   // and the page's one-motion budget stays the ledger stamp alone.
 
   // ------------------------------------------------------------------
-  // WS5-SKELETON (2026-09-07): the Fleet feed render — movement (b)'s book
-  // column + movement (a)'s ONE live hero stat. #fleet-books renders
-  // client-side from WS.fleet.rows() grouped PAYS → HOOK → DEAD; every row is
-  // a stacked native-disclosure card (<details class="fleet-card">, zero-JS
-  // detail): summary = pair · fee-APR · TVL · 24h-vol, detail = poolId + the
-  // provenance note verbatim (window + per-book truth) + the plain tier
-  // explanation (HOOK cards state it plainly: fees flow to the hook — LP
-  // earns 0). FAIL-CLOSED everywhere: a missing module, fetch failure,
-  // invalid payload or absent figures render the designed unavailable state
-  // ('—') — never a fake zero, never a fabricated count. One-shot on load:
-  // no re-roll interval (the tape's era ends here); the feed is a file.
-  // Guarded on WS.fleet so the render-stub cohort (which loads no fleet.js)
-  // boots cleanly into the unavailable state.
+  // WS5-SKELETON (2026-09-07) / FLEET-UI-V2 G1 (2026-09-07): the Fleet feed
+  // render — movement (a)'s ONE live hero stat stays here; movement (b)'s
+  // book column renders through WS.fleetTable (js/fleet-table.js): the
+  // FLEET_UI_V2_WAVE_2026-09-07.md §1 terminal table + mobile card stack +
+  // detail sheet + filter chips. The v1 grouped-card renderer (its group
+  // table, card node and wipe function) is RETIRED with its mount — the
+  // wipe-safety invariant carries over UNCHANGED: the render mounts
+  // (#fleet-tbody / #fleet-cards, children of the §1 surface) host NO static
+  // content, ever; the flagship fleet card (the deposit widget, the coverage
+  // seam, the vault reads) remains a SIBLING that precedes them. FAIL-CLOSED
+  // everywhere: a missing module, fetch failure, invalid payload or absent
+  // figures render the designed unavailable state ('—') — never a fake zero,
+  // never a fabricated count. One-shot on load: no re-roll interval (the
+  // tape's era ends here); the feed is a file. Guarded on WS.fleet /
+  // WS.fleetTable so the render-stub cohorts (which load neither module)
+  // boot cleanly into the unavailable state.
   // ------------------------------------------------------------------
   function renderHeroStat() {
     var num = $('hero-stat-num');
@@ -1251,81 +1254,18 @@
     if (win) { win.textContent = (prov && prov.window) ? prov.window : ''; }
   }
 
-  var FLEET_GROUPS = [
-    ['PAYS', 'PAYS — charged fees reach LPs'],
-    ['HOOK', 'HOOK — fees flow to the hook — LP earns 0'],
-    ['DEAD', 'DEAD — no fee stream exists to route']
-  ];
-
-  function fleetCardNode(b) {
-    var card = el('details', 'fleet-card fleet-card--' + String(b.tier || 'unknown').toLowerCase());
-    var sum = el('summary', 'fleet-summary');
-    sum.appendChild(el('span', 'fleet-tier', b.tier || '—'));
-    sum.appendChild(el('span', 'fleet-pair', b.pair || '—'));
-    // WS5-OURS (2026-09-07): badge books where OUR capital sits — data-driven from
-    // the feed's OURS map (empty today: $WELL not yet deployed; on launch day the
-    // pair's graduated poolId enters the builder map and the badge appears with
-    // the row's other measured data). textContent-only, no new ids (registry-safe).
-    var ours = WS.fleet && WS.fleet.isOurs ? WS.fleet.isOurs(b) : null;
-    if (ours) {
-      var ob = el('span', 'fleet-ours', 'OURS');
-      ob.setAttribute('data-ours', String(ours));
-      sum.appendChild(ob);
-    }
-    sum.appendChild(el('span', 'fleet-apr', WS.fleet.fmtPct(b.feeAprPct)));
-    sum.appendChild(el('span', 'fleet-meta', 'TVL ' + WS.fleet.fmtUsd(b.tvlUsd) + ' · 24h vol ' + WS.fleet.fmtUsd(b.vol24hUsd)));
-    card.appendChild(sum);
-    var det = el('div', 'fleet-detail');
-    det.appendChild(el('span', 'fleet-poolid', b.poolId || '—'));
-    // the provenance note VERBATIM (carries the measurement window + the
-    // per-book truth, e.g. 'fees flow to the hook — LP earns 0 (window a)')
-    if (b.note) { det.appendChild(el('p', 'fleet-note', b.note)); }
-    card.appendChild(det);
-    return card;
-  }
-
-  // WIPE-SAFETY CONTRACT (WS5-SKELETON pass 2, 2026-09-07): this function wipes
-  // the #fleet-books span wholesale on EVERY path (below) — the span must host
-  // NO static content, ever. The flagship fleet card (the deposit widget, the
-  // coverage seam, the vault reads) is a SIBLING that precedes it in
-  // index.html; nesting anything static inside #fleet-books destroys it in
-  // every JS-enabled browser moments after load (pass-1 FATAL, caught in
-  // review). render.test.js pins the invariant structurally.
-  function renderFleetBooks() {
-    var box = $('fleet-books');
-    if (!box) { return; }
-    var rows = WS.fleet ? WS.fleet.rows() : [];
-    if (!rows.length) {
-      box.textContent = '';
-      var p = el('p', 'fleet-unavailable');
-      p.appendChild(el('span', 'state state--final', '—'));
-      p.appendChild(el('span', null, ' the fleet feed is unavailable right now — the page shows the gap, never an estimate.'));
-      box.appendChild(p);
-      return;
-    }
-    box.textContent = '';
-    for (var g = 0; g < FLEET_GROUPS.length; g++) {
-      var tier = FLEET_GROUPS[g][0];
-      var books = WS.fleet.rows(tier);
-      if (!books.length) { continue; }
-      var group = el('div', 'fleet-group fleet-group--' + tier.toLowerCase());
-      group.appendChild(el('p', 'fleet-group-label', FLEET_GROUPS[g][1] + ' · ' + books.length +
-        (books.length === 1 ? ' book' : ' books')));
-      for (var i = 0; i < books.length; i++) { group.appendChild(fleetCardNode(books[i])); }
-      box.appendChild(group);
-    }
-  }
-
   function initFleet() {
-    if (typeof WS.fleet !== 'object' || !WS.fleet || typeof WS.fleet.load !== 'function') {
-      renderHeroStat();
-      renderFleetBooks();
-      return;
+    renderHeroStat();
+    if (typeof WS.fleet === 'object' && WS.fleet && typeof WS.fleet.load === 'function') {
+      WS.fleet.load(function () { renderHeroStat(); });
     }
-    WS.fleet.load(function () {
-      renderHeroStat();
-      renderFleetBooks();
-    });
+    // FLEET-UI-V2 G1: the v2 surface self-registers its own WS.fleet.load
+    // call (alongside this one — fleet.js is untouched) and renders the
+    // table, cards, sheet and filters from rows(); with the module absent
+    // it renders the designed unavailable state itself, never a gap.
+    if (typeof WS.fleetTable === 'object' && WS.fleetTable && typeof WS.fleetTable.init === 'function') {
+      WS.fleetTable.init();
+    }
   }
 
   // ------------------------------------------------------------------

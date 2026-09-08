@@ -1796,3 +1796,263 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   .hero .wrap { padding-top: var(--space-8); }
   .site-nav a { min-width: 44px; } /* flex-item min-width: no layout disturbance at any ≤640 width */
 }
+
+/* ============================================================
+   FLEET-UI-V2 (2026-09-07) — G2: the fleet surface. CSS layer for the
+   §1 DOM/class contract in docs/internal/FLEET_UI_V2_WAVE_2026-09-07.md
+   (byte-frozen across G1/G2/G4 — G1 emits the DOM, this styles exactly
+   that contract). Reference: DESIGN_REFERENCE_FLEET_TABLE_2026-09-07.md
+   — R1 terminal density at ≥641px (≈40px rows, hairline separators,
+   right-aligned tabular mono numerals, lowercase muted headers, 14+ rows
+   visible at 1280px), R2 Snowball card stack ≤640px. G1 renders BOTH
+   surfaces on every load; visibility is decided HERE, media queries only
+   (table ≥641px, cards ≤640px, sheet shown only when open) — no resize JS.
+   Tokens only: zero new colors, zero gradients, zero shadows, zero new
+   keyframes (the one-motion budget stays the ledger stamp; interactive
+   elements transition color/border-color on the existing motion tokens
+   only — nothing moves, so no reduced-motion pair is owed). Focus rings
+   ride the global :focus-visible rule (accent-punch).
+   NOTE on the v1 fleet rules above (WS5-TREATMENT block):
+   .fleet-summary/.fleet-pair/.fleet-apr/.fleet-meta/.fleet-detail stay
+   load-bearing for the byte-frozen flagship card — this block layers the
+   §1 anatomy ALONGSIDE them and never over them; the v1 tier-color
+   conventions carry over (HOOK = warn red, DEAD = muted gray per the
+   ratified reference, PROTOCOL = the amber).
+   ============================================================ */
+
+#fleet-surface { margin-top: var(--space-16); min-width: 0; }
+
+/* ---- filter chips (G1 renders the buttons; lowercase mono, 44px zone).
+   The active chip is amber-as-text + amber edge — the .fleet-ours register,
+   NOT an amber fill: the page's one solid CTA stays the only filled amber. */
+.fleet-filters { display: flex; flex-wrap: wrap; gap: var(--space-8); margin: 0 0 var(--space-12); }
+.fleet-filter {
+  appearance: none;
+  min-height: 44px; min-width: 44px;
+  padding: var(--space-10) var(--space-14);
+  background: var(--paper-raised); color: var(--ink-soft);
+  border: 1px solid var(--line); border-radius: var(--r-0, 0);
+  font-family: var(--mono); font-size: var(--step-2);
+  letter-spacing: var(--track-label); text-transform: lowercase;
+  cursor: pointer;
+  transition: color var(--motion), border-color var(--motion);
+}
+.fleet-filter:hover { color: var(--ink); border-color: var(--ink-soft); }
+.fleet-filter.is-active { color: var(--accent-text); border-color: var(--accent-text); font-weight: 700; }
+
+/* ---- the Doto register class the §1 contract carries on measured figures
+   (.fc-metric-value.doto): the machine face for the machine truth. */
+.doto { font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-variant-numeric: tabular-nums; }
+
+/* ---- shared metadata chips (table pair cell + card head) ---- */
+.ft-chip {
+  display: inline-block; vertical-align: baseline;
+  font-family: var(--mono); font-size: var(--step-1); font-weight: 400;
+  letter-spacing: var(--track-label); text-transform: lowercase;
+  color: var(--ink-soft); border: 1px solid var(--line);
+  padding: 0 var(--space-6); margin-left: var(--space-6);
+  background: transparent; white-space: nowrap;
+}
+.ft-chip--fee { border-color: var(--ink-soft); } /* the fee tier gets the stronger edge — it is the number the fee-black-hole truth hangs on */
+
+/* ---- shared action buttons. Base = the 44px zone (§0 rule 9). The R1
+   density exception below releases ONLY the desktop table's chips to
+   compact under a fine pointer — the ratified reference shows compact
+   action chips inside ≈40px rows; coarse pointers (tablets) keep the
+   full 44px zone and slightly taller rows instead. */
+.ft-copy, .ft-details {
+  appearance: none;
+  min-height: 44px; min-width: 44px;
+  padding: var(--space-10) var(--space-14);
+  background: var(--paper-raised); color: var(--accent-text);
+  border: 1px solid var(--line); border-radius: var(--r-0, 0);
+  font-family: var(--mono); font-size: var(--step-2);
+  cursor: pointer; white-space: nowrap;
+  transition: color var(--motion), border-color var(--motion);
+}
+.ft-copy:hover, .ft-details:hover { border-color: var(--accent-text); }
+
+/* ---- the terminal table (R1). Mobile-first: hidden ≤640, table ≥641.
+   Row pitch ≈40px via cell height; separators are 1px hairlines (--line),
+   the header boundary the stronger 1px muted rule (--ink-soft).
+   Column order assumed from §1: spine / pair / TVL / vol 24h / fee APR /
+   IL / age / actions (8 columns — G1 emits 8 th). */
+.fleet-table { display: none; width: 100%; border-collapse: collapse; }
+.fleet-table th, .fleet-table td { height: 40px; padding: var(--space-6) var(--space-10); vertical-align: middle; text-align: left; }
+.fleet-table thead th {
+  font-family: var(--mono); font-size: var(--step-1); font-weight: 400;
+  letter-spacing: var(--track-label); text-transform: lowercase;
+  color: var(--ink-soft); white-space: nowrap;
+  border-bottom: 1px solid var(--ink-soft);
+}
+.ft-row { border-bottom: 1px solid var(--line); }
+.ft-row.is-protocol { background: var(--chip-tan); } /* skin in the game: the warm band marks the rows where our capital sits */
+.ft-spine { width: 3px; padding: 0; border-left: 3px solid transparent; }
+.ft-spine--pays { border-left-color: var(--ink); }        /* PAYS-LPS: the bone ink — paid books need no flag color */
+.ft-spine--hook { border-left-color: var(--warn); }       /* HOOK-MONETIZED: the honest red */
+.ft-spine--dead { border-left-color: var(--ink-soft); }   /* DEAD: gray, per the ratified reference */
+.ft-spine--protocol { border-left-color: var(--accent); } /* PROTOCOL: the amber */
+.ft-pair { font-family: var(--mono); font-size: var(--step-3); font-weight: 700; color: var(--ink); white-space: nowrap; }
+.ft-num { font-family: var(--mono); font-size: var(--step-3); font-variant-numeric: tabular-nums; color: var(--ink); text-align: right; white-space: nowrap; }
+.ft-apr { font-weight: 700; } /* the headline measured figure */
+.ft-window { font-size: var(--step-1); font-weight: 400; letter-spacing: 0; color: var(--ink-soft); margin-left: var(--space-4); } /* the window suffix: muted, travels with its figure */
+.ft-il { color: var(--ink-soft); font-weight: 400; } /* realized IL renders '—' until the feed carries it — muted, never a fake zero */
+.ft-age { font-family: var(--mono); font-size: var(--step-2); font-variant-numeric: tabular-nums; color: var(--ink-soft); text-align: right; white-space: nowrap; }
+.ft-actions { text-align: right; white-space: nowrap; }
+@media (min-width: 641px) and (pointer: fine) {
+  .ft-actions .ft-copy, .ft-actions .ft-details { min-height: 0; padding: var(--space-4) var(--space-10); } /* the R1 compact chip — fine pointers only; the 44px zone holds everywhere else */
+}
+/* Narrow-desktop column diet: IL + age render '—' today, so below the full
+   wrap width they step aside (the sheet/detail surface carries the full
+   record). Presentation-layer only — the DOM contract is untouched. */
+@media (min-width: 641px) and (max-width: 819px) {
+  .fleet-table thead th:nth-child(6), .fleet-table tbody td:nth-child(6),
+  .fleet-table thead th:nth-child(7), .fleet-table tbody td:nth-child(7) { display: none; }
+  .fleet-table th, .fleet-table td { padding-inline: var(--space-6); }
+}
+
+/* ---- the card stack (R2 Snowball anatomy, ≤640px). Base grid; hidden
+   ≥641 below. Spine = the card's left status bar; 3 metrics max; the ONE
+   plain-sentence state line is muted mono; actions are full 44px zones. */
+.fleet-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-12); min-width: 0; }
+.fc-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-6) var(--space-8); padding: var(--space-12) var(--space-14) 0; min-width: 0; }
+.fc-spine { flex: 0 0 3px; align-self: stretch; background: transparent; }
+.fc-spine--pays { background: var(--ink); }
+.fc-spine--hook { background: var(--warn); }
+.fc-spine--dead { background: var(--ink-soft); }
+.fc-spine--protocol { background: var(--accent); }
+.fc-pair { font-family: var(--mono); font-size: var(--step-4); font-weight: 700; color: var(--ink); }
+.fc-badge { flex-basis: 100%; font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: uppercase; }
+.badge--pays { color: var(--ink); }
+.badge--hook { color: var(--warn); }
+.badge--dead { color: var(--ink-soft); }
+.badge--protocol { color: var(--accent-text); }
+.fc-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-8); padding: var(--space-12) var(--space-14) 0; }
+.fc-metric { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.fc-metric-label { font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); color: var(--ink-soft); }
+.fc-metric-value { font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-5); line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--ink); overflow-wrap: anywhere; } /* numbers never truncate: the value wraps as text if the source ever ships a longer figure */
+.fc-state { margin: var(--space-10) 0 0; padding: 0 var(--space-14); font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+.fc-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); padding: var(--space-12) var(--space-14) var(--space-14); }
+.fc-actions .ft-copy, .fc-actions .ft-details { flex: 1 1 auto; min-height: 44px; padding-block: 0; } /* full-width pair, full 44px zones on the thumb surface */
+
+/* ---- the detail sheet: bottom sheet ≤640 / inline panel ≥641. Shown only
+   when open — the [hidden] guard keeps the attribute authoritative even
+   though no base display is set. z-index 60 sits above the sticky header
+   (10) and under the skip link (the site max, 100). */
+.fleet-sheet { border: 2px solid var(--line); background: var(--paper-raised); padding: var(--space-16); min-width: 0; }
+.fleet-sheet[hidden] { display: none; }
+.fleet-sheet h3, .fleet-sheet h4 { margin: 0 0 var(--space-8); font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-5); color: var(--ink); }
+
+/* ---- the unavailable state: a colophon, not an error — the dashed
+   hairline register the page already uses for honest absence. Restates the
+   v1 values (later cascade, identical) + resets the inner sentence. */
+.fleet-unavailable { margin: var(--space-16) 0 0; border: 1px dashed var(--line); padding: var(--space-12) var(--space-14); font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+.fleet-unavailable p { margin: 0; }
+
+/* ---- the visibility switch: table ≥641, cards ≤640 (base grid above) ---- */
+@media (min-width: 641px) {
+  .fleet-table { display: table; }
+  .fleet-cards { display: none; }
+  .fleet-sheet { margin: var(--space-16) 0 0; } /* desktop: the detail is an inline panel under the table */
+}
+
+/* ---- mobile sheet + the metric rung-down (the .fleet-apr idiom: the
+   figure scales DOWN the type scale as width fails — unit kept, never
+   truncated). vh line first, svh override second — the established
+   fallback idiom. */
+@media (max-width: 640px) {
+  .fleet-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    max-height: min(72vh, 560px);
+    max-height: min(72svh, 560px);
+    overflow-y: auto;
+    border-bottom: 0;
+    padding: var(--space-16) var(--space-14);
+  }
+}
+@media (max-width: 400px) {
+  .fc-metric-value { font-size: var(--step-4); }
+}
+
+/* ============================================================
+   FLEET-UI-V2 (2026-09-07) — G3: the stats / burn-ledger surface
+   (#stats) + the footer live proof strip (#live-counters). CSS
+   layer for the R3 exemplar's "OUR VERSION"
+   (DESIGN_REFERENCE_FLEET_TABLE_2026-09-07.md: burned card +
+   window toggle, flywheel split card, books grid — the Snowball
+   pattern: every number carries a plain sentence + a title
+   tooltip). ADDITIVE-ONLY: tokens only, zero new colors, zero
+   gradients, zero keyframes (the one-motion budget stays the
+   ledger stamp), zero reduced-motion debt (nothing moves — the
+   bar fill is a static scaleX transform, no transition). Tap
+   targets 44px; grids collapse to one column <=640; numbers wrap
+   as text (no truncation, no horizontal scroll at 390). The
+   waiting register IS the designed default: the roamer is
+   PRE-F-01 and '—' + a plain sentence is the honest render.
+   ============================================================ */
+
+/* ---- the window toggle (block-head slot; the .fleet-filter register:
+   amber-as-text active edge, never an amber fill) ---- */
+.st-toggle { display: flex; gap: var(--space-6); }
+.st-toggle-btn {
+  appearance: none;
+  min-height: 44px; min-width: 44px;
+  padding: var(--space-8) var(--space-10);
+  background: var(--paper-raised); color: var(--ink-soft);
+  border: 1px solid var(--line); border-radius: var(--r-0, 0);
+  font-family: var(--mono); font-size: var(--step-2);
+  letter-spacing: var(--track-label); text-transform: lowercase;
+  cursor: pointer;
+  transition: color var(--motion), border-color var(--motion);
+}
+.st-toggle-btn:hover { color: var(--ink); border-color: var(--ink-soft); }
+.st-toggle-btn.is-active { color: var(--accent-text); border-color: var(--accent-text); font-weight: 700; }
+
+/* ---- the flat bento card grid (the R3 4-col exemplar at our scale:
+   two stat cards + the full-width flywheel card, then the 3-up books
+   grid). Hard 1px borders, raised surface, no radius, no shadow. ---- */
+.st-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-12); margin-top: var(--space-16); min-width: 0; }
+.st-card { border: 1px solid var(--line); background: var(--paper-raised); padding: var(--space-16); min-width: 0; }
+.st-card--wide { grid-column: 1 / -1; }
+.st-label { display: block; margin: 0 0 var(--space-8); font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: lowercase; color: var(--ink-soft); }
+.st-value { display: block; font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-variant-numeric: tabular-nums; font-size: var(--step-6); line-height: 1.1; color: var(--ink); overflow-wrap: anywhere; } /* the machine register; the figure wraps as text — never clipped */
+.st-unit { display: block; margin-top: var(--space-6); font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+.st-sent { margin: var(--space-10) 0 0; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+
+/* ---- the flywheel lanes: burn vs treasury-junk. The bar is a TRACK —
+   the fill rides transform: scaleX (compositor-only) and stays at 0
+   until a same-unit pair exists; the JS stamps data-empty + the
+   honest-title when the lanes' units differ. ---- */
+.st-lane { padding: var(--space-10) 0; border-bottom: 1px solid var(--line); }
+.st-lane:first-of-type { padding-top: 0; }
+.st-lane:last-of-type { border-bottom: none; padding-bottom: 0; }
+.st-lane-name { display: block; font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: lowercase; color: var(--ink); }
+.st-lane-value { display: block; margin-top: var(--space-4); font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-variant-numeric: tabular-nums; font-size: var(--step-5); color: var(--ink); overflow-wrap: anywhere; }
+.st-bar { display: block; margin-top: var(--space-8); height: 6px; border: 1px solid var(--line); background: var(--paper-2); overflow: hidden; }
+.st-bar-fill { display: block; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: 0 50%; }
+.st-lane-sent { margin: var(--space-8) 0 0; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+
+/* ---- the books grid (the feed's own census, 3-up): the Snowball
+   explainer sits under every figure ---- */
+.st-books { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-12); margin-top: var(--space-12); min-width: 0; }
+.st-book { border: 1px solid var(--line); background: var(--paper-raised); padding: var(--space-14); min-width: 0; }
+.st-book .st-value { font-size: var(--step-5); }
+.st-book .st-sent { margin-top: var(--space-8); }
+
+/* ---- the footer live proof strip (every page). Footer-band tokens
+   (--footer-muted/-faint carry the measured AA pairs); the numerals
+   take the accent-text register — the strip is the page's one amber
+   proof moment. ---- */
+.lc-strip { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-8) var(--space-12); border: 1px solid var(--line); background: var(--paper-2); padding: var(--space-10) var(--space-12); margin-bottom: var(--space-20); min-width: 0; }
+.lc-item { display: inline-flex; align-items: baseline; gap: var(--space-6); min-width: 0; }
+.lc-num { font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-variant-numeric: tabular-nums; font-size: var(--step-4); color: var(--accent-text); overflow-wrap: anywhere; }
+.lc-label { font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: lowercase; color: var(--footer-muted); }
+.lc-sep { font-family: var(--mono); color: var(--footer-faint); }
+.lc-note { flex-basis: 100%; font-family: var(--mono); font-size: var(--step-1); color: var(--footer-faint); }
+
+/* ---- mobile: one column, the strip tightens ---- */
+@media (max-width: 640px) {
+  .st-grid, .st-books { grid-template-columns: minmax(0, 1fr); }
+  .st-card, .st-book { padding: var(--space-14); }
+  .lc-strip { gap: var(--space-6) var(--space-10); padding: var(--space-10); }
+}
