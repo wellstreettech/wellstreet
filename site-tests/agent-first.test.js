@@ -463,8 +463,11 @@ test('(m1) WS-MOTION-POLISH: :active press grammar + stamp stagger (doto re-pin;
     'the stamp animation shorthand stays byte-unchanged (forwards fill — never both/backwards)');
   assert.ok(css.indexOf('@keyframes ws-stamp-fade {\n  0% { opacity: 1; }\n  55% { opacity: 1; }\n  100% { opacity: 0; }\n}') !== -1,
     'the ws-stamp-fade keyframes stay byte-unchanged');
-  // (viii) the stamp remains the page's ONLY @keyframes — the one-signature
-  // contract is teeth, not prose.
-  assert.strictEqual((css.match(/@keyframes/g) || []).length, 1,
-    'exactly ONE @keyframes ships (the ledger stamp, one-signature motion)');
+  // (viii) the one-signature motion count — DELTA RE-PIN (FLOW_SECTION_2026-09-08,
+  // 2026-09-09): the user-granted second motion signature joins the page — the
+  // flow pulse dot on the #flow deposit arrow (@keyframes flow-pulse, transform +
+  // opacity only, reduced-motion kills it entirely). The stamp keyframes remain
+  // byte-unchanged above; the budget is now exactly TWO signatures, teeth, not prose.
+  assert.strictEqual((css.match(/@keyframes/g) || []).length, 2,
+    'exactly TWO @keyframes ship (the ledger stamp + the FLOW_SECTION_2026-09-08 flow pulse — the user-granted second signature)');
 });

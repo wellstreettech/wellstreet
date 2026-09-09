@@ -6,7 +6,9 @@
    only texture is the fine halftone field (1px dots on a 14px grid). Hard
    2px borders, flat surfaces. Faces ship same-origin under ../fonts/
    (IPFS-friendly; system stacks as fallbacks). One-motion budget: the
-   ledger stamp is the page's only keyframes.
+   ledger stamp is the page's only keyframes — joined 2026-09-08 by the
+   flow pulse dot (FLOW_SECTION_2026-09-08, the user-granted second
+   signature: transform + opacity only, reduced-motion kills it entirely).
    ============================================================ */
 
 :root {
@@ -2499,6 +2501,129 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   .st-grid, .st-books { grid-template-columns: minmax(0, 1fr); }
   .st-card, .st-book { padding: var(--space-14); }
   .lc-strip { gap: var(--space-6) var(--space-10); padding: var(--space-10); }
+}
+
+/* ============================================================
+   FLOW (2026-09-08) — FLOW_SECTION: the live-wired flywheel (#flow).
+   CSS layer for the kit composition (docs/internal/design-kit/twitter/
+   flywheel.html + -light): two lanes of hard-bordered node cards joined
+   by inline-SVG marker-end arrows, the split columns, the 'DEV TAKE: 0'
+   seal. Tokens only: --line borders, --accent (the arrows + seal are the
+   accent FILL role), --accent-text for accent TEXT, --paper-raised card
+   faces. Zero gradients, zero new colors, zero images. Node figures ride
+   the machine register at the Doto floor and above (step-5 = 20px, the
+   .st-book precedent — never below, so no mobile demotion is owed). The
+   waiting register IS the designed default (the static paint): '—' +
+   plain sentences + dashed chips, exactly the G5 stats grammar. One
+   motion signature: the pulse dot on the deposit arrow — transform +
+   opacity keyframes ONLY (hardware-only), gated behind
+   prefers-reduced-motion: no-preference AND killed by the global reduce
+   guard (base opacity is 0, so stillness is invisible, not frozen).
+   Desktop >=901: two lanes. 641-900: single column, arrows rotate to
+   vertical (the paired vertical svg swaps in). <=640: the snowball
+   vertical stack, tighter padding.
+   ============================================================ */
+
+/* ---- the defs sprite + the seal row ---- */
+.flow-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.flow-defs marker path { fill: var(--accent); }
+.flow-top { display: flex; justify-content: flex-end; margin: 0 0 var(--space-12); }
+.flow-seal {
+  display: inline-block;
+  border: 2px solid var(--accent); color: var(--accent-text);
+  font-family: var(--mono); font-size: var(--step-3); letter-spacing: 0.18em;
+  padding: var(--space-8) var(--space-14);
+}
+
+/* ---- lanes + chains ---- */
+.flow-lane { margin-top: var(--space-20); min-width: 0; }
+.flow-lane--two { margin-top: var(--space-32); padding-top: var(--space-20); border-top: 1px solid var(--line); }
+.flow-lane-label { display: block; margin: 0 0 var(--space-10); font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: uppercase; color: var(--ink-soft); }
+.flow-chain { display: grid; grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr) 84px minmax(0, 1fr) 84px minmax(0, 1.35fr); gap: var(--space-10); align-items: stretch; min-width: 0; }
+.flow-chain--two { grid-template-columns: minmax(0, 1.3fr) 84px minmax(0, 1fr) minmax(0, 1.2fr); }
+
+/* ---- node cards (the kit's 2px hard borders on the raised face) ---- */
+.flow-node { border: 2px solid var(--line); background: var(--paper-raised); padding: var(--space-14); min-width: 0; display: flex; flex-direction: column; gap: var(--space-6); }
+.flow-node--src { border-color: var(--accent); }
+.flow-node--dep { border-color: var(--ink-soft); }
+.flow-node--burn { border-color: var(--accent); }
+.flow-node--burn .flow-node-h { color: var(--accent-text); }
+.flow-node-h { margin: 0; font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-5); line-height: 1.15; text-transform: uppercase; color: var(--ink); }
+.flow-node-s { margin: 0; font-family: var(--mono); font-size: var(--step-2); line-height: 1.5; color: var(--ink-soft); }
+
+/* ---- the measured-figure register (the .st-value idiom at the floor) ---- */
+.flow-fig { display: block; margin-top: var(--space-6); font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-variant-numeric: tabular-nums; font-size: var(--step-5); line-height: 1.1; color: var(--ink); overflow-wrap: anywhere; }
+.flow-fig-unit { display: block; font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: lowercase; color: var(--ink-soft); }
+.flow-state { margin: auto 0 0; padding-top: var(--space-6); font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+.flow-chip { display: inline-block; align-self: flex-start; margin-top: var(--space-6); padding: 0 var(--space-6); border: 1px dashed var(--line); background: var(--paper-pending); color: var(--ink-soft); font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); }
+.flow-chip[hidden] { display: none; } /* the live branch hides the chip — an inline-block chip would out-rank the UA [hidden] rule (the .st-pending-chip precedent) */
+
+/* ---- the links: label above a fixed-length marker-end arrow (the kit's
+   84px arrows, now inline SVG so the head re-inks with the theme). Every
+   link carries BOTH orientations; the band below swaps them. ---- */
+.flow-link { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); min-width: 0; }
+.flow-link-label { font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: lowercase; color: var(--ink-soft); white-space: nowrap; }
+.flow-link-rail { position: relative; display: block; width: 84px; height: 12px; }
+.flow-arr { display: block; }
+.flow-arr line { stroke: var(--accent); stroke-width: 3; }
+.flow-arr--v { display: none; }
+.flow-arr-v { display: block; }
+.flow-arr-v line { stroke: var(--accent); stroke-width: 3; }
+
+/* ---- the ONE motion signature: the pulse dot on the deposit arrow.
+   Base opacity 0 — the global reduce guard's animation:none leaves the
+   page still AND the dot invisible. Custom properties carry the travel
+   vector so the SAME keyframes serve both orientations. ---- */
+.flow-pulse {
+  position: absolute; left: -3px; top: 3px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  --flow-dx: 0px; --flow-dy: 0px; --flow-dx2: 74px; --flow-dy2: 0px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .flow-pulse { animation: flow-pulse 2.8s var(--ease-loop) infinite; }
+}
+@keyframes flow-pulse {
+  0%   { transform: translate3d(var(--flow-dx), var(--flow-dy), 0); opacity: 0; }
+  12%  { opacity: 1; }
+  82%  { opacity: 1; }
+  100% { transform: translate3d(var(--flow-dx2), var(--flow-dy2), 0); opacity: 0; }
+}
+
+/* ---- the split: two columns (branch label, down arrow, outcome node),
+   right-aligned under the fees node at >=901 ---- */
+.flow-split-row { display: flex; justify-content: flex-end; gap: var(--space-40); margin-top: var(--space-16); min-width: 0; }
+.flow-col { display: flex; flex-direction: column; align-items: center; gap: var(--space-8); min-width: 0; }
+.flow-col .flow-node { width: 260px; max-width: 100%; }
+.flow-branch-label { font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); white-space: nowrap; }
+.flow-pct { font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-6); color: var(--accent-text); }
+
+/* ---- lane 2's right-side note + the replay foot ---- */
+.flow-note { align-self: center; max-width: 46ch; font-family: var(--mono); font-size: var(--step-2); line-height: 1.7; color: var(--ink-soft); min-width: 0; }
+.flow-foot { margin: var(--space-20) 0 0; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+.flow-foot-dot { color: var(--accent-text); }
+
+/* ---- 641-900: single column, arrows rotate to vertical (the paired
+   vertical svg + pulse vector swap in) ---- */
+@media (max-width: 900px) {
+  .flow-chain, .flow-chain--two { grid-template-columns: minmax(0, 1fr); }
+  .flow-link { flex-direction: row; justify-content: center; gap: var(--space-10); padding: var(--space-2) 0; }
+  .flow-link-rail { width: 12px; height: 84px; }
+  .flow-arr--h { display: none; }
+  .flow-arr--v { display: block; }
+  .flow-pulse { left: 3px; top: -3px; --flow-dx2: 0px; --flow-dy2: 74px; }
+  .flow-split-row { flex-direction: column; justify-content: flex-start; gap: var(--space-20); }
+  .flow-note { max-width: none; }
+}
+
+/* ---- <=640: the snowball vertical stack, tighter faces ---- */
+@media (max-width: 640px) {
+  .flow-node { padding: var(--space-14); }
+  .flow-split-row { gap: var(--space-16); }
+  .flow-top { justify-content: flex-start; }
+  .flow-seal { padding: var(--space-6) var(--space-10); }
 }
 
 /* ============================================================

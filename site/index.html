@@ -406,6 +406,169 @@
         </div>
       </section>
 
+      <!-- ============ MOVEMENT 3.5 — THE FLOW (FLOW_SECTION_2026-09-08) ============
+           The live-wired flywheel — the protocol's self-portrait drawn from its own
+           chain state. Composition authority: docs/internal/design-kit/twitter/
+           flywheel.html + -light (nodes, two lanes, marker-end arrowheads, the
+           'DEV TAKE: 0' seal). Every wired node rides the SAME PENDING_DEPLOY
+           convention as WS.config / WS.vault.isDeployed: a live read through the
+           existing WS.rpc client when the config seam exists (cfg.contracts
+           .roamVault / .roamer / .roamAllowlist land at the RoamVault build-wave
+           broadcast; the flagship harvester seam is LIVE today), else the honest
+           waiting register — '—' + a plain sentence + a title tooltip, NEVER a
+           fabricated figure. JS fills from WS.flow (js/flow.js): vault TVL
+           (totalAssets), the share price (convertToAssets — never a fabricated
+           1.00 for an empty vault), DEPOSIT_CAP facts, roamer positions +
+           allowlist books, the flagship's Harvested-event count, and the 10%
+           burn lane DELEGATED to the same Burned-event machinery js/stats.js
+           runs. The split percentages are the RoamVault contract's own immutable
+           constants (DEPOSITOR_BPS 9000 / BURN_BPS 1000 — checkable, not
+           measured). The seal is the ratified claim: the 10% protocol share is a
+           treasury share, not a developer fee — the 90/10 split is immutable
+           on-chain (contract constants), nothing to set. The one-motion budget
+           spends its second
+           signature here: the pulse dot on the deposit arrow (CSS transform +
+           opacity keyframes, hardware-only), killed entirely by the reduced-
+           motion guards. -->
+      <section class="block" id="flow">
+        <div class="wrap">
+          <div class="block-head">
+            <span class="index">04</span>
+            <h2>Where every fee goes.</h2>
+            <span class="spacer"></span>
+            <span class="muted">wired to the chain — not to a slide</span>
+          </div>
+          <!-- the marker defs: ONE inline svg sprite, referenced by every
+               arrow's marker-end (same-document reference — zero requests,
+               resource-gate-clean). The arrowhead re-inks with the theme
+               through the CSS fill rule in style.css. -->
+          <svg class="flow-defs" aria-hidden="true" focusable="false">
+            <defs>
+              <marker id="flow-ah" viewBox="0 0 10 12" refX="9" refY="6" markerWidth="10" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+                <path d="M0 0 L10 6 L0 12 Z"></path>
+              </marker>
+            </defs>
+          </svg>
+          <div class="flow-top">
+            <span class="flow-seal" title="the developer takes nothing — the 10% protocol share is a treasury share; the 90/10 split is immutable on-chain — nothing to set">DEV TAKE: 0</span>
+          </div>
+          <div class="flow-stage">
+            <!-- LANE 1: the vault flow (kit lane 1). The ids below are the
+                 wiring surface — variable-mediated in js/flow.js (the SECTION_ID
+                 idiom), so the query-surface registry never needs them. -->
+            <div class="flow-lane">
+              <span class="flow-lane-label">lane 1 — the vault (user capital)</span>
+              <div class="flow-chain">
+                <article class="flow-node flow-node--src">
+                  <h3 class="flow-node-h">Users &amp; agents</h3>
+                  <p class="flow-node-s">deposit USDG. receive shares. exit anytime.</p>
+                  <span class="flow-fig doto" id="fl-users-cap" title="waiting — the deposit cap reads DEPOSIT_CAP() on RoamVault once it is live — never estimated">—</span>
+                  <span class="flow-fig-unit" id="fl-users-cap-unit">deposit cap · usdg</span>
+                  <span class="flow-chip" id="fl-users-chip">waiting — RoamVault build wave</span>
+                </article>
+                <div class="flow-link">
+                  <span class="flow-link-label">deposit</span>
+                  <span class="flow-link-rail">
+                    <span class="flow-pulse" aria-hidden="true"></span>
+                    <svg class="flow-arr flow-arr--h" viewBox="0 0 84 12" width="84" height="12" aria-hidden="true" focusable="false"><line x1="2" y1="6" x2="70" y2="6" marker-end="url(#flow-ah)"></line></svg>
+                    <svg class="flow-arr flow-arr--v" viewBox="0 0 12 84" width="12" height="84" aria-hidden="true" focusable="false"><line x1="6" y1="2" x2="6" y2="70" marker-end="url(#flow-ah)"></line></svg>
+                  </span>
+                </div>
+                <article class="flow-node">
+                  <h3 class="flow-node-h">RoamVault</h3>
+                  <p class="flow-node-s">shares = claims. 90% of fees raise the share price.</p>
+                  <span class="flow-fig doto" id="fl-vault-value" title="waiting — TVL reads totalAssets() on RoamVault once it is live — never estimated">—</span>
+                  <span class="flow-fig-unit" id="fl-vault-unit">tvl</span>
+                  <p class="flow-state" id="fl-vault-sent">waiting — RoamVault build wave</p>
+                </article>
+                <div class="flow-link">
+                  <span class="flow-link-label">deploys</span>
+                  <span class="flow-link-rail">
+                    <svg class="flow-arr flow-arr--h" viewBox="0 0 84 12" width="84" height="12" aria-hidden="true" focusable="false"><line x1="2" y1="6" x2="70" y2="6" marker-end="url(#flow-ah)"></line></svg>
+                    <svg class="flow-arr flow-arr--v" viewBox="0 0 12 84" width="12" height="84" aria-hidden="true" focusable="false"><line x1="6" y1="2" x2="6" y2="70" marker-end="url(#flow-ah)"></line></svg>
+                  </span>
+                </div>
+                <article class="flow-node">
+                  <h3 class="flow-node-h">Roamer</h3>
+                  <p class="flow-node-s">farms the fleet — measured, allowlisted books only. guardrails on-chain.</p>
+                  <span class="flow-fig doto" id="fl-roamer-value" title="waiting — open positions read openKeyCount() on the roamer once it is live — never estimated">—</span>
+                  <span class="flow-fig-unit" id="fl-roamer-unit">open positions</span>
+                  <span class="flow-fig doto" id="fl-roamer-books" title="waiting — the book count reads bookCount() on RoamAllowlist once it is live — never estimated">—</span>
+                  <span class="flow-fig-unit" id="fl-roamer-books-unit">allowlisted books</span>
+                  <p class="flow-state" id="fl-roamer-sent">waiting — not yet broadcast</p>
+                </article>
+                <div class="flow-link">
+                  <span class="flow-link-label">fees</span>
+                  <span class="flow-link-rail">
+                    <svg class="flow-arr flow-arr--h" viewBox="0 0 84 12" width="84" height="12" aria-hidden="true" focusable="false"><line x1="2" y1="6" x2="70" y2="6" marker-end="url(#flow-ah)"></line></svg>
+                    <svg class="flow-arr flow-arr--v" viewBox="0 0 12 84" width="12" height="84" aria-hidden="true" focusable="false"><line x1="6" y1="2" x2="6" y2="70" marker-end="url(#flow-ah)"></line></svg>
+                  </span>
+                </div>
+                <article class="flow-node flow-node--wide">
+                  <h3 class="flow-node-h">Fees — the split</h3>
+                  <p class="flow-node-s">measured per swap, never a static rate. two destinations:</p>
+                  <span class="flow-fig doto" id="fl-fees-value" title="the flagship engine is live; its vault is empty — a zero would dress itself as a measurement, so nothing renders">—</span>
+                  <span class="flow-fig-unit" id="fl-fees-unit">harvest events · flagship engine</span>
+                  <p class="flow-state" id="fl-fees-sent">the flagship engine is live; its vault is empty</p>
+                </article>
+              </div>
+              <!-- the split: two immutable contract constants (DEPOSITOR_BPS
+                   9000 / BURN_BPS 1000) as the labels, one measured figure per
+                   destination below. -->
+              <div class="flow-split-row">
+                <div class="flow-col">
+                  <span class="flow-branch-label"><span class="flow-pct doto">90%</span> depositors</span>
+                  <svg class="flow-arr-v" viewBox="0 0 12 64" width="12" height="64" aria-hidden="true" focusable="false"><line x1="6" y1="2" x2="6" y2="50" marker-end="url(#flow-ah)"></line></svg>
+                  <article class="flow-node flow-node--dep">
+                    <h3 class="flow-node-h">Depositors</h3>
+                    <p class="flow-node-s">share price rises. no claims. no staking. exit anytime — never paused.</p>
+                    <span class="flow-fig doto" id="fl-dep-value" title="waiting — the share price reads convertToAssets(1e18) on RoamVault once it is live; an empty vault's 1.00 will not be dressed up as a figure">—</span>
+                    <span class="flow-fig-unit" id="fl-dep-unit">assets per share</span>
+                    <p class="flow-state" id="fl-dep-sent">waiting — RoamVault build wave</p>
+                  </article>
+                </div>
+                <div class="flow-col">
+                  <span class="flow-branch-label"><span class="flow-pct doto">10%</span> buy + burn</span>
+                  <svg class="flow-arr-v" viewBox="0 0 12 64" width="12" height="64" aria-hidden="true" focusable="false"><line x1="6" y1="2" x2="6" y2="50" marker-end="url(#flow-ah)"></line></svg>
+                  <article class="flow-node flow-node--burn">
+                    <h3 class="flow-node-h">$WELL burned</h3>
+                    <p class="flow-node-s">supply shrinks — every holder's share rises.</p>
+                    <span class="flow-fig doto" id="fl-burn-value" title="this figure reads the roamer's Burned events on chain 4663 once the roamer is live — never estimated">—</span>
+                    <span class="flow-fig-unit">$WELL to the dead address</span>
+                    <p class="flow-state" id="fl-burn-sent">waiting for the first sweep</p>
+                  </article>
+                </div>
+              </div>
+            </div>
+            <!-- LANE 2: trading fees on $WELL (kit lane 2). Static copy — the
+                 Pons distributor is not a config seam, so nothing here renders a
+                 figure; present tense only, the token launches on Pons. -->
+            <div class="flow-lane flow-lane--two">
+              <span class="flow-lane-label">lane 2 — trading fees on $WELL</span>
+              <div class="flow-chain flow-chain--two">
+                <article class="flow-node flow-node--src">
+                  <h3 class="flow-node-h">Pons native fee share</h3>
+                  <p class="flow-node-s">$WELL trading fees route to holders through Pons' own distributor.</p>
+                </article>
+                <div class="flow-link">
+                  <span class="flow-link-label">routes to</span>
+                  <span class="flow-link-rail">
+                    <svg class="flow-arr flow-arr--h" viewBox="0 0 84 12" width="84" height="12" aria-hidden="true" focusable="false"><line x1="2" y1="6" x2="70" y2="6" marker-end="url(#flow-ah)"></line></svg>
+                    <svg class="flow-arr flow-arr--v" viewBox="0 0 12 84" width="12" height="84" aria-hidden="true" focusable="false"><line x1="6" y1="2" x2="6" y2="70" marker-end="url(#flow-ah)"></line></svg>
+                  </span>
+                </div>
+                <article class="flow-node flow-node--burn">
+                  <h3 class="flow-node-h">$WELL holders</h3>
+                  <p class="flow-node-s">the trading-fee lane. no action. no staking. no claims.</p>
+                </article>
+                <aside class="flow-note">two lanes. one rule: no developer address is paid — the 90/10 split is immutable on-chain, nothing to set.</aside>
+              </div>
+            </div>
+            <p class="flow-foot">every arrow is an on-chain event <span class="flow-foot-dot">●</span> replay any one of them — wellstreet.tech</p>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ MOVEMENT 4 — THE BURN LEDGER (STATS) ============
            FLEET-UI-V2 G3 (2026-09-07), the R3 exemplar's "OUR VERSION":
            the burn ledger + flywheel + books grid. The static first paint
@@ -420,7 +583,7 @@
       <section class="block" id="stats">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">04</span>
+            <span class="index">05</span>
             <h2>Everything the protocol has burned</h2>
             <span class="spacer"></span>
             <div class="st-toggle" role="group" aria-label="measurement window" title="applies once the roamer is live">
@@ -506,7 +669,7 @@
       <section class="block" id="docs">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">05</span>
+            <span class="index">06</span>
             <h2>Docs</h2>
             <span class="spacer"></span>
             <span class="muted">markdown, rendered locally</span>
@@ -588,6 +751,7 @@
   <script src="js/fleet.js"></script>
   <script defer src="./js/fleet-table.js"></script>
   <script defer src="js/stats.js"></script>
+  <script defer src="js/flow.js"></script>
   <script defer src="js/copy-position.js"></script>
   <script defer src="js/theme-toggle.js"></script>
   <script src="js/main.js"></script>
