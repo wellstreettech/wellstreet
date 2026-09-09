@@ -43,7 +43,8 @@
  * the resource-gate query-surface registry never sees them; every id lives in
  * index.html static markup (this goal's own file).
  *
- * Zero new origins, zero /api, no timers: one-shot reads on load, nothing
+ * Zero new origins, zero /api: reads are one-shot, deferred past load + idle
+ * (Lighthouse TBT guard — the waiting chips are the static render); nothing
  * animates in JS (the pulse dot is pure CSS in style.css).
  */
 (function (root, factory) {
@@ -448,7 +449,22 @@
     if (inited) { return; }
     inited = true;
     if (!surfaceEl()) { return; }
-    refreshAll();
+    // PERFORMANCE (post-FLOW Lighthouse: TBT 130ms — the load-time JSON-RPC
+    // round-trips competed with first paint). The waiting chips ARE the static
+    // render; the live reads are an UPGRADE, so they defer past load + idle.
+    // Fail-closed discipline unchanged: a late or failed read leaves the
+    // honest waiting register — deferral can hide a number, never fake one.
+    var go = function () {
+      if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(function () { refreshAll(); }, { timeout: 5000 });
+      } else if (typeof setTimeout === 'function') {
+        setTimeout(refreshAll, 1500);
+      } else { refreshAll(); }
+    };
+    if (typeof document !== 'undefined' && document.readyState === 'complete') { go(); }
+    else if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('load', go, { once: true });
+    } else { go(); }
   }
 
   // ------------------------------------------------------------------
