@@ -5,6 +5,7 @@ libs = ["lib"]
 solc_version = "0.8.28"
 optimizer = true
 optimizer_runs = 200
+via_ir = true
 
 # Dependencies (plain clones, no git submodules — this repo has no remote):
 #   forge install foundry-rs/forge-std --no-git

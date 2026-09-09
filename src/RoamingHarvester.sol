@@ -6,6 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {RoamAllowlist} from "./RoamAllowlist.sol";
+import {RoamMathLib} from "./RoamMathLib.sol";
 
 /// @dev Minimal RH-4663 v4-fork PoolManager surface (house HarvesterV4 pattern). The
 ///      fork is CUSTOM: BalanceDelta packs amount0 in the HIGH 128 bits (amount1 LOW),
@@ -144,7 +145,9 @@ contract RoamingHarvester is ReentrancyGuard {
     address public constant FORK_POOL_MANAGER_4663 = 0x8366a39CC670B4001A1121B8F6A443A643e40951;
     /// @dev The pinned fork Quoter — 6 identical PM-bound deploys share one codehash;
     ///      the choice among them is arbitrary-but-pinned (QuoterProbe evidence).
-    address public constant FORK_QUOTER = 0x076838736F90Cd1d30dED756A3B89E576BE972F8;
+    ///      ROAMVAULT-SIZE 2026-09-09: every quoter CALL now runs inside
+    ///      RoamMathLib (which re-pins the same address); the IForkQuoter interface
+    ///      stays declared here (the fork battery imports it from this file).
     /// @dev The fork StateView lens (ctor-bound to the fork PoolManager) — the
     ///      observable-state spot-price read for sizing and swap limits.
     address public constant FORK_STATE_VIEW = 0x0284Cb0bcbaa8B87A8AA409D0e41afA7a76355F2;
@@ -173,7 +176,9 @@ contract RoamingHarvester is ReentrancyGuard {
     uint256 public constant SWAP_SLIPPAGE_BPS = 100;
     /// @notice Sizing margin (0.01%) shaved off the liquidity target so the pool's own
     ///         rounding can never demand a wei more than the tracked capital; the
-    ///         residual dust is booked as accounted revenue (burn tail).
+    ///         residual dust is booked as accounted revenue (burn tail). PUBLIC pin —
+    ///         the fork battery derives the dust bound from it (its math lives in
+    ///         RoamMathLib since ROAMVAULT-SIZE 2026-09-09).
     uint256 public constant SIZE_MARGIN_BPS = 1;
     uint256 public constant BPS = 10_000;
 
@@ -186,7 +191,9 @@ contract RoamingHarvester is ReentrancyGuard {
     ///      battery-pinned), and PUBLIC so the battery can pin the equality.
     ///      Zero behavior change in any reachable live state (spot within ~1% of
     ///      1.46e48 is unreachable); MIN_SQRT_PLUS_1 was already canonical.
-    uint160 internal constant MIN_SQRT_PLUS_1 = 4295128740;
+    ///      ROAMVAULT-SIZE 2026-09-09: both clamp constants now live in RoamMathLib
+    ///      (the clamp math moved there); this public pin stays for the battery's
+    ///      live F-4 equality checks.
     uint160 public constant MAX_SQRT_MINUS_1 = 1461446703485210103287273052203988822378729556659;
 
     // ------------------------------------------------------------------
@@ -716,7 +723,10 @@ contract RoamingHarvester is ReentrancyGuard {
     function _seedCallback(bytes calldata data) internal {
         (IPoolManagerV4.PoolKey memory key, int24 tickLower, int24 tickUpper, bytes32 salt, uint128 liquidity) =
             abi.decode(data, (IPoolManagerV4.PoolKey, int24, int24, bytes32, uint128));
-        _mint(key, tickLower, tickUpper, int256(uint256(liquidity)), salt);
+        // ROAMVAULT-SIZE 2026-09-09: the mint body (modifyLiquidity + decode +
+        // per-leg pay) moved VERBATIM to RoamMathLib.openLegs — the paid amounts
+        // are unchecked here exactly as the old _mint returned none.
+        RoamMathLib.openLegs(key, tickLower, tickUpper, salt, liquidity);
     }
 
     function _exitCallback(bytes calldata data) internal returns (bytes memory) {
@@ -724,20 +734,13 @@ contract RoamingHarvester is ReentrancyGuard {
         // A full decrease returns principal + accrued fees in ONE callerDelta (the
         // fork's callerDelta = principalDelta + feesAccrued, house-verified): every
         // leg goes straight to `to` — the disclosed wind-down custody event.
+        // ROAMVAULT-SIZE 2026-09-09: the close legs moved VERBATIM to
+        // RoamMathLib.exitLegsTo (delegatecall frame — identical msg.sender/
+        // address(this), so the PM lock and settlement checks behave exactly as
+        // before); the storage read of the position's liquidity stays HERE.
         Position storage pos = positions[keccak256(abi.encode(key.poolKey, key.tickLower, key.tickUpper, key.salt))];
-        (int256 delta,) = IPoolManagerV4(poolManager).modifyLiquidity(
-            key.poolKey,
-            IPoolManagerV4.ModifyLiquidityParams({
-                tickLower: key.tickLower,
-                tickUpper: key.tickUpper,
-                liquidityDelta: -int256(uint256(pos.liquidity)),
-                salt: key.salt
-            }),
-            ""
-        );
-        (int128 d0, int128 d1) = _decodeDeltas(delta);
-        uint256 taken0 = _takePositiveTo(key.poolKey.currency0, to, d0);
-        uint256 taken1 = _takePositiveTo(key.poolKey.currency1, to, d1);
+        (uint256 taken0, uint256 taken1) =
+            RoamMathLib.exitLegsTo(key.poolKey, key.tickLower, key.tickUpper, key.salt, pos.liquidity, to);
         return abi.encode(taken0, taken1);
     }
 
@@ -823,19 +826,9 @@ contract RoamingHarvester is ReentrancyGuard {
     function _collectOne(bytes32 kHash) internal {
         Position storage pos = positions[kHash];
         if (pos.liquidity == 0) return;
-        (int256 delta,) = IPoolManagerV4(poolManager).modifyLiquidity(
-            pos.poolKey,
-            IPoolManagerV4.ModifyLiquidityParams({
-                tickLower: pos.tickLower,
-                tickUpper: pos.tickUpper,
-                liquidityDelta: 0, // zero-delta: callerDelta IS the accrued-fee pair
-                salt: pos.salt
-            }),
-            ""
-        );
-        (int128 d0, int128 d1) = _decodeDeltas(delta);
-        uint256 c0 = _takePositive(pos.poolKey.currency0, d0);
-        uint256 c1 = _takePositive(pos.poolKey.currency1, d1);
+        // ROAMVAULT-SIZE 2026-09-09: the zero-delta collect legs (modifyLiquidity +
+        // decode + both takes) moved VERBATIM to RoamMathLib.collectFees.
+        (uint256 c0, uint256 c1) = RoamMathLib.collectFees(pos.poolKey, pos.tickLower, pos.tickUpper, pos.salt);
         // ROAMVAULT item 7: provenance split at the credit choke point — vault-tagged
         // fees credit the VAULT bucket (90% depositors / 10% burn), POL fees stay
         // 100% burn.
@@ -913,19 +906,12 @@ contract RoamingHarvester is ReentrancyGuard {
         leg.fromPid = keccak256(abi.encode(fromKey.poolKey));
 
         // ---- Step 1: harvest-before-move — collect from-fees into the accrual ----
-        (int256 delta,) = IPoolManagerV4(poolManager).modifyLiquidity(
-            fromKey.poolKey,
-            IPoolManagerV4.ModifyLiquidityParams({
-                tickLower: pos.tickLower,
-                tickUpper: pos.tickUpper,
-                liquidityDelta: 0,
-                salt: pos.salt
-            }),
-            ""
-        );
-        (int128 d0, int128 d1) = _decodeDeltas(delta);
-        leg.collected0 = _takePositive(fromKey.poolKey.currency0, d0);
-        leg.collected1 = _takePositive(fromKey.poolKey.currency1, d1);
+        // ROAMVAULT-SIZE 2026-09-09: both settlement cores moved VERBATIM to
+        // RoamMathLib (collectFees = zero-delta collect + both takes;
+        // decreaseLegs = full close + both takes), identical leg order and
+        // selectors; the storage reads of the position fields stay HERE.
+        (leg.collected0, leg.collected1) =
+            RoamMathLib.collectFees(fromKey.poolKey, pos.tickLower, pos.tickUpper, pos.salt);
         // ROAMVAULT item 7: provenance split — vault-tagged harvest-before-move fees
         // credit the VAULT bucket, POL fees stay 100% burn.
         bool vaultLane = _isVaultPosition[leg.fromHash];
@@ -934,19 +920,8 @@ contract RoamingHarvester is ReentrancyGuard {
         emit FeesCollected(leg.fromHash, leg.fromPid, leg.collected0, leg.collected1);
 
         // ---- Step 2: close the from-position (principal out) ----
-        (delta,) = IPoolManagerV4(poolManager).modifyLiquidity(
-            fromKey.poolKey,
-            IPoolManagerV4.ModifyLiquidityParams({
-                tickLower: pos.tickLower,
-                tickUpper: pos.tickUpper,
-                liquidityDelta: -int256(uint256(pos.liquidity)),
-                salt: pos.salt
-            }),
-            ""
-        );
-        (d0, d1) = _decodeDeltas(delta);
-        leg.principal0 = _takePositive(fromKey.poolKey.currency0, d0);
-        leg.principal1 = _takePositive(fromKey.poolKey.currency1, d1);
+        (leg.principal0, leg.principal1) =
+            RoamMathLib.decreaseLegs(fromKey.poolKey, pos.tickLower, pos.tickUpper, pos.salt, pos.liquidity);
         _deletePosition(leg.fromHash);
     }
 
@@ -1054,72 +1029,33 @@ contract RoamingHarvester is ReentrancyGuard {
     }
 
     /// @dev Sell the non-shared from-currency entirely (on the from-pool — it IS that
-    ///         book's own venue), leaving the capital in the shared currency. A
-    ///         same-pool re-range skips conversion: both legs are already held.
+    ///      book's own venue), leaving the capital in the shared currency. A
+    ///      same-pool re-range skips conversion: both legs are already held. Thin
+    ///      internal wrapper — the storage-free conversion moved VERBATIM to
+    ///      RoamMathLib.convertCapital (ROAMVAULT-SIZE 2026-09-09; the leg sales run
+    ///      from the delegatecall frame with identical msg.sender/address(this), so
+    ///      PoolManager lock and settlement checks behave exactly as before). The
+    ///      returned DeployState carries fromSqrtP = 0 — the caller overwrites it
+    ///      with its pre-conversion spot snapshot, exactly as before.
     function _convertCapital(BookKey memory fromKey, BookKey memory toKey, address s, uint256 cap0, uint256 cap1)
         internal
         returns (DeployState memory ds)
     {
-        address f0 = fromKey.poolKey.currency0;
-        address f1 = fromKey.poolKey.currency1;
-        if (keccak256(abi.encode(fromKey.poolKey)) == keccak256(abi.encode(toKey.poolKey))) {
-            return DeployState({curA: f0, amtA: cap0, curB: f1, amtB: cap1, fromSqrtP: 0});
-        }
-
-        // Cross-book: exactly one of (f0, f1) == s; the other must be sold entirely.
-        if (f0 == s) {
-            ds = DeployState({
-                curA: s,
-                amtA: cap0 + _sellLeg(fromKey.poolKey, f1, s, cap1),
-                curB: address(0),
-                amtB: 0,
-                fromSqrtP: 0
-            });
-        } else {
-            ds = DeployState({
-                curA: s,
-                amtA: cap1 + _sellLeg(fromKey.poolKey, f0, s, cap0),
-                curB: address(0),
-                amtB: 0,
-                fromSqrtP: 0
-            });
-        }
-        address t0 = toKey.poolKey.currency0;
-        address t1 = toKey.poolKey.currency1;
-        if (s != t0 && s != t1) revert BooksShareNoCurrency(f0, f1, t0, t1);
+        (ds.curA, ds.amtA, ds.curB, ds.amtB) =
+            RoamMathLib.convertCapital(fromKey.poolKey, toKey.poolKey, s, cap0, cap1);
     }
 
     /// @dev Sell `amountIn` of `tokenIn` for the shared currency ON THE FROM-POOL via
     ///      an exact-input v4-native swap (fresh pinned-Quoter quote, fail-closed
-    ///      stale-quote check, spot-derived price limit).
+    ///      stale-quote check, spot-derived price limit). Thin internal wrapper —
+    ///      the body moved VERBATIM to RoamMathLib.sellLeg (ROAMVAULT-SIZE
+    ///      2026-09-09); its unused shared-currency parameter is kept in this
+    ///      signature so the call sites stay untouched.
     function _sellLeg(IPoolManagerV4.PoolKey memory poolKey, address tokenIn, address, uint256 amountIn)
         internal
         returns (uint256 amountOut)
     {
-        if (amountIn == 0) return 0;
-        bool zeroForOne = poolKey.currency0 == tokenIn;
-        (uint160 spot,,, ) = IStateView(FORK_STATE_VIEW).getSlot0(keccak256(abi.encode(poolKey)));
-        uint160 limit = _priceLimit(spot, zeroForOne);
-
-        // Fresh quote (fork semantics: NEGATIVE amountSpecified = exact input).
-        IPoolManagerV4.SwapParams memory qp =
-            IPoolManagerV4.SwapParams({zeroForOne: zeroForOne, amountSpecified: -int256(amountIn), sqrtPriceLimitX96: limit});
-        (int256 q0, int256 q1,, ) = IForkQuoter(FORK_QUOTER).quoteSingle(poolKey, qp);
-        uint256 quotedOut = uint256(zeroForOne ? q1 : q0);
-        if (quotedOut == 0) revert SwapOutputBelowQuote(0, 0);
-
-        (int128 d0, int128 d1) = _swapOnPool(poolKey, qp);
-        amountOut = _takePositive(zeroForOne ? poolKey.currency1 : poolKey.currency0, zeroForOne ? d1 : d0);
-        uint256 paid = _payNegative(zeroForOne ? poolKey.currency0 : poolKey.currency1, zeroForOne ? d0 : d1);
-
-        // Fail-closed: the realized output must be within the slippage allowance of
-        // the fresh quote (a stale/corrupt quote reverts the WHOLE migration), and an
-        // exact-input leg pays EXACTLY its input (a limit-capped partial fill reverts
-        // — the operator retries; nothing is stranded).
-        if (amountOut < Math.mulDiv(quotedOut, BPS - SWAP_SLIPPAGE_BPS, BPS)) {
-            revert SwapOutputBelowQuote(amountOut, quotedOut);
-        }
-        if (paid != amountIn) revert SwapInputAboveBalance(paid, amountIn);
+        return RoamMathLib.sellLeg(poolKey, tokenIn, amountIn);
     }
 
     /// @dev Size the target band from the held capital (observable-state value math),
@@ -1133,81 +1069,18 @@ contract RoamingHarvester is ReentrancyGuard {
 
     /// @dev Band plan + deficit buy + affordable-liquidity sizing (recomputed at the
     ///      ACTUAL post-buy spot — the deficit buy moves it; limit-capped
-    ///      affordability self-corrects here).
+    ///      affordability self-corrects here). Thin internal wrapper — the whole
+    ///      storage-free planning core moved VERBATIM to RoamMathLib.planAndBuy
+    ///      (ROAMVAULT-SIZE 2026-09-09): one library boundary for the plan, the
+    ///      deficit buy and the affordable sizing, with the StateView spot reads
+    ///      riding the delegatecall frame (same pinned addresses, same values).
     function _planAndBuy(BookKey memory toKey, DeployState memory ds, bytes32 toPid)
         internal
         returns (uint256 bal0, uint256 bal1, uint128 liquidity)
     {
-        (uint160 spot, , , ) = IStateView(FORK_STATE_VIEW).getSlot0(toPid);
-        uint256 target0;
-        uint256 target1;
-        (bal0, bal1, target0, target1) = _planBand(toKey, ds, spot);
-        (bal0, bal1) = _buyDeficit(toKey, target0, target1, bal0, bal1, spot);
-        liquidity = _affordableForBand(toKey, bal0, bal1, toPid);
-    }
-
-    /// @dev The affordable-liquidity bound recomputed from the ACTUAL post-buy spot
-    ///      and balances (own frame for the codegen stack budget). EXACT per-leg
-    ///      bounds (nested mulDiv): the raw-unit per-liquidity amounts floor to ZERO
-    ///      on off-1:1 books (SPY/USDG raw price 0.06 → a1L = 0.244; USDG/ETH 3e-9 →
-    ///      a1L = 5e-5) and must never be used as intermediate scales.
-    ///        a0L = 2^96·(√PU−√P)/(√P·√PU), a1L = (√P−√PL)/2^96 (raw wei per L);
-    ///        below-range the c0 leg is L·2^96·(1/√PL − 1/√PU) (spot-independent).
-    ///      The sizing margin keeps the pool's own rounding from demanding a wei more
-    ///      than the tracked balances.
-    function _affordableForBand(BookKey memory toKey, uint256 bal0, uint256 bal1, bytes32 toPid)
-        internal
-        view
-        returns (uint128 liquidity)
-    {
-        (uint160 spot2, , , ) = IStateView(FORK_STATE_VIEW).getSlot0(toPid);
-        uint160 sqrtPL = _sqrtRatioAtTick(toKey.tickLower);
-        uint160 sqrtPU = _sqrtRatioAtTick(toKey.tickUpper);
-        uint256 margin = BPS - SIZE_MARGIN_BPS;
-        uint256 l0 = type(uint256).max;
-        uint256 l1 = type(uint256).max;
-        if (spot2 < sqrtPU) {
-            if (spot2 > sqrtPL) {
-                l0 = Math.mulDiv(Math.mulDiv(bal0, spot2, 1 << 96), sqrtPU, sqrtPU - spot2);
-            } else {
-                l0 = Math.mulDiv(Math.mulDiv(bal0, sqrtPL, sqrtPU - sqrtPL), sqrtPU, 1 << 96);
-            }
-        }
-        if (spot2 > sqrtPL) {
-            // a1L = (√P − √PL)/2^96 is the per-liquidity token1 amount ONLY while the
-            // spot is INSIDE the band. ABOVE range (spot2 ≥ √PU — an all-token1
-            // position) the amount is spot-independent: (√PU − √PL)/2^96. Applying the
-            // in-range form above range understates the affordable liquidity by
-            // (√PU − √PL)/(spot − √PL), and _openBand then credited the entire
-            // shortfall as accounted accrual → burned (ROAMER-AUDIT F-1: a
-            // permissionless one-sided-band migrate could destroy up to ~100% of
-            // principal).
-            uint256 denom = spot2 < sqrtPU ? spot2 - sqrtPL : sqrtPU - sqrtPL;
-            l1 = Math.mulDiv(bal1, 1 << 96, denom);
-        }
-        uint256 lFinal = Math.mulDiv(l0 < l1 ? l0 : l1, margin, BPS);
-        if (lFinal == 0 || lFinal > type(uint128).max) revert BadTicks(toKey.tickLower, toKey.tickUpper);
-        liquidity = uint128(lFinal);
-    }
-
-    /// @dev The deficit-buy leg (split out for the codegen stack budget). Each buy
-    ///      inherently sells the surplus leg, so post-swap the balances track the
-    ///      band ratio.
-    function _buyDeficit(
-        BookKey memory toKey,
-        uint256 target0,
-        uint256 target1,
-        uint256 bal0,
-        uint256 bal1,
-        uint160 spot
-    ) internal returns (uint256 out0, uint256 out1) {
-        out0 = bal0;
-        out1 = bal1;
-        if (target1 > bal1 && bal0 > 0) {
-            out1 = bal1 + _buyOnPool(toKey.poolKey, toKey.poolKey.currency1, target1 - bal1, bal0, spot);
-        } else if (target0 > bal0 && bal1 > 0) {
-            out0 = bal0 + _buyOnPool(toKey.poolKey, toKey.poolKey.currency0, target0 - bal0, bal1, spot);
-        }
+        return RoamMathLib.planAndBuy(
+            toKey.poolKey, toKey.tickLower, toKey.tickUpper, toPid, ds.curA, ds.amtA, ds.curB, ds.amtB
+        );
     }
 
     /// @dev Open the position on the target band (the pool's own math dictates the
@@ -1221,19 +1094,11 @@ contract RoamingHarvester is ReentrancyGuard {
         bytes32 toPid = keccak256(abi.encode(toKey.poolKey));
         dep.salt = bytes32(++poolNonce[toPid]);
         dep.liquidity = liquidity;
-        (int256 delta, ) = IPoolManagerV4(poolManager).modifyLiquidity(
-            toKey.poolKey,
-            IPoolManagerV4.ModifyLiquidityParams({
-                tickLower: toKey.tickLower,
-                tickUpper: toKey.tickUpper,
-                liquidityDelta: int256(uint256(liquidity)),
-                salt: dep.salt
-            }),
-            ""
-        );
-        (int128 d0, int128 d1) = _decodeDeltas(delta);
-        dep.owed0 = _payNegative(toKey.poolKey.currency0, d0);
-        dep.owed1 = _payNegative(toKey.poolKey.currency1, d1);
+        // ROAMVAULT-SIZE 2026-09-09: the open legs (modifyLiquidity + decode +
+        // per-leg pay from this contract's own balance) moved VERBATIM to
+        // RoamMathLib.openLegs — the nonce stays HERE (storage).
+        (dep.owed0, dep.owed1) =
+            RoamMathLib.openLegs(toKey.poolKey, toKey.tickLower, toKey.tickUpper, dep.salt, liquidity);
         // ROAMVAULT item 5 (the deploy-residual return-to-vault routing): on a
         // vault-tagged target the rounding/sizing-margin residual is DEPOSITOR
         // capital — it returns to the vault, NEVER the burn-stream accrual (the
@@ -1242,136 +1107,6 @@ contract RoamingHarvester is ReentrancyGuard {
         bytes32 toHash = keccak256(abi.encode(toKey.poolKey, toKey.tickLower, toKey.tickUpper, dep.salt));
         _routeResidual(toKey.poolKey.currency0, bal0 > dep.owed0 ? bal0 - dep.owed0 : 0, toHash);
         _routeResidual(toKey.poolKey.currency1, bal1 > dep.owed1 ? bal1 - dep.owed1 : 0, toHash);
-    }
-
-    /// @dev Observable-state band plan: the all-capital deployment targets for the
-    ///      band and the currently-held per-currency balances (TRACKED capital only —
-    ///      junk never enters the plan). The targets are planning quantities — they
-    ///      drive only the deficit buy and are re-derived from the ACTUAL post-buy
-    ///      balances in _planAndBuy — but they must be right-ORDERED: the per-liquidity
-    ///      raw-unit values floor to zero on off-1:1 books, so every step below is a
-    ///      single nested mulDiv that absorbs the 2^96/2^192 scaling (verified: at a
-    ///      1:1 spot a full-range band yields target0 = target1 = value/2).
-    function _planBand(BookKey memory toKey, DeployState memory ds, uint160 spot)
-        internal
-        pure
-        returns (uint256 bal0, uint256 bal1, uint256 target0, uint256 target1)
-    {
-        address t0 = toKey.poolKey.currency0;
-        address t1 = toKey.poolKey.currency1;
-        uint160 sqrtPL = _sqrtRatioAtTick(toKey.tickLower);
-        uint160 sqrtPU = _sqrtRatioAtTick(toKey.tickUpper);
-
-        uint256 valueC1 = _capitalValueC1(ds, t0, spot);
-        uint256 targetL = _liquidityTarget(valueC1, spot, sqrtPL, sqrtPU);
-
-        // target0 = L·2^96·(√PU−√P)/(√P·√PU) in-range; below-range it is
-        // L·2^96·(√PU−√PL)/(√PL·√PU) (spot-independent); above-range 0.
-        // target1 = L·(√P−√PL)/2^96 in-range; the WHOLE capital (valueC1) above-range
-        // (an all-token1 position); 0 below.
-        if (spot < sqrtPU) {
-            if (spot > sqrtPL) {
-                target0 = Math.mulDiv(Math.mulDiv(targetL, sqrtPU - spot, spot), 1 << 96, sqrtPU);
-            } else {
-                target0 = Math.mulDiv(Math.mulDiv(targetL, sqrtPU - sqrtPL, sqrtPL), 1 << 96, sqrtPU);
-            }
-        }
-        if (spot > sqrtPL) {
-            if (spot < sqrtPU) {
-                target1 = Math.mulDiv(spot - sqrtPL, targetL, 1 << 96);
-            } else {
-                // Above range the position holds ONLY token1: plan the WHOLE capital
-                // into token1 directly. (spot − √PL)·targetL with the fixed targetL
-                // would OVER-plan past the held balance and silently rely on the
-                // deficit buy's affordability scaling (ROAMER-AUDIT F-1 fix shape).
-                target1 = valueC1;
-            }
-        }
-
-        bal0 = ds.curA == t0 ? ds.amtA : (ds.curB == t0 ? ds.amtB : 0);
-        bal1 = ds.curA == t1 ? ds.amtA : (ds.curB == t1 ? ds.amtB : 0);
-    }
-
-    /// @dev The tracked capital's total value in c1-wei (nested-mulDiv raw-price
-    ///      conversion — no explicit spot² product, so no overflow at the TickMath
-    ///      extremes, and no sub-unit flooring: each step's error is relative 2^-96).
-    function _capitalValueC1(DeployState memory ds, address t0, uint160 spot) internal pure returns (uint256 value) {
-        value = (ds.curA == t0 ? _c0ToC1(ds.amtA, spot) : ds.amtA)
-            + (ds.curB == t0 ? _c0ToC1(ds.amtB, spot) : ds.amtB);
-    }
-
-    /// @dev c0-wei → c1-wei at the observable spot: amt·(√P/2^96)² = amt·√P²/2^192.
-    function _c0ToC1(uint256 amtC0, uint160 spot) internal pure returns (uint256) {
-        return Math.mulDiv(Math.mulDiv(amtC0, spot, 1 << 96), spot, 1 << 96);
-    }
-
-    /// @dev c1-wei → c0-wei at the observable spot: amt·(2^96/√P)² = amt·2^192/√P².
-    function _c1ToC0(uint256 amtC1, uint160 spot) internal pure returns (uint256) {
-        return Math.mulDiv(Math.mulDiv(amtC1, 1 << 96, spot), 1 << 96, spot);
-    }
-
-    /// @dev The all-capital liquidity target L = valueC1 / (a0L·P + a1L), derived in
-    ///      ONE nested mulDiv per branch (the per-liquidity terms themselves floor to
-    ///      zero in raw units, so the division is never materialized as intermediates):
-    ///        in-range:  a0L·P + a1L = B/(√PU·2^96) with
-    ///                   B = √P·(√PU−√P) + (√P−√PL)·√PU  ⇒  L = valueC1·√PU/(B/2^96);
-    ///        below:     unit = √PL·(√PU−√PL)·√P²/(√PL·√PU·2^96)  ⇒  L = valueC1·√PL·√PU·2^96/((√PU−√PL)·√P²);
-    ///        above:     unit = (√PU−√PL)/2^96  ⇒  L = valueC1·2^96/(√PU−√PL) (spot-independent — an all-token1 position).
-    function _liquidityTarget(uint256 valueC1, uint160 spot, uint160 sqrtPL, uint160 sqrtPU)
-        internal
-        pure
-        returns (uint256 targetL)
-    {
-        if (spot > sqrtPL && spot < sqrtPU) {
-            uint256 b = Math.mulDiv(spot, 2 * uint256(sqrtPU) - uint256(spot), 1 << 96)
-                - Math.mulDiv(sqrtPL, sqrtPU, 1 << 96);
-            targetL = Math.mulDiv(valueC1, sqrtPU, b);
-        } else if (spot <= sqrtPL) {
-            uint256 vc0 = _c1ToC0(valueC1, spot);
-            targetL = Math.mulDiv(Math.mulDiv(vc0, sqrtPL, sqrtPU - sqrtPL), sqrtPU, 1 << 96);
-        } else {
-            // Above range: unit = (√PU − √PL)/2^96 — the position is all-token1 and its
-            // per-liquidity token1 amount is spot-INDEPENDENT. The old in-range
-            // denominator (spot − √PL) understated L by (√PU − √PL)/(spot − √PL) and
-            // the un-deployed share was credited as accrual → burned (ROAMER-AUDIT F-1).
-            targetL = Math.mulDiv(valueC1, 1 << 96, sqrtPU - sqrtPL);
-        }
-        // (targetL == 0 ⇔ valueC1 == 0: zero tracked capital — _planAndBuy's lFinal
-        // check rejects the deployment; no separate revert needed here.)
-    }
-
-    /// @dev Exact-output buy of `amountOut` of `tokenOut` on `poolKey`, paying from
-    ///      the held surplus (`payFromBal`) — fresh pinned-Quoter quote first; the
-    ///      executed input must stay within the quote + slippage allowance AND within
-    ///      the held balance (the fork's spot-derived price limit caps the fill).
-    function _buyOnPool(IPoolManagerV4.PoolKey memory poolKey, address tokenOut, uint256 amountOut, uint256 payFromBal, uint160 spot)
-        internal
-        returns (uint256 bought)
-    {
-        if (amountOut == 0) return 0;
-        bool zeroForOne = poolKey.currency1 == tokenOut; // output c1 → input c0
-        address tokenIn = zeroForOne ? poolKey.currency0 : poolKey.currency1;
-        uint160 limit = _priceLimit(spot, zeroForOne);
-
-        // Fresh quote (fork semantics: POSITIVE amountSpecified = exact output).
-        IPoolManagerV4.SwapParams memory qp =
-            IPoolManagerV4.SwapParams({zeroForOne: zeroForOne, amountSpecified: int256(amountOut), sqrtPriceLimitX96: limit});
-        (int256 q0, int256 q1, , ) = IForkQuoter(FORK_QUOTER).quoteSingle(poolKey, qp);
-        uint256 quotedPaid = uint256(-1 * (zeroForOne ? q0 : q1)); // negative = the paid leg
-        if (quotedPaid == 0) revert SwapOutputBelowQuote(amountOut, 0);
-        if (quotedPaid > payFromBal) {
-            // Cannot afford the target at the live price: scale the request to the
-            // affordable input (partial deployment self-corrects at the size step).
-            amountOut = Math.mulDiv(amountOut, payFromBal, quotedPaid);
-            if (amountOut == 0) return 0;
-            qp.amountSpecified = int256(amountOut);
-        }
-
-        (int128 d0, int128 d1) = _swapOnPool(poolKey, qp);
-        bought = _takePositive(tokenOut, zeroForOne ? d1 : d0);
-        uint256 paid = _payNegative(tokenIn, zeroForOne ? d0 : d1);
-        if (paid > Math.mulDiv(quotedPaid, BPS + SWAP_SLIPPAGE_BPS, BPS)) revert SwapInputAboveBalance(paid, quotedPaid);
-        if (bought < Math.mulDiv(amountOut, BPS - SWAP_SLIPPAGE_BPS, BPS)) revert SwapOutputBelowQuote(bought, amountOut);
     }
 
     // ------------------------------------------------------------------
@@ -1417,14 +1152,18 @@ contract RoamingHarvester is ReentrancyGuard {
 
     /// @dev Swap `sweepAmt` of `token` to WELL (pinned-Quoter-bounded exact-output on
     ///      the Safe-set route) and transfer the bought WELL to dEaD. If `token` IS
-    ///      WELL, burn directly. Returns the consumed source amount.
+    ///      WELL, burn directly. Returns the consumed source amount. The swap core
+    ///      moved VERBATIM to RoamMathLib.swapTokenToWell (ROAMVAULT-SIZE
+    ///      2026-09-09) with the route passed in — the sweepRoutes read stays HERE
+    ///      (the only storage touch); the emit stays HERE so the honest ledger's
+    ///      emission code is unchanged.
     function _burnToken(address token, uint256 sweepAmt, address well) internal returns (uint256 consumed) {
         uint256 wellBought;
         if (token == well) {
             wellBought = sweepAmt;
             consumed = sweepAmt;
         } else {
-            (wellBought, consumed) = _swapTokenToWell(token, sweepAmt, well);
+            (wellBought, consumed) = RoamMathLib.swapTokenToWell(sweepRoutes[token], token, sweepAmt, well);
         }
         if (wellBought > 0) {
             IERC20(well).safeTransfer(BURN_ADDRESS, wellBought);
@@ -1432,121 +1171,15 @@ contract RoamingHarvester is ReentrancyGuard {
         emit Burned(token, wellBought, wellBought);
     }
 
-    /// @dev The quoteSingle EXACT-OUTPUT burn swap (own frame for the codegen stack
-    ///      budget): fresh quote of the swept amount sets the minOut floor, then at
-    ///      least `minOut` WELL is bought on the Safe-set route.
-    function _swapTokenToWell(address token, uint256 sweepAmt, address well)
-        internal
-        returns (uint256 wellBought, uint256 consumed)
-    {
-        IPoolManagerV4.PoolKey memory route = sweepRoutes[token];
-        if (route.currency0 == address(0) && route.currency1 == address(0)) revert NoSweepRoute(token);
-        bool zeroForOne = route.currency0 == token;
-        (uint160 spot, , , ) = IStateView(FORK_STATE_VIEW).getSlot0(keccak256(abi.encode(route)));
-        uint160 limit = _priceLimit(spot, zeroForOne);
-        uint256 minOut = _quoteMinOut(route, zeroForOne, sweepAmt, limit);
-        // EXACT-OUTPUT execution: buy at least `minOut` WELL (the swap IS the price).
-        IPoolManagerV4.SwapParams memory sp =
-            IPoolManagerV4.SwapParams({zeroForOne: zeroForOne, amountSpecified: int256(minOut), sqrtPriceLimitX96: limit});
-        (int128 d0, int128 d1) = _swapOnPool(route, sp);
-        wellBought = _takePositive(well, zeroForOne ? d1 : d0);
-        consumed = _payNegative(token, zeroForOne ? d0 : d1);
-        if (consumed > sweepAmt) revert SwapInputAboveBalance(consumed, sweepAmt);
-        if (wellBought < minOut) revert SwapOutputBelowQuote(wellBought, minOut);
-    }
-
-    /// @dev Fresh quote of an exact-input sweep → the minOut floor (1% allowance).
-    function _quoteMinOut(IPoolManagerV4.PoolKey memory route, bool zeroForOne, uint256 sweepAmt, uint160 limit)
-        internal
-        view
-        returns (uint256 minOut)
-    {
-        IPoolManagerV4.SwapParams memory qp =
-            IPoolManagerV4.SwapParams({zeroForOne: zeroForOne, amountSpecified: -int256(sweepAmt), sqrtPriceLimitX96: limit});
-        (int256 q0, int256 q1, , ) = IForkQuoter(FORK_QUOTER).quoteSingle(route, qp);
-        uint256 quotedOut = uint256(zeroForOne ? q1 : q0);
-        if (quotedOut == 0) revert SwapOutputBelowQuote(0, 0);
-        minOut = Math.mulDiv(quotedOut, BPS - SWAP_SLIPPAGE_BPS, BPS);
-    }
-
     // ------------------------------------------------------------------
-    // Internals — LP primitives (house HarvesterV4 settlement patterns)
+    // Internals — LP primitives (house HarvesterV4 settlement patterns).
+    // ROAMVAULT-SIZE 2026-09-09: the settlement primitive bodies (_mint,
+    // _takePositive, _takePositiveTo, _payNegative, _decodeDeltas) moved
+    // VERBATIM into RoamMathLib (external library code counts ZERO toward
+    // this contract's EIP-170 runtime budget) — the per-flow composites
+    // collectFees / decreaseLegs / exitLegsTo / openLegs below-mentioned
+    // wrap them; every storage touch and emit stayed HERE.
     // ------------------------------------------------------------------
-
-    function _mint(
-        IPoolManagerV4.PoolKey memory key,
-        int24 tickLower,
-        int24 tickUpper,
-        int256 liquidityDelta,
-        bytes32 salt
-    ) internal {
-        (int256 delta, ) = IPoolManagerV4(poolManager).modifyLiquidity(
-            key,
-            IPoolManagerV4.ModifyLiquidityParams({
-                tickLower: tickLower,
-                tickUpper: tickUpper,
-                liquidityDelta: liquidityDelta,
-                salt: salt
-            }),
-            ""
-        );
-        (int128 d0, int128 d1) = _decodeDeltas(delta);
-        _payNegative(key.currency0, d0);
-        _payNegative(key.currency1, d1);
-    }
-
-    /// @dev Execute a swap against the pinned PoolManager and decode the packed
-    ///      per-currency deltas (shared frame-keeper for every swap site).
-    function _swapOnPool(IPoolManagerV4.PoolKey memory key, IPoolManagerV4.SwapParams memory qp)
-        internal
-        returns (int128 d0, int128 d1)
-    {
-        (int256 delta) = IPoolManagerV4(poolManager).swap(key, qp, "");
-        (d0, d1) = _decodeDeltas(delta);
-    }
-
-    /// @dev Take the POSITIVE leg out to this contract; returns the taken amount.
-    function _takePositive(address currency, int128 leg) internal returns (uint256 taken) {
-        if (leg > 0) {
-            taken = uint256(uint128(leg));
-            IPoolManagerV4(poolManager).take(currency, address(this), taken);
-        }
-    }
-
-    /// @dev Take the POSITIVE leg out to `to` (exit path); returns the taken amount.
-    function _takePositiveTo(address currency, address to, int128 leg) internal returns (uint256 taken) {
-        if (leg > 0) {
-            taken = uint256(uint128(leg));
-            IPoolManagerV4(poolManager).take(currency, to, taken);
-        }
-    }
-
-    /// @dev Settle the NEGATIVE leg (this contract owes the pool) from its own
-    ///      balance: ERC-20 via sync→transfer→settle, native via settle{value}.
-    ///      Returns the paid amount (0 when the leg is not negative).
-    function _payNegative(address currency, int128 leg) internal returns (uint256 paid) {
-        if (leg < 0) {
-            paid = uint256(uint128(-leg));
-            if (currency == address(0)) {
-                if (address(this).balance < paid) revert InsufficientNativeBalance(paid, address(this).balance);
-                IPoolManagerV4(poolManager).settle{value: paid}();
-            } else {
-                uint256 bal = IERC20(currency).balanceOf(address(this));
-                if (bal < paid) revert SwapInputAboveBalance(paid, bal);
-                IPoolManagerV4(poolManager).sync(currency);
-                IERC20(currency).safeTransfer(poolManager, paid);
-                IPoolManagerV4(poolManager).settle();
-            }
-        }
-    }
-
-    /// @dev Decodes the fork's PACKED BalanceDelta word: amount0 = HIGH 128 bits,
-    ///      amount1 = LOW 128 bits (money-critical fork pin; decoding canonically
-    ///      would sign-flip the legs — house HarvesterV4.sol pattern).
-    function _decodeDeltas(int256 delta) internal pure returns (int128 d0, int128 d1) {
-        d0 = int128(delta >> 128);
-        d1 = int128(uint128(uint256(delta)));
-    }
 
     // ------------------------------------------------------------------
     // Internals — accounting / registry
@@ -1609,56 +1242,27 @@ contract RoamingHarvester is ReentrancyGuard {
     // Internals — math (observable-state only, NO oracle)
     // ------------------------------------------------------------------
 
-    /// @dev Price limit derived from the live spot (the fork rejects tick-extreme
-    ///      limits — InvalidPrice — so the ±SWAP_SLIPPAGE_BPS band is clamped inside
-    ///      the TickMath bounds).
-    function _priceLimit(uint160 spot, bool zeroForOne) internal pure returns (uint160) {
-        uint256 bump = Math.mulDiv(spot, SWAP_SLIPPAGE_BPS, BPS);
-        if (zeroForOne) {
-            uint256 lower = uint256(spot) - bump;
-            if (lower <= MIN_SQRT_PLUS_1) lower = uint256(MIN_SQRT_PLUS_1) + 1;
-            return uint160(lower);
-        }
-        uint256 upper = uint256(spot) + bump;
-        if (upper >= MAX_SQRT_MINUS_1) upper = uint256(MAX_SQRT_MINUS_1) - 1;
-        return uint160(upper);
-    }
-
-    /// @dev The honest realized-IL mark (07 §3 ledger field): the released principal
-    ///      valued at the from-book's live spot vs the deployed amounts valued at the
-    ///      to-book's live spot, minus the roaming take — all in the shared currency,
-    ///      all observable pool state, no oracle. >= 0 is a loss, < 0 a gain.
+    /// @dev The honest realized-IL mark (07 §3 ledger field; ROAMER-AUDIT F-2's
+    ///      both-legs take-back). Thin internal wrapper — the pure branch math moved
+    ///      VERBATIM to RoamMathLib.realizedIL (ROAMVAULT-SIZE 2026-09-09); this
+    ///      frame flattens the (Leg, BookKey, Deployed) memory structs into scalars.
     function _realizedIL(Leg memory leg, BookKey memory toKey, uint160 toSqrtP, Deployed memory dep)
         internal
         pure
         returns (int256 il)
     {
-        uint256 released;
-        uint256 take;
-        if (leg.sIsFromC0) {
-            // s == the FROM book's c0: value in s-wei = principal0 + principal1 in c0-wei
-            // (nested-mulDiv raw-price conversion — both sides of the mark in s-wei).
-            released = leg.principal0 + _c1ToC0(leg.principal1, leg.ds.fromSqrtP);
-            // BOTH fee legs left the capital (the take is charged in-kind on both legs
-            // and both are credited to the accrual) — the mark adds BOTH back at the
-            // from-spot. Adding back only the shared-side leg overstated loss (or
-            // understated gain) by the non-shared fee leg (ROAMER-AUDIT F-2).
-            take = leg.fee0 + _c1ToC0(leg.fee1, leg.ds.fromSqrtP);
-        } else {
-            // s == the FROM book's c1: value in s-wei = principal0 in c1-wei + principal1.
-            released = _c0ToC1(leg.principal0, leg.ds.fromSqrtP) + leg.principal1;
-            take = _c0ToC1(leg.fee0, leg.ds.fromSqrtP) + leg.fee1;
-        }
-        uint256 deployed;
-        if (toKey.poolKey.currency0 == leg.ilCurrency) {
-            deployed = dep.owed0 + _c1ToC0(dep.owed1, toSqrtP);
-        } else {
-            deployed = _c0ToC1(dep.owed0, toSqrtP) + dep.owed1;
-        }
-        uint256 net = deployed + take;
-        uint256 loss = released > net ? released - net : 0;
-        uint256 gain = net > released ? net - released : 0;
-        il = gain > 0 ? -int256(gain) : int256(loss);
+        return RoamMathLib.realizedIL(
+            leg.principal0,
+            leg.principal1,
+            leg.fee0,
+            leg.fee1,
+            leg.sIsFromC0,
+            leg.ds.fromSqrtP,
+            toKey.poolKey.currency0 == leg.ilCurrency,
+            dep.owed0,
+            dep.owed1,
+            toSqrtP
+        );
     }
 
     /// @dev Directional-band disclosure (AMENDMENT A): whenever the requested band
@@ -1671,11 +1275,7 @@ contract RoamingHarvester is ReentrancyGuard {
     }
 
     function _validateBand(BookKey memory key) internal pure {
-        if (key.tickLower >= key.tickUpper) revert BadTicks(key.tickLower, key.tickUpper);
-        if (key.tickLower < MIN_TICK || key.tickUpper > MAX_TICK) revert BadTicks(key.tickLower, key.tickUpper);
-        if (key.tickLower % key.poolKey.tickSpacing != 0 || key.tickUpper % key.poolKey.tickSpacing != 0) {
-            revert BadTickAlignment(key.tickLower, key.poolKey.tickSpacing);
-        }
+        RoamMathLib.validateBand(key.tickLower, key.tickUpper, key.poolKey.tickSpacing);
     }
 
     function _sharedCurrency(IPoolManagerV4.PoolKey memory a, IPoolManagerV4.PoolKey memory b)
@@ -1698,50 +1298,15 @@ contract RoamingHarvester is ReentrancyGuard {
     // TickMath.getSqrtRatioAtTick (standard v3/v4 constant table, round-up)
     // ------------------------------------------------------------------
 
-    int24 internal constant MIN_TICK = -887272;
-    int24 internal constant MAX_TICK = 887272;
-
     /// @notice The pure TickMath evaluation, exposed for the battery's live cross-check
-    ///         (ROAMER-AUDIT F-4 — the proof surface the NatSpec claims below).
+    ///         (ROAMER-AUDIT F-4 — the proof surface). ROAMVAULT-SIZE 2026-09-09: the
+    ///         19-entry table moved VERBATIM to RoamMathLib (external library code
+    ///         counts zero toward this contract's EIP-170 runtime budget); the public
+    ///         surface stays HERE — the F-4 fork battery pins through it unchanged.
+    ///         The table's live-proof NatSpec (bracket/monotonic/anchor checks) moved
+    ///         with the code into RoamMathLib.
     function sqrtRatioAtTick(int24 tick) external pure returns (uint160) {
-        return _sqrtRatioAtTick(tick);
-    }
-
-    /// @dev The battery cross-checks this table against the LIVE pools (F-4): for each
-    ///      anchor book's live slot0 the table must BRACKET the observed price
-    ///      (sqrtRatioAtTick(tick) ≤ slot0.sqrtPriceX96 < sqrtRatioAtTick(tick + 1) —
-    ///      a pool's live sqrtP is a swap output, not a tick-boundary value), stay
-    ///      strictly monotonic across the money-path neighborhood, and match the
-    ///      canonical TickMath anchor at MIN_TICK exactly — a hard live proof of the
-    ///      table that feeds every band-sizing and price-limit computation.
-    function _sqrtRatioAtTick(int24 tick) internal pure returns (uint160 sqrtP) {
-        uint256 absTick = tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick));
-        // absTick is bounded by validation to ±887272 (< 2^20), so the 19-entry table suffices.
-        uint256 ratio = absTick & 0x1 != 0 ? 0xfffcb933bd6fad37aa2d162d1a594001 : 0x100000000000000000000000000000000;
-        unchecked {
-            if (absTick & 0x2 != 0) ratio = (ratio * 0xfff97272373d413259a46990580e213a) >> 128;
-            if (absTick & 0x4 != 0) ratio = (ratio * 0xfff2e50f5f656932ef12357cf3c7fdcc) >> 128;
-            if (absTick & 0x8 != 0) ratio = (ratio * 0xffe5caca7e10e4e61c3624eaa0941cd0) >> 128;
-            if (absTick & 0x10 != 0) ratio = (ratio * 0xffcb9843d60f6159c9db58835c926644) >> 128;
-            if (absTick & 0x20 != 0) ratio = (ratio * 0xff973b41fa98c081472e6896dfb254c0) >> 128;
-            if (absTick & 0x40 != 0) ratio = (ratio * 0xff2ea16466c96a3843ec78b326b52861) >> 128;
-            if (absTick & 0x80 != 0) ratio = (ratio * 0xfe5dee046a99a2a811c461f1969c3053) >> 128;
-            if (absTick & 0x100 != 0) ratio = (ratio * 0xfcbe86c7900a88aedcffc83b479aa3a4) >> 128;
-            if (absTick & 0x200 != 0) ratio = (ratio * 0xf987a7253ac413176f2b074cf7815e54) >> 128;
-            if (absTick & 0x400 != 0) ratio = (ratio * 0xf3392b0822b70005940c7a398e4b70f3) >> 128;
-            if (absTick & 0x800 != 0) ratio = (ratio * 0xe7159475a2c29b7443b29c7fa6e889d9) >> 128;
-            if (absTick & 0x1000 != 0) ratio = (ratio * 0xd097f3bdfd2022b8845ad8f792aa5825) >> 128;
-            if (absTick & 0x2000 != 0) ratio = (ratio * 0xa9f746462d870fdf8a65dc1f90e061e5) >> 128;
-            if (absTick & 0x4000 != 0) ratio = (ratio * 0x70d869a156d2a1b890bb3df62baf32f7) >> 128;
-            if (absTick & 0x8000 != 0) ratio = (ratio * 0x31be135f97d08fd981231505542fcfa6) >> 128;
-            if (absTick & 0x10000 != 0) ratio = (ratio * 0x9aa508b5b7a84e1c677de54f3e99bc9) >> 128;
-            if (absTick & 0x20000 != 0) ratio = (ratio * 0x5d6af8dedb81196699c329225ee604) >> 128;
-            if (absTick & 0x40000 != 0) ratio = (ratio * 0x2216e584f5fa1ea926041bedfe98) >> 128;
-            if (absTick & 0x80000 != 0) ratio = (ratio * 0x48a170391f7dc42444e8fa2) >> 128;
-        }
-        if (tick > 0) ratio = type(uint256).max / ratio;
-        // Q128 → Q96, round up (canonical TickMath behavior).
-        sqrtP = uint160((ratio >> 32) + (ratio % (1 << 32) == 0 ? 0 : 1));
+        return RoamMathLib.sqrtRatioAtTick(tick);
     }
 
     // ------------------------------------------------------------------
@@ -2055,19 +1620,11 @@ contract RoamingHarvester is ReentrancyGuard {
     {
         address usdg = vaultAsset;
         _collectOne(kHash); // fees first — the accrual lane, never the redeemer payout
-        (int256 delta, ) = IPoolManagerV4(poolManager).modifyLiquidity(
-            pos.poolKey,
-            IPoolManagerV4.ModifyLiquidityParams({
-                tickLower: pos.tickLower,
-                tickUpper: pos.tickUpper,
-                liquidityDelta: -int256(uint256(sliceLiq)), // decrease-only by construction
-                salt: pos.salt
-            }),
-            ""
-        );
-        (int128 d0, int128 d1) = _decodeDeltas(delta);
-        uint256 leg0 = _takePositive(pos.poolKey.currency0, d0);
-        uint256 leg1 = _takePositive(pos.poolKey.currency1, d1);
+        // ROAMVAULT-SIZE 2026-09-09: the decrease-only slice legs moved VERBATIM to
+        // RoamMathLib.decreaseLegs (decrease-only by construction — the negative
+        // liquidityDelta derives from the slice here).
+        (uint256 leg0, uint256 leg1) =
+            RoamMathLib.decreaseLegs(pos.poolKey, pos.tickLower, pos.tickUpper, pos.salt, sliceLiq);
         if (pos.poolKey.currency0 == usdg) {
             usdgOut = leg0 + _sellLeg(pos.poolKey, pos.poolKey.currency1, usdg, leg1);
         } else {
@@ -2165,15 +1722,18 @@ contract RoamingHarvester is ReentrancyGuard {
 
     /// @dev A to-band's deployed value in the vault's USDG denomination, valued at the
     ///      observable to-book spot (no oracle). Unreachable third branch: vault
-    ///      books are USDG-paired by the deploy constraint.
+    ///      books are USDG-paired by the deploy constraint. Thin internal wrapper —
+    ///      the per-branch conversion math moved VERBATIM to
+    ///      RoamMathLib.deployedValueC (ROAMVAULT-SIZE 2026-09-09); this frame keeps
+    ///      the vaultAsset read contract-side.
     function _deployedUsdgValue(BookKey memory toKey, Deployed memory dep, uint160 toSqrtP)
         internal
         view
         returns (uint256)
     {
         address usdg = vaultAsset;
-        if (toKey.poolKey.currency0 == usdg) return dep.owed0 + _c1ToC0(dep.owed1, toSqrtP);
-        if (toKey.poolKey.currency1 == usdg) return _c0ToC1(dep.owed0, toSqrtP) + dep.owed1;
+        if (toKey.poolKey.currency0 == usdg) return RoamMathLib.deployedValueC(true, dep.owed0, dep.owed1, toSqrtP);
+        if (toKey.poolKey.currency1 == usdg) return RoamMathLib.deployedValueC(false, dep.owed0, dep.owed1, toSqrtP);
         return 0;
     }
 }
