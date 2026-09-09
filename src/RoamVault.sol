@@ -509,8 +509,9 @@ contract RoamVault is ERC4626, ReentrancyGuard {
     ///      the redeemer's own slice through the ACTUAL proceeds — the books debit
     ///      exactly the claim (idle leg + the deployed book's marked share), never a
     ///      second deduction of the same loss. NO pause check exists on this path.
-    ///      Checks-effects-interactions: shares burn and the books debit BEFORE the
-    ///      egress and the payout.
+    ///      ROAMVAULT V-1 note 2026-09-08: this override is DEAD CODE — both OZ
+    ///      entries that would reach it (redeem/withdraw) are overridden above to
+    ///      call _redeem directly; the guard and the settlement live on _redeem.
     function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
         internal
         override
@@ -522,8 +523,20 @@ contract RoamVault is ERC4626, ReentrancyGuard {
     /// @dev The unified redemption settlement (redeem/withdraw/redeemWithMinOut all
     ///      land here). `minPayout` = the redeemer's per-call floor (0 for the vanilla
     ///      entries — the house per-leg band inside the roamer is the default floor).
+    ///      ROAMVAULT V-1 fix 2026-09-08 (composition audit): the design pin houses
+    ///      nonReentrant on EVERY state-changing entry — the three live redemption
+    ///      entries converge HERE, so the guard lives here (the OZ _withdraw override
+    ///      above is unreachable dead code: both OZ entries that would reach it are
+    ///      overridden). Checks-effects-interactions is now TRUE rather than
+    ///      commented: the shares burn and BOTH books debit — the deployed book AND
+    ///      the outstanding par (V-3) — BEFORE the egress external call, and the
+    ///      proceeds pass straight out in the payout, so a mid-egress reentrant
+    ///      state-write can no longer clobber a stale post-call cache (the audited
+    ///      chassis guards its one shared internal hook the same way,
+    ///      YieldShares.sol:269-278).
     function _redeem(address caller, address receiver, address owner, uint256 assets, uint256 shares, uint256 minPayout)
         internal
+        nonReentrant
     {
         if (caller != owner) {
             _spendAllowance(owner, caller, shares);
@@ -534,27 +547,31 @@ contract RoamVault is ERC4626, ReentrancyGuard {
 
         // Effects first: burn the shares, split the claim into the idle leg and the
         // deployed-book shortfall (the shortfall is <= the deployed book whenever the
-        // claim is backed — floored defensively anyway).
+        // claim is backed — floored defensively anyway), and release BOTH the book
+        // and the outstanding par (V-3 fix 2026-09-08: the par decrements WITH the
+        // book, so the IL-gain cap tracks the OUTSTANDING deploy-time par — gross
+        // deployed minus par released — never the gross-ever figure; DECISION 9).
         _burn(owner, shares);
         uint256 idlePaid = assets <= idle ? assets : idle;
         uint256 shortfall = assets - idlePaid;
         if (shortfall > deployed) shortfall = deployed; // defensive floor, never egress past the marked book
         _totalAssetsStored = idle - idlePaid;
+        if (shortfall > 0) {
+            _deployedBook = deployed - shortfall; // release at the CURRENT marked value (par minus marks)
+            _deployedPar = _deployedPar >= shortfall ? _deployedPar - shortfall : 0; // outstanding par releases with the book
+        }
 
-        // Egress the shortfall through the roamer (pro-rata decrease-only slices;
-        // never gated by MIN_HOLD, never consuming the migration cap).
+        // Interactions: egress the shortfall through the roamer (pro-rata
+        // decrease-only slices; never gated by MIN_HOLD, never consuming the
+        // migration cap). The proceeds pass straight out to the receiver below —
+        // the books debit exactly the claim; any proceeds-vs-marked divergence is
+        // the redeemer's slice (DECISION 9b, realized ONCE through actual proceeds).
         uint256 proceeds = 0;
         if (shortfall > 0) {
             address roamer = harvester;
             if (roamer == address(0)) revert HarvesterRequired();
             proceeds = IRoamHarvesterTarget(roamer).vaultEgress(shortfall);
-            _deployedBook = deployed - shortfall; // release at the CURRENT marked value (par minus marks)
-            // Inline egress credit (DECISION 9b): the proceeds credit the idle book,
-            // then pass straight out to the receiver — the books debit exactly the
-            // claim; any proceeds-vs-marked divergence is the redeemer's slice.
-            _totalAssetsStored += proceeds;
             emit VaultEgressSettled(shortfall, proceeds);
-            _totalAssetsStored -= proceeds;
         }
 
         uint256 payout = idlePaid + proceeds;

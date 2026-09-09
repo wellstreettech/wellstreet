@@ -540,6 +540,19 @@ contract RoamVaultForkTest is Test {
         // The vault fee is still in the 90/10 lane: the migration fee was ZERO.
         assertGt(vault.deployedBook(), 0, "the deployed book emptied on the migration");
 
+        // Feed the migrated position REAL fees so the V-2 window at the tail below
+        // is NON-VACUOUS: the donate device (F1 pattern, USDG leg only) credits the
+        // LIVE pool; the migrated position's liquidity share collects at the
+        // egress fee-collect and fills the vault bucket.
+        bytes32 toHash = _toHashOf(entries, _vaultFromHash);
+        uint128 lTotal = IStateView(STATE_VIEW).getLiquidity(USDG_ETH_POOL_ID);
+        uint128 lOurs = harvester.positionRecord(toHash).liquidity;
+        uint256 donatedUsdg = 5_000e6;
+        uint256 expShare1 = Math.mulDiv(donatedUsdg, lOurs, lTotal);
+        assertGt(expShare1, 0, "the migrated position's fee share rounds to zero");
+        deal(USDG, address(this), donatedUsdg);
+        _donate(usdgEthKey, 0, donatedUsdg);
+
         // ZERO-IDLE EGRESS: alice redeems; the shortfall closes the migrated
         // USDG/ETH position (the native leg converts on the position's own venue).
         // (Share read hoisted BEFORE the prank — see F2.)
@@ -565,6 +578,66 @@ contract RoamVaultForkTest is Test {
         vm.prank(address(timelock));
         harvester.exitBook(polKey, treasuryAddr);
         assertEq(harvester.openKeyCount(), 0, "the POL egress left the position open");
+
+        // ------------------------------------------------------------------
+        // V-2 (LIVE): the post-last-close rescue window must NOT move the vault
+        // bucket. The donate above filled it at the egress collect (the fees ride
+        // the SAME redeem whose slice-close deleted the tag — the custody guard
+        // has lifted while the 90% depositor cut still sits un-swept) — depositor
+        // money is rescueable by NOBODY, then still drains to the VAULT.
+        // ------------------------------------------------------------------
+        uint256 bucketUsdg = harvester.vaultAccrued(USDG);
+        assertGt(bucketUsdg, 0, "the donate did not fill the vault bucket (the V-2 window is vacuous)");
+        uint256 treasBefore = IERC20(USDG).balanceOf(treasuryAddr);
+        uint256 roamerBal = IERC20(USDG).balanceOf(address(harvester));
+        uint256 accounted = harvester.accountedAccrued(USDG);
+        uint256 expectedJunk =
+            roamerBal > accounted + bucketUsdg ? roamerBal - accounted - bucketUsdg : 0;
+        vm.prank(address(timelock));
+        harvester.rescueToTreasury(USDG);
+        // The basis is EXACT: only true junk (above accounted + the bucket) moves.
+        assertEq(IERC20(USDG).balanceOf(treasuryAddr) - treasBefore, expectedJunk, "the rescue basis != bal - accounted - vaultAccrued");
+        assertEq(harvester.vaultAccrued(USDG), bucketUsdg, "the rescue moved the vault bucket");
+        // The custody lane is intact: the permissionless sweep pushes the bucket
+        // straight into the vault (the vault asset needs no conversion route).
+        uint256 idleBeforeSweep = vault.idleBook();
+        harvester.sweepVaultYield();
+        assertEq(vault.idleBook() - idleBeforeSweep, bucketUsdg, "the sweep did not push the bucket into the vault");
+        assertEq(harvester.vaultAccrued(USDG), 0, "the swept bucket did not drain");
+    }
+
+    // ------------------------------------------------------------------
+    // F4 — the TickMath table vs LIVE slot0 (ROAMER-AUDIT F-4, carried) + the
+    // V-5 constant equality (composition audit 2026-09-08).
+    // ------------------------------------------------------------------
+
+    function testFork_F4_tableBracketsLiveSlot0_andMaxSqrtCanonical() public {
+        // The table BRACKETS each live anchor book's slot0: a pool's live sqrtP is
+        // a swap OUTPUT, never a tick-boundary value — so
+        // sqrtRatioAtTick(tick) <= slot0.sqrtPriceX96 < sqrtRatioAtTick(tick + 1).
+        (uint160 spySqrt, int24 spyTick, , ) = IStateView(STATE_VIEW).getSlot0(SPY_USDG_POOL_ID);
+        assertLe(harvester.sqrtRatioAtTick(spyTick), spySqrt, "SPY slot0 fell below its own tick's table bound");
+        assertLt(spySqrt, harvester.sqrtRatioAtTick(spyTick + 1), "SPY slot0 exceeded the (tick+1) table bound");
+        (uint160 ethSqrt, int24 ethTick, , ) = IStateView(STATE_VIEW).getSlot0(USDG_ETH_POOL_ID);
+        assertLe(harvester.sqrtRatioAtTick(ethTick), ethSqrt, "USDG/ETH slot0 fell below its own tick's table bound");
+        assertLt(ethSqrt, harvester.sqrtRatioAtTick(ethTick + 1), "USDG/ETH slot0 exceeded the (tick+1) table bound");
+        // V-5: the clamp constant IS canonical TickMath MAX_SQRT_RATIO - 1 — the
+        // TIGHTEST limit the LIVE fork accepts (the pool rejects limits >=
+        // MAX_SQRT_RATIO with InvalidPrice; the pre-fix wart sat ABOVE that bound).
+        // Subtlety pinned: the pool's MAX_SQRT_RATIO is NOT
+        // getSqrtRatioAtTick(MAX_TICK) — the table endpoint is 5,586,318 BELOW the
+        // pool constant — so the constant is pinned to the canonical literal and to
+        // the at-or-above-the-table relationship, never to table(MAX_TICK) - 1.
+        assertGe(
+            uint256(harvester.MAX_SQRT_MINUS_1()) + 1,
+            uint256(harvester.sqrtRatioAtTick(887272)),
+            "the clamp ceiling fell below the table's own MAX_TICK output"
+        );
+        assertEq(
+            uint256(harvester.MAX_SQRT_MINUS_1()),
+            uint256(1461446703485210103287273052203988822378729556659),
+            "MAX_SQRT_MINUS_1 is not the canonical max minus one"
+        );
     }
 }
 

@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {RoamVault} from "../src/RoamVault.sol";
 import {RoamingHarvester, IPoolManagerV4} from "../src/RoamingHarvester.sol";
 import {RoamAllowlist} from "../src/RoamAllowlist.sol";
@@ -134,8 +135,32 @@ contract RoamVaultTest is Test, IMockTake {
         timelock.execute(target, 0, data, bytes32(0));
     }
 
+    // V-1 reentry device: armed by the regression test, the FIRST take() of an
+    // in-flight egress calls back here and this contract (the mock PM's controller)
+    // attempts to re-enter the vault's guarded surfaces from INSIDE the roamer
+    // callback — exactly the mid-egress reentry shape the composition audit ruled on.
+    bool private _reentryArmed;
+    bool private _sawDepositBlocked;
+    bool private _sawRedeemBlocked;
+    bool private _sawHarvestBlocked;
+    bytes4 private _depositErr;
+    bytes4 private _redeemErr;
+    bytes4 private _harvestErr;
+
     function mockTake(address currency, address to, uint256 amount) external {
         require(msg.sender == PM_PIN, "mockTake: not the pinned PM");
+        if (_reentryArmed) {
+            _reentryArmed = false; // one-shot: the first egress take attempts reentry
+            (bool okDep, bytes memory retDep) = address(vault).call(abi.encodeCall(RoamVault.deposit, (1, address(this))));
+            _sawDepositBlocked = !okDep;
+            _depositErr = retDep.length >= 4 ? bytes4(retDep) : bytes4(0);
+            (bool okRed, bytes memory retRed) = address(vault).call(abi.encodeCall(RoamVault.redeem, (1, address(this), address(this))));
+            _sawRedeemBlocked = !okRed;
+            _redeemErr = retRed.length >= 4 ? bytes4(retRed) : bytes4(0);
+            (bool okHar, bytes memory retHar) = address(vault).call(abi.encodeCall(RoamVault.harvest, (1)));
+            _sawHarvestBlocked = !okHar;
+            _harvestErr = retHar.length >= 4 ? bytes4(retHar) : bytes4(0);
+        }
         MockERC20(currency).mint(to, amount); // the 1:1 mock pool is an infinite faucet
     }
 
@@ -575,6 +600,349 @@ contract RoamVaultTest is Test, IMockTake {
         vm.expectRevert(RoamVault.HarvesterRequired.selector);
         vm.prank(address(timelock));
         v2.vaultDeploy(_bookKey(LO, HI, 0), 1);
+    }
+
+    // ------------------------------------------------------------------
+    // V-1 regression (COMPOSITION-AUDIT 2026-09-08, HIGH): the live redemption
+    // path holds the vault's ONE ReentrancyGuard — a reentrant counterparty
+    // inside the egress callback cannot re-enter ANY guarded vault surface
+    // (deposit/redeem/harvest all revert on the guard), and the attempt moves
+    // NOTHING. The reentry point is the mock pool's take() -> controller
+    // callback, which fires mid-egress inside the roamer's own unlock frame.
+    // ------------------------------------------------------------------
+
+    function test_V1_redeemHoldsTheGuard_reentrantMidEgressAttemptsRevert() public {
+        // The controller (this contract) holds USDG + approval so a reentrant
+        // deposit attempt would SUCCEED were the guard not held (deposits are open,
+        // cap headroom exists) — that is exactly the drain class V-1 closes.
+        usdg.mint(address(this), 1_000e6);
+        usdg.approve(address(vault), type(uint256).max);
+
+        (bytes32 kHash, , ) = _depositAndDeploy(alice, 2_000e6, 2_000e6); // deploy ALL idle
+        // Real fees on the vault book so the egress fee-collect takes() (which calls
+        // back into this contract's mockTake — the mid-egress reentry point).
+        IMockPoolManager(PM_PIN).queueFees(book, LO, HI, bytes32(uint256(1)), 0, 100e6);
+
+        uint256 idleBefore = vault.idleBook();
+        uint256 bookBefore = vault.deployedBook();
+        uint256 parBefore = vault.deployedPar();
+        uint256 supplyBefore = vault.totalSupply();
+        uint256 controllerSharesBefore = vault.balanceOf(address(this));
+
+        _reentryArmed = true;
+        uint256 aliceShares = vault.balanceOf(alice); // hoisted: a state read consumes vm.prank
+        uint256 claim = vault.convertToAssets(aliceShares);
+        vm.prank(alice);
+        vault.redeem(aliceShares, alice, alice);
+
+        // ALL THREE reentrant attempts were blocked BY THE GUARD (the modifier fires
+        // before any body logic — including harvest's NotHarvester check).
+        assertTrue(_sawDepositBlocked, "a mid-egress reentrant deposit went through");
+        assertEq(_depositErr, ReentrancyGuard.ReentrancyGuardReentrantCall.selector, "deposit blocked by something other than the guard");
+        assertTrue(_sawRedeemBlocked, "a mid-egress reentrant redeem went through");
+        assertEq(_redeemErr, ReentrancyGuard.ReentrancyGuardReentrantCall.selector, "redeem blocked by something other than the guard");
+        assertTrue(_sawHarvestBlocked, "a mid-egress reentrant harvest went through");
+        assertEq(_harvestErr, ReentrancyGuard.ReentrancyGuardReentrantCall.selector, "harvest blocked by something other than the guard");
+
+        // The attempts moved NOTHING beyond the redeem's own settlement: no phantom
+        // deposit/shares (supply = exactly the burn), the books debit EXACTLY the
+        // claim, and par released exactly the shortfall — one unit, nothing extra.
+        uint256 idlePaid = claim <= idleBefore ? claim : idleBefore;
+        uint256 shortfall = claim - idlePaid;
+        assertEq(vault.totalSupply(), supplyBefore - aliceShares, "the reentrant deposit minted shares");
+        assertEq(vault.balanceOf(address(this)), controllerSharesBefore, "the reentrant deposit landed shares");
+        assertEq(vault.idleBook() + vault.deployedBook(), idleBefore + bookBefore - claim, "the reentry moved the books beyond the claim");
+        assertEq(vault.deployedPar(), parBefore - shortfall, "the reentry moved deploy-time par beyond the release");
+        assertEq(roamer.openKeyCount(), 0, "the egress did not run to completion");
+        assertFalse(roamer.isVaultPosition(kHash), "the tag survived the completed egress");
+    }
+
+    // ------------------------------------------------------------------
+    // V-2 regression (COMPOSITION-AUDIT 2026-09-08, MEDIUM): once the LAST vault
+    // position closes, the timelock rescue window opens — the rescue basis must
+    // exclude the vaultAccrued bucket (depositor money is rescueable by NOBODY),
+    // and the bucket still drains to the VAULT through the sweep lane.
+    // ------------------------------------------------------------------
+
+    function test_V2_rescueBasis_excludesVaultBucket_afterLastVaultPositionCloses() public {
+        (bytes32 kHash, , ) = _depositAndDeploy(alice, 2_000e6, 2_000e6); // deploy ALL idle
+        // Fees on BOTH legs: the egress fee-collect (fees FIRST, principal-side)
+        // fills BOTH buckets — the SPY one has NO route once the position closes
+        // (audit gap #10: the NoVaultRoute skip is conserved, never lost).
+        IMockPoolManager(PM_PIN).queueFees(book, LO, HI, bytes32(uint256(1)), 50e6, 100e6);
+
+        uint256 aliceShares = vault.balanceOf(alice); // hoisted: a state read consumes vm.prank
+        vm.prank(alice);
+        vault.redeem(aliceShares, alice, alice);
+
+        // The window is OPEN: the last vault position closed and its tag is gone.
+        assertEq(roamer.openKeyCount(), 0, "the full exit left a position open");
+        assertFalse(roamer.isVaultPosition(kHash), "the tag survived the full close");
+        uint256 bucketUsdg = roamer.vaultAccrued(address(usdg));
+        uint256 bucketSpy = roamer.vaultAccrued(address(spy));
+        assertEq(bucketUsdg, 90e6, "the USDG 90% bucket did not fill at the egress collect");
+        assertEq(bucketSpy, 45e6, "the SPY 90% bucket did not fill at the egress collect");
+
+        // V-2: the timelock rescue runs INSIDE the window — it must NOT move the
+        // buckets (the pre-fix basis, bal - accounted, physically included them).
+        uint256 treasUsdgBefore = usdg.balanceOf(treasuryAddr);
+        uint256 treasSpyBefore = spy.balanceOf(treasuryAddr);
+        vm.prank(address(timelock));
+        roamer.rescueToTreasury(address(usdg));
+        vm.prank(address(timelock));
+        roamer.rescueToTreasury(address(spy));
+        assertEq(usdg.balanceOf(treasuryAddr), treasUsdgBefore, "the rescue swept the vault USDG bucket to treasury");
+        assertEq(spy.balanceOf(treasuryAddr), treasSpyBefore, "the rescue swept the vault SPY bucket to treasury");
+        assertEq(roamer.vaultAccrued(address(usdg)), bucketUsdg, "the USDG bucket moved on rescue");
+        assertEq(roamer.vaultAccrued(address(spy)), bucketSpy, "the SPY bucket moved on rescue");
+        // The basis is EXACT: only true junk (above accounted + the bucket) moves.
+        assertEq(usdg.balanceOf(treasuryAddr) - treasUsdgBefore, _junkAbove(address(usdg)), "the USDG rescue basis != bal - accounted - vaultAccrued");
+        assertEq(spy.balanceOf(treasuryAddr) - treasSpyBefore, _junkAbove(address(spy)), "the SPY rescue basis != bal - accounted - vaultAccrued");
+
+        // The custody lane is intact: the sweep drains the USDG bucket INTO the
+        // vault (idle credit), while the routeless SPY bucket is skipped+conserved.
+        uint256 idleBeforeSweep = vault.idleBook();
+        vm.recordLogs();
+        roamer.sweepVaultYield();
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(vault.idleBook() - idleBeforeSweep, bucketUsdg, "the sweep did not push the USDG bucket into the vault");
+        assertEq(roamer.vaultAccrued(address(usdg)), 0, "the pushed USDG bucket did not drain");
+        assertEq(roamer.vaultAccrued(address(spy)), bucketSpy, "the routeless SPY bucket was not conserved");
+        bool sawSpySkip;
+        for (uint256 i = 0; i < entries.length; i++) {
+            if (
+                entries[i].topics[0] == keccak256("VaultYieldSkipped(address,bytes32)")
+                    && entries[i].topics[1] == bytes32(uint256(uint160(address(spy))))
+            ) {
+                sawSpySkip = true;
+            }
+        }
+        assertTrue(sawSpySkip, "the routeless SPY push did not emit VaultYieldSkipped");
+    }
+
+    /// @dev The junk the rescue is ALLOWED to move: raw balance above accounted
+    ///      accrual + the vault bucket (the V-2-fixed rescue basis).
+    function _junkAbove(address token) internal view returns (uint256) {
+        uint256 bal = MockERC20(token).balanceOf(address(roamer));
+        uint256 accounted = roamer.accountedAccrued(token) + roamer.vaultAccrued(token);
+        return bal > accounted ? bal - accounted : 0;
+    }
+
+    // ------------------------------------------------------------------
+    // V-3 regression (COMPOSITION-AUDIT 2026-09-08, MEDIUM): _deployedPar
+    // DECREMENTS on egress — the IL-gain cap tracks the OUTSTANDING deploy-time
+    // par (gross deployed minus par released), never the gross-ever figure.
+    // ------------------------------------------------------------------
+
+    function test_V3_parDecrementsOnEgress_gainCapTracksOutstandingPar() public {
+        (bytes32 kHash, uint256 deployedVal, ) = _depositAndDeploy(alice, 2_000e6, 2_000e6);
+        uint256 grossPar = vault.deployedPar();
+        assertEq(grossPar, deployedVal, "deploy-time par != the deployed value");
+        assertEq(vault.deployedBook(), grossPar, "the deployed book != par at deploy");
+        assertTrue(roamer.isVaultPosition(kHash), "the deployed position is not tagged");
+        uint256 idleBefore = vault.idleBook();
+
+        // PARTIAL egress: redeem half the claim — the shortfall releases only a
+        // slice of the position (the pro-rata decrease-only loop stops when filled).
+        uint256 halfShares = vault.balanceOf(alice) / 2; // hoisted before the prank
+        uint256 halfClaim = vault.previewRedeem(halfShares);
+        vm.prank(alice);
+        vault.redeem(halfShares, alice, alice);
+        assertTrue(halfClaim > idleBefore, "test premise: the half claim must exceed idle (the egress must run)");
+        uint256 released = halfClaim - idleBefore; // the egress request (the shortfall)
+
+        // V-3: par releases WITH the book — outstanding par = gross - released.
+        assertEq(vault.deployedBook(), grossPar - released, "the book did not release the shortfall");
+        assertEq(vault.deployedPar(), grossPar - released, "STALE PAR: the egress release did not decrement deploy-time par");
+        assertLt(vault.deployedPar(), grossPar, "par did not move on egress");
+        assertEq(roamer.openKeyCount(), 1, "a partial egress closed the whole position");
+
+        // A GENUINE GAIN restores the book only to the OUTSTANDING par — the stale
+        // gross-ever par would have let the mark restore ABOVE the outstanding
+        // figure (the share-price-inflation-via-marks primitive the cap exists to
+        // close; DECISION 9).
+        vm.prank(address(roamer));
+        vault.applyRealizedIL(-1e30, address(usdg)); // a huge honest-gain mark (capped)
+        assertEq(vault.deployedBook(), vault.deployedPar(), "the gain cap no longer tracks the outstanding par");
+        assertEq(vault.deployedBook(), grossPar - released, "the gain restored above the outstanding par");
+    }
+
+    // ------------------------------------------------------------------
+    // V-4 regression (COMPOSITION-AUDIT 2026-09-08, MEDIUM): setVault
+    // cross-checks the bound vault's ACTUAL asset() against the bound
+    // denomination — a mis-wired pair would mis-price every later deploy.
+    // ------------------------------------------------------------------
+
+    function test_V4_setVault_revertsOnVaultAssetMismatch() public {
+        RoamingHarvester roamer2 = new RoamingHarvester(
+            address(timelock), treasuryAddr, address(allowlist), 7 days, 4, 3911, 1000
+        );
+        // The mismatched binding reverts fail-closed (bound SPY, vault asset USDG).
+        vm.prank(address(timelock));
+        vm.expectRevert(
+            abi.encodeWithSelector(RoamingHarvester.VaultAssetMismatch.selector, address(spy), address(usdg))
+        );
+        roamer2.setVault(address(vault), address(spy));
+        // The failed attempt half-bound NOTHING...
+        assertEq(roamer2.vault(), address(0), "the failed attempt left a binding behind");
+        // ...and the CORRECT denomination still binds (the check does not break the
+        // governance rail — the deploy flow's queued pair passes it).
+        _timelockExecute(address(roamer2), abi.encodeCall(RoamingHarvester.setVault, (address(vault), address(usdg))));
+        assertEq(roamer2.vault(), address(vault), "the correct binding failed");
+        assertEq(roamer2.vaultAsset(), address(usdg), "the bound asset drifted");
+        // The production binding is untouched.
+        assertEq(roamer.vault(), address(vault), "the live binding moved");
+        assertEq(roamer.vaultAsset(), address(usdg), "the live bound asset moved");
+    }
+
+    // ------------------------------------------------------------------
+    // V-5 regression (COMPOSITION-AUDIT 2026-09-08, LOW): the clamp constant IS
+    // canonical TickMath MAX_SQRT_RATIO - 1 — the TIGHTEST swap limit the fork
+    // accepts (the pool rejects limits >= MAX_SQRT_RATIO with InvalidPrice). The
+    // pre-fix wart sat canonical + 54,389,040 (ABOVE the rejection bound), so a
+    // clamp into it could still be fork-rejected.
+    // TEETH EXPOSED SUBTLETY: the pool's MAX_SQRT_RATIO is NOT
+    // getSqrtRatioAtTick(MAX_TICK) — the table's own endpoint is 5,586,318 BELOW
+    // the pool constant (at MIN_TICK the two coincide exactly). The table is the
+    // honest TickMath; the pool constant is the rejection bound. The battery pins
+    // BOTH so no future fix "corrects" the constant to either extreme.
+    // ------------------------------------------------------------------
+
+    function test_V5_maxSqrtMinusOne_isCanonicalTickMathMaxMinusOne() public {
+        assertEq(
+            uint256(roamer.MAX_SQRT_MINUS_1()),
+            uint256(1461446703485210103287273052203988822378729556659),
+            "MAX_SQRT_MINUS_1 is not canonical MAX_SQRT_RATIO - 1"
+        );
+        // The clamp ceiling sits ABOVE the table's own extreme output (the table
+        // endpoint is canonical MAX_SQRT_RATIO - 5,586,318): a limit clamped to
+        // MAX_SQRT_MINUS_1 is always INSIDE the pool's accepted range, and never
+        // below what the table itself considers a valid price.
+        assertGe(
+            uint256(roamer.MAX_SQRT_MINUS_1()) + 1,
+            uint256(roamer.sqrtRatioAtTick(887272)),
+            "the clamp ceiling fell below the table's own MAX_TICK output"
+        );
+        // The MIN side pins the table anchor exactly (MIN_SQRT_PLUS_1 == the first
+        // accepted limit above MIN_SQRT_RATIO == the table's MIN_TICK output + 1).
+        assertEq(uint256(roamer.sqrtRatioAtTick(-887272)), 4295128739, "the table's MIN_TICK anchor moved");
+    }
+
+    // ------------------------------------------------------------------
+    // Audit test-gap #6: the withdraw() route end-to-end (only redeem was
+    // exercised everywhere; the :348 override is its own entry into _redeem).
+    // ------------------------------------------------------------------
+
+    function test_gap6_withdrawRoute_endToEnd_egress() public {
+        (bytes32 kHash, , ) = _depositAndDeploy(alice, 2_000e6, 2_000e6); // deploy ALL idle
+        uint256 claim = vault.convertToAssets(vault.balanceOf(alice));
+        vm.prank(alice);
+        vault.withdraw(claim, alice, alice); // the withdraw override — its own _redeem entry
+        assertApproxEqAbs(usdg.balanceOf(alice) - (100_000e6 - 2_000e6), claim, 200_000, "the withdraw route underpaid");
+        assertEq(vault.totalAssets(), 0, "the last withdrawer drained the vault");
+        assertEq(roamer.openKeyCount(), 0, "the withdraw-route egress left a position open");
+        assertFalse(roamer.isVaultPosition(kHash), "the tag survived the withdraw-route close");
+    }
+
+    // ------------------------------------------------------------------
+    // Audit test-gap #5: MULTI-POSITION pro-rata egress — a shortfall that
+    // straddles two vault books closes slices on BOTH (every prior egress
+    // proof was single-position).
+    // ------------------------------------------------------------------
+
+    function test_gap5_multiPositionEgress_proRataAcrossBothBooks() public {
+        (bytes32 kHashA, , ) = _depositAndDeploy(alice, 2_000e6, 2_000e6);
+        (bytes32 kHashB, , ) = _depositAndDeploy(bob, 2_000e6, 2_000e6);
+        assertFalse(kHashA == kHashB, "the two deploys collided on one key");
+
+        // Alice's full exit: her shortfall releases only a SLICE of A (the deploy
+        // residual idle always covers the last stretch — a remnant stays marked,
+        // and B is untouched: the pro-rata loop stops when the claim is filled).
+        uint256 aliceShares = vault.balanceOf(alice);
+        vm.prank(alice);
+        vault.redeem(aliceShares, alice, alice);
+        assertTrue(roamer.isVaultPosition(kHashA), "position A fully closed on a partial release");
+        assertTrue(roamer.isVaultPosition(kHashB), "position B vanished early");
+        assertEq(roamer.openKeyCount(), 2, "an unexpected position appeared/vanished");
+
+        // Bob's full exit: his shortfall exceeds A's remnant mark — ONE egress
+        // closes slices on BOTH books (the multi-position pro-rata loop; every
+        // prior egress proof was single-position).
+        uint256 bobShares = vault.balanceOf(bob);
+        vm.prank(bob);
+        vault.redeem(bobShares, bob, bob);
+
+        assertEq(roamer.openKeyCount(), 0, "the multi-position egress left a position open");
+        assertEq(vault.deployedBook(), 0, "the deployed book did not fully release");
+        assertEq(vault.deployedPar(), 0, "par did not fully release (V-3 semantics)");
+        assertEq(vault.totalAssets(), 0, "the last redeemer drained the vault");
+        assertApproxEqAbs(usdg.balanceOf(bob) - (100_000e6 - 2_000e6), 2_000e6, 200_000, "bob's payout diverged beyond the house band");
+    }
+
+    // ------------------------------------------------------------------
+    // Audit test-gap #8 (V-4b): the setHarvester re-wire drill — the
+    // documented capital-freeze and the documented drain-first recovery,
+    // PINNED in code (the GOAL declares the roamer replaceable; this pins
+    // the ordering constraint the runbook must carry).
+    // ------------------------------------------------------------------
+
+    function test_gap8_harvesterRewire_freezeThenDrainFirstRecovery() public {
+        (bytes32 vHash, , ) = _depositAndDeploy(alice, 2_000e6, 2_000e6); // deploy ALL idle
+        RoamingHarvester.Position memory pos = roamer.positionRecord(vHash);
+        bytes memory fromKey =
+            abi.encode(RoamingHarvester.BookKey({poolKey: pos.poolKey, tickLower: pos.tickLower, tickUpper: pos.tickUpper, salt: pos.salt}));
+
+        // The declared replaceability path: BOTH bindings queued — the new roamer
+        // binds the vault (its own one-shot setVault) and the vault re-points
+        // setHarvester.
+        RoamingHarvester roamer2 = new RoamingHarvester(
+            address(timelock), treasuryAddr, address(allowlist), 7 days, 4, 3911, 1000
+        );
+        _timelockExecute(address(roamer2), abi.encodeCall(RoamingHarvester.setVault, (address(vault), address(usdg))));
+        vm.prank(address(timelock));
+        vault.setHarvester(address(roamer2));
+
+        // THE FREEZE (V-4b): a migration of the OLD roamer's vault position REVERTS —
+        // its completion push applyRealizedIL lands NotHarvester (the vault now
+        // trusts roamer2). exitBook/rescue are blocked by the vault tag.
+        vm.warp(block.timestamp + 7 days + 1);
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(RoamVault.NotHarvester.selector, address(roamer)));
+        roamer.migrate(fromKey, _bookKey(LO, HI, 0), [uint256(1), uint256(1)], 4000);
+        assertTrue(roamer.isVaultPosition(vHash), "the frozen position lost its tag");
+
+        // A redeem under the re-wired harvester pays IDLE ONLY — roamer2's mark book
+        // is empty, so the shortfall egresses to nothing (fail-closed freeze).
+        // (Mock-stack note: the mock PM calls unlockCallback back on the ONE roamer
+        // address it stores — etch a roamer2-pointing instance at the PIN so the
+        // freeze redeem's egress callback routes to roamer2. Etch swaps CODE only:
+        // the PM's fee/liquidity storage at the PIN survives.)
+        MockPoolManager pm2 = new MockPoolManager(address(this));
+        vm.etch(PM_PIN, address(pm2).code);
+        IMockPoolManager(PM_PIN).init(address(roamer2));
+        uint256 idleBefore = vault.idleBook();
+        uint256 halfShares = vault.balanceOf(alice) / 2; // hoisted before the prank
+        vm.prank(alice);
+        vault.redeem(halfShares, alice, alice);
+        assertEq(usdg.balanceOf(alice) - (100_000e6 - 2_000e6), idleBefore, "the freeze redeem paid more than idle");
+        assertTrue(roamer.isVaultPosition(vHash), "the frozen position moved during the freeze");
+
+        // THE DOCUMENTED DRAIN-FIRST RECOVERY: re-point the harvester BACK — the
+        // egress finds the marks again and the position drains (the runbook
+        // ordering, now executable proof). Etch the mock PM's callback target back
+        // to the original roamer (same etch-swap, storage preserved).
+        vm.prank(address(timelock));
+        vault.setHarvester(address(roamer));
+        MockPoolManager pm3 = new MockPoolManager(address(this));
+        vm.etch(PM_PIN, address(pm3).code);
+        IMockPoolManager(PM_PIN).init(address(roamer));
+        uint256 remaining = vault.balanceOf(alice);
+        vm.prank(alice);
+        vault.redeem(remaining, alice, alice);
+        assertLt(roamer.positionRecord(vHash).liquidity, pos.liquidity, "the recovered egress closed no slice");
+        assertEq(vault.deployedBook(), 0, "the recovered egress did not release the book");
+        assertEq(vault.deployedPar(), 0, "the recovered egress did not release the par");
+        assertGt(usdg.balanceOf(alice) - (100_000e6 - 2_000e6), idleBefore, "the recovery paid nothing beyond the freeze payout");
     }
 }
 

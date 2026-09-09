@@ -179,8 +179,15 @@ contract RoamingHarvester is ReentrancyGuard {
 
     /// @dev v4 TickMath sqrt bounds (fork source) — swap price limits are clamped
     ///      inside these (the fork rejects tick-extreme limits with InvalidPrice).
+    ///      V-5 fix 2026-09-08 (composition audit): the MAX constant was canonical
+    ///      MAX_SQRT_RATIO + 54,389,040 while NAMED "minus one" — a clamp into it
+    ///      could still be rejected by the fork. It is now canonical
+    ///      TickMath.MAX_SQRT_RATIO - 1 (== the fork table at MAX_TICK minus one,
+    ///      battery-pinned), and PUBLIC so the battery can pin the equality.
+    ///      Zero behavior change in any reachable live state (spot within ~1% of
+    ///      1.46e48 is unreachable); MIN_SQRT_PLUS_1 was already canonical.
     uint160 internal constant MIN_SQRT_PLUS_1 = 4295128740;
-    uint160 internal constant MAX_SQRT_MINUS_1 = 1461446703485210103287273052203988822378783945700;
+    uint160 public constant MAX_SQRT_MINUS_1 = 1461446703485210103287273052203988822378729556659;
 
     // ------------------------------------------------------------------
     // Position key (the `bytes` fromKey/toKey ABI payload = one BookKey)
@@ -459,7 +466,15 @@ contract RoamingHarvester is ReentrancyGuard {
     ///         blind (future donations silently absorbed) and a zero-balance accrued
     ///         token would revert the whole sweep on a zero-quote burn (ROAMER-AUDIT F-5).
     function rescueToTreasury(address token) external onlyTimelock nonReentrant {
-        uint256 accounted = accountedAccrued[token]; _revertIfVaultPositionsOpen(); // ROAMVAULT item 3: fail-closed custody — vault capital is rescueable ONLY through the vault's own egress seam, never by treasury rescue
+        // ROAMVAULT item 3 + V-2 fix 2026-09-08 (composition audit): the basis
+        // excludes the VAULT bucket too. Once the last vault position closes, the
+        // open-positions guard lifts while the 90% depositor bucket can still sit
+        // un-swept (it fills at the SAME redeem's fee-collect that deletes the tag)
+        // — a bal-minus-accounted basis would sweep un-pushed depositor yield to
+        // TREASURY. Only true junk (above accounted accrual + the vault bucket) is
+        // rescueable; the bucket drains exclusively through the vault-yield sweep.
+        uint256 accounted = accountedAccrued[token] + vaultAccrued[token];
+        _revertIfVaultPositionsOpen(); // fail-closed custody — vault capital is rescueable ONLY through the vault's own egress seam, never by treasury rescue
         if (token == address(0)) {
             uint256 bal = address(this).balance;
             if (bal > accounted) _forwardNative(bal - accounted);
@@ -1806,16 +1821,23 @@ contract RoamingHarvester is ReentrancyGuard {
     error NotVault(address caller);
     error VaultPositionProtected(bytes32 keyHash);
     error VaultBookNotPaired(address vaultAsset);
+    error VaultAssetMismatch(address boundAsset, address vaultAsset);
     error ZeroDeploy();
     error ZeroEgress();
     error NoVaultRoute(address token);
 
     /// @notice ITEM 2: ONE-SHOT, fail-closed, timelock-only vault binding. Re-set and
     ///         zero revert. Bind together with the vault's USDG asset (the vault-book
-    ///         pairing constraint keys on it).
+    ///         pairing constraint keys on it). ROAMVAULT V-4 fix 2026-09-08
+    ///         (composition audit): the two bindings are CROSS-CHECKED — the bound
+    ///         vault's ACTUAL asset() must equal the bound denomination, else every
+    ///         later deploy plans and values in a token the vault never transferred
+    ///         (deployed-book inflation on day one of operation).
     function setVault(address vault_, address usdgAsset_) external onlyTimelock {
         if (vault != address(0)) revert VaultAlreadySet(vault);
         if (vault_ == address(0) || usdgAsset_ == address(0)) revert ZeroAddress();
+        address actualAsset = IRoamVaultVault(vault_).asset();
+        if (actualAsset != usdgAsset_) revert VaultAssetMismatch(usdgAsset_, actualAsset);
         vault = vault_;
         vaultAsset = usdgAsset_;
         emit VaultSet(vault_, usdgAsset_);
@@ -2158,7 +2180,10 @@ contract RoamingHarvester is ReentrancyGuard {
 
 /// @dev The bound vault's surface the roamer consumes (RoamVault implements it; the
 ///      harvest(uint256) signature is the audited chassis excess-bounded credit).
+///      asset() backs the V-4 setVault cross-check (the bound denomination must be
+///      the vault's actual asset).
 interface IRoamVaultVault {
+    function asset() external view returns (address);
     function BPS() external view returns (uint256);
     function DEPOSITOR_BPS() external view returns (uint256);
     function BURN_BPS() external view returns (uint256);

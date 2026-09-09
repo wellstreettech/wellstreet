@@ -2,6 +2,7 @@
 pragma solidity 0.8.28;
 
 import {Test} from "forge-std/Test.sol";
+import {Vm} from "forge-std/Vm.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {RoamVault} from "../../src/RoamVault.sol";
@@ -63,6 +64,16 @@ contract RoamVaultInvariantsTest is Test {
         assertLe(vault.idleBook(), IERC20(vault.asset()).balanceOf(address(vault)), "idle book exceeds the raw balance");
         assertLe(vault.deployedBook(), vault.deployedPar(), "the deployed book exceeded deploy-time par");
         assertEq(vault.totalAssets(), vault.idleBook() + vault.deployedBook(), "totalAssets != idle + deployed");
+        // V-3 fix invariant (composition audit 2026-09-08): the outstanding par is
+        // EXACTLY gross-ever deployed minus par released — tracked from the events'
+        // independent figures (VaultBookDeployed.deployedVal / VaultEgressSettled
+        // .requested), not from the par getter itself. The pre-fix stale par (never
+        // decremented on egress) breaks this the first time an egress runs.
+        assertEq(
+            vault.deployedPar(),
+            handler.ghost_grossDeployed() - handler.ghost_parReleased(),
+            "deployedPar != gross deployed - par released (stale par)"
+        );
     }
 }
 
@@ -91,6 +102,15 @@ contract Handler is Test, IMockTake {
 
     bool public ghost_redeemViolation;
     bytes public ghost_redeemReason;
+
+    // V-3 invariant ghosts — the par-ledger's independent sources, accumulated from
+    // the emitted events (deployedVal off VaultBookDeployed, requested off
+    // VaultEgressSettled) so the invariant compares STATE against LEDGER, never
+    // state against itself.
+    uint256 public ghost_grossDeployed;
+    uint256 public ghost_parReleased;
+    bytes32 constant SIG_BOOK_DEPLOYED = keccak256("VaultBookDeployed(bytes32,uint256,uint256,uint256)");
+    bytes32 constant SIG_EGRESS_SETTLED = keccak256("VaultEgressSettled(uint256,uint256)");
 
     event RedeemFailed(address user, uint256 shares, bytes reason);
 
@@ -200,15 +220,26 @@ contract Handler is Test, IMockTake {
 
     /// @notice REDEEM a user's OWN shares — never may fail (idle-first + pro-rata
     ///         decrease-only egress), never gated by the pause, never gated by
-    ///         MIN_HOLD. Any revert is the invariant violation.
+    ///         MIN_HOLD. Any revert is the invariant violation. The egress's
+    ///         requested figure feeds the V-3 par-ledger ghost.
     function redeem(uint256 userSeed, uint256 pct) external {
         address user = users[userSeed % 3];
         uint256 bal = vault.balanceOf(user);
         if (bal == 0) return;
         uint256 shares = bound(pct, 1, bal);
+        vm.recordLogs();
         vm.prank(user); // the user redeems their OWN shares (caller == owner)
         try vault.redeem(shares, user, user) {
-            // served: idle-first, then pro-rata slice closes
+            // served: idle-first, then pro-rata slice closes — accumulate the
+            // egress's requested par-release figure from the settled event(s).
+            Vm.Log[] memory entries = vm.getRecordedLogs();
+            for (uint256 i = 0; i < entries.length; i++) {
+                if (entries[i].topics[0] == SIG_EGRESS_SETTLED) {
+                    uint256 requested;
+                    (requested, ) = abi.decode(entries[i].data, (uint256, uint256));
+                    ghost_parReleased += requested;
+                }
+            }
         } catch (bytes memory reason) {
             ghost_redeemViolation = true;
             ghost_redeemReason = reason;
@@ -226,7 +257,20 @@ contract Handler is Test, IMockTake {
         assets = bound(assets, 100e6, Math.min(idle, 1_000e6));
         bytes memory key =
             abi.encode(RoamingHarvester.BookKey({poolKey: book, tickLower: LO, tickUpper: HI, salt: 0}));
+        vm.recordLogs();
         _timelockExecute(address(vault), abi.encodeCall(RoamVault.vaultDeploy, (key, assets)));
+        // Accumulate the gross-ever deployed figure from the emitted event (the
+        // V-3 par-ledger's independent deploy-side source).
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        for (uint256 i = 0; i < entries.length; i++) {
+            if (entries[i].topics[0] == SIG_BOOK_DEPLOYED && entries[i].emitter == address(roamer)) {
+                uint256 capital;
+                uint256 deployedVal;
+                uint256 residual;
+                (capital, deployedVal, residual) = abi.decode(entries[i].data, (uint256, uint256, uint256));
+                ghost_grossDeployed += deployedVal;
+            }
+        }
     }
 
     function _timelockExecute(address target, bytes memory data) internal {
