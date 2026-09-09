@@ -461,10 +461,36 @@
         setTimeout(refreshAll, 1500);
       } else { refreshAll(); }
     };
-    if (typeof document !== 'undefined' && document.readyState === 'complete') { go(); }
+    // VIEWPORT GATE (UI_LOOP_3 follow-up, 2026-09-10): #flow sits below the
+    // fold — reading its chain data before the reader ever scrolls there spent
+    // TBT twice in Lighthouse. The one-shot pass fires when the section
+    // approaches the viewport (200px rootMargin: the numbers land as the eyes
+    // arrive, not one frame after); no IntersectionObserver -> the old
+    // load+idle path, never worse than before. Guard form per the main.js:1303
+    // precedent the resource-gate battery accepts.
+    var fire = function () {
+      if (typeof window !== 'undefined' && 'IntersectionObserver' in window && surfaceEl()) {
+        var fired = false; // explicit one-shot — disconnect alone must not be the only guard
+        var io = new window.IntersectionObserver(function (entries) {
+          if (fired) { return; }
+          for (var i = 0; i < entries.length; i++) {
+            if (entries[i] && entries[i].isIntersecting) {
+              fired = true;
+              io.disconnect(); // ONE pass per page load — the reads are not a live feed
+              go();
+              return;
+            }
+          }
+        }, { rootMargin: '200px' });
+        io.observe(surfaceEl());
+        return;
+      }
+      go();
+    };
+    if (typeof document !== 'undefined' && document.readyState === 'complete') { fire(); }
     else if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-      window.addEventListener('load', go, { once: true });
-    } else { go(); }
+      window.addEventListener('load', fire, { once: true });
+    } else { fire(); }
   }
 
   // ------------------------------------------------------------------

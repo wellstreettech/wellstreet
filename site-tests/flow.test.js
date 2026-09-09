@@ -419,3 +419,51 @@ test('W3c: the holder-loop arc ships desktop-only', () => {
   assert.ok(/rinse · repeat/.test(html), 'the loop carries its own label');
   assert.ok(/@media \(max-width: 900px\) \{ \.flow-loop, \.flow-loop-label \{ display: none/.test(css), 'hidden at <=900 — the vertical read already carries order');
 });
+
+// ---- UI_LOOP_3 follow-up (2026-09-10): the viewport gate ----
+// ------------------------------------------------------------------
+// UI_LOOP_3 follow-up (2026-09-10): the viewport gate. flow.js SELF-INITs at
+// require time (the test fixture is empty then, so that init early-returns and
+// consumes the idempotency flag) — the rider therefore re-requires a FRESH
+// module instance against the populated fixture: exactly what the browser
+// sequence is, but controllable.
+// ------------------------------------------------------------------
+test('gate: the reads fire ONLY on first viewport entry, exactly once', async () => {
+  setConfig({ roamVault: VAULT, roamer: ROAMER, roamAllowlist: ALLOWLIST, harvester: HARVESTER });
+  respond = liveRespond;
+  armDelegationSpies();
+  clientCreations = 0;
+  const before = snapText();
+  let observerCb = null, disconnects = 0, observed = 0;
+  global.window = {
+    requestIdleCallback: function (fn) { fn(); },
+    addEventListener: function () {},
+    IntersectionObserver: function (cb) {
+      observerCb = cb;
+      this.observe = function () { observed += 1; };
+      this.disconnect = function () { disconnects += 1; };
+    },
+  };
+  try {
+    delete require.cache[FLOW_JS];
+    require(FLOW_JS); // self-init runs the gate against the populated fixture
+    assert.strictEqual(observed, 1, 'the fresh instance observes #flow (main.js IO guard form armed)');
+    assert.strictEqual(clientCreations, 0, 'NO RPC before the section enters the viewport');
+    assert.deepStrictEqual(snapText(), before, 'the static paint stands while off-screen');
+    observerCb([{ isIntersecting: false }]);
+    assert.strictEqual(clientCreations, 0, 'a non-intersecting callback does not fire the pass');
+    observerCb([{ isIntersecting: true }]);
+    await new Promise((r) => setTimeout(r, 20));
+    assert.ok(clientCreations >= 1, 'first entry runs the one pass');
+    assert.strictEqual(disconnects, 1, 'the observer disconnects after firing — never a live feed');
+    const c = clientCreations;
+    observerCb([{ isIntersecting: true }]);
+    await new Promise((r) => setTimeout(r, 20));
+    assert.strictEqual(clientCreations, c, 'exactly ONE pass per page load');
+    assert.notDeepStrictEqual(snapText(), before, 'the gated path really rendered (flipped-live fixture)');
+  } finally {
+    delete global.window;
+    delete require.cache[FLOW_JS];
+    require(FLOW_JS); // restore a quiet instance (self-init early-returns; window is gone)
+  }
+});
