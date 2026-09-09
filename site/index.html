@@ -488,7 +488,7 @@
                     <svg class="flow-arr flow-arr--v" viewBox="0 0 12 84" width="12" height="84" aria-hidden="true" focusable="false"><line x1="6" y1="2" x2="6" y2="70" marker-end="url(#flow-ah)"></line></svg>
                   </span>
                 </div>
-                <article class="flow-node">
+                <a class="flow-node" href="#fleet">
                   <h3 class="flow-node-h">Roamer</h3>
                   <p class="flow-node-s">farms the fleet — measured, allowlisted books only. guardrails on-chain.</p>
                   <span class="flow-fig doto" id="fl-roamer-value" title="waiting — open positions read openKeyCount() on the roamer once it is live — never estimated">—</span>
@@ -496,7 +496,7 @@
                   <span class="flow-fig doto" id="fl-roamer-books" title="waiting — the book count reads bookCount() on RoamAllowlist once it is live — never estimated">—</span>
                   <span class="flow-fig-unit" id="fl-roamer-books-unit">allowlisted books</span>
                   <p class="flow-state" id="fl-roamer-sent">waiting — not yet broadcast</p>
-                </article>
+                </a>
                 <div class="flow-link">
                   <span class="flow-link-label">fees</span>
                   <span class="flow-link-rail">
@@ -519,26 +519,34 @@
                 <div class="flow-col">
                   <span class="flow-branch-label"><span class="flow-pct doto">90%</span> depositors</span>
                   <svg class="flow-arr-v" viewBox="0 0 12 64" width="12" height="64" aria-hidden="true" focusable="false"><line x1="6" y1="2" x2="6" y2="50" marker-end="url(#flow-ah)"></line></svg>
-                  <article class="flow-node flow-node--dep">
+                  <a class="flow-node flow-node--dep" href="#deposit">
                     <h3 class="flow-node-h">Depositors</h3>
                     <p class="flow-node-s">share price rises. no claims. no staking. exit anytime — never paused.</p>
                     <span class="flow-fig doto" id="fl-dep-value" title="waiting — the share price reads convertToAssets(1e18) on RoamVault once it is live; an empty vault's 1.00 will not be dressed up as a figure">—</span>
                     <span class="flow-fig-unit" id="fl-dep-unit">assets per share</span>
                     <p class="flow-state" id="fl-dep-sent">waiting — RoamVault build wave</p>
-                  </article>
+                  </a>
                 </div>
                 <div class="flow-col">
                   <span class="flow-branch-label"><span class="flow-pct doto">10%</span> buy + burn</span>
                   <svg class="flow-arr-v" viewBox="0 0 12 64" width="12" height="64" aria-hidden="true" focusable="false"><line x1="6" y1="2" x2="6" y2="50" marker-end="url(#flow-ah)"></line></svg>
-                  <article class="flow-node flow-node--burn">
+                  <a class="flow-node flow-node--burn" href="#stats">
                     <h3 class="flow-node-h">$WELL burned</h3>
                     <p class="flow-node-s">supply shrinks — every holder's share rises.</p>
                     <span class="flow-fig doto" id="fl-burn-value" title="this figure reads the roamer's Burned events on chain 4663 once the roamer is live — never estimated">—</span>
                     <span class="flow-fig-unit">$WELL to the dead address</span>
-                    <p class="flow-state" id="fl-burn-sent">waiting for the first sweep</p>
-                  </article>
+                    <!-- UI_LOOP_3 W3b: the waiting line lived 3x across the page
+                         (flow + footer strip + stats card) — this node now
+                         cross-references instead. flow.js overwrites the text
+                         with measured copy when the burn seam goes live. -->
+                    <p class="flow-state" id="fl-burn-sent">the burn ledger below reads the same events</p>
+                  </a>
                 </div>
               </div>
+              <!-- UI_LOOP_3 W2: discovery bridge — the vault lane answers "where
+                   does my money work?", this line answers "what if I want to
+                   drive myself?". One sentence, links to the measured table. -->
+              <p class="flow-discovery">want a position of your own? <a href="#fleet">the fleet table copies measured position params for agents</a></p>
             </div>
             <!-- LANE 2: trading fees on $WELL (kit lane 2). Static copy — the
                  Pons distributor is not a config seam, so nothing here renders a
@@ -563,6 +571,13 @@
                 </article>
                 <aside class="flow-note">two lanes. one rule: no developer address is paid — the 90/10 split is immutable on-chain, nothing to set.</aside>
               </div>
+              <!-- UI_LOOP_3 W3c: the holder loop — the lane feeds itself. Desktop
+                   only (<=900 hides; the vertical read already carries order).
+                   A stroked arc, no fill, reusing the arrowhead marker. -->
+              <svg class="flow-loop" viewBox="0 0 600 56" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+                <path d="M 578 6 C 596 6, 596 50, 576 50 L 34 50 C 12 50, 10 22, 26 10" marker-end="url(#flow-ah)"></path>
+              </svg>
+              <span class="flow-loop-label">rinse · repeat — every sweep feeds the fleet again</span>
             </div>
             <p class="flow-foot">every arrow is an on-chain event <span class="flow-foot-dot">●</span> replay any one of them — wellstreet.tech</p>
           </div>

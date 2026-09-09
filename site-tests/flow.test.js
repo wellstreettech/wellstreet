@@ -229,7 +229,7 @@ test('waiting state: seams absent → the static paint stands, NO RPC issued, no
   assert.strictEqual(before.vaultSent, 'waiting — RoamVault build wave');
   assert.strictEqual(before.roamerSent, 'waiting — not yet broadcast');
   assert.strictEqual(before.feesSent, 'the flagship engine is live; its vault is empty');
-  assert.strictEqual(before.burnSent, 'waiting for the first sweep');
+  assert.ok(before.burnSent.indexOf('the burn ledger below reads the same events') === 0, 'UI_LOOP_3 W3b: shipped burn line cross-references the ledger (the node itself is the link — no nested anchors)');
   assert.strictEqual(fixture[flow.ID.usersChip].hidden, false, 'the vault-seam chip ships visible while waiting');
   // every waiting figure's static tooltip discloses the never-estimated contract
   for (const k of ['usersCap', 'vaultValue', 'roamerValue', 'roamerBooks', 'depValue', 'burnValue']) {
@@ -349,7 +349,7 @@ test('burn fail-closed: zero Burned events keep the waiting register; a failed r
   };
   await flow.refreshAll();
   assert.strictEqual(snapText().burnValue, '—', 'no sweeps yet → the dash');
-  assert.strictEqual(snapText().burnSent, 'waiting for the first sweep');
+  assert.strictEqual(snapText().burnSent, 'waiting for the first sweep'); /* roamer-seam-present, zero events: the module rewrites the line with the waiting const — W3b only dedupes the PRE-roamer static paint */
 
   respond = () => { throw new Error('rpc down'); };
   await flow.refreshAll();
@@ -400,4 +400,22 @@ test('kill-list + no-claims: every new flow string is clean and present-tense', 
   const src = fs.readFileSync(FLOW_JS, 'utf8');
   assert.ok(!/vibe/i.test(src), 'kill-list: no cross-contamination in flow.js');
   assert.ok(!/guaranteed|risk-free|passive income/i.test(src), 'no yield overclaim in flow.js');
+});
+
+// ---- UI_LOOP_3 W2/W3 riders (2026-09-10) ----
+const fs3 = require('fs');
+const path3 = require('path');
+const html = fs3.readFileSync(path3.join(__dirname, '..', 'site', 'index.html'), 'utf8');
+const css = fs3.readFileSync(path3.join(__dirname, '..', 'site', 'css', 'style.css'), 'utf8');
+test('W2: flow nodes navigate and the discovery bridge exists', () => {
+  assert.ok(/<a class="flow-node" href="#fleet">[\s\S]*?Roamer/.test(html), 'the Roamer node links to the fleet table');
+  assert.ok(/<a class="flow-node flow-node--dep" href="#deposit">/.test(html), 'Depositors links to the deposit widget');
+  assert.ok(/<a class="flow-node flow-node--burn" href="#stats">/.test(html), 'the burn node links to the ledger');
+  assert.ok(/flow-discovery/.test(html), 'the position-params discovery bridge exists');
+  assert.ok(!/router|flat fee|0\.0[0-9]%/i.test(html.slice(html.indexOf('flow-discovery'), html.indexOf('flow-discovery') + 400)), 'no fee/router promises near the discovery line');
+});
+test('W3c: the holder-loop arc ships desktop-only', () => {
+  assert.ok(/<svg class="flow-loop"/.test(html), 'the rinse-repeat arc exists');
+  assert.ok(/rinse · repeat/.test(html), 'the loop carries its own label');
+  assert.ok(/@media \(max-width: 900px\) \{ \.flow-loop, \.flow-loop-label \{ display: none/.test(css), 'hidden at <=900 — the vertical read already carries order');
 });

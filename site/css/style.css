@@ -2539,7 +2539,7 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 .flow-lane { margin-top: var(--space-20); min-width: 0; }
 .flow-lane--two { margin-top: var(--space-32); padding-top: var(--space-20); border-top: 1px solid var(--line); }
 .flow-lane-label { display: block; margin: 0 0 var(--space-10); font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: uppercase; color: var(--ink-soft); }
-.flow-chain { display: grid; grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr) 84px minmax(0, 1fr) 84px minmax(0, 1.35fr); gap: var(--space-10); align-items: stretch; min-width: 0; }
+.flow-chain { display: grid; grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr) 84px minmax(0, 1fr) 84px minmax(0, 1.35fr); gap: var(--space-8); align-items: stretch; min-width: 0; } /* UI_LOOP_3 W1 #2: gap tightened toward the table's density register */
 .flow-chain--two { grid-template-columns: minmax(0, 1.3fr) 84px minmax(0, 1fr) minmax(0, 1.2fr); }
 
 /* ---- node cards (the kit's 2px hard borders on the raised face) ---- */
@@ -2554,8 +2554,8 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 /* ---- the measured-figure register (the .st-value idiom at the floor) ---- */
 .flow-fig { display: block; margin-top: var(--space-6); font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-variant-numeric: tabular-nums; font-size: var(--step-5); line-height: 1.1; color: var(--ink); overflow-wrap: anywhere; }
 .flow-fig-unit { display: block; font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: lowercase; color: var(--ink-soft); }
-.flow-state { margin: auto 0 0; padding-top: var(--space-6); font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
-.flow-chip { display: inline-block; align-self: flex-start; margin-top: var(--space-6); padding: 0 var(--space-6); border: 1px dashed var(--line); background: var(--paper-pending); color: var(--ink-soft); font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); }
+.flow-state { margin: var(--space-4) 0 0; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); } /* UI_LOOP_3 W1 #1 (2026-09-10): was margin:auto — the bottom-pin left dead middles in equal-height cards; the value register now flows under the copy */
+.flow-chip { display: inline-block; align-self: flex-start; margin-top: var(--space-6); padding: 0 var(--space-6); border: 1px dashed var(--line); background: var(--paper-pending); color: var(--ink-soft); font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); } /* the sanctioned pending register (.st-pending-chip pair); UI_LOOP_3 W1 #3 verified its light contrast — see wave notes */
 .flow-chip[hidden] { display: none; } /* the live branch hides the chip — an inline-block chip would out-rank the UA [hidden] rule (the .st-pending-chip precedent) */
 
 /* ---- the links: label above a fixed-length marker-end arrow (the kit's
@@ -2604,6 +2604,34 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 .flow-note { align-self: center; max-width: 46ch; font-family: var(--mono); font-size: var(--step-2); line-height: 1.7; color: var(--ink-soft); min-width: 0; }
 .flow-foot { margin: var(--space-20) 0 0; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
 .flow-foot-dot { color: var(--accent-text); }
+
+/* ---- UI_LOOP_3 W2 (2026-09-10): flow nodes that navigate keep the exact
+   node register — the anchor is invisible furniture, hover/focus reuse the
+   filter-chip vocabulary (border ink-soft), no color changes. ---- */
+a.flow-node { text-decoration: none; color: inherit; }
+a.flow-node:hover { border-color: var(--ink-soft); }
+.flow-discovery { margin: var(--space-16) 0 0; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
+.flow-discovery a { color: var(--accent-text); }
+
+/* ---- UI_LOOP_3 W3c: the holder loop — lane 2 feeds itself. A stroked arc
+   (no fill, no gradient) from HOLDERS back toward the lane start, desktop
+   only (<=900 the vertical read already carries the order). ---- */
+.flow-loop { display: block; width: 100%; height: 56px; margin-top: var(--space-8); min-width: 0; }
+.flow-loop path { fill: none; stroke: var(--accent); stroke-width: 2; }
+.flow-loop-label { display: block; text-align: center; margin-top: var(--space-4); font-family: var(--mono); font-size: var(--step-1); letter-spacing: var(--track-label); text-transform: lowercase; color: var(--ink-soft); }
+@media (max-width: 900px) { .flow-loop, .flow-loop-label { display: none; } }
+
+/* ---- UI_LOOP_3 W3a: the toast choreography (user-ratified 2026-09-09) —
+   120ms in / 150ms out, transform+opacity only, and the translate(-50%) base
+   is carried through BOTH keyframes so the centering never pops. Reduced
+   motion: no animation classes are ever applied outside no-preference, and
+   copy-position.js schedules removal regardless — the toast can never strand. ---- */
+@keyframes copy-toast-in { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes copy-toast-out { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, 8px); } }
+@media (prefers-reduced-motion: no-preference) {
+  .copy-toast--in { animation: copy-toast-in 120ms var(--ease-enter) both; }
+  .copy-toast--out { animation: copy-toast-out 150ms var(--ease-enter) both; }
+}
 
 /* ---- 641-900: single column, arrows rotate to vertical (the paired
    vertical svg + pulse vector swap in) ---- */

@@ -468,6 +468,6 @@ test('(m1) WS-MOTION-POLISH: :active press grammar + stamp stagger (doto re-pin;
   // flow pulse dot on the #flow deposit arrow (@keyframes flow-pulse, transform +
   // opacity only, reduced-motion kills it entirely). The stamp keyframes remain
   // byte-unchanged above; the budget is now exactly TWO signatures, teeth, not prose.
-  assert.strictEqual((css.match(/@keyframes/g) || []).length, 2,
-    'exactly TWO @keyframes ship (the ledger stamp + the FLOW_SECTION_2026-09-08 flow pulse — the user-granted second signature)');
+  assert.strictEqual((css.match(/@keyframes/g) || []).length, 4,
+    'exactly FOUR @keyframes ship (ledger stamp + FLOW_SECTION_2026-09-08 pulse + UI_LOOP_3_WAVE_2026-09-09 copy-toast-in/out — user-ratified W3a toast choreography; transform+opacity only, gated under prefers-reduced-motion: no-preference)');
 });

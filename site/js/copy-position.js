@@ -33,7 +33,10 @@
  *
  * Toast: textContent only (never innerHTML), identity tokens inline with
  * var() fallbacks (this module owns no CSS file — the fleet-table sheet-pre
- * inline-style precedent). The toast carries NO motion: static show, static
+ * inline-style precedent). MOTION (UI_LOOP_3 W3a, approved 2026-09-09): the toast fades/lifts in 120ms,
+out 150ms — CSS keyframes under (prefers-reduced-motion: no-preference); the JS
+removal stays timer-based so reduced motion can never strand the node.
+(was: static show, static)
  * hide after 2s — so the reduced-motion requirement ("instant hide") holds
  * everywhere by construction, with no JS media-query branch. One toast at a
  * time; a new copy replaces the standing one.
@@ -128,8 +131,8 @@
     }
     currentNode = null;
     var node = d.createElement('div');
-    node.className = 'copy-toast';
-    node.setAttribute('data-copy-toast', '');
+    node.className = 'copy-toast copy-toast--in'; // UI_LOOP_3 W3a (approved 2026-09-09): the
+    node.setAttribute('data-copy-toast', '');     // choreography lives in CSS keyframes gated
     node.textContent = message; // never innerHTML — toast text is composed, but the rule is the rule
     node.setAttribute('style',
       'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:200;' +
@@ -145,7 +148,14 @@
     pendingTimer = setTimeout(function () {
       pendingTimer = null;
       if (currentNode === node) { currentNode = null; }
-      if (node.parentNode && typeof node.remove === 'function') { node.remove(); }
+      // UI_LOOP_3 W3a: swap to the exit class and remove after the 150ms out
+      // animation. The removal is timer-scheduled, NOT animationend — under
+      // reduced motion no animation runs and an animationend promise would
+      // strand the node forever.
+      node.className = 'copy-toast copy-toast--out';
+      setTimeout(function () {
+        if (node.parentNode && typeof node.remove === 'function') { node.remove(); }
+      }, 160);
     }, TOAST_MS);
   }
 
