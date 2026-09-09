@@ -10,6 +10,9 @@
 //     stays serif (the pairing visible in the headline);
 //   - EVERY live measured-number surface consumes --font-num at weight 700 with
 //     'ROND' 100 (the post-grep LIVE list; dead surfaces are skipped, disclosed);
+//   - below-floor figures (shipping under the 16px Doto legibility floor) are
+//     DEMOTED to a mono-700 register and pinned OUT of var(--font-num)
+//     (UI_LOOP_2 G4-TYPE-RHYTHM, 2026-09-08 — .fleet-apr, .ledger-v);
 //   - labels/units stay mono (negative pin);
 //   - no remote font URL anywhere in site/js, style.css, index.html;
 //   - the preload line appears exactly once;
@@ -34,7 +37,16 @@ const FONT_BUDGET_BYTES = 102400;
 // (markup exists only inside an HTML comment; no renderer emits it) — skipped,
 // disclosed. No #fleet-* numeric id carries its own typography rule
 // (#fleet-books is a grid container, #fleet-coverage a prose seam cell).
-const LIVE_NUM_SURFACES = ['.hero-stat-num', '.fleet-apr', '.ledger-v'];
+// UI_LOOP_2 G4-TYPE-RHYTHM (2026-09-08): .fleet-apr (14/13/11px rung ladder)
+// and .ledger-v (14px) are DEMOTED from this register — every size they ship
+// at is below the Doto legibility floor (16px Doto smudges, the site's own
+// law), so both go mono 700 (the ZERO/tape precedent). They are now pinned in
+// BELOW_FLOOR_MONO_SURFACES below — the pin moved, nothing was deleted. The
+// Doto number register keeps the ≥20px measured figures (.hero-stat-num).
+const LIVE_NUM_SURFACES = ['.hero-stat-num'];
+// Below-floor measured figures: Doto at these sizes smudges, so the values
+// read in mono 700 — pinned out of the Doto register (never var(--font-num)).
+const BELOW_FLOOR_MONO_SURFACES = ['.fleet-apr', '.ledger-v'];
 // Labels/units that must STAY mono (the pairing rule's receding register).
 const MONO_LABEL_SURFACES = ['.ledger-k', '.fleet-apr-mark', '.hero-stat-label', '.hero-stat-window'];
 
@@ -133,6 +145,26 @@ for (const surface of LIVE_NUM_SURFACES) {
           r.body.includes("'ROND' 100")
       ),
       `${surface} must carry var(--font-num) + font-weight: 700 + 'ROND' 100`
+    );
+  });
+}
+
+// UI_LOOP_2 G4-TYPE-RHYTHM (2026-09-08): the below-floor demotion register.
+// Each surface must read mono 700 and must NOT consume the Doto token anywhere
+// in its rules (base rule + every rung-down/media twin) — a partial demotion
+// (Doto base with a mono media twin) is exactly the smudge this pin exists for.
+for (const surface of BELOW_FLOOR_MONO_SURFACES) {
+  test(`below-floor figure ${surface} reads mono 700 and never joins the Doto register`, () => {
+    const rules = parseRules(strippedCss());
+    const matching = rulesMatching(rules, surface);
+    assert.ok(matching.length >= 1, `a ${surface} rule must exist in style.css`);
+    assert.ok(
+      matching.some((r) => r.body.includes('var(--mono)') && r.body.includes('font-weight: 700')),
+      `${surface} must carry var(--mono) + font-weight: 700 (below the Doto legibility floor)`
+    );
+    assert.ok(
+      matching.every((r) => !r.body.includes('var(--font-num)')),
+      `${surface} must not consume var(--font-num) — demoted from the Doto register`
     );
   });
 }

@@ -44,7 +44,11 @@
 //       twin carry byte-identical value lists (the MAINTENANCE duplicate);
 //       (h2) LIGHT CONTRAST TABLE — the same six text pairs as (c), recomputed
 //       against the light ladder resolved from the light block (NOT (c)'s
-//       first-match dark table); (h3) the header toggle button exists with its
+//       first-match dark table), + the G3-LIGHT-THEME (2026-09-08) paper-2
+//       STRIP pairs (lc-num/label/note measured on the .lc-strip surface);
+//       (h2b) the amber-register edges re-ink to var(--ink) in BOTH light
+//       scopes (G3-LIGHT-THEME: cta-solid / st-bar-fill / protocol spine+chip);
+//       (h3) the header toggle button exists with its
 //       44px rule; (h4) the ws-theme-v1 persistence key stores 'light'|'dark'
 //       only; (h5) system-follow — the light ladder applies ONLY through the
 //       media-scoped html:not([data-theme]) block (an explicit data-theme=
@@ -179,6 +183,10 @@ test('(a2) deposit .index literal re-pinned to the --ink token', () => {
 // family, rgb 5 8 10 — never a black rgba literal); the light ladder re-inks
 // both in the warm-ink rgba (the --ink family, rgb 38 35 28) at LOWER alpha,
 // in BOTH light token blocks per the MAINTENANCE duplicate rule.
+// G3-LIGHT-THEME (2026-09-08) raises the LIGHT alphas: 0.14/0.16 composited
+// 1.31/1.37:1 on paper — invisible; 0.24/0.26 composite 1.62/1.69:1, clearing
+// the 1.6:1 paper floor (machine-proven by the G3 contrast recompute script;
+// 0.22 measured 1.55:1 — under the floor — so the resting step lands on 0.24).
 function blockSpanFor(cssText, selector) {
   const at = cssText.indexOf(selector);
   assert.ok(at !== -1, 'block selector resolvable: ' + selector);
@@ -186,8 +194,8 @@ function blockSpanFor(cssText, selector) {
 }
 const BTN_SHADOW_DARK = ['--shadow-btn', '0 1px 2px rgba(5, 8, 10, 0.4)'];
 const BTN_SHADOW_DARK_HOVER = ['--shadow-btn-hover', '0 3px 8px rgba(5, 8, 10, 0.45)'];
-const BTN_SHADOW_LIGHT = '--shadow-btn: 0 1px 2px rgba(38, 35, 28, 0.14)';
-const BTN_SHADOW_LIGHT_HOVER = '--shadow-btn-hover: 0 3px 8px rgba(38, 35, 28, 0.16)';
+const BTN_SHADOW_LIGHT = '--shadow-btn: 0 1px 2px rgba(38, 35, 28, 0.24)';
+const BTN_SHADOW_LIGHT_HOVER = '--shadow-btn-hover: 0 3px 8px rgba(38, 35, 28, 0.26)';
 
 test('(a-btn) BTN-MOTION 2026-09-08: button shadow tokens — the sanctioned flat-register amendment, buttons only', () => {
   // the dark :root carries both tokens at the pinned substrate-derived values
@@ -207,6 +215,13 @@ test('(a-btn) BTN-MOTION 2026-09-08: button shadow tokens — the sanctioned fla
     const span = blockSpanFor(css, sel);
     assert.ok(!span.includes('--shadow-btn'), sel.trim() + ' carries NO button shadow (the flat register holds off-buttons)');
   }
+  // G3-LIGHT-THEME (2026-09-08): the warm-ink pair ships as ONE declaration
+  // line per light block — resting + hover are one atomic unit, and the G3
+  // verify counts one warm-ink shadow line per light block (2 blocks = 2
+  // lines). Splitting the pair across lines is a formatting regression.
+  const warmShadowLines = css.split('\n').filter((l) => l.includes('rgba(38, 35, 28, 0.2')).length;
+  assert.strictEqual(warmShadowLines, 2,
+    'the warm-ink shadow pair ships one line per light block (the atomic resting+hover unit)');
 });
 
 test('(b) theme-color equals --paper; color-scheme dark; light metas ABSENT', () => {
@@ -511,6 +526,41 @@ test('(h2) LIGHT CONTRAST TABLE — the six (c) text pairs clear 4.5:1 on the li
     const r = lightContrast(fg, bg);
     assert.ok(r >= 4.5, label + ' light contrast ' + r.toFixed(2) + ' must be >= 4.5:1');
   }
+  // G3-LIGHT-THEME (2026-09-08): the footer proof strip (.lc-strip) paints its
+  // text on --paper-2 — the STRIP surface, not the footer band the footer roles
+  // were derived against. The strip's three roles re-measured on the strip:
+  // the pin covers the real painted surface (what ships).
+  const strip = [
+    ['lc-num/paper-2 (strip)', t['--accent-text'], t['--paper-2']],
+    ['lc-label/paper-2 (strip)', t['--footer-muted'], t['--paper-2']],
+    ['lc-note/paper-2 (strip)', t['--footer-faint'], t['--paper-2']],
+  ];
+  for (const [label, fg, bg] of strip) {
+    assert.ok(fg && bg, label + ': both hexes resolve from the light block');
+    const r = lightContrast(fg, bg);
+    assert.ok(r >= 4.5, label + ' light contrast ' + r.toFixed(2) + ' must be >= 4.5:1');
+  }
+});
+
+// (h2b) G3-LIGHT-THEME (2026-09-08): the amber-register edges re-ink for light.
+// The amber fills' edges collapse on warm paper; light re-inks the EDGES to
+// carbon (the btn-primary vocabulary — amber fill + ink border) on the solid
+// CTA, the flywheel bar fill, and the protocol spine/chip marks. border-COLOR
+// only: the (g) structure counts never see it. Both light scopes carry the
+// same rule (the MAINTENANCE duplicate discipline — byte-identical twins).
+test('(h2b) G3 light amber-register edges — border-color re-ink scoped to light, both twins', () => {
+  const targets = ['.cta-solid', '.st-bar-fill', '.ft-spine--protocol', '.fc-spine--protocol', '.badge--protocol'];
+  const explicitRun = targets.map((s) => 'html[data-theme="light"] ' + s).join(',\n') + ' { border-color: var(--ink); }';
+  const followRun = targets.map((s) => '  html:not([data-theme]) ' + s).join(',\n') + ' { border-color: var(--ink); }';
+  assert.ok(css.includes(explicitRun), 'the explicit-light rule re-inks all five amber-register edges to var(--ink)');
+  assert.ok(css.includes(followRun), 'the system-follow twin re-inks the same edges (byte-identical form)');
+  // the twin lives INSIDE the system-follow media block (the h5 scoping contract)
+  assert.ok(/@media \(prefers-color-scheme: light\)\s*\{\s*html:not\(\[data-theme\]\) \.cta-solid,/.test(css),
+    'the amber-register twin is media-scoped on html:not([data-theme])');
+  // no new amber-edge colors: the re-ink is the light block's own --ink token
+  const at = css.indexOf(explicitRun);
+  assert.ok(css.slice(at, css.indexOf('}', at)).includes('border-color: var(--ink)'),
+    'the edge re-ink declares only border-color: var(--ink)');
 });
 
 test('(h3) theme toggle button: header presence + the 44px rule', () => {

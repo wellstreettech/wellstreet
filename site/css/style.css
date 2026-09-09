@@ -109,11 +109,14 @@ html[data-theme="light"] {
   --footer-muted: #544D3C; /* muted on the light footer band — 5.5:1 there, 7.3:1 on --paper */
   --footer-faint: #5F5741; /* faint fine print on the footer band — 4.7:1 */
   /* BTN-MOTION (2026-09-08): the button shadows re-ink for light — the warm-ink
-     rgba (the --ink family, rgb 38 35 28) at LOWER alpha than dark, because
-     paper shadows are subtle. Kept in BOTH light blocks per the MAINTENANCE
-     duplicate rule above. */
-  --shadow-btn: 0 1px 2px rgba(38, 35, 28, 0.14);
-  --shadow-btn-hover: 0 3px 8px rgba(38, 35, 28, 0.16);
+     rgba (the --ink family, rgb 38 35 28), LOWER alpha than dark. G3-LIGHT-THEME
+     (2026-09-08) raises the alphas: 0.14/0.16 composited 1.31/1.37:1 on paper —
+     invisible; 0.24/0.26 composite 1.62/1.69:1 (the 1.6:1 floor, machine-proven
+     by the G3 contrast recompute script). Kept in BOTH light blocks per the
+     MAINTENANCE duplicate rule above. The pair ships on ONE line per block —
+     resting + hover are one atomic unit (the G3 verify counts one warm-ink
+     shadow line per light block; (a-btn) pins the pairing). */
+  --shadow-btn: 0 1px 2px rgba(38, 35, 28, 0.24); --shadow-btn-hover: 0 3px 8px rgba(38, 35, 28, 0.26);
 }
 @media (prefers-color-scheme: light) {
   /* system-follow half: identical tokens for the NO-attribute state only —
@@ -140,11 +143,14 @@ html[data-theme="light"] {
     --footer-muted: #544D3C;
     --footer-faint: #5F5741;
     /* BTN-MOTION (2026-09-08): the button shadows re-ink for light — the warm-ink
-       rgba (the --ink family, rgb 38 35 28) at LOWER alpha than dark, because
-       paper shadows are subtle. Kept in BOTH light blocks per the MAINTENANCE
-       duplicate rule above. */
-    --shadow-btn: 0 1px 2px rgba(38, 35, 28, 0.14);
-    --shadow-btn-hover: 0 3px 8px rgba(38, 35, 28, 0.16);
+       rgba (the --ink family, rgb 38 35 28), LOWER alpha than dark. G3-LIGHT-THEME
+       (2026-09-08) raises the alphas: 0.14/0.16 composited 1.31/1.37:1 on paper —
+       invisible; 0.24/0.26 composite 1.62/1.69:1 (the 1.6:1 floor, machine-proven
+       by the G3 contrast recompute script). Kept in BOTH light blocks per the
+       MAINTENANCE duplicate rule above. The pair ships on ONE line per block —
+       resting + hover are one atomic unit (the G3 verify counts one warm-ink
+       shadow line per light block; (a-btn) pins the pairing). */
+    --shadow-btn: 0 1px 2px rgba(38, 35, 28, 0.24); --shadow-btn-hover: 0 3px 8px rgba(38, 35, 28, 0.26);
   }
 }
 
@@ -178,6 +184,28 @@ html[data-theme="light"] .hero-field {
       linear-gradient(90deg, transparent 0 118px, rgba(38, 35, 28, 0.035) 118px 119px);
     background-size: 14px 14px, 119px 100%;
   }
+}
+
+/* ---------- LIGHT AMBER-REGISTER EDGES (G3-LIGHT-THEME, 2026-09-08) ----------
+   The amber fills' edges collapse on warm paper — amber-on-paper reads as one
+   soft field with no boundary. Light re-inks the EDGES to carbon, extending
+   the btn-primary vocabulary (amber fill + ink border) to the rest of the
+   amber register: the solid CTA, the flywheel bar fill, and the protocol
+   spine/chip marks. border-COLOR only — no new widths, no new colors (the
+   token is the light block's own --ink), and the (g) structure counts never
+   see it. MAINTENANCE: the two rules below are a DELIBERATE duplicate (plain
+   CSS has no mixins) — keep them byte-identical to each other. */
+html[data-theme="light"] .cta-solid,
+html[data-theme="light"] .st-bar-fill,
+html[data-theme="light"] .ft-spine--protocol,
+html[data-theme="light"] .fc-spine--protocol,
+html[data-theme="light"] .badge--protocol { border-color: var(--ink); }
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) .cta-solid,
+  html:not([data-theme]) .st-bar-fill,
+  html:not([data-theme]) .ft-spine--protocol,
+  html:not([data-theme]) .fc-spine--protocol,
+  html:not([data-theme]) .badge--protocol { border-color: var(--ink); }
 }
 
 * { box-sizing: border-box; }
@@ -462,7 +490,7 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
   line-height: 1.08;
 }
 .block-head .spacer { flex: 1; }
-.block-sub { color: var(--ink-soft); margin: 0 0 var(--space-24); max-width: var(--measure-copy); } /* UI2-L9 (2026-09-06, WS3-LAYOUT): the copy-measure role token — was the 52rem literal, zero rendered change */
+.block-sub { color: var(--ink-soft); font-size: var(--step-3); margin: 0 0 var(--space-24); max-width: var(--measure-copy); } /* UI2-L9 (2026-09-06, WS3-LAYOUT): the copy-measure role token — was the 52rem literal, zero rendered change */ /* UI_LOOP_2 G4 (2026-09-08): explicit step-3 — was UA-inherited 16px (off-token); the section sub recedes one role below the body floor; --measure-copy is rem-based so the column width is size-independent */
 
 /* ---------- vault cards ---------- */
 /* UI2-P6 (2026-09-06, WS3-COLOR): BORDER TAXONOMY — five registers:
@@ -539,6 +567,7 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
 .field input:disabled { background: var(--paper-2); color: var(--ink-soft); }
 .field + .field { margin-top: var(--space-12); }
 .btn-row { display: flex; gap: var(--space-10); margin-top: var(--space-14); flex-wrap: wrap; }
+.connect-lane { margin-top: var(--space-16); } /* UI_LOOP_2 G4 (2026-09-08): the always-connect-entry owns its rhythm on the space scale — was unstyled, riding .btn-row's 14px by luck; the preceding .block-sub margin-bottom (24) collapses to max(24,16) = 24, so the rendered gap is unchanged */
 button.btn {
   font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-chrome); font-size: var(--step-2); /* P-07: action step-up one role; P-10: --track-chrome */
   padding: var(--space-10) var(--space-16); border: 2px solid var(--line); background: var(--paper); color: var(--ink);
@@ -582,6 +611,11 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
 #wallet-picker { margin-top: var(--space-12); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-10); }
 #wallet-picker[hidden] { display: none; }
 #wallet-picker .picker-label { font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); color: var(--ink-soft); } /* P-10: a 0.06em site the mapper census omitted — re-pointed at the identical computed value (zero rendered change) to complete the cluster collapse */
+/* UI_LOOP_2 G5 (2026-09-08): the announced wallet's own icon renders inside the row — 20px figure in a hairline container that mirrors the .mwg chip register (1px --line edge, raised paper, square data radius). Icons are data: URIs (gate-safe); the container is border-only, no new gradients. */
+#wallet-picker .picker-btn { display: inline-flex; align-items: center; }
+#wallet-picker .picker-icon-wrap { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 28px; height: 28px; margin-right: var(--space-8); background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--r-0, 0); }
+#wallet-picker .picker-icon { display: block; width: 20px; height: 20px; }
+#wallet-picker .picker-name { white-space: nowrap; }
 .noscript-note { padding-top: var(--space-16); padding-bottom: var(--space-16); font-size: var(--step-3); color: var(--ink-soft); border-bottom: 2px solid var(--line); }
 
 /* ---------- mobile wallet guide (MOBILE-WALLET-GUIDE, 2026-09-08) ----------
@@ -603,8 +637,20 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
   transition: color var(--motion), border-color var(--motion), transform var(--motion);
 }
 .mwg-link { margin: var(--space-2) var(--space-8) var(--space-2) 0; } /* chip-run spacing — the two inline app links need a gap */
+.mwg-lead { margin: 0 0 var(--space-10); font-size: var(--step-4); } /* UI_LOOP_2 G4 (2026-09-08): the guide's instruction line reads at the body floor — was UA 16px off-token; the note/url recede to the chrome register below (real hierarchy, was a flat 16px panel) */
+.mwg-note { font-size: var(--step-2); color: var(--ink-soft); } /* UI_LOOP_2 G4 (2026-09-08): chrome role — pairs with the .mwg-copy chip it sits between */
+.mwg-url { font-family: var(--mono); font-size: var(--step-2); font-weight: 700; color: var(--ink); } /* UI_LOOP_2 G4 (2026-09-08): the actionable datum leads its row — mono 700 at the chip's own step, full ink against the muted note */
 .mwg-link:hover:not(:disabled), .mwg-copy:hover:not(:disabled) { border-color: var(--accent-text); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* BTN-MOTION (2026-09-08): the .ft-copy hover vocabulary + lift + hover shadow */
 .mwg-link:active:not(:disabled), .mwg-copy:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: color var(--t-fast) var(--ease-enter), border-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08) */
+/* UI_LOOP_2 G5 (2026-09-08): the panel itself joins the register — post-hotfix
+   (05c23ad) the foot line sits INSIDE the div again, but the box shipped bare:
+   no padding, UA-default paragraph margins off the --space scale. A quiet
+   container (hairline 1px edge + paper-2, the panel register #widget-status
+   reads) with token-scale rhythm: lead → chips → row → foot, all gaps on the
+   scale. Border-only, no new gradients; no border-bottom 2px literal. */
+.mwg { margin: var(--space-12) 0 var(--space-16); padding: var(--space-14) var(--space-16); background: var(--paper-2); border: 1px solid var(--line); }
+.mwg-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8) var(--space-10); margin: var(--space-12) 0 0 0; }
+.mwg-foot { margin: var(--space-12) 0 0 0; font-size: var(--step-2); color: var(--ink-soft); }
 
 /* ---------- docs ---------- */
 .doc-tabs { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 2px solid var(--line); }
@@ -930,7 +976,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
 }
 .ledger-row:last-child { border-bottom: none; }
 .ledger-k { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); flex: 0 0 auto; } /* P-04: the last serif-in-data island joins the mono small-cap label register (one grammar across the hero ledger + mint ticket; rebased onto the P-10 label token). After this rule serif is display-only on the page. */ /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #1): the label RECEDES — micro mono keys (step-1, ink-soft on raised: the .card-note pairing) under dominant values; MONEY layers size+color onto P-04's mono register. */
-.ledger-v { text-align: right; font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-3); word-break: break-word; font-variant-numeric: tabular-nums; color: var(--ink); } /* WS5-DOTO: measured values join the dot-matrix number register (labels .ledger-k stay mono); size/word-break/color untouched */
+.ledger-v { text-align: right; font-family: var(--mono); font-weight: 700; font-size: var(--step-3); word-break: break-word; font-variant-numeric: tabular-nums; color: var(--ink); } /* UI_LOOP_2 G4 (2026-09-08): DEMOTED from the Doto number register — step-3 (14px) is below the Doto legibility floor (16px Doto smudges, the site's own law), so the value goes mono 700 (the ZERO/tape precedent); the ≥20px Doto figures (.hero-stat-num) keep the register. 'ROND' 100 dropped: a Doto-only axis, inert on mono. */
 .ledger-v .muted { font-size: var(--step-1); }
 .ledger-row-strong .ledger-v strong { color: var(--accent-text); font-size: var(--step-4); } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #1): strong values lead at body size — was step-8; the generic sibling rule lives in the WS3-MONEY EOF block. */
 .hero-ledger-note {
@@ -1946,7 +1992,7 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
    stays at the ledger stamp). data-ours carries the status for honest sub-states
    (SEEDED/WINDING-DOWN) without extra copy. */
 .fleet-ours { flex: 0 0 auto; font-family: var(--mono); font-size: var(--step-1); font-weight: 700; text-transform: uppercase; letter-spacing: var(--track-label); color: var(--accent-text); border: 1px solid var(--accent-text); padding: 0 0.4em; border-radius: var(--r-0, 0); }
-.fleet-apr { margin-left: auto; text-align: right; font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-3); font-variant-numeric: tabular-nums; color: var(--ink); min-width: 0; } /* right, tabular; scales down the rungs below — never clipped, never truncated */ /* WS5-DOTO: the fee-APR figure joins the dot-matrix number register; size scales/color untouched */
+.fleet-apr { margin-left: auto; text-align: right; font-family: var(--mono); font-weight: 700; font-size: var(--step-3); font-variant-numeric: tabular-nums; color: var(--ink); min-width: 0; } /* right, tabular; scales down the rungs below — never clipped, never truncated */ /* UI_LOOP_2 G4 (2026-09-08): DEMOTED from the Doto register — the rung ladder 14/13/11px is all below the Doto legibility floor (16px Doto smudges, the site's own law), so the fee-APR figure goes mono 700 (the ZERO/tape precedent); 'ROND' 100 dropped, a Doto-only axis inert on mono. */
 .fleet-apr-mark { flex: 0 0 auto; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); border: 1px solid var(--line); padding: 0 0.4em; border-radius: var(--r-0, 0); } /* G3 SECTION-IMPROVE (2026-09-08): the flagship's one PROJECTION is chipped like .fleet-ours, but with the neutral --line edge (ours owns the amber-edged register) — honesty: projected ≠ measured, the two registers must not share a dress */
 .fleet-meta { flex-basis: 100%; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); font-variant-numeric: tabular-nums; min-width: 0; } /* TVL + 24h vol keep their units; the row wraps as text — no overflow hidden on numbers */
 .fleet-detail { border-top: 1px solid var(--line); padding: var(--space-12) var(--space-14); font-size: var(--step-3); }
@@ -2207,12 +2253,12 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 .ft-spine--dead { border-left-color: var(--ink-soft); }   /* DEAD: gray, per the ratified reference */
 .ft-spine--protocol { border-left-color: var(--accent); } /* PROTOCOL: the amber */
 .ft-pair { font-family: var(--mono); font-size: var(--step-3); font-weight: 700; color: var(--ink); white-space: nowrap; }
-.ft-num { font-family: var(--mono); font-size: var(--step-3); font-variant-numeric: tabular-nums; color: var(--ink); text-align: right; white-space: nowrap; }
+.fleet-table td.ft-num { font-family: var(--mono); font-size: var(--step-3); font-variant-numeric: tabular-nums; color: var(--ink); text-align: right; white-space: nowrap; } /* UI_LOOP_2 G4 (2026-09-08): (0,2,1) beats `.fleet-table th,td` (0,1,1) — the right-align was DEAD at (0,1,0); grammar contract = numerals right, labels left */
 .ft-apr { font-weight: 700; } /* the headline measured figure */
 .ft-window { font-size: var(--step-1); font-weight: 400; letter-spacing: 0; color: var(--ink-soft); margin-left: var(--space-4); } /* the window suffix: muted, travels with its figure */
 .ft-il { color: var(--ink-soft); font-weight: 400; } /* realized IL renders '—' until the feed carries it — muted, never a fake zero */
-.ft-age { font-family: var(--mono); font-size: var(--step-2); font-variant-numeric: tabular-nums; color: var(--ink-soft); text-align: right; white-space: nowrap; }
-.ft-actions { text-align: right; white-space: nowrap; }
+.fleet-table td.ft-age { font-family: var(--mono); font-size: var(--step-2); font-variant-numeric: tabular-nums; color: var(--ink-soft); text-align: right; white-space: nowrap; } /* UI_LOOP_2 G4 (2026-09-08): same specificity lift as td.ft-num — the right-align was dead at (0,1,0) */
+.fleet-table td.ft-actions { text-align: right; white-space: nowrap; } /* UI_LOOP_2 G4 (2026-09-08): same specificity lift — the action chips end the row */
 @media (min-width: 641px) and (pointer: fine) {
   .ft-actions .ft-copy, .ft-actions .ft-details { min-height: 0; padding: var(--space-4) var(--space-10); } /* the R1 compact chip — fine pointers only; the 44px zone holds everywhere else */
 }
@@ -2342,8 +2388,14 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 /* G4 #2 (2026-09-08): the label rung-down — 'FEE APR (2.8h)' wrapped and
    broke the 3-metric baseline at 390. The label takes the --step-0 rung
    (written justification at the token block), tightens its tracking and
-   holds one line; the VALUE above it is untouched. */
+   holds one line. (G3-LIGHT-THEME 2026-09-08 touches the VALUE's FACE in
+   the same block below — family only; the size rungs are untouched.) */
+/* G3-LIGHT-THEME (2026-09-08): the mobile card values read mono 700 — Doto
+   at the step-4 rung (16px, ≤400) smears on paper (the site's own floor
+   precedent: 16px Doto = smudge → small figures go mono 700). Doto keeps
+   every ≥20px figure elsewhere; the size tokens are untouched. */
 @media (max-width: 640px) {
+  .fc-metric-value { font-family: var(--mono); font-weight: 700; font-variation-settings: normal; }
   .fc-metric-label { font-size: var(--step-0); letter-spacing: .02em; white-space: nowrap; }
 }
 

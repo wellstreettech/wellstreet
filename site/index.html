@@ -200,8 +200,12 @@
 
                   <!-- MOBILE-WALLET-GUIDE (2026-09-08): iOS Safari injects NO
                        provider — without this the honest 'Connect failed' is a
-                       dead end — the panel sits ABOVE the flagship card so the path is visible without opening it. Shown by js/main.js only when no wallet exists
-                       AND the UA is iOS. hrefs are assigned in JS: absolute
+                       dead end — the panel sits ABOVE the flagship card so the path is visible without opening it. Shown by js/main.js when no wallet exists
+                       AND (the UA is iOS — the Safari lead line below — OR the
+                       UA is not iOS AND no provider exists: no window.ethereum,
+                       empty eip-6963 registry; UI_LOOP_2 G5 swaps the lead line
+                       for the desktop install hint at show time). hrefs are
+                       assigned in JS: absolute
                        external hrefs in markup would break the resource-gate
                        (href= is a scanned channel); a user-initiated
                        navigation is not a loaded resource. -->

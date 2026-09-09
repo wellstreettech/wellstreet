@@ -765,6 +765,12 @@
     metamask: 'https://metamask.app.link/',
     rainbow: 'https://rnbwapp.com/url='
   };
+  // UI_LOOP_2 G5 (2026-09-08): the desktop-no-provider branch reuses the SAME
+  // panel — only the lead line changes (the deep-link rows stay useful: a
+  // desktop wallet-app user can open this URL in the app's own browser too).
+  // The iOS lead lives in index.html (the markup default); this branch swaps
+  // it at show time. Desktop lead text per the locked goal, verbatim.
+  var MWG_LEAD_DESKTOP = 'No wallet extension detected — install one, or open this page inside your wallet app\'s browser:';
   function isIOSNoWallet() {
     if (typeof window === 'undefined' || !window.navigator) { return false; }
     var nav = window.navigator;
@@ -773,14 +779,36 @@
     // iPadOS Safari reports as Macintosh WITH touch (maxTouchPoints > 1).
     return /Macintosh/.test(ua) && typeof nav.maxTouchPoints === 'number' && nav.maxTouchPoints > 1;
   }
+  // UI_LOOP_2 G5 (2026-09-08): "a provider exists" is BOTH discovery channels —
+  // the legacy window.ethereum grab AND a live eip-6963 registry. A wallet that
+  // announced itself without winning window.ethereum still closes the desktop
+  // branch (the regular Connect button is that user's path).
+  function providerAvailable() {
+    if (typeof WS === 'undefined' || !WS.wallet) { return false; }
+    if (typeof WS.wallet.isAvailable === 'function' && WS.wallet.isAvailable()) { return true; }
+    return typeof WS.wallet.discovered === 'function' && WS.wallet.discovered().length > 0;
+  }
   var mwgCopyWired = false;
+  var mwgCopyTimer = null;
+  var MWG_COPY_RESET_MS = 2500;
   function wireMwgCopy() {
     var btn = document.getElementById(MWG_COPY_BTN);
     if (!btn || mwgCopyWired) { return; }
     mwgCopyWired = true;
     btn.addEventListener('click', function () {
       var text = typeof window !== 'undefined' && window.location ? String(window.location.href) : '';
-      var say = function (ok) { btn.textContent = ok ? 'copied — paste in the app' : 'copy failed — select it'; };
+      // G5: the feedback label is a TEMPORARY state — it resets to 'copy' after
+      // ~2.5s. A text swap only (no transition) so reduced-motion is inherently
+      // respected; the pending timer is cleared on every repeat tap so labels
+      // never stack timers and an old reset can never fire mid-new-feedback.
+      var say = function (ok) {
+        btn.textContent = ok ? 'copied — paste in the app' : 'copy failed — select it';
+        if (mwgCopyTimer) { clearTimeout(mwgCopyTimer); }
+        mwgCopyTimer = setTimeout(function () {
+          btn.textContent = 'copy';
+          mwgCopyTimer = null;
+        }, MWG_COPY_RESET_MS);
+      };
       var nav = typeof window !== 'undefined' ? window.navigator : null;
       try {
         if (nav && nav.clipboard && nav.clipboard.writeText) {
@@ -794,8 +822,17 @@
   function renderMobileWalletGuide(noWallet) {
     var box = document.getElementById(MWG_PANEL);
     if (!box) { return; }
-    var show = !!noWallet && isIOSNoWallet();
+    // G5 desktop-no-provider branch: a non-iOS UA with NO injected provider and
+    // an EMPTY eip-6963 registry gets the same panel with the desktop lead line
+    // (an iOS UA keeps the markup's Safari lead; a present provider or a
+    // connected wallet keeps the panel hidden — the existing rules).
+    var ios = isIOSNoWallet();
+    var show = !!noWallet && (ios || (!ios && !providerAvailable()));
     if (!show) { box.hidden = true; return; }
+    if (!ios) {
+      var lead = typeof box.querySelector === 'function' ? box.querySelector('.mwg-lead') : null;
+      if (lead) { lead.textContent = MWG_LEAD_DESKTOP; }
+    }
     var origin = (typeof window !== 'undefined' && window.location && window.location.origin)
       ? String(window.location.origin) : '';
     if (!origin || origin === 'null') { origin = 'https://wellstreet.tech'; } // static-file fallback
@@ -992,8 +1029,27 @@
     box.textContent = '';
     box.appendChild(el('span', 'picker-label', 'Multiple wallets detected — choose one:'));
     list.forEach(function (entry) {
-      var b = el('button', 'btn picker-btn', (entry.info && entry.info.name) || (entry.info && entry.info.rdns) || 'Wallet');
+      var info = entry.info || {};
+      var b = el('button', 'btn picker-btn');
       b.type = 'button';
+      // G5 (2026-09-08): the announced wallet's own icon renders INSIDE the row
+      // when present — eip-6963 icons are data: URIs (resource-gate-safe:
+      // data: passes classify, and a JS-assigned src is the sanctioned
+      // JS-constructed channel; nothing external is ever loaded). The icon is
+      // decorative — the wallet's name carries the meaning (alt='').
+      if (typeof info.icon === 'string' && info.icon.indexOf('data:') === 0) {
+        var wrap = el('span', 'picker-icon-wrap');
+        var img = document.createElement('img');
+        img.className = 'picker-icon';
+        img.setAttribute('src', info.icon);
+        img.setAttribute('alt', '');
+        img.setAttribute('width', '20');
+        img.setAttribute('height', '20');
+        img.setAttribute('draggable', 'false');
+        wrap.appendChild(img);
+        b.appendChild(wrap);
+      }
+      b.appendChild(el('span', 'picker-name', info.name || info.rdns || 'Wallet'));
       b.addEventListener('click', function () { connectUsing(entry); });
       box.appendChild(b);
     });
