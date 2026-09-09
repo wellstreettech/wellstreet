@@ -419,14 +419,24 @@ test('(m1) WS-MOTION-POLISH: :active press grammar + stamp stagger (doto re-pin;
   assert.strictEqual(countOccurrences(css, 'scale(0.985)'), 8, 'the button register presses at 0.985 (btn, cta, nav-cta + the five chip/toggle surfaces)');
   // (ii) release rides the EXTENDED base lists — never a competing second
   // transition property (it would kill the fill/color transitions while pressed)
-  for (const base of ['button.btn {', '.cta-solid {', '.doc-tab {', '.code-copy {']) {
+  // RE-PINNED 2026-09-08 (UI_LOOP_2 W2 G2-MOTION-CONSISTENCY): the three pill
+  // bases tween transform at var(--motion) now (one gesture, one speed with the
+  // chip register — the 200ms LIFT was the bug); doc-tab and code-copy stay
+  // OUT of the button register and keep the --t-base transform component.
+  // Uniformity across the 11-surface register is pinned in motion-polish.test.js.
+  for (const base of ['button.btn {', '.cta-solid {']) {
+    const span = css.slice(css.indexOf(base), css.indexOf('}', css.indexOf(base)));
+    assert.ok(span.indexOf('transform var(--motion)') !== -1,
+      base + ' base transition list carries the transform component at var(--motion)');
+  }
+  for (const base of ['.doc-tab {', '.code-copy {']) {
     const span = css.slice(css.indexOf(base), css.indexOf('}', css.indexOf(base)));
     assert.ok(span.indexOf('transform var(--t-base) var(--ease-enter)') !== -1,
       base + ' base transition list extended IN PLACE with the transform component');
   }
   const navSpan = css.slice(css.indexOf('.site-nav a.nav-cta {'), css.indexOf('}', css.indexOf('.site-nav a.nav-cta {')));
-  assert.ok(navSpan.indexOf('transform var(--t-base) var(--ease-enter)') !== -1,
-    '.site-nav a.nav-cta base list extended in place');
+  assert.ok(navSpan.indexOf('transform var(--motion)') !== -1,
+    '.site-nav a.nav-cta base list carries the transform component at var(--motion)');
   // (iii) source-order: the five press rules sit BEFORE the 4th reduce gate —
   // never inside any @media, never after the block
   const gates = []; let gi = -1;

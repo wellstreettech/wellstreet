@@ -820,3 +820,55 @@ test('G4 #2/#3: the ≤640 metric-label rung holds the 3-metric baseline; the il
   assert.ok(html.indexOf('il + age render when the feed carries them') !== -1, 'the colophon renders under the table');
   assert.ok(html.indexOf('class="fleet-colophon"') !== -1, 'the colophon rides the honesty register');
 });
+
+test('G2 #2: setFilter closes an open detail BEFORE rebuilding — no silent focus loss into the void (UI_LOOP_2 W2, 2026-09-08)', async () => {
+  // a FRESH module instance: wireOnce's `wired` flag is module-scoped and the
+  // phase-1 init already consumed it, so a later installSurface() would leave
+  // the new chips unwired (listeners.click undefined). The fresh require is
+  // the same move a page reload makes; the click path below is the REAL chip
+  // → setFilter path, not a direct internal call.
+  delete require.cache[require.resolve(FLEET_TABLE_JS_PATH)];
+  const ftFresh = require(FLEET_TABLE_JS_PATH);
+  installSurface();
+  serveFeed(feed);
+  ftFresh.init();
+  await settle(150);
+  const chips = collect(REGISTRY['fleet-surface'], '.fleet-filter');
+  const hookChip = chips.find(function (c) { return c.getAttribute('data-filter') === 'HOOK'; });
+  const allChip = chips.find(function (c) { return c.getAttribute('data-filter') === 'all'; });
+  assert.ok(hookChip && allChip, 'the filter chips are wired');
+
+  // (1) an open INLINE detail dies with the filter change — deliberately:
+  // the rebuild would destroy it anyway, so setFilter closes both detail
+  // surfaces FIRST (removeInlines + the aside), then rebuilds. The observable
+  // contract: after the chip click, no inline panel survives and the aside
+  // stays closed — focus never sits in a node that silently vanished.
+  const b = feed.books[0];
+  ftFresh.openDetail(b.poolId);
+  assert.strictEqual(
+    collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline')
+      .concat(collect(REGISTRY['fleet-cards'], '.fleet-sheet-inline')).length, 2,
+    'precondition: the inline detail is open');
+  hookChip.listeners.click[0]();
+  await settle(10);
+  assert.strictEqual(
+    collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline')
+      .concat(collect(REGISTRY['fleet-cards'], '.fleet-sheet-inline')).length, 0,
+    'the filter change closes the inline detail (no silent destruction)');
+  assert.strictEqual(REGISTRY['fleet-sheet'].hidden, true, 'the aside stays closed across the filter change');
+  assert.strictEqual(renderedRows().length, feed.books.filter(function (x) { return x.tier === 'HOOK'; }).length,
+    'the rebuild still happened — rows reflect the new filter AFTER the close');
+
+  // (2) the legacy ASIDE surface (unknown-pool fallback) would keep stale
+  // content and a live focus target through the rebuild without the close —
+  // the same chip path must hide+clear it too.
+  ftFresh.openDetail('not-a-pool-in-this-feed');
+  assert.strictEqual(REGISTRY['fleet-sheet'].hidden, false, 'precondition: the aside opened for the unknown pool');
+  assert.ok(allText(REGISTRY['fleet-sheet']).length > 0, 'precondition: the aside carries content');
+  allChip.listeners.click[0]();
+  await settle(10);
+  assert.strictEqual(REGISTRY['fleet-sheet'].hidden, true, 'the filter change closes the aside before rebuilding');
+  assert.strictEqual(allText(REGISTRY['fleet-sheet']).length, 0, 'the aside is CLEARED, not merely hidden — no stale detail text survives');
+  assert.strictEqual(renderedRows().length, feed.books.length, 'the all view restores the full file-driven count after the close');
+  await settle(0);
+});

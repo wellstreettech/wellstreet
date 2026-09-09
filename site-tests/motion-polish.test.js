@@ -289,3 +289,83 @@ test('btn-motion pairing: every new hover/press transform pairs to none under pr
   }
   assert.ok(btnGate.includes('transform: none;'), 'the EOF gate nullifies the transforms (transform: none)');
 });
+
+// ---------------- G2 #1 rider (2026-09-08, docs/internal/UI_LOOP_2_WAVE_2026-09-08.md — G2-MOTION-CONSISTENCY) ----------------
+// The bug was ONE gesture at TWO speeds: the pill LIFT (hover) tweened transform
+// at --t-base (200ms) while the chip register pressed at --motion (120ms). The
+// three pill base lists (button.btn, .cta-solid, .site-nav a.nav-cta) now carry
+// the transform component on var(--motion) — color/bg/outline components keep
+// their existing durations. This rider pins UNIFORM transform speed across the
+// 11-surface lift register (the same surfaces the BTN-MOTION riders scope):
+//   button.btn · button.btn-primary (companion override — rides button.btn's
+//   list) · .cta-solid · .site-nav a.nav-cta · .fleet-filter · .ft-copy ·
+//   .ft-details · .st-toggle-btn · .theme-toggle · .mwg-link · .mwg-copy
+// Out of register BY DESIGN: .doc-tab and .code-copy press DOWN
+// (translateY(1px) — a different gesture), so their --t-base transform base is
+// not this contract; .ws-reveal/--t-slow and .sim-bar-fill are entrances, not
+// gestures.
+const G2_REGISTER_BASES = [
+  'button.btn {',
+  'button.btn-primary {',
+  '.cta-solid {',
+  '.site-nav a.nav-cta {',
+  '.fleet-filter {',
+  '.ft-copy, .ft-details {',
+  '.st-toggle-btn {',
+  '.theme-toggle {',
+  '.mwg-link, .mwg-copy {',
+];
+const G2_REGISTER_SURFACES = 11; // 9 base rules, 2 of them double-surface (ft-copy/ft-details, mwg-link/mwg-copy)
+
+// resolves a transition declaration's transform component to its duration in ms
+// via the token table (var(--motion) → var(--t-fast) → the --t-fast literal).
+// Returns null when the rule declares no transition or no transform component.
+function transformDurationMs(span) {
+  const t = span.match(/transition:([^;]*);/);
+  if (!t) { return null; }
+  const comp = t[1].split(',').map(function (s) { return s.trim(); }).find(function (s) { return s.indexOf('transform ') === 0; });
+  if (!comp) { return null; }
+  const tok = comp.split(/\s+/)[1];
+  if (tok === 'var(--motion)' || tok === 'var(--t-fast)') {
+    const fast = btnCss.match(/--t-fast:\s*(\d+)ms/);
+    return fast ? Number(fast[1]) : null;
+  }
+  if (tok === 'var(--t-base)') { const b = btnCss.match(/--t-base:\s*(\d+)ms/); return b ? Number(b[1]) : null; }
+  if (tok === 'var(--t-slow)') { const s = btnCss.match(/--t-slow:\s*(\d+)ms/); return s ? Number(s[1]) : null; }
+  const lit = tok.match(/^(\d+)ms$/);
+  return lit ? Number(lit[1]) : null;
+}
+
+test('g2 motion consistency: the transform component tweens at var(--motion) on every lift-register base — one gesture, one speed across the 11 surfaces', () => {
+  assert.strictEqual(G2_REGISTER_BASES.length, 9, 'the register enumerates 9 base rules');
+  assert.strictEqual(btnCss.match(/--motion:\s*var\(--t-fast\)\s+var\(--ease-enter\);/) !== null, true,
+    '--motion aliases --t-fast + the enter curve (the single transform speed)');
+  const fast = btnCss.match(/--t-fast:\s*(\d+)ms/);
+  assert.ok(fast, '--t-fast is defined');
+  const speeds = [];
+  for (const head of G2_REGISTER_BASES) {
+    const span = ruleSpanFor(btnCss, head);
+    const t = span.match(/transition:([^;]*);/);
+    if (head === 'button.btn-primary {') {
+      assert.strictEqual(t, null, 'button.btn-primary stays a companion override — its transform speed IS button.btn\'s (covered below via the button.btn base)');
+      continue;
+    }
+    assert.ok(t, head + ' carries a transition declaration');
+    assert.ok(/transform\s+var\(--motion\)(?![\w-])/.test(t[1]),
+      head + ' tweens transform at var(--motion) — the chip speed, not --t-base');
+    assert.ok(!/transform\s+var\(--t-base\)/.test(t[1]) && !/transform\s+var\(--t-slow\)/.test(t[1]),
+      head + ' never tweens transform at a surface/slow speed');
+    const ms = transformDurationMs(span);
+    assert.strictEqual(ms, Number(fast[1]), head + ' transform duration resolves to --t-fast (' + fast[1] + 'ms)');
+    speeds.push(ms);
+  }
+  // computed-duration equivalence: EVERY register transform duration (base +
+  // press) resolves to ONE value — the "measured equal across 11 surfaces"
+  // verify, at the token-resolution layer.
+  assert.strictEqual(new Set(speeds).size, 1, 'one transform speed across the whole register');
+  // the press side too: every :active rule settles transform at the same speed
+  for (const head of BTN_ACTIVE_HEADS) {
+    const ms = transformDurationMs(ruleSpanFor(btnCss, head));
+    assert.strictEqual(ms, Number(fast[1]), head + ' press transform also resolves to ' + fast[1] + 'ms');
+  }
+});

@@ -203,9 +203,11 @@ html, body {
 
 body[data-geo-blocked="true"] { background: var(--paper); }
 
+html { scroll-behavior: smooth; } /* G2 #4 (2026-09-08, UI_LOOP_2): anchor jumps glide instead of teleporting; the reduced-motion guard below pairs this explicitly — scroll-behavior is NOT a transition, so the universal transition:none guard cannot nullify it */
+
 a { color: var(--accent-text); text-decoration: underline; text-underline-offset: 2px; transition: color var(--motion), outline-color var(--motion); }
 a:visited { color: var(--accent-visited); }
-a, button, input, [tabindex] { outline: 2px solid transparent; outline-offset: 2px; }
+a, button, input, summary, [tabindex] { outline: 2px solid transparent; outline-offset: 2px; } /* G2 #3 (2026-09-08, UI_LOOP_2): summary joins the reset — the mobile flagship's native <details> disclosure otherwise rides the UA focus ring while every other control takes the :focus-visible punch ring on the next line (summary:focus-visible is already listed there) */
 a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible, summary:focus-visible { outline-color: var(--accent-punch); } /* WS-A11Y-QUICK 2026-09-05: the keyboard-only ring must clear the 3:1 WCAG 1.4.11 floor — punch computes 11.05:1 on paper / 10.13:1 on paper-raised under the dark-calm table (--accent computed 6.33:1); mouse users never see :focus-visible. WS5-TREATMENT 2026-09-07: summary joins the ring rule — the fleet cards are native <details> disclosures and the whole summary is the tap zone. */
 
 /* ---------- screen-reader utilities (WS-A11Y-QUICK 2026-09-05) ---------- */
@@ -282,12 +284,12 @@ pre code { background: none; border: none; padding: var(--space-0); }
      register, so the page speaks one primary per register instead of two black fills. */
   background: var(--accent); color: var(--accent-ink);
   border-bottom: none;
-  border-radius: var(--radius); min-height: 38px;
+  border-radius: var(--radius); min-height: 44px; /* W1 G1-BAND (2026-09-08): 44 was ≤640-only — tap parity at every width. Height-neutral ≥760 (the 44px theme toggle already drives the 74px bar); the 641-759 wrapped nav grows by the same 6px — the scroller blocks below re-measure against it. */
   padding: var(--space-6) var(--space-16);
   font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); /* P-07: the CTA steps up one role; P-10: --track-chrome */
   line-height: 1; display: inline-flex; align-items: center; text-decoration: none;
   box-shadow: var(--shadow-btn); /* BTN-MOTION (2026-09-08): the filled header primary rests on the button shadow */
-  transition: background-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
+  transition: background-color var(--t-base) var(--ease-enter), transform var(--motion); /* G2 #1 (2026-09-08, UI_LOOP_2): the LIFT tweens transform at --motion (120ms) — one gesture, one speed with the chip register; the color component keeps --t-base */
 }
 .site-nav a.nav-cta:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* WS3-HEADER P3 (2026-09-06): the shipped btn-primary:hover vocabulary; BTN-MOTION (2026-09-08): + the 1px lift and the hover shadow swap */
 .site-nav a.nav-cta:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: background-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08): the dip retires — the press settles under the finger at 0.985 */
@@ -540,7 +542,7 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
 button.btn {
   font-family: var(--mono); text-transform: uppercase; letter-spacing: var(--track-chrome); font-size: var(--step-2); /* P-07: action step-up one role; P-10: --track-chrome */
   padding: var(--space-10) var(--space-16); border: 2px solid var(--line); background: var(--paper); color: var(--ink);
-  cursor: pointer; transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
+  cursor: pointer; transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--motion); /* G2 #1 (2026-09-08, UI_LOOP_2): the LIFT tweens transform at --motion (120ms) — one gesture, one speed with the chip register; the color/bg/outline components keep --t-base */
   border-radius: var(--radius); /* R3 IMP-7: the action class unifies on the pill — same geometry as the nav CTA 40px away */
   min-height: 44px; /* money-path mobile ergonomics — ens.domains action targets measure 52px @400 / 72px @1280; 44 = platform floor; NOT an a11y-compliance claim */
 }
@@ -566,7 +568,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
   text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; border-radius: 0; cursor: pointer; /* WS-DARK-DOTO: the primary CTA joins the hard-border data register (no pill) */
   box-shadow: var(--shadow-btn); /* BTN-MOTION (2026-09-08): the one solid CTA rests on the button shadow */
-  transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--t-base) var(--ease-enter);
+  transition: background-color var(--t-base) var(--ease-enter), color var(--t-base) var(--ease-enter), outline-color var(--t-base) var(--ease-enter), transform var(--motion); /* G2 #1 (2026-09-08, UI_LOOP_2): the LIFT tweens transform at --motion (120ms) — one gesture, one speed with the chip register; the color/bg/outline components keep --t-base */
 }
 .cta-solid:visited { color: var(--accent-ink); text-decoration: none; }
 .cta-solid:hover:not(:disabled) { background: var(--accent-hover); color: var(--accent-ink); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* BTN-MOTION (2026-09-08): + the 1px lift and the hover shadow swap */
@@ -764,6 +766,10 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
     animation: none !important;
     transition: none !important;
   }
+  /* G2 #4 (2026-09-08, UI_LOOP_2): scroll-behavior is NOT a transition, so the
+     universal guard above cannot nullify it — this prefers-reduced-motion
+     pairing kills the smooth anchor glide explicitly */
+  html { scroll-behavior: auto !important; }
   /* WS5-TREATMENT 2026-09-07 + WS-DARK-DOTO 2026-09-07: the per-asset reduce
      pairs are RETIRED outright (the zero-image identity keeps no asset rules
      to nullify). The universal guard above remains authoritative. */
@@ -1612,7 +1618,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
      .site-nav itself (its clientHeight must stay <= 48). */
   .site-nav { flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-right: var(--space-16); } /* SECTION-IMPROVE G1 #4 (2026-09-08): the scrollable strip's last item sat flush at the right edge — end-pad gives the clip affordance; tap sizes untouched (min-height stays on the links, clientHeight still <= 48) */
   .site-nav a { flex: 0 0 auto; white-space: nowrap; min-height: 44px; }
-  .site-nav a.nav-cta { min-height: 44px; } /* must out-rank the base 38px nav-cta min-height */
+  .site-nav a.nav-cta { min-height: 44px; } /* W1 G1-BAND (2026-09-08): the base is 44 now — restated here as belt-and-suspenders against future base edits (was: "must out-rank the base 38px") */
   /* P2 — phone-first hero fold (WS-DARK-DOTO re-rank): the DOM order IS the
      ratified rank now (ticker → h1 → rule → meta → CTA row → hero stat →
      chain badge), so the mobile fold needs no order overrides — the banner
@@ -1622,6 +1628,24 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
      header height H + 16, finalized from the post-P3 probe: H = 126.09 → 142). */
   section.block, .hero { scroll-margin-top: 142px; }
   #doc-pane [id] { scroll-margin-top: 142px; }
+}
+
+/* ---------- W1 G1-BAND (2026-09-08) — nav-cta clip at the strip edge ----------
+   The ≤640 strip's content measures 406.73px (3 links + the 160.73px CTA +
+   3×16px gaps), while the scrollport is viewport − 40px wrap padding — so the
+   LAST item, the money CTA, clips at the screen edge wherever the viewport is
+   under 446px (measured: 40px cut at 390, 36 at 410, 0 at 446). The landed
+   end-pad (SECTION-IMPROVE G1 #4) only cleans the scroll-END state; at rest
+   the cut falls mid-glyph ("RUN IT YOURS|") and reads broken on a button.
+   Measured escapes, both dishonest: letter-spacing:normal saves 11.7px
+   (need ~41); shrinking gaps/pads still ~14px short and mangles the register.
+   Fix: below 446 the CTA LEADS the strip (visual order only — DOM/copy/tab
+   focus order unchanged) and the plain text links take the edge cut — the
+   .doc-tabs affordance (a partial text link reads as "scrolls", a sliced
+   pill reads as a bug). Disclosed tradeoff: Tab reaches the links before the
+   visually-first CTA inside this narrow band. */
+@media (max-width: 445px) {
+  .site-nav a.nav-cta { order: -1; }
 }
 
 /* ---------- WS3-FOOTER (2026-09-06, UI_IMPROVE2_FOOTER F1/F2/F3/F4/F5) — pure-additive EOF block ----------
@@ -2206,15 +2230,40 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   .fleet-table th, .fleet-table td { padding-inline: var(--space-6); }
 }
 
-/* G4 #7 (2026-09-08): the terminal register — the header row stays readable
-   while the 95-book table scrolls. top clears the sticky site header,
-   measured from the live render (74px single-row nav; the 641-758 band's
-   nav wraps → 108.14px, same probe method as the P3 scroll-margin work).
-   z-index 5: under the sticky header (10), the mobile sheet (60) and the
-   copy toast (200). */
+/* G4 #7 (2026-09-08) / W1 G1-BAND (2026-09-08): the terminal register — the
+   header row stays readable while the 95-book table scrolls. z-index 5: under
+   the sticky header (10), the mobile sheet (60) and the copy toast (200).
+   top 74px = the MEASURED single-row header height ≥760 (44px theme-toggle
+   row + 2×14px .site-header .wrap padding + 2px border — the toggle, not the
+   nav, drives the bar; the wave brief's "68px" premise predates the toggle).
+   Inside the 641-892 scroller band below this rule is INERT (a scroll
+   container owns the thead's stick there — fleet-table.js re-implements it
+   against the live header height) and ≥893 this viewport-sticky rule is the
+   whole behavior, measured flush (74 == header 74). */
 .fleet-table thead th { position: sticky; top: 74px; background: var(--paper); z-index: 5; }
-@media (min-width: 641px) and (max-width: 758px) {
-  .fleet-table thead th { top: 109px; }
+
+/* W1 G1-BAND (2026-09-08) scroll-width-fix: the table's min-content (824.52px with the ≤819
+   padding trim, 872.52px without — measured) overflows the DOCUMENT from 641
+   through 892 (872.52 + 40px .wrap padding = 892.5 scroll edge, measured 893
+   clears). The #fleet-table-scroller div in index.html wraps the table ONLY,
+   and inside this band it is the table's horizontal scrollport: the books
+   scroll sideways here while the document never overflows (scrollWidth ==
+   innerWidth, verified 641-892 + 1024). The scroller stays NAIVE on purpose —
+   no max-height, no sticky on the wrapper: a measured attempt at a
+   pinned-scrolling panel bounded the thead's sticky travel to the ~30px of
+   content after the table inside #fleet-surface AND made rows below the fold
+   unreachable by page scroll, so the CSS viewport-sticky thead is instead
+   RE-IMPLEMENTED by js/fleet-table.js inside this band (a scroll container
+   kills the native stick — the nearest scrollport becomes the scroller and
+   top:74 never engages, measured). The JS pin measures the live header height
+   each frame, so no per-band thead offset ships here (the retired 109px
+   641-758 block also missed 759, where the nav still wraps and the labels
+   slid UNDER the header). Boundary is a measured constant like the site's
+   other probe-pinned values; re-pin if font metrics move it. */
+@media (min-width: 641px) and (max-width: 892px) {
+  #fleet-table-scroller { /* the index.html hook is an id (goal-pinned); no class ships */
+    overflow-x: auto;
+  }
 }
 
 /* ---- the card stack (R2 Snowball anatomy, ≤640px). Base grid; hidden

@@ -364,6 +364,14 @@
               <button class="fleet-filter" data-filter="HOOK" type="button">zero-fee</button>
               <button class="fleet-filter" data-filter="DEAD" type="button">dead</button>
             </div>
+            <!-- W1 G1-BAND (2026-09-08): horizontal scroller around the table
+                 ONLY — the table's min-content overflows the document at
+                 641-892px; this div is the table's horizontal scrollport there
+                 (CSS band-scoped; js/fleet-table.js re-implements the sticky
+                 thead inside the band against the live header height), and the
+                 document never overflows. Outside tbody: the §1 DOM contract
+                 (table > thead/tbody) is untouched. -->
+            <div id="fleet-table-scroller">
             <table class="fleet-table" id="fleet-table">
               <thead>
                 <tr>
@@ -379,6 +387,7 @@
               </thead>
               <tbody id="fleet-tbody"></tbody>
             </table>
+            </div><!-- /#fleet-table-scroller -->
             <!-- G4 #3 / DECISION-2 (2026-09-08): the il/age columns diet to
                  '—' at every width until the feed carries the figures — this
                  colophon is the honesty line for that absence. Cells are

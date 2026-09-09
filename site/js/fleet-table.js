@@ -335,6 +335,16 @@
   function setFilter(filter) {
     if (typeof filter !== 'string' || !FILTERS[filter]) { return; } // unknown filter: fail-closed no-op
     currentFilter = filter;
+    // G2 #2 (2026-09-08, UI_LOOP_2 W2): the rebuild below wipes the row/card
+    // mounts — an open detail would be silently destroyed (the inline panels
+    // are children of those mounts, and the legacy aside would keep stale
+    // content while any focus inside it drops into the void). Close BOTH
+    // detail surfaces FIRST: removeInlines() clears the inline row/card
+    // panels, closeSheet() hides+clears the aside (its own removeInlines is
+    // idempotent). No-op when nothing is open; an unknown filter above never
+    // reaches this, so a failed filter change closes nothing.
+    removeInlines();
+    closeSheet();
     var surface = $('fleet-surface');
     if (surface) {
       var chips = surface.querySelectorAll('.fleet-filter');
@@ -542,10 +552,107 @@
     }
   }
 
+  // ------------------------------------------------------------------
+  // W1 G1-BAND (2026-09-08): the band scroller's emulated sticky thead.
+  // 641-892px: the table's min-content overflows the DOCUMENT, so the
+  // #fleet-table-scroller div (index.html — around the table ONLY, outside
+  // tbody) is the table's horizontal scrollport there. A scroll container
+  // KILLS the CSS viewport-sticky thead — the nearest scrollport becomes the
+  // scroller, which never scrolls vertically, so the base top:74 never
+  // engages (measured, Playwright @768: the head slides away with the page).
+  // The measured alternatives both lose: a pinned internally-scrolling panel
+  // bounds the stick to ~30px of travel inside #fleet-surface AND makes rows
+  // below the fold unreachable by page scroll. So inside the band this module
+  // re-implements the stick: on scroll/resize it pins the head cells just
+  // under the sticky site header — measured LIVE each frame, so the
+  // wrapped-nav sub-band (114.14px header) needs no hardcoded offset — and
+  // docks them at the table's bottom edge, exactly the native sticky
+  // semantics. Outside the band the CSS rule owns the behavior and the inline
+  // styles clear. SCROLLER_ID stays variable-mediated (the stats.js
+  // SECTION_ID precedent) so no registry rider arises; the seam is skipped
+  // entirely where window/matchMedia are absent (the node test stubs).
+  // ------------------------------------------------------------------
+  var SCROLLER_ID = 'fleet-table-scroller';
+  var BAND_QUERY = '(min-width: 641px) and (max-width: 892px)';
+  var bandMql = null;
+  var bandWired = false;
+  var bandTick = false;
+  var bandActive = false;
+  var bandLastY = null;
+
+  function bandCells(scroller) {
+    var head = scroller.querySelector('thead');
+    if (!head) { return null; }
+    var cells = head.querySelectorAll('th');
+    return cells.length ? cells : null;
+  }
+
+  function bandApply(cells, y) {
+    for (var i = 0; i < cells.length; i++) {
+      cells[i].style.position = 'relative';
+      cells[i].style.top = y;
+    }
+  }
+
+  function bandClear(cells) {
+    for (var i = 0; i < cells.length; i++) {
+      cells[i].style.position = '';
+      cells[i].style.top = '';
+    }
+  }
+
+  function bandUpdate() {
+    bandTick = false;
+    var scroller = $(SCROLLER_ID);
+    if (!scroller || typeof scroller.getBoundingClientRect !== 'function') { return; }
+    var cells = bandCells(scroller);
+    if (!cells) { return; }
+    if (!bandMql || !bandMql.matches) {
+      if (bandActive) { bandClear(cells); bandActive = false; bandLastY = null; }
+      return;
+    }
+    var header = doc().querySelector('.site-header');
+    var headerBottom = header && typeof header.getBoundingClientRect === 'function'
+      ? header.getBoundingClientRect().bottom : 0;
+    var rect = scroller.getBoundingClientRect();
+    var head = cells[0].parentNode; // the thead's single head row shares the cells' shift
+    var headH = head && typeof head.getBoundingClientRect === 'function'
+      ? head.getBoundingClientRect().height : 0;
+    var shift = headerBottom - rect.top; // >0 once the scroller's top passes the header line
+    var maxShift = rect.height - headH;  // dock: the head stops at the table's bottom edge
+    var y = Math.max(0, Math.min(shift, maxShift));
+    if (bandActive && y === bandLastY) { return; }
+    bandApply(cells, y + 'px');
+    bandActive = true;
+    bandLastY = y;
+  }
+
+  function bandOnScroll() {
+    if (bandTick) { return; }
+    bandTick = true;
+    if (typeof root.requestAnimationFrame === 'function') { root.requestAnimationFrame(bandUpdate); }
+    else { bandUpdate(); }
+  }
+
+  function wireBandSticky() {
+    if (bandWired) { return; }
+    // the STUB RIDER's accepted guard form (theme-toggle.js precedent): the
+    // node stubs provide no matchMedia, so the seam stays test-silent.
+    if (typeof window === 'undefined' || !window ||
+      typeof window.addEventListener !== 'function' || !('matchMedia' in window)) { return; }
+    bandMql = window.matchMedia(BAND_QUERY);
+    if (!bandMql) { return; }
+    bandWired = true;
+    window.addEventListener('scroll', bandOnScroll, { passive: true });
+    window.addEventListener('resize', bandOnScroll);
+    bandOnScroll(); // the initial paint may already sit inside the band
+  }
+
   function init() {
     var surface = $('fleet-surface');
     if (!surface) { return; }
     wireOnce(surface);
+    wireBandSticky();
     var f = fleet();
     if (!f || typeof f.load !== 'function') {
       showUnavailable(); // the feed module is absent — the page states the gap
