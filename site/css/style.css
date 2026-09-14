@@ -2044,6 +2044,23 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   #fleet-books { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* two measured books side by side */
 }
 
+/* FLEET-SIMPLE-EARN (2026-09-14): the dead-simple 3-step strip + the collapsed
+   verify disclosure. Static, token-only: no transitions, no fetched resources,
+   no new external origins. Hairline 1px borders only — the frozen hard-boundary
+   register (the 11x plain 2px bottom-rule count, pinned by theme.test (g))
+   stays untouched; and per the G3 CASCADE NOTE at #fleet .fleet-detail
+   section.block: never quote a pinned literal in a comment — the (g)
+   counter reads raw css text INCLUDING comments. */
+.fleet-steps { list-style: none; margin: 0 0 var(--space-20); padding: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-8) var(--space-20); font-family: var(--mono); font-size: var(--step-3); color: var(--ink); } /* the path is one line at desktop, wraps as text on mobile — never a horizontal scroll */
+.fleet-step-num { color: var(--accent-text); font-weight: 700; } /* the amber number register — accent-as-text, same dress as .fleet-ours */
+.fleet-verify { margin: var(--space-12) 0 0; border: 1px solid var(--line); } /* the technical reads fold away; the deposit widget stays outside it */
+.fleet-verify > summary { list-style: none; display: block; cursor: pointer; padding: var(--space-10) var(--space-12); font-family: var(--mono); font-size: var(--step-2); letter-spacing: var(--track-label); text-transform: uppercase; color: var(--ink-soft); } /* the UA marker retires; the +/- glyph is explicit below */
+.fleet-verify > summary::-webkit-details-marker { display: none; }
+.fleet-verify > summary::before { content: '+'; color: var(--accent-text); font-weight: 700; margin-right: var(--space-8); }
+.fleet-verify[open] > summary { border-bottom: 1px solid var(--line); }
+.fleet-verify[open] > summary::before { content: '−'; }
+.fleet-verify-body { padding: var(--space-12); }
+
 /* ---- movement (a)'s ONE live hero stat ----
    Huge tabular mono number + muted label. SECTION-IMPROVE G1 #6 (2026-09-08):
    the raw provenance window string ("05 win key …") no longer renders here —

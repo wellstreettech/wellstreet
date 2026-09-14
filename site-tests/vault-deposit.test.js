@@ -136,9 +136,15 @@ test('index.html: the fee-split fact is the RoamVault lanes — never the old pr
   assert.ok(!html.includes('10% protocol · cap 20%'));
 });
 
-test('index.html: the fleet intro states the reconciliation — SPY winding down, RoamVault live', () => {
-  assert.ok(html.includes('RoamVault (wsrUSDG) is LIVE'));
-  assert.ok(html.includes('The SPY flagship is winding down'));
+test('index.html: the fleet intro is the dead-simple promise — SPY wind-down copy gone, RoamVault live (FLEET-SIMPLE-EARN 2026-09-14)', () => {
+  // the SPY flagship reconciliation sentence retired with the flagship itself —
+  // the intro is now the one-vault promise; the wind-down copy is asserted ABSENT
+  assert.ok(!html.includes('The SPY flagship is winding down'), 'the SPY wind-down sentence is gone');
+  assert.ok(!html.includes('winding down'), 'no SPY wind-down copy remains anywhere in index.html');
+  assert.ok(html.includes('RoamVault (wsrUSDG)'), 'the live vault is named in the intro');
+  assert.ok(html.includes("90% of the roamer's trading fees flow to depositors automatically"), 'the dead-simple promise: 90% of fees flow to depositors');
+  assert.ok(html.includes('earnings start at the first harvest'), 'the no-harvests honesty line survives the rewrite');
+  assert.ok(html.includes('id="vaults-launch-fact"'), 'the protected launch-fact seam survives');
 });
 
 // ---------------- G3 completion pass (2026-09-13): the guided money path -------

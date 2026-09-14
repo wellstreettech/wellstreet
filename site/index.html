@@ -176,15 +176,17 @@
       <!-- ============ MOVEMENT 3 — THE FLEET ============
            The measured books, one column. The intro carries the PROTECTED
            launch-fact seam (#vaults-launch-fact, byte-synced with main.js's
-           writer) and the wind-down and gated-family truths as two label-ish
-           sentences. The books render client-side from WS.fleet.rows() through
+           writer) and the dead-simple promise: one vault, deposit USDG, 90%
+           of the roamer's trading fees flow to depositors. The books render
+           client-side from WS.fleet.rows() through
            the FLEET-UI-V2 surface skeleton below (terminal table >=641px, card
            stack <=640px — both DOMs always render, CSS decides visibility);
            the FLAGSHIP card is the static first card — a SIBLING that precedes
            the render target, never a child of it (the renderer wipes its
-           mounts wholesale on every path). Its detail hosts the live vault
-           reads, the four fact rows, the coverage seam and the ENTIRE deposit
-           widget, ids byte-unchanged. -->
+           mounts wholesale on every path). Its detail hosts the collapsed
+           verify disclosure (live vault reads, the four fact rows, the
+           coverage seam) and the ENTIRE deposit widget OUTSIDE it — always
+           visible, ids byte-unchanged. -->
       <section class="block" id="fleet">
         <div class="wrap">
           <div class="block-head">
@@ -195,8 +197,17 @@
           </div>
           <p class="block-sub">
             <span id="vaults-launch-fact">The vault is on-chain — four contracts, verifiable at the addresses these cards read.</span>
-            The SPY flagship is winding down — its redemptions stay open. RoamVault (wsrUSDG) is LIVE: deposits open, capital seeded, every number a raw on-chain read. The rest of the family is WAITING (DEPLOY-GATED) — nothing shows a yield figure until measured harvests exist.
+            One vault on Robinhood Chain holds the roamer's capital — RoamVault (wsrUSDG), live today. You deposit USDG and hold wsrUSDG, your claim on the pool. 90% of the roamer's trading fees flow to depositors automatically — earnings start at the first harvest, nothing estimated until then.
           </p>
+          <!-- FLEET-SIMPLE-EARN (2026-09-14): the dead-simple path, static —
+               no JS, no images, no external origins. The numbers are explicit
+               spans (the ol marker is CSS-retired) so the strip reads correctly
+               even with stylesheets off. -->
+          <ol class="fleet-steps">
+            <li><span class="fleet-step-num">1</span> · Get USDG on Robinhood Chain</li>
+            <li><span class="fleet-step-num">2</span> · Deposit</li>
+            <li><span class="fleet-step-num">3</span> · Watch your share of every fee land</li>
+          </ol>
           <!-- ALWAYS-CONNECT-ENTRY (2026-09-08, user: the Connect wallet button
                was buried inside the collapsed flagship — visible at every
                viewport now; one tap opens the card AND runs the same connect
@@ -236,29 +247,39 @@
             </summary>
             <div class="fleet-detail">
               <p class="fleet-tier-note">One token is one share. The live reads and the deposit widget live in this card.</p>
-              <div id="fleet-vault-reads"></div>
-              <div class="hero-facts">
-                <div class="hero-fact">
-                  <span class="k">Fee split</span>
-                  <span class="v">90% depositors · 10% burns $WELL · 0% to anyone else</span>
+              <!-- FLEET-SIMPLE-EARN (2026-09-14): the technical reads collapse
+                   behind ONE disclosure — the deposit widget (03) below stays
+                   OUTSIDE it and always visible. ids byte-unchanged (the
+                   id-based fills are relocation-safe); collapsed by default
+                   (no `open` attribute). -->
+              <details class="fleet-verify">
+                <summary>Verify it yourself — every number, live</summary>
+                <div class="fleet-verify-body">
+                  <div id="fleet-vault-reads"></div>
+                  <div class="hero-facts">
+                    <div class="hero-fact">
+                      <span class="k">Fee split</span>
+                      <span class="v">90% depositors · 10% burns $WELL · 0% to anyone else</span>
+                    </div>
+                    <div class="hero-fact">
+                      <span class="k">Keys</span>
+                      <span class="v">Yours — redeems have no pause path.</span>
+                    </div>
+                    <div class="hero-fact">
+                      <span class="k">Numbers</span>
+                      <span class="v">Your browser, reading public RPC nodes.</span>
+                    </div>
+                    <div class="hero-fact">
+                      <span class="k">Audit</span>
+                      <span class="v">None. Read the invariants and threat model instead.</span>
+                    </div>
+                  </div>
+                  <!-- the backingCoverage seam: ONE line, one fill point in
+                       js/main.js, isDeployed-gated, fails to the honest
+                       unavailable state — never a fabricated figure. -->
+                  <p class="fleet-coverage-line">Backing invariant: <span id="fleet-coverage" aria-live="polite">live from backingCoverage() — verify it yourself with any RPC client.</span></p>
                 </div>
-                <div class="hero-fact">
-                  <span class="k">Keys</span>
-                  <span class="v">Yours — redeems have no pause path.</span>
-                </div>
-                <div class="hero-fact">
-                  <span class="k">Numbers</span>
-                  <span class="v">Your browser, reading public RPC nodes.</span>
-                </div>
-                <div class="hero-fact">
-                  <span class="k">Audit</span>
-                  <span class="v">None. Read the invariants and threat model instead.</span>
-                </div>
-              </div>
-              <!-- the backingCoverage seam: ONE line, one fill point in
-                   js/main.js, isDeployed-gated, fails to the honest
-                   unavailable state — never a fabricated figure. -->
-              <p class="fleet-coverage-line">Backing invariant: <span id="fleet-coverage" aria-live="polite">live from backingCoverage() — verify it yourself with any RPC client.</span></p>
+              </details>
               <!-- ============ DEPOSIT / REDEEM WIDGET ============
                    byte-unchanged ids and classes; the widget-pause battery
                    passes without an assert edit. -->
@@ -449,9 +470,10 @@
            burn lane DELEGATED to the same Burned-event machinery js/stats.js
            runs. The split percentages are the RoamVault contract's own immutable
            constants (DEPOSITOR_BPS 9000 / BURN_BPS 1000 — checkable, not
-           measured). The seal is the ratified claim: the 10% protocol share is a
-           treasury share, not a developer fee — the 90/10 split is immutable
-           on-chain (contract constants), nothing to set. The one-motion budget
+           measured). The seal is the ratified claim: the 10% protocol share is
+           the $WELL buy+burn leg — parked until $WELL launches, not earning —
+           never a developer fee. The 90/10 split is immutable on-chain
+           (contract constants), nothing to set. The one-motion budget
            spends its second
            signature here: the pulse dot on the deposit arrow (CSS transform +
            opacity keyframes, hardware-only), killed entirely by the reduced-
@@ -476,7 +498,7 @@
             </defs>
           </svg>
           <div class="flow-top">
-            <span class="flow-seal" title="the developer takes nothing — the 10% protocol share is a treasury share; the 90/10 split is immutable on-chain — nothing to set">DEV TAKE: 0</span>
+            <span class="flow-seal" title="the developer takes nothing — the 10% protocol share is the $WELL buy+burn leg, parked until $WELL launches, not earning; the 90/10 split is immutable on-chain — nothing to set">DEV TAKE: 0</span>
           </div>
           <div class="flow-stage">
             <!-- LANE 1: the vault flow (kit lane 1). The ids below are the
