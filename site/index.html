@@ -208,6 +208,17 @@
             <li><span class="fleet-step-num">2</span> · Deposit</li>
             <li><span class="fleet-step-num">3</span> · Watch your share of every fee land</li>
           </ol>
+          <!-- FLEET-APR-LOOP (2026-09-14): the how-you-earn block — the roamer
+               and the loop in one breath, then where the projected ~0.3% comes
+               from. The 40.3% figure is the measured pool-net fee APR median,
+               owned by site/js/config.js (netAprPct) — fleet-earn.test.js pins
+               this copy to that constant, so a baseline re-pin forces the copy
+               to move with it. Static: no fetched resources, no images, the
+               loop link is an in-page anchor. -->
+          <div class="fleet-earn" id="fleet-earn">
+            <p class="fleet-earn-loop" id="fleet-earn-loop">The roamer is the protocol's own automated LP: it moves the vault's USDG into the highest measured-fee pools on Robinhood Chain and harvests the fees. 90% of every fee streams to depositors; the other 10% buys and burns $WELL — parked until $WELL launches, not earning. Harvest after harvest, the loop closes — <a href="#flow">see the whole loop</a>.</p>
+            <p class="fleet-earn-apr" id="fleet-earn-apr"><strong>Where the ~0.3% comes from.</strong> The pools earned a measured 40.3% net fee rate in the phase-0 baseline windows (measured baseline, Aug 2026 — see the verify panel). A depositor's cut of that rate is the slice the vault's capital represents, times the 90% depositor split. Today the vault is seeded tiny, so the projection is ~0.3% — projected until the first harvest makes it measured. And it moves as the vault's share of the pool moves: more capital captures more of the pool's fees, and each deposit dilutes earlier ones.</p>
+          </div>
           <!-- ALWAYS-CONNECT-ENTRY (2026-09-08, user: the Connect wallet button
                was buried inside the collapsed flagship — visible at every
                viewport now; one tap opens the card AND runs the same connect

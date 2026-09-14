@@ -2061,6 +2061,16 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 .fleet-verify[open] > summary::before { content: '−'; }
 .fleet-verify-body { padding: var(--space-12); }
 
+/* FLEET-APR-LOOP (2026-09-14): the how-you-earn block — the roamer/loop
+   one-breath + the APR explainer, quiet prose on one hairline. Static,
+   token-only; no transitions, no fetched resources. The 40.3% figure in
+   the copy is owned by config.js netAprPct — fleet-earn.test.js pins the
+   pair, so a baseline re-pin forces the copy to move with it. */
+.fleet-earn { margin: 0 0 var(--space-20); padding-left: var(--space-14); border-left: 1px solid var(--line); }
+.fleet-earn p { margin: 0; color: var(--ink-soft); font-size: var(--step-3); }
+.fleet-earn p + p { margin-top: var(--space-10); }
+.fleet-earn strong { color: var(--ink); }
+
 /* ---- movement (a)'s ONE live hero stat ----
    Huge tabular mono number + muted label. SECTION-IMPROVE G1 #6 (2026-09-08):
    the raw provenance window string ("05 win key …") no longer renders here —
