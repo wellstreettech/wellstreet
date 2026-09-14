@@ -4,11 +4,12 @@ The on-site mirror of the canonical agent skill, `skills/wellstreet-vaults/SKILL
 
 ## Family status — read first
 
-Wellstreet is a **family** of ERC-4626 yield vaults on Robinhood Chain (chain ID 4663). Exactly one tier is live; the rest are **DEPLOY-GATED** — ratified, config-pinned, and rendered as gated everywhere, with **no yield figure** attached anywhere.
+Wellstreet is a **family** of ERC-4626 yield vaults on Robinhood Chain (chain ID 4663). Two tiers are live — the RoamVault (deposits open) and the wind-down SPY flagship (redemptions only); the rest are **DEPLOY-GATED** — ratified, config-pinned, and rendered as gated everywhere, with **no yield figure** attached anywhere.
 
 | Vault (share symbol) | Tier | Status | Fee book |
 |---|---|---|---|
-| Wellstreet SPY (`ws-SPY`) | stock / WETH quote (v3) | **LIVE** — deployed 2026-09-03 (F-01 broadcast, on-chain verified) | SPY/WETH pool, fee tier 500 — `0xDDCBBa3666f578E3F09516f21Ff85BFee859AB5e` |
+| RoamVault (`wsrUSDG`) | USDG / ETH quote (v4 roamer) | **LIVE** — activated 2026-09-13 (P0/P1/P2 executed, seeded 12.473590 USDG at 1:1); **the deposit path's target** (`cfg.vaults[0]`) | USDG/ETH anchor book — v4 poolId `0xbac3aa3b…551` (PoolManager fork) |
+| Wellstreet SPY (`ws-SPY`) | stock / WETH quote (v3) | **LIVE, WIND-DOWN** — deployed 2026-09-03; do not open new positions; redemptions always open | SPY/WETH pool, fee tier 500 — `0xDDCBBa3666f578E3F09516f21Ff85BFee859AB5e` |
 | Wellstreet RBLX (`ws-RBLX`) | stock / stable (v3) | DEPLOY-GATED — addresses publish at deployment | RBLX/USDG pool, fee tier 3000 — `0x1BDB8e3A79Cb1a7F228808739311E23098D33d43` |
 | SPY/USDG (`ws-SPY-v4`) | stock / stable (v4) | DEPLOY-GATED — addresses publish at deployment | v4 poolId `0xfe2a80bb…526cd` (PoolManager fork) |
 | USDG/ETH (`ws-USDG-v4`) | stable / ETH rails (v4) | DEPLOY-GATED — addresses publish at deployment | v4 poolId `0xbac3aa3b…551` (PoolManager fork) |
@@ -24,7 +25,8 @@ Pinned deployed contracts (`site/js/config.js`; verified against chain 4663):
 
 | Address | What |
 |---|---|
-| `0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01` | ws-SPY vault (YieldShares, ERC-4626) — the ONLY share-token minter |
+| `0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86` | RoamVault (ERC-4626, USDG asset) — LIVE 2026-09-13, deposits open; the deposit path's target (`cfg.vaults[0]`) |
+| `0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01` | ws-SPY vault (YieldShares, ERC-4626) — wind-down declared; redemptions stay open |
 | `0x07446D9807F90eD7ED177Ab63597e8BB4D96428f` | VaultFactory (one-vault-per-asset registry: `vaultOfAsset` / `allVaults`) |
 | `0xD55bA510533dc5a250b4D6d49Ee825113DD69342` | TreasuryTimelock (48h, 2-of-3 Safe proposer) |
 | `0xe6c4502cfe17E99475a1B9C8511F47ea38a8A996` | Harvester (collects LP fees, feeds the vault) |

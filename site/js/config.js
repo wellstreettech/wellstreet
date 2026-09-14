@@ -96,6 +96,73 @@
       harvester: '0xe6c4502cfe17E99475a1B9C8511F47ea38a8A996'
     },
 
+    // ------------------------------------------------------------------
+    // The ROAMER STACK (protocol v2 — the agent-native LP layer on chain 4663).
+    // RoamVault DEPLOYED 2026-09-09 (16/16 keyless verification); vault LIVE
+    // 2026-09-13 (P0/P1/P2 executed, seeded 12.473590 USDG, share price 1:1,
+    // DEPOSIT_CAP 25,000). P3 pair QUEUED, NOT executed — 48h windows ready
+    // 2026-09-15. EVERY consumer must render BOTH states (all-idle today;
+    // deployed after P3-B lands) — zero hard-coded assumptions about the split.
+    // Every id is the FULL 32-byte value read from on-chain WellstreetTimelock
+    // CallQueued/CallExecuted logs + live eth_call verification 2026-09-13 —
+    // never an ellipsis, never a truncated pin.
+    // ------------------------------------------------------------------
+    roamStack: {
+      statusNote: 'vault LIVE 2026-09-13; P3 deploy queued, ready 2026-09-15',
+      vault: '0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86',       // RoamVault — ERC-4626, USDG asset (src/RoamVault.sol)
+      roamer: '0xC7a21Aa8C15C7032eE2e8352244a0f3D2154dC68',      // RoamingHarvester — the POL roamer (vault-authorized deploy/egress)
+      allowlist: '0x6040bA3e356cb023C67002De45D2af56FED4e81A',   // RoamAllowlist — book registry (USDG/ETH anchor added P0)
+      usdg: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168',        // USDG — the vault asset (6 decimals)
+      timelock: '0xD55bA510533dc5a250b4D6d49Ee825113DD69342',    // 48h treasury timelock, open executor (same timelock as contracts.treasuryTimelock)
+      safe: '0x0Fd4B5495698b4EC04AeaC64567867083760ccea',        // 2-of-3 Safe — the timelock proposer
+      // The vault's LP book: USDG/ETH (v4, anchor poolId from the 09-04 fee screen;
+      // also carried by vaultFamily[usdg-eth-v4].poolId — the roamer band reads the
+      // same pool). P3-B deploys idle vault capital into a range around this book.
+      usdgEthPoolId: '0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551',
+      // Governance tape (the "checkable" record — dates, full ids, tx links).
+      // executedAt/readyAt are ISO UTC timestamps read from block/event data
+      // 2026-09-13; a queued op's readyAt is also readable live via the timelock's
+      // readyAt(bytes32) mapping getter (0 = not queued → treat as cancelled).
+      governance: {
+        executed: [
+          {
+            label: 'P0 · allowlist.addBook — USDG/ETH anchor book',
+            id: '0x042974269e2756ca85e14309f796169a0632547e08f455162f87bb69b07aa937',
+            tx: '0x808045abfa79ef306258783d1db625f583376d46f8f8de4d7feb9c337ebd8a03',
+            executedAt: '2026-09-13T08:36:35Z'
+          },
+          {
+            label: 'P1 · roamer.setVault(vault, USDG) — the one-shot custody binding',
+            id: '0x40b1351e8a01250c99ef17ef82225407e868c176809c09ecdad9db986f6c4430',
+            tx: '0x7062a7152ed7071e52b15efcdc73b9c1956f70653861e0c9d97db6afc1979b1f',
+            executedAt: '2026-09-13T08:36:05Z'
+          },
+          {
+            label: 'P2 · deposits unpaused (pause-only EOA, direct — not timelock-queued)',
+            id: null,
+            tx: '0x05b0ef19584b7efe16d83ccd3dd1d1d0102d6c0b87757437a768a7c206b92fe0',
+            executedAt: '2026-09-13T08:36:56Z'
+          }
+        ],
+        queued: [
+          {
+            label: 'P3-A · vault.setHarvester(roamer) — bind the roamer (until then ALL capital is idle)',
+            id: '0x7c982d3603b0c7e4ae3d57b609ddc0aef93e0444cc938ad52afff5058640f5ee',
+            tx: '0xc341c565de203f383c98198f8d53cd4cc9eddf65017bf1eb7eeebc472d322bf3',
+            queuedAt: '2026-09-13T09:46:26Z',
+            readyAt: '2026-09-15T09:46:26Z'
+          },
+          {
+            label: 'P3-B · vault.vaultDeploy(USDG/ETH band −198210/−198010, 10 USDG) — first deploy',
+            id: '0x57fc2f0d3ff91ef752f442373bbc35e7d48e84066575adba91feb72084b876c6',
+            tx: '0xda1cfe8e9813b83577f661a16a5ecd9ec0db1ad19ccf938c583b523e88f961f0',
+            queuedAt: '2026-09-13T09:50:52Z',
+            readyAt: '2026-09-15T09:50:52Z'
+          }
+        ]
+      }
+    },
+
     tokens: {
       weth: {
         address: '0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73',
@@ -109,6 +176,12 @@
         decimals: 18,
         // Honest identifier framing (trademark note): asset identifier only.
         label: 'SPDR S&P 500 ETF Trust (on-chain stock token)'
+      },
+      usdg: {
+        address: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168',
+        symbol: 'USDG',
+        decimals: 6,
+        label: 'Global Dollar (RH chain)'
       }
     },
 
@@ -166,11 +239,29 @@
     },
 
     // ------------------------------------------------------------------
-    // Vault registry (frontend view of the protocol). Vault #1 = SPY (ratified at the
-    // GO/NO-GO gate). DEPLOYED 2026-09-03 — the address below is the live vault from
-    // the F-01 broadcast, verified on-chain vs Blockscout before pinning.
+    // Vault registry (frontend view of the protocol). vaults[0] IS the
+    // deposit-widget/money-path driver (WS5: "stays the primary-vault (hero
+    // surfaces, deposit widget) driver").
+    //
+    // WS-VAULT-DEPOSIT RECONCILIATION (2026-09-13): vaults[0] is now the LIVE
+    // RoamVault (config.roamStack.vault — P0/P1/P2 executed 2026-09-13, seeded
+    // 12.473590 USDG, share price 1:1, deposits OPEN, cap 25,000 USDG; share
+    // symbol read live from the contract: wsrUSDG). The money path targets a
+    // vault that actually accepts deposits — pointing it at the empty,
+    // wind-down-declared SPY flagship was the stale state. The SPY entry stays
+    // (reads/family context); its deposit side is the one the wind-down
+    // declaration retired. The RoamVault entry carries NO pool/chainlinkFeed
+    // keys on purpose — the card's conditional reads degrade to their honest
+    // unavailable rows, and the vault's own accounting is the number source.
     // ------------------------------------------------------------------
     vaults: [
+      {
+        id: 'roam-usdg',
+        displayName: 'RoamVault',
+        shareSymbol: 'wsrUSDG',
+        vault: '0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86',
+        asset: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168'
+      },
       {
         id: 'ws-spy',
         displayName: 'Wellstreet SPY',
@@ -205,6 +296,23 @@
     // 0xfe2a80bb…526cd, USDG/ETH 0xbac3aa3b…551, PACK/NVDA 0x4900c6d3…150.
     // ------------------------------------------------------------------
     vaultFamily: [
+      {
+        id: 'roam-usdg',
+        status: 'LIVE',
+        statusNote: 'activated 2026-09-13 — P0/P1/P2 executed, seeded 12.473590 USDG at 1:1, deposits open, cap 25,000 USDG; the P3 capital deploy is Safe-queued (48h windows)',
+        displayName: 'RoamVault',
+        shareSymbol: 'wsrUSDG',
+        tierLabel: 'USDG / ETH quote (v4 roamer)',
+        riskLabel: null,
+        highRisk: false,
+        vault: '0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86',
+        harvester: '0xC7a21Aa8C15C7032eE2e8352244a0f3D2154dC68',   // the roamer — vault.harvester() reads 0x0 until P3-A executes (queued)
+        asset: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168',
+        quote: null,
+        pool: null,
+        poolId: '0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551',
+        aprNote: null
+      },
       {
         id: 'ws-spy',
         status: 'LIVE',

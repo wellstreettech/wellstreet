@@ -150,6 +150,15 @@ global.document = {
 // lookup through variable-mediated helpers (setCell/setSent/setBar + a
 // SECTION_ID const), so the query-surface regexes extract nothing from it and
 // no registry requirement arises; the registry rider belongs to G4 (brief §5).
+// + WS-VAULT-DEPOSIT G3 completion (2026-09-13) registry add -> 52 in-array ids
+// (was 50): btn-dep-max (the Max button — fills the deposit input with the
+// wallet's full live balance, disabled-with-reason in renderWidgetState) and
+// deposit-preview (the live previewDeposit(uint256) estimate row) — both
+// static page ids in index.html, queried/written by main.js's G3 completion
+// seams. Mirrors the WS-PRODUCT-GAPS red-amount-label/redeem-preview adds.
+// + WS-VAULT-DEPOSIT G3 exit path (2026-09-13) -> 55: the redeemer-bounded
+// exit (redeemWithMinOut) — min-out (the payout-floor input), btn-redeem-min
+// (the floor-redeem button), min-out-note (the static floor signage).
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
@@ -163,7 +172,9 @@ global.document = {
  'hero-stat', 'hero-stat-num', 'hero-stat-label', 'hero-stat-window',
  'fleet-flagship-apr', 'fleet-vault-reads', 'fleet-coverage',
  'fleet-surface', 'fleet-table', 'fleet-tbody', 'fleet-cards', 'fleet-sheet',
- 'fleet-unavailable'
+ 'fleet-unavailable',
+ 'btn-dep-max', 'deposit-preview',
+ 'min-out', 'btn-redeem-min', 'min-out-note'
 ].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');
@@ -177,7 +188,12 @@ const SPY = config.tokens.spy.address.toLowerCase();
 const WETH = config.tokens.weth.address.toLowerCase();
 const POOL = config.pools.spyWeth500.address.toLowerCase();
 const FEED = config.priceFeeds.spyUsd.proxies[0].toLowerCase();
+// re-pinned 2026-09-13 (WS-VAULT-DEPOSIT reconciliation): vaults[0] is the LIVE
+// RoamVault — VAULT now resolves to it and the card reads flow through the same
+// mock with the RoamVault fixture shapes (the real 09-13 chain readings).
 const VAULT = config.vaults[0].vault.toLowerCase();
+const USDG = config.tokens.usdg.address.toLowerCase();
+const USER = '0x62f0bcd442a70cb86c0e2ed7f66022a1f6a046e1';
 
 const LATEST = 50193408;
 const BLOCK_TS_BASE = 1788000000;
@@ -233,6 +249,38 @@ function ethCallResult(to, data) {
     if (sel === abi.selectorOf('fee()')) { return '0x' + hexWord(500); }
     if (sel === abi.selectorOf('token0()')) { return '0x' + '0'.repeat(24) + WETH.replace(/^0x/i, ''); }
     if (sel === abi.selectorOf('token1()')) { return '0x' + '0'.repeat(24) + SPY.replace(/^0x/i, ''); }
+  }
+  // re-pinned 2026-09-13 (WS-VAULT-DEPOSIT reconciliation): the primary card now
+  // reads the LIVE RoamVault — the mock serves the real 09-13 chain fixture
+  // (12.473590 USDG idle, 1:1 price, share decimals 12, cap 25,000). No
+  // pricePerShare() exists on RoamVault: the empty reply drives the house
+  // convertToAssets fallback, which this mock answers at the seeded 1:1 rate.
+  if (toL === VAULT) {
+    if (sel === abi.selectorOf('asset()')) { return '0x' + '0'.repeat(24) + USDG.replace(/^0x/i, ''); }
+    if (sel === abi.selectorOf('decimals()')) { return '0x' + hexWord(12); }
+    if (sel === abi.selectorOf('totalAssets()')) { return '0x' + hexWord('12473590'); }
+    if (sel === abi.selectorOf('totalSupply()')) { return '0x' + hexWord('12473590000000'); }
+    if (sel === abi.selectorOf('idleBook()')) { return '0x' + hexWord('12473590'); }
+    if (sel === abi.selectorOf('deployedBook()')) { return '0x' + hexWord(0); }
+    if (sel === abi.selectorOf('DEPOSIT_CAP()')) { return '0x' + hexWord('25000000000'); }
+    if (sel === abi.selectorOf('maxDeposit(address)')) { return '0x' + hexWord('24987526410'); }
+    if (sel === abi.selectorOf('harvester()')) { return '0x' + '0'.repeat(64); }
+    if (sel === abi.selectorOf('pricePerShare()')) { return '0x'; }
+    if (sel === abi.selectorOf('convertToAssets(uint256)')) {
+      const shares = BigInt('0x' + (arg || '0'));
+      return '0x' + hexWord((shares / 1000000n).toString());
+    }
+    if (sel === abi.selectorOf('balanceOf(address)')) {
+      const holder = abi.decodeAddress('0x' + arg);
+      if (abi.sameAddress(holder, USER)) { return '0x' + hexWord('12403100000000'); }   // 12.4031 shares
+      return '0x' + hexWord(0);
+    }
+  }
+  if (toL === USDG) {
+    if (sel === abi.selectorOf('symbol()')) { return strPayload('USDG'); }
+    if (sel === abi.selectorOf('decimals()')) { return '0x' + hexWord(6); }
+    if (sel === abi.selectorOf('paused()')) { return '0x' + hexWord(0); }
+    if (sel === abi.selectorOf('totalSupply()')) { return '0x' + hexWord('2500000000000000'); }
   }
   if (sel === abi.selectorOf('balanceOf(address)')) {
     const holder = abi.decodeAddress('0x' + arg);
@@ -342,9 +390,11 @@ test('page renders fully from mocked live RPC data (serverless-clean)', async ()
   if (process.env.WS_DEBUG) { console.error('RENDERED TEXT:\n' + text); }
 
   // hero + card structure
-  assert.ok(text.indexOf('Wellstreet SPY') !== -1, 'vault card title rendered');
-  assert.ok(text.indexOf('ws-SPY') !== -1, 'share symbol rendered');
-  assert.ok(text.indexOf('SPY') !== -1, 'underlying symbol rendered');
+  // re-pinned 2026-09-13 (WS-VAULT-DEPOSIT reconciliation): the primary card is
+  // the LIVE RoamVault (wsrUSDG) — the SPY flagship moved to vaults[1].
+  assert.ok(text.indexOf('RoamVault') !== -1, 'vault card title rendered');
+  assert.ok(text.indexOf('wsrUSDG') !== -1, 'share symbol rendered');
+  assert.ok(text.indexOf('USDG') !== -1, 'underlying symbol rendered');
 
   // live values from the mock
   // SECTION-IMPROVE G1 #9 re-pin (2026-09-08): the badge is MISMATCH-ONLY —
@@ -353,23 +403,26 @@ test('page renders fully from mocked live RPC data (serverless-clean)', async ()
   // with the amber budget, G1 #8).
   assert.strictEqual(REGISTRY['chain-badge'].textContent, '',
     'chain badge is match-quiet on the expected chain (mismatch-only render)');
-  assert.ok(text.indexOf('$770.27') !== -1, 'Chainlink SPY price rendered, got: ' + text);
-  assert.ok(text.indexOf('fee tier 0.05%') !== -1, 'pool fee tier (live) rendered');
+  // re-pinned 2026-09-13: the RoamVault entry carries no chainlinkFeed/pool keys —
+  // the conditional reads degrade to their honest unavailable rows (never a
+  // wrong-vault read, never an invented price).
+  assert.ok(text.indexOf('unavailable (feed — no invented price)') !== -1, 'price row degrades honestly without a feed pin, got: ' + text);
+  assert.ok(text.indexOf('$770.27') === -1, 'no SPY-feed price may render for the RoamVault card');
+  assert.ok(text.indexOf('unavailable (RPC)') !== -1, 'pool row degrades honestly without a pool pin');
   assert.ok(text.indexOf('TVL') !== -1, 'pool TVL rendered');
-  assert.ok(text.indexOf('75%') !== -1, 'LP net multiplier (75%) from live slot0 rendered');
+  assert.ok(text.indexOf('75%') === -1, 'no v3 pool cut may render for the RoamVault card (no pool pin)');
   // re-pinned 2026-09-04: config flipped to deployed addresses — the honest deployed
   // register renders (deployed flag + the real contract address), never a pending tag
   assert.ok(text.indexOf('deployed · ') !== -1, 'honest deployed vault state rendered');
   assert.ok(text.indexOf('not paused') !== -1, 'underlying pause state (live) rendered');
 
   // APR chain: live sample -> labeled projection
+  // re-pinned 2026-09-13: without a pool pin the v3-pool APR leg degrades — the
+  // fallback source label is the HONEST register here (the RoamVault's own fee
+  // history is the post-P3 harvest figure, not a client-side v3 sample).
   assert.ok(text.indexOf('projected, methodology-linked') !== -1, 'APR label present');
-  assert.ok(text.indexOf('live client-side sample') !== -1, 'live sample source labeled');
-  // the fallback marker must NOT appear in the card's source label when live sampling works
-  // (the methodology footnote legitimately MENTIONS the baseline — only the fallback's own
-  //  source label reads "live sampling unavailable")
-  assert.ok(text.indexOf('live sampling unavailable') === -1, 'baseline fallback NOT used when live sampling works');
-  assert.ok(/\d+\.\d+%/.test(text), 'a percentage figure is rendered');
+  assert.ok(text.indexOf('live sampling unavailable') !== -1, 'fallback source labeled honestly without a pool pin');
+  assert.ok(text.indexOf('75%') === -1, 'no stale v3 cut figure anywhere');
 });
 
 // SECTION-IMPROVE G1 #6 rider (2026-09-08): the hero provenance window is

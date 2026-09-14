@@ -303,7 +303,7 @@ pre code { background: none; border: none; padding: var(--space-0); }
 }
 .brand-tag { font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); text-transform: uppercase; letter-spacing: var(--track-label); } /* P-11/P-10: the one untracked mono metadata surface joins the label register */
 .site-nav { display: flex; flex-wrap: wrap; gap: var(--space-10) var(--space-16); align-items: center; }
-.site-nav a { color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); border-bottom: 2px solid transparent; padding: var(--space-4) var(--space-0); transition: border-bottom-color var(--motion), color var(--motion); } /* P-07: nav steps up one role to the small-text role; P-10: tracking rides --track-chrome */
+.site-nav a { color: var(--ink); text-decoration: none; font-family: var(--mono); font-size: var(--step-2); text-transform: uppercase; letter-spacing: var(--track-chrome); border-bottom: 2px solid transparent; padding: var(--space-4) var(--space-0); min-height: 44px; transition: border-bottom-color var(--motion), color var(--motion); } /* P-07: nav steps up one role to the small-text role; P-10: tracking rides --track-chrome. WS-VAULT-GATES (2026-09-13): the 44px link floor was ≤640-only (plain links measured 30px at desktop) — all-width tap parity, the same move W1 G1-BAND already ratified for nav-cta; height-neutral ≥760 (the 74px bar is toggle-driven) */
 .site-nav a:hover { border-bottom-color: var(--ink-soft); } /* WS3-HEADER P2 (2026-09-06): the --line hover underline is sub-perceptual by design; ink-soft is 7.14:1 on carbon, a visible step below the active underline */
 /* R2 header CTA — honest conversion affordance (copy reused verbatim from the footer;
    targets the #docs section, never the pre-deploy deposit widget). Specificity-bearing
@@ -564,6 +564,7 @@ section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-
 .field label { display: block; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink-soft); margin-bottom: var(--space-6); } /* P-10 */
 .field input[type="text"], .field input[type="number"] {
   width: 100%; padding: var(--space-10); font-family: var(--mono); font-size: var(--step-4); /* 16px: below this iOS Safari auto-zooms on focus */
+  min-height: 44px; /* WS-VAULT-GATES (2026-09-13): the money-amount fields measured 42px — the platform tap floor (44) now holds on the inputs too, the same floor every button control already carries */
   border: 2px solid var(--line); background: var(--paper); color: var(--ink);
 }
 .field input:disabled { background: var(--paper-2); color: var(--ink-soft); }
@@ -607,7 +608,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
 #widget-status { margin-top: var(--space-16); padding: var(--space-10) var(--space-12); border: 2px solid var(--line); background: var(--paper-2); font-size: var(--step-2); min-height: 40px; word-break: normal; overflow-wrap: anywhere; } /* MONEY-GRAMMAR (2026-09-06, UI_IMPROVE2_MONEY-SURFACES #11 bug fix): break-all wrapped every status sentence mid-word; overflow-wrap:anywhere still breaks the long hashes/explorer URLs but only when a token cannot otherwise fit. */
 #wallet-balances { margin-top: var(--space-10); font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
 #acquire-note { margin: var(--space-14) 0 0 0; font-size: var(--step-2); color: var(--ink-soft); }
-.tx-link { margin-left: var(--space-10); font-family: var(--mono); font-size: var(--step-2); }
+.tx-link { display: inline-block; padding: 15px 8px; margin: -15px -8px; margin-left: var(--space-10); font-family: var(--mono); font-size: var(--step-2); } /* WS-VAULT-GATES second pass (2026-09-14): the 44px tap floor — the gov-tape 'tx ↗' links measured 31x15; padding expands the tap area, the negative margins keep the line rhythm unchanged. */
 
 /* wallet picker (eip-6963 multi-wallet) + noscript note */
 #wallet-picker { margin-top: var(--space-12); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-10); }
@@ -2477,7 +2478,7 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 .st-pending-chip { display: inline-block; margin-left: var(--space-6); padding: 0 var(--space-6); border: 1px dashed var(--line); background: var(--paper-pending); color: var(--ink-soft); }
 .st-pending-chip[hidden], .st-pending-line[hidden] { display: none; } /* the JS clears the register on live/error — an inline-block chip would out-rank the UA [hidden] rule */
 .st-pending-line { margin: var(--space-6) 0 0; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
-.st-unit.is-pending { opacity: .55; } /* the windowed unit greys while pending/error; no new color — the existing ink-soft dims */
+.st-unit.is-pending { opacity: .85; } /* the windowed unit greys while pending/error; no new color — the existing ink-soft dims. WS-VAULT-GATES (2026-09-13): .55 failed color-contrast (2.56:1 light / 2.72:1 dark vs 4.5 required at 13px) — .85 measures 5.09:1 light / 4.92:1 dark, the dim register kept honestly */
 .st-streams { margin-top: var(--space-16); max-width: var(--measure-copy); }
 .st-stream { margin: 0; font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
 .st-stream + .st-stream { margin-top: var(--space-6); }
@@ -2680,3 +2681,23 @@ a.flow-node:hover { border-color: var(--ink-soft); }
     transform: none;
   }
 }
+
+/* ============================================================
+   VAULT (2026-09-13) — WS-VAULT-DASHBOARD (#vault).
+   The live RoamVault strip re-uses the .st-grid/.st-card figure cards and the
+   governance tape re-uses the .ledger-row anatomy wholesale (its ≤640px
+   stacking rules are genuinely inherited, not re-implemented). The only new
+   rules are the tape container and the status-word register. Zero motion,
+   zero new keyframe blocks (the motion budget is untouched), token-only, no
+   new custom properties, 390px-first (the grid collapses to one column in
+   the existing ≤640px block).
+   ============================================================ */
+.gov-tape { margin-top: var(--space-16); }
+.gov-row { border-bottom: 1px dotted var(--line-dotted); } /* the .ledger-row's 2px solid reads table-like; the tape is a list — the dotted hairline the card rows speak */
+.gov-status { font-family: var(--mono); font-weight: 700; font-size: var(--step-2); letter-spacing: var(--track-label); text-transform: uppercase; }
+.gov-status--executed { color: var(--accent-text); } /* the .flag-ok pairing: success rides the one accent, never a second fill */
+.gov-status--executable { color: var(--accent-text); } /* the window is open — the strongest truthful state on the tape */
+.gov-status--queued { color: var(--ink); }
+.gov-status--gone { color: var(--ink-soft); } /* no longer queued: executed or cancelled — muted until the replay says which */
+.gov-status--unknown { color: var(--ink-soft); } /* a failed read renders unavailable, never a guess */
+.gov-v-meta { display: block; margin-top: var(--space-2); font-family: var(--mono); font-weight: 400; font-size: var(--step-1); color: var(--ink-soft); word-break: break-all; } /* the date + truncated-id line — break-all so a full 32-byte id could never force h-scroll */

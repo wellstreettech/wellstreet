@@ -77,6 +77,7 @@
         </a>
         <nav class="site-nav" aria-label="Sections">
           <a href="#fleet">The Fleet</a>
+          <a href="#vault">The Vault</a>
           <a href="#deposit">Deposit</a>
           <a href="#docs">Docs</a>
           <a href="#agents" class="nav-cta">Run it yourself</a>
@@ -84,8 +85,14 @@
         <!-- G1 THEME-FOUNDATION (2026-09-08): the light/dark toggle. The static
              label/aria-pressed pair is the DARK-DEFAULT state (dark active ->
              pressing gets LIGHT); js/theme-toggle.js re-syncs both at init and
-             on every change. aria-pressed = light is active. -->
-        <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="switch theme">LIGHT</button>
+             on every change. aria-pressed = light is active. WS-VAULT-GATES
+             (2026-09-13): the visible text IS the accessible name — the old
+             aria-label="switch theme" failed the label-content-name audit
+             (the name must contain the visible text, and the visible text
+             flips LIGHT/DARK at runtime, so no static label can contain it
+             both ways); the button's purpose rides the text itself
+             ("pressing gets LIGHT") + aria-pressed. -->
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false">LIGHT</button>
       </div>
     </header>
 
@@ -188,7 +195,7 @@
           </div>
           <p class="block-sub">
             <span id="vaults-launch-fact">The vault is on-chain — four contracts, verifiable at the addresses these cards read.</span>
-            The SPY book is winding down — redemptions stay open. The rest of the family is WAITING (DEPLOY-GATED) — nothing shows a yield figure until measured harvests exist. The flagship's figure is the one projection — every book below is measured.
+            The SPY flagship is winding down — its redemptions stay open. RoamVault (wsrUSDG) is LIVE: deposits open, capital seeded, every number a raw on-chain read. The rest of the family is WAITING (DEPLOY-GATED) — nothing shows a yield figure until measured harvests exist.
           </p>
           <!-- ALWAYS-CONNECT-ENTRY (2026-09-08, user: the Connect wallet button
                was buried inside the collapsed flagship — visible at every
@@ -222,10 +229,10 @@
                   </div>
           <details class="fleet-card fleet-card--flagship">
             <summary class="fleet-summary">
-              <span class="fleet-pair">ws-SPY</span>
+              <span class="fleet-pair">wsrUSDG</span>
               <span class="fleet-apr" id="fleet-flagship-apr">—</span>
               <span class="fleet-apr-mark">projected</span>
-              <span class="fleet-meta">the one book you can deposit into</span>
+              <span class="fleet-meta">the live vault — deposits open, exits never paused</span>
             </summary>
             <div class="fleet-detail">
               <p class="fleet-tier-note">One token is one share. The live reads and the deposit widget live in this card.</p>
@@ -233,7 +240,7 @@
               <div class="hero-facts">
                 <div class="hero-fact">
                   <span class="k">Fee split</span>
-                  <span class="v">90% depositors · 10% protocol · cap 20%</span>
+                  <span class="v">90% depositors · 10% burns $WELL · 0% to anyone else</span>
                 </div>
                 <div class="hero-fact">
                   <span class="k">Keys</span>
@@ -271,24 +278,31 @@
                     <div class="panel">
                       <div class="panel-head" id="deposit-panel-head">
                         <h3>Deposit</h3>
-                        <span class="share-symbol">ws-SPY</span>
+                        <span class="share-symbol">wsrUSDG</span>
                       </div>
                       <div class="panel-body">
                         <div class="field">
-                          <label for="dep-amount">Amount (SPY)</label>
+                          <label for="dep-amount">Amount (USDG)</label>
                           <input type="text" id="dep-amount" inputmode="decimal" placeholder="0.0" disabled>
                         </div>
                         <div class="btn-row">
+                          <button type="button" class="btn" id="btn-dep-max" disabled>Max</button>
                           <button type="button" class="btn" id="btn-approve" disabled>1 · Approve</button>
                           <button type="button" class="btn btn-primary" id="btn-deposit" disabled>2 · Deposit</button>
                         </div>
+                        <!-- live deposit preview row: one previewDeposit(uint256)
+                             eth_call per debounced input, priced by the vault's
+                             own view — an estimate, never a receive-promise;
+                             degrades to the honest unavailable state.
+                             (WS-VAULT-DEPOSIT G3 completion, 2026-09-13) -->
+                        <p class="flag" id="deposit-preview" aria-live="polite"></p>
                       </div>
                     </div>
 
                     <div class="panel">
                       <div class="panel-head">
                         <h3>Redeem</h3>
-                        <span class="share-symbol">ws-SPY</span>
+                        <span class="share-symbol">wsrUSDG</span>
                         <!-- permanent signage: static, always true, NOT a
                              state read — the truth asymmetry the pause
                              staging fixes closes here. -->
@@ -296,13 +310,25 @@
                       </div>
                       <div class="panel-body">
                         <div class="field">
-                          <label for="red-amount" id="red-amount-label">Amount (shares)</label>
+                          <label for="red-amount" id="red-amount-label">Amount (wsrUSDG)</label>
                           <input type="text" id="red-amount" inputmode="decimal" placeholder="0.0" disabled>
                         </div>
                         <div class="btn-row">
                           <button type="button" class="btn" id="btn-redeem" disabled>Redeem</button>
                           <button type="button" class="btn" id="btn-withdraw" disabled>Withdraw</button>
                         </div>
+                        <!-- G3 exit path (2026-09-13): the redeemer-bounded exit —
+                             redeemWithMinOut (RoamVault.sol:337). The floor is
+                             YOURS, per-call, never vault-held (a stale vault-held
+                             floor would be a redemption trap). -->
+                        <div class="field">
+                          <label for="min-out" id="min-out-label">Min out (USDG) — payout floor</label>
+                          <input type="text" id="min-out" inputmode="decimal" placeholder="0.0" disabled>
+                        </div>
+                        <div class="btn-row">
+                          <button type="button" class="btn" id="btn-redeem-min" disabled>Redeem w/ floor</button>
+                        </div>
+                        <p class="flag" id="min-out-note">The floor reverts this redeem if the payout lands below it — the chain is the final arbiter. Leave it empty and use Redeem for the no-floor exit.</p>
                         <!-- live redeem/withdraw preview row: one eth_call per
                              debounced input, priced by the vault's own preview
                              view — never a receive-promise; degrades to the
@@ -584,6 +610,108 @@
         </div>
       </section>
 
+      <!-- ============ MOVEMENT 3.6 — THE VAULT (WS-VAULT-DASHBOARD, 2026-09-13)
+           The live RoamVault dashboard: the numbers, the flywheel in one
+           paragraph, the three fee lanes never mixed, and the governance
+           tape (the "checkable" record — dates, truncated ids, statuses).
+           Static first paint IS the honest waiting register ('—' + plain
+           sentences + title tooltips, the flow-section convention); main.js
+           (WS-VAULT-DASHBOARD block) upgrades it through G1's
+           WS.vault.readRoamVaultSnapshot + normalizeRoamSnapshot on the
+           house 60s refresh loop. Fail-closed: a failed read renders the
+           em-dash, never a zero, never an estimate. Ids are queried only
+           through variable-mediated consts in main.js (the SECTION_ID idiom
+           — the resource-gate query-surface registry never needs them).
+           Explorer links are JS-assigned: an absolute external href in
+           static markup is a resource-gate scanner channel; a user-initiated
+           navigation is not a loaded resource (the mobile-wallet-guide
+           precedent). The 90/10 figures below are STATIC on purpose — they
+           are the vault's own immutable contract constants (DEPOSITOR_BPS
+           9000 / BURN_BPS 1000, src/RoamVault.sol), the same
+           checkable-not-measured register the flow split renders. -->
+      <section class="block" id="vault">
+        <div class="wrap">
+          <div class="block-head">
+            <span class="index">05</span>
+            <h2>The Vault</h2>
+            <span class="spacer"></span>
+            <span class="muted">RoamVault · USDG · chain 4663</span>
+          </div>
+          <p class="block-sub">
+            You deposit USDG. Shares are the claim — the share price carries every fee
+            the roamer's positions earn, and exits are never paused. Capital sits idle
+            until the roamer's first deploy lands, then works the measured books. The
+            deposit cap gates deposits, never exits.
+          </p>
+          <!-- the three fee lanes, compact and diagram-free — NEVER mixed. The
+               verbatim split line appears exactly once on the page (this list). -->
+          <div class="st-streams">
+            <span class="st-label">Three lanes. Never mixed.</span>
+            <p class="st-stream"><span class="st-stream-name">lane 1 — vault LP fees:</span> 90% to depositors · 10% burns $WELL · 0% to anyone else. The burn leg starts when $WELL launches — checkable on-chain until then.</p>
+            <p class="st-stream"><span class="st-stream-name">lane 2 — trading fees on $WELL:</span> route to holders through Pons' own distributor, post-launch.</p>
+            <p class="st-stream"><span class="st-stream-name">lane 3 — the protocol's cut:</span> none on this vault. The 90/10 split is a contract constant — no treasury hook, nothing to set.</p>
+          </div>
+          <!-- the dashboard strip: every figure is the browser's own eth_call
+               (G1's readRoamVaultSnapshot), fail-closed to the em-dash. -->
+          <div class="st-grid" aria-live="polite">
+            <article class="st-card">
+              <span class="st-label">tvl — total assets</span>
+              <span class="st-value doto" id="va-tvl" title="waiting — this figure reads totalAssets() on RoamVault once the page's read lands; unavailable renders the dash, never an estimate">—</span>
+              <span class="st-unit" id="va-tvl-unit">usdg · totalAssets()</span>
+              <p class="st-sent" id="va-tvl-sent">the idle book plus the deployed book at par — read by your browser, replayable</p>
+            </article>
+            <article class="st-card">
+              <span class="st-label">share price</span>
+              <span class="st-value doto" id="va-price" title="waiting — this figure reads convertToAssets(10^shareDecimals) on RoamVault; a share price with no shares outstanding would be vacuous, so none renders">—</span>
+              <span class="st-unit" id="va-price-unit">usdg per whole share</span>
+              <p class="st-sent" id="va-price-sent">every fee credit raises it — convertToAssets on the vault</p>
+            </article>
+            <article class="st-card">
+              <span class="st-label">backing coverage</span>
+              <span class="st-value doto" id="va-coverage" title="waiting — this figure reads backingCoverage() on RoamVault (1e18 fixed point); unavailable renders the dash, never an estimate">—</span>
+              <span class="st-unit">backingCoverage()</span>
+              <p class="st-sent" id="va-coverage-sent">raw assets against the accounted figure — 100.0% is exact cover</p>
+            </article>
+            <article class="st-card">
+              <span class="st-label">deposit cap</span>
+              <span class="st-value doto" id="va-cap" title="waiting — used reads totalAssets() and the cap reads DEPOSIT_CAP() on RoamVault; unavailable renders the dash, never an estimate">—</span>
+              <span class="st-unit">used of DEPOSIT_CAP() · usdg</span>
+              <p class="st-sent" id="va-cap-sent">the cap gates deposits only — exits are never pausable</p>
+            </article>
+            <article class="st-card">
+              <span class="st-label">fee lane status</span>
+              <span class="st-value doto">90 / 10</span>
+              <span class="st-unit">depositors / buy + burn — immutable constants</span>
+              <p class="st-sent" id="va-lane-sent">the 90% lane is wired in the contract — the 10% burn leg is PARKED until $WELL launches, not earning, checkable on-chain</p>
+            </article>
+            <article class="st-card">
+              <span class="st-label">deposits</span>
+              <span class="st-value doto" id="va-deposits" title="waiting — this state reads depositsPaused() on RoamVault; unknown renders the dash, never a guess">—</span>
+              <span class="st-unit">depositsPaused()</span>
+              <p class="st-sent" id="va-deposits-sent">the pause gates deposits only — redemptions are never pausable</p>
+            </article>
+            <article class="st-card st-card--wide">
+              <span class="st-label">capital state — idle vs deployed</span>
+              <span class="st-value doto" id="va-idle" title="waiting — the idle book reads idleBook() on RoamVault; unavailable renders the dash, never an estimate">—</span>
+              <span class="st-unit" id="va-idle-unit">idle book · usdg</span>
+              <p class="st-sent" id="va-idle-sent">waiting — idleBook() and deployedBook() report the split; no read, no figure</p>
+              <p class="st-sent" id="va-deployed-sent">deployed book: —</p>
+            </article>
+          </div>
+          <!-- the governance tape: rendered by main.js from the on-chain
+               record (config.roamStack.governance — dates + full ids read from
+               CallQueued/CallExecuted events 2026-09-13) + the LIVE
+               readyAt(bytes32) read per queued op. Explorer links are
+               JS-assigned (see the section note). -->
+          <div class="st-card gov-tape">
+            <span class="st-label">the governance tape — every owner action, dated + replayable</span>
+            <div id="gov-tape-rows" aria-live="polite">
+              <p class="st-sent" id="gov-tape-fallback">rendered by your browser from the on-chain record — the timelock's CallQueued/CallExecuted events are public and replayable</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ MOVEMENT 4 — THE BURN LEDGER (STATS) ============
            FLEET-UI-V2 G3 (2026-09-07), the R3 exemplar's "OUR VERSION":
            the burn ledger + flywheel + books grid. The static first paint
@@ -598,7 +726,7 @@
       <section class="block" id="stats">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">05</span>
+            <span class="index">06</span>
             <h2>Everything the protocol has burned</h2>
             <span class="spacer"></span>
             <div class="st-toggle" role="group" aria-label="measurement window" title="applies once the roamer is live">
@@ -684,7 +812,7 @@
       <section class="block" id="docs">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">06</span>
+            <span class="index">07</span>
             <h2>Docs</h2>
             <span class="spacer"></span>
             <span class="muted">markdown, rendered locally</span>

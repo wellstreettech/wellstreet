@@ -65,9 +65,20 @@ test('vaultFamily: the flagship is LIVE and pins the deployed vault address', ()
   assert.strictEqual(flagship.status, 'LIVE');
   assert.strictEqual(flagship.vault, FLAGSHIP_VAULT, 'flagship pins the F-01 broadcast vault address');
   assert.match(flagship.vault, /^0x[0-9a-fA-F]{40}$/);
-  assert.strictEqual(flagship.vault, config.vaults[0].vault, 'flagship family entry agrees with the single-vault array');
   assert.strictEqual(flagship.harvester, config.contracts.harvester, 'flagship harvester agrees with the contracts pin');
   assert.strictEqual(flagship.aprNote, null, 'the LIVE flagship has no canned APR note — its APR is the live methodology register');
+});
+
+test('vaultFamily: the RoamVault is LIVE and agrees with the single-vault array (re-pinned 2026-09-13, WS-VAULT-DEPOSIT reconciliation — vaults[0] is the deposit path and now targets the RoamVault)', () => {
+  const roam = config.vaultFamily.filter(function (f) { return f.id === 'roam-usdg'; })[0];
+  assert.ok(roam, 'roam-usdg family entry exists');
+  assert.strictEqual(roam.status, 'LIVE');
+  assert.strictEqual(roam.vault, '0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86');
+  assert.strictEqual(roam.vault, config.vaults[0].vault, 'roam family entry agrees with the single-vault array (the money path)');
+  assert.strictEqual(roam.vault, config.roamStack.vault, 'roam family entry agrees with the roamStack pin');
+  assert.strictEqual(roam.asset, config.tokens.usdg.address, 'roam asset is the pinned USDG');
+  assert.match(roam.harvester, /^0x[0-9a-fA-F]{40}$/, 'roam harvester is the roamer address (a real contract, not PENDING)');
+  assert.strictEqual(roam.aprNote, null, 'the LIVE RoamVault has no canned APR note');
 });
 
 test('vaultFamily: every gated entry carries the honest APR note verbatim and no tier label lie', () => {

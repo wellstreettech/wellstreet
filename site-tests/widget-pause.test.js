@@ -189,9 +189,13 @@ function ethCallResult(to, data) {
       if (toL === WETH) { return '0x' + hexWord('120000000000000000000'); }
       if (toL === SPY) { return '0x' + hexWord('496000000000000000000'); }
     }
-    // the holder's own ws-SPY position (P2): 12.4031 shares on the vault
+    // the holder's own position (P2): 12.4031 shares on the vault.
+    // G3-completion re-pin (2026-09-13): the fixture moves onto the LIVE
+    // RoamVault chassis — 12 share decimals, 6 asset decimals — so the
+    // decimals-correct formatters print the same figures the old 18-dec
+    // world did by coincidence of scale. 12.4031 wsrUSDG = 12403100000000 raw.
     if (abi.sameAddress(holder, USER) && toL === VAULT) {
-      return '0x' + hexWord('12403100000000000000');
+      return '0x' + hexWord('12403100000000');
     }
     return '0x' + hexWord(0);
   }
@@ -211,9 +215,15 @@ function ethCallResult(to, data) {
   if (toL === VAULT && sel === abi.selectorOf('depositsPaused()')) {
     return '0x' + hexWord(1);   // PAUSED — the world under test
   }
+  // G3-completion re-pin (2026-09-13): the share chassis decimals() read —
+  // the RoamVault answers 12 (asset 6 + offset 6); the formatters consume it.
+  if (toL === VAULT && sel === abi.selectorOf('decimals()')) {
+    return '0x' + hexWord(12);
+  }
   if (toL === VAULT && sel === abi.selectorOf('convertToAssets(uint256)')) {
-    // the live share price: 1.245 SPY per share (1e18-scaled)
-    return '0x' + hexWord('1245000000000000000');
+    // the live share price: 1.245 USDG per whole share on the 12-dec chassis —
+    // per 1e18 shares = 1e6 whole shares × 1.245 USDG × 1e6 = 1.245e12 raw
+    return '0x' + hexWord('1245000000000');
   }
   return '0x';
 }
@@ -287,8 +297,10 @@ test('P1 paused vault: honest row renders, deposit side disabled, redeem side st
   // re-pinned 2026-09-06 (WS3-MONEY #3, UI_IMPROVE2_MONEY-SURFACES): the position
   // line re-chunked into the ledger-row anatomy — label and value are now
   // separate cells, so the sentinel matches the label cell, not the old run-on line.
+  // re-pinned 2026-09-13 (WS-VAULT-DEPOSIT reconciliation): vaults[0] is now the
+  // LIVE RoamVault — the share label reads the config shareSymbol (wsrUSDG).
   let balances = '';
-  for (let i = 0; i < 100 && balances.indexOf('Your ws-SPY') === -1; i++) {
+  for (let i = 0; i < 100 && balances.indexOf('Your wsrUSDG') === -1; i++) {
     await settle(50);
     balances = allText(REGISTRY['wallet-balances']).join(' | ');
   }
@@ -313,8 +325,8 @@ test('P1 paused vault: honest row renders, deposit side disabled, redeem side st
   // re-pinned 2026-09-06 (WS3-MONEY #3, UI_IMPROVE2_MONEY-SURFACES): same verified
   // figures, now in label/value cells — the ≈ qualifier text is unchanged in main.js
   // (wow.test.js pins it verbatim).
-  assert.ok(balances.indexOf('Your ws-SPY') !== -1 && balances.indexOf('12.4031') !== -1,
+  assert.ok(balances.indexOf('Your wsrUSDG') !== -1 && balances.indexOf('12.4031') !== -1,
     'the share balance renders (label + value cells), got: ' + balances);
-  assert.ok(balances.indexOf('≈ at the current share price.') !== -1 && balances.indexOf('15.4418 SPY') !== -1,
+  assert.ok(balances.indexOf('≈ at the current share price.') !== -1 && balances.indexOf('15.4418 USDG') !== -1,
     'the ≈ assets figure renders truncated at the current share price, got: ' + balances);
 });

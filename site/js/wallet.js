@@ -82,6 +82,10 @@
     var chainIdHex = await p.request({ method: 'eth_chainId' });
     if (Number.parseInt(chainIdHex, 16) !== cfg.chain.id) {
       await ensureChain(p, cfg);
+      // WS-VAULT-GATES second-pass fix (2026-09-14): re-read AFTER the switch —
+      // the pre-switch id rode out in the result and the widget claimed the
+      // wrong chain ('Connected on chain 1' while the wallet sat on 4663).
+      chainIdHex = await p.request({ method: 'eth_chainId' });
     }
     return { account: accounts[0], chainId: Number.parseInt(chainIdHex, 16) };
   }
@@ -160,6 +164,17 @@
   async function redeem(cfg, vaultAddr, shares, receiver, owner) {
     var abi = root.WS.abi;
     var data = abi.encodeCall(abi.selectorOf('redeem(uint256,address,address)'), [shares, receiver, owner]);
+    return sendTransaction(cfg, vaultAddr, data);
+  }
+
+  // redeemWithMinOut: the RoamVault's redeemer-bounded exit (RoamVault.sol:337,
+  // selector 0x4fed4f32 cross-verified with `cast sig` 2026-09-13) — redeem
+  // shares but revert when the payout lands below minPayout. The floor lives
+  // for THIS call only (never a vault-held global floor — the contract's own
+  // doc: a stale vault-held floor would be a redemption trap).
+  async function redeemWithMinOut(cfg, vaultAddr, shares, receiver, owner, minPayout) {
+    var abi = root.WS.abi;
+    var data = abi.encodeCall(abi.selectorOf('redeemWithMinOut(uint256,address,address,uint256)'), [shares, receiver, owner, minPayout]);
     return sendTransaction(cfg, vaultAddr, data);
   }
 
@@ -274,6 +289,7 @@
     mint: mint,
     withdraw: withdraw,
     redeem: redeem,
+    redeemWithMinOut: redeemWithMinOut,
     balanceOf: balanceOf,
     allowance: allowance,
     waitForReceipt: waitForReceipt,

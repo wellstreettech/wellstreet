@@ -320,6 +320,54 @@
     }
   }
 
+  // WS-VAULT-DEPOSIT G3 completion (2026-09-13): the deposit side of the same
+  // OZ std view family — previewDeposit(assets) -> shares minted. Same honest
+  // null contract: a failed read is null, the row renders "unavailable (RPC)",
+  // never a fabricated figure.
+  async function previewDeposit(client, vaultAddr, assetsRaw) {
+    if (!isDeployed(vaultAddr) || assetsRaw === null || assetsRaw === undefined) { return null; }
+    var abi = root.WS.abi;
+    try {
+      var raw = await ethCall(client, vaultAddr, abi.selectorOf('previewDeposit(uint256)') + abi.encodeUint256(assetsRaw.toString()));
+      return (raw && abi.wordCount(raw) >= 1) ? abi.decodeUint(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // The share token's decimals() — an immutable contract constant the UI needs
+  // to format share figures at their true scale (the RoamVault chassis is
+  // 12 decimals, NOT the 18 the legacy formatter assumed). Honest null on
+  // failure; the caller fails closed to an em-dash, never to a wrong scale.
+  async function readShareDecimals(client, vaultAddr) {
+    if (!isDeployed(vaultAddr)) { return null; }
+    var abi = root.WS.abi;
+    try {
+      var raw = await ethCall(client, vaultAddr, abi.selectorOf('decimals()'));
+      return (raw && abi.wordCount(raw) >= 1) ? Number(abi.decodeUint(raw)) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // maxDeposit(address) — the vault's own remaining deposit room (pause + cap
+  // both read 0 through it; RoamVault.sol:290 ignores the address argument,
+  // the zero address is the house convention from the snapshot reader). The
+  // deposit flow guards on it; a failed read is null and the flow proceeds —
+  // the chain, not the UI, is the final arbiter (a rejected deposit reverts
+  // honestly).
+  async function readMaxDeposit(client, vaultAddr, ownerAddr) {
+    if (!isDeployed(vaultAddr)) { return null; }
+    var abi = root.WS.abi;
+    try {
+      var raw = await ethCall(client, vaultAddr,
+        abi.selectorOf('maxDeposit(address)') + abi.encodeAddress(ownerAddr || ZERO_ADDRESS));
+      return (raw && abi.wordCount(raw) >= 1) ? abi.decodeUint(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Factory registry — PENDING_DEPLOY until identity/deploy. Interface candidates are
   // documented deploy-prep verification items (see file header).
   async function readFactoryVaults(client, factoryAddr) {
@@ -432,6 +480,316 @@
     return out;
   }
 
+  // ---------------- WS-VAULT-DATA (2026-09-13): the live RoamVault ----------------
+  // The protocol-v2 vault (config.roamStack.vault — src/RoamVault.sol, an ERC-4626
+  // fork with a DEPLOYED-CAPITAL book). Reads are the SAME D8 pattern as every
+  // reader in this file: direct browser eth_calls through the injected rpc client,
+  // never an /api/* dependency (the same-origin /api/vault endpoint is the optional
+  // enhancement carrying the identical payload — see api/vault.js).
+  //
+  // CHASSIS FACT (read, never assumed): share decimals = asset decimals + the
+  // ERC-4626 virtual offset (RoamVault._decimalsOffset() = 6). With the 6-dec USDG
+  // asset the share token reads decimals() = 12 — one whole share = 10^12 raw, and
+  // at a 1:1 price raw shares = raw assets × 10^6 (verified live 2026-09-13:
+  // totalSupply 12,473,590,000,000 at decimals 12 ↔ totalAssets 12,473,590). The
+  // YieldShares flagship chassis (18-dec SPY asset) reads 24 — so NOTHING here
+  // hardcodes a share-decimals figure: decimals() is read from the chain and every
+  // normalization is parameterized on it.
+  //
+  // HONEST STATE MODEL: vault.harvester() is address(0) until P3-A executes and
+  // deployedBook() is 0 until P3-B executes — BOTH are real on-chain states, not
+  // errors. deploymentState() names them ('unbound' | 'idle' | 'deployed') and the
+  // renderer must show the truthful state, never a fabricated yield figure.
+
+  // PURE: exact decimal-shift normalization of a raw integer into a decimal string.
+  // BigInt end-to-end (no float), trailing zeros trimmed, '0' preserved. Returns
+  // { exact, value } or null for null/undefined/non-integer input — fail-closed,
+  // never 0-as-fake.
+  function normalizeRaw(raw, decimals) {
+    if (raw === null || raw === undefined) { return null; }
+    var v;
+    try {
+      v = typeof raw === 'bigint' ? raw : BigInt(String(raw));
+    } catch (e) { return null; }
+    if (v < 0n) { return null; }
+    var d = (decimals === null || decimals === undefined) ? null : Number(decimals);
+    if (d === null || !Number.isInteger(d) || d < 0) { return null; }
+    var digits = v.toString();
+    var exact;
+    if (d === 0) {
+      exact = digits;
+    } else if (digits.length <= d) {
+      exact = '0.' + new Array(d - digits.length + 1).join('0') + digits;
+    } else {
+      exact = digits.slice(0, digits.length - d) + '.' + digits.slice(digits.length - d);
+    }
+    if (d > 0) { exact = exact.replace(/0+$/, '').replace(/\.$/, ''); }
+    if (exact === '') { exact = '0'; }
+    return { exact: exact, value: Number(exact) };
+  }
+
+  // PURE: share price from the totals — asset BASE UNITS per ONE WHOLE share
+  // (10^shareDecimals raw shares), floor-truncated BigInt division. This is the
+  // assets/supply form; the LIVE snapshot prefers the contract's own
+  // convertToAssets(10^shareDecimals) (same math, and the virtual offset makes an
+  // EMPTY vault read 1:1 where this ratio is honestly undefined → null).
+  // Verified: RoamVault live 2026-09-13 → 12,473,590 × 10^12 ÷ 12,473,590,000,000
+  // = 1,000,000 asset base units per whole share = 1.0 USDG.
+  function sharePriceFromTotals(totalAssetsRaw, totalSupplyRaw, shareDecimals) {
+    if (totalAssetsRaw === null || totalAssetsRaw === undefined ||
+        totalSupplyRaw === null || totalSupplyRaw === undefined) { return null; }
+    var d = (shareDecimals === null || shareDecimals === undefined) ? null : Number(shareDecimals);
+    if (d === null || !Number.isInteger(d) || d < 0) { return null; }
+    var ta = typeof totalAssetsRaw === 'bigint' ? totalAssetsRaw : BigInt(String(totalAssetsRaw));
+    var ts = typeof totalSupplyRaw === 'bigint' ? totalSupplyRaw : BigInt(String(totalSupplyRaw));
+    if (ta < 0n || ts <= 0n) { return null; }   // empty vault: no honest ratio (use convertToAssets)
+    var scale = 1n;
+    for (var i = 0; i < d; i++) { scale *= 10n; }
+    return (ta * scale) / ts;
+  }
+
+  // PURE: cap headroom from DEPOSIT_CAP and totalAssets — the exact _capHeadroom()
+  // form (RoamVault.sol:302-305), floored at 0. Independent of the pause flag:
+  // when deposits are paused maxDeposit() reads 0 while the HEADROOM is still a
+  // real capacity fact — both are surfaced separately.
+  function deriveCapHeadroom(depositCapRaw, totalAssetsRaw) {
+    if (depositCapRaw === null || depositCapRaw === undefined ||
+        totalAssetsRaw === null || totalAssetsRaw === undefined) { return null; }
+    try {
+      var cap = typeof depositCapRaw === 'bigint' ? depositCapRaw : BigInt(String(depositCapRaw));
+      var ta = typeof totalAssetsRaw === 'bigint' ? totalAssetsRaw : BigInt(String(totalAssetsRaw));
+      if (cap < 0n || ta < 0n) { return null; }
+      return cap > ta ? cap - ta : 0n;
+    } catch (e) { return null; }
+  }
+
+  // PURE: the honest capital state. 'unbound' — harvester() is address(0), P3-A
+  // pending, ALL capital idle by construction. 'idle' — bound, nothing deployed
+  // yet (P3-B pending). 'deployed' — the deployed book is non-zero. Any null read
+  // → 'unknown' (renders as unavailable, never as a fabricated state).
+  var ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+  function deploymentState(harvesterAddr, deployedBookRaw) {
+    if (typeof harvesterAddr !== 'string' || deployedBookRaw === null || deployedBookRaw === undefined) {
+      return 'unknown';
+    }
+    var unbound = harvesterAddr === ZERO_ADDRESS;
+    var deployed;
+    try {
+      deployed = (typeof deployedBookRaw === 'bigint' ? deployedBookRaw : BigInt(String(deployedBookRaw))) > 0n;
+    } catch (e) { return 'unknown'; }
+    if (unbound) return 'unbound';
+    return deployed ? 'deployed' : 'idle';
+  }
+
+  // Selector set (derived from src/RoamVault.sol signatures at runtime via
+  // abi.selectorOf — the no-hardcoded-selector convention; the derived values were
+  // verified live 2026-09-13). maxDeposit(address) ignores its argument on this
+  // contract — the zero address is passed (RoamVault.sol:290).
+  function roamSelectors() {
+    var abi = root.WS.abi;
+    return {
+      asset: abi.selectorOf('asset()'),
+      decimals: abi.selectorOf('decimals()'),
+      totalAssets: abi.selectorOf('totalAssets()'),
+      totalSupply: abi.selectorOf('totalSupply()'),
+      idleBook: abi.selectorOf('idleBook()'),
+      deployedBook: abi.selectorOf('deployedBook()'),
+      backingCoverage: abi.selectorOf('backingCoverage()'),
+      depositsPaused: abi.selectorOf('depositsPaused()'),
+      maxDeposit: abi.selectorOf('maxDeposit(address)'),
+      depositCap: abi.selectorOf('DEPOSIT_CAP()'),
+      harvester: abi.selectorOf('harvester()'),
+      convertToAssets: abi.selectorOf('convertToAssets(uint256)')
+    };
+  }
+
+  // One fail-closed word decode: a Uint only when the payload carries a full word.
+  function wordUint(abi, raw) {
+    return (raw && abi.wordCount(raw) >= 1) ? abi.decodeUint(raw, 0) : null;
+  }
+  function wordBool(abi, raw) {
+    return (raw && abi.wordCount(raw) >= 1) ? abi.decodeBool(raw, 0) : null;
+  }
+  function wordAddress(abi, raw) {
+    return (raw && abi.wordCount(raw) >= 1) ? abi.decodeAddress(raw, 0) : null;
+  }
+
+  // The live RoamVault snapshot. cfg: { vault, asset } (config.roamStack — the
+  // vault address gates EVERY call: a PENDING/invalid address issues NO eth_call).
+  // Round 1: eleven parallel views in ONE client.batch; round 2 (dependent): the
+  // whole-share price convertToAssets(10^shareDecimals) + the asset token's own
+  // VERIFIED decimals() (never an assumed shift — the vaults.js convention).
+  // Fail-closed: a thrown batch → null (the caller renders "unavailable" — never
+  // zeros); a per-field empty/short payload → null for that field only. harvester()
+  // = address(0) is a FACT (unbound), preserved, not nulled.
+  async function readRoamVaultSnapshot(client, cfg) {
+    var abi = root.WS.abi;
+    var vaultAddr = cfg && cfg.vault;
+    if (!isDeployed(vaultAddr)) {
+      return { deployed: false, pending: true, vault: vaultAddr };
+    }
+    var sel = roamSelectors();
+    var ZERO_ARG = abi.encodeAddress(ZERO_ADDRESS);
+    var r;
+    try {
+      r = await client.batch([
+        { method: 'eth_call', params: [{ to: vaultAddr, data: sel.asset }, 'latest'] },
+        { method: 'eth_call', params: [{ to: vaultAddr, data: sel.decimals }, 'latest'] },
+        { method: 'eth_call', params: [{ to: vaultAddr, data: sel.totalAssets }, 'latest'] },
+        { method: 'eth_call', params: [{ to: vaultAddr, data: sel.totalSupply }, 'latest'] },
+        { method: 'eth_call', params: [{ to: vaultAddr, data: sel.idleBook }, 'latest'] },
+        { method: 'eth_call', params: [{ to: vaultAddr, data: sel.deployedBook }, 'latest'] },
+        { method: 'eth_call', params: [{ to: vaultAddr, data: sel.backingCoverage }, 'latest'] },
+        { method: 'eth_call', params: [{ to: vaultAddr, data: sel.depositsPaused }, 'latest'] },
+        { method: 'eth_call', params: [{ to: vaultAddr, data: sel.maxDeposit + ZERO_ARG }, 'latest'] },
+        { method: 'eth_call', params: [{ to: vaultAddr, data: sel.depositCap }, 'latest'] },
+        { method: 'eth_call', params: [{ to: vaultAddr, data: sel.harvester }, 'latest'] }
+      ]);
+    } catch (e) {
+      return null;   // the whole read failed — honest unavailability, never zeros
+    }
+    var shareDecimalsRaw = wordUint(abi, r[1]);
+    var shareDecimals = shareDecimalsRaw === null ? null : Number(shareDecimalsRaw);
+    var snap = {
+      deployed: true,
+      pending: false,
+      vault: vaultAddr,
+      asset: wordAddress(abi, r[0]) || (cfg.asset || null),
+      shareDecimals: shareDecimals,
+      totalAssetsRaw: wordUint(abi, r[2]),
+      totalSupplyRaw: wordUint(abi, r[3]),
+      idleRaw: wordUint(abi, r[4]),
+      deployedRaw: wordUint(abi, r[5]),
+      backingCoverageRaw: wordUint(abi, r[6]),
+      depositsPaused: wordBool(abi, r[7]),
+      maxDepositRaw: wordUint(abi, r[8]),
+      depositCapRaw: wordUint(abi, r[9]),
+      harvester: wordAddress(abi, r[10]),
+      pricePerShareRaw: null,
+      pricePerShareSource: null,
+      assetDecimals: null,
+      errors: []
+    };
+    snap.capHeadroomRaw = deriveCapHeadroom(snap.depositCapRaw, snap.totalAssetsRaw);
+    snap.deploymentState = deploymentState(snap.harvester, snap.deployedRaw);
+
+    // Dependent reads: the price input is 10^shareDecimals (unknown decimals → the
+    // price stays null, honestly), and the asset's own decimals() is verified.
+    if (Number.isInteger(shareDecimals) && shareDecimals > 0) {
+      var scale = '1';
+      for (var i = 0; i < shareDecimals; i++) { scale += '0'; }
+      try {
+        var r2 = await client.batch([
+          { method: 'eth_call', params: [{ to: vaultAddr, data: sel.convertToAssets + abi.encodeUint256(scale) }, 'latest'] },
+          { method: 'eth_call', params: [{ to: snap.asset, data: sel.decimals }, 'latest'] }
+        ]);
+        snap.pricePerShareRaw = wordUint(abi, r2[0]);
+        snap.pricePerShareSource = snap.pricePerShareRaw !== null ? 'convertToAssets(10^shareDecimals)' : null;
+        var assetDecRaw = wordUint(abi, r2[1]);
+        snap.assetDecimals = assetDecRaw === null ? null : Number(assetDecRaw);
+      } catch (e) {
+        snap.errors.push({ field: 'pricePerShare', error: String((e && e.message) || e) });
+      }
+    } else {
+      snap.errors.push({ field: 'pricePerShare', error: 'share decimals unavailable — the whole-share price input is unknown' });
+    }
+    return snap;
+  }
+
+  // PURE: the dashboard-normalized snapshot — exact decimal strings at each
+  // figure's own denomination (assets/cap/headroom at the VERIFIED asset
+  // decimals, shares at the VERIFIED share decimals, price normalized at the
+  // asset decimals). Every field fail-closed to null when its input is null —
+  // the renderer turns null into "—", never a zero.
+  function normalizeRoamSnapshot(snap) {
+    if (!snap || !snap.deployed) { return null; }
+    var assetDec = Number.isInteger(snap.assetDecimals) ? snap.assetDecimals : null;
+    var shareDec = Number.isInteger(snap.shareDecimals) ? snap.shareDecimals : null;
+    function norm(raw, dec) {
+      if (raw === null || raw === undefined || dec === null) { return null; }
+      var n = normalizeRaw(raw, dec);
+      return n === null ? null : n.exact;
+    }
+    return {
+      vault: snap.vault,
+      totalAssets: norm(snap.totalAssetsRaw, assetDec),
+      totalShares: norm(snap.totalSupplyRaw, shareDec),
+      sharePrice: norm(snap.pricePerShareRaw, assetDec),
+      idle: norm(snap.idleRaw, assetDec),
+      deployed: norm(snap.deployedRaw, assetDec),
+      depositCap: norm(snap.depositCapRaw, assetDec),
+      capHeadroom: norm(snap.capHeadroomRaw, assetDec),
+      maxDeposit: norm(snap.maxDepositRaw, assetDec),
+      coveragePct: formatCoveragePct(snap.backingCoverageRaw === null ? null : '0x' + snap.backingCoverageRaw.toString(16).padStart(64, '0')),
+      depositsPaused: snap.depositsPaused === null ? null : !!snap.depositsPaused,
+      deploymentState: snap.deploymentState || 'unknown',
+      harvester: snap.harvester === undefined ? null : snap.harvester,
+      shareDecimals: shareDec,
+      assetDecimals: assetDec
+    };
+  }
+
+  // ---------------- WS-VAULT-DASHBOARD (2026-09-13): the governance read ----
+  // readyAt(bytes32) on the treasury timelock — the LIVE queue state of a
+  // queued owner op (src/WellstreetTimelock.sol:37: mapping(bytes32 => uint256)
+  // public readyAt; queue() sets it, cancel()/execute() DELETE it — so 0 means
+  // "no longer queued", which is executed OR cancelled and is disambiguated
+  // only by the public CallExecuted/CallCancelled events or by the op's own
+  // effect state on the vault). Selector derived from the signature at runtime
+  // (the no-hardcoded-selector convention); the id argument is a full 32-byte
+  // hex (config.roamStack.governance.queued[].id — never an ellipsis).
+  function timelockSelectors() {
+    var abi = root.WS.abi;
+    return { readyAt: abi.selectorOf('readyAt(bytes32)') };
+  }
+
+  // One fail-closed read: the readyAt word (bigint seconds) for a queued op id,
+  // or null when the timelock address is not deployed, the id is not a full
+  // 32-byte hex, the call fails, or the decode is empty — the caller renders
+  // "unavailable", never a guessed state.
+  async function readTimelockReadyAt(client, timelockAddr, id) {
+    if (!isDeployed(timelockAddr)) { return null; }
+    if (typeof id !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(id)) { return null; }
+    var abi = root.WS.abi;
+    try {
+      var raw = await ethCall(client, timelockAddr, timelockSelectors().readyAt + abi.encodeUint256(id));
+      return (raw && abi.wordCount(raw) >= 1) ? abi.decodeUint(raw, 0) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // PURE: the governance status of a queued op from its LIVE readyAt word.
+  //   'queued'     — the 48h window is still open (readyAt > now)
+  //   'executable' — the delay has passed; execute is PERMISSIONLESS
+  //                  (WellstreetTimelock.sol:106 — anyone may land it)
+  //   'not-queued' — readyAt deleted: executed or cancelled (the renderer
+  //                  cross-checks the op's effect state to say which)
+  //   'unknown'    — a null read renders unavailable, never a guess
+  function governanceStatus(readyAtRaw, nowSec) {
+    if (readyAtRaw === null || readyAtRaw === undefined ||
+        nowSec === null || nowSec === undefined) { return 'unknown'; }
+    var r;
+    try { r = typeof readyAtRaw === 'bigint' ? readyAtRaw : BigInt(String(readyAtRaw)); }
+    catch (e) { return 'unknown'; }
+    if (r < 0n) { return 'unknown'; }
+    if (r === 0n) { return 'not-queued'; }
+    return nowSec >= Number(r) ? 'executable' : 'queued';
+  }
+
+  // PURE: a live readyAt word -> the honest UTC "YYYY-MM-DD HH:MM" string,
+  // or null when the read is absent (the date row drops, never a guess).
+  function formatReadyAt(readyAtRaw) {
+    if (readyAtRaw === null || readyAtRaw === undefined) { return null; }
+    var r;
+    try { r = typeof readyAtRaw === 'bigint' ? readyAtRaw : BigInt(String(readyAtRaw)); }
+    catch (e) { return null; }
+    if (r <= 0n) { return null; }
+    var ms = Number(r) * 1000;
+    if (!isFinite(ms)) { return null; }
+    return new Date(ms).toISOString().slice(0, 16).replace('T', ' ');
+  }
+
   return {
     PENDING: PENDING,
     isDeployed: isDeployed,
@@ -453,6 +811,24 @@
     readDepositsPaused: readDepositsPaused,
     readPosition: readPosition,
     previewRedeem: previewRedeem,
-    previewWithdraw: previewWithdraw
+    previewWithdraw: previewWithdraw,
+    // WS-VAULT-DEPOSIT G3 completion (2026-09-13): the deposit-side preview +
+    // the scale/room readers the money path formats and guards with
+    previewDeposit: previewDeposit,
+    readShareDecimals: readShareDecimals,
+    readMaxDeposit: readMaxDeposit,
+    // WS-VAULT-DATA (2026-09-13): the live RoamVault layer
+    normalizeRaw: normalizeRaw,
+    sharePriceFromTotals: sharePriceFromTotals,
+    deriveCapHeadroom: deriveCapHeadroom,
+    deploymentState: deploymentState,
+    roamSelectors: roamSelectors,
+    readRoamVaultSnapshot: readRoamVaultSnapshot,
+    normalizeRoamSnapshot: normalizeRoamSnapshot,
+    // WS-VAULT-DASHBOARD (2026-09-13): the governance read layer
+    timelockSelectors: timelockSelectors,
+    readTimelockReadyAt: readTimelockReadyAt,
+    governanceStatus: governanceStatus,
+    formatReadyAt: formatReadyAt
   };
 });

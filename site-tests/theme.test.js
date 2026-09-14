@@ -566,8 +566,18 @@ test('(h2b) G3 light amber-register edges — border-color re-ink scoped to ligh
 test('(h3) theme toggle button: header presence + the 44px rule', () => {
   assert.ok(html.includes('<button id="theme-toggle" class="theme-toggle" type="button"'),
     'the header ships the toggle button (id + class + type)');
-  assert.ok(html.includes('aria-label="switch theme"'), 'the toggle carries aria-label="switch theme"');
-  assert.ok(/id="theme-toggle"[^>]*aria-pressed=/.test(html), 'the toggle ships aria-pressed');
+  // WS-VAULT-GATES (2026-09-13): the old aria-label="switch theme" failed the
+  // Lighthouse label-content-name audit (the accessible name must CONTAIN the
+  // visible text, and the visible text flips LIGHT/DARK at runtime — no static
+  // name can contain it both ways). The corrected contract: NO aria-label; the
+  // visible text IS the accessible name ("pressing gets LIGHT"), purpose rides
+  // the text + aria-pressed. Pinned on the button LINE (never a whole-file
+  // includes — the markup comment recording this history mentions the old
+  // attribute by name).
+  const btnLine = (html.match(/<button id="theme-toggle"[^>]*>/) || [''])[0];
+  assert.ok(btnLine.length > 0, 'the theme-toggle button line is extractable');
+  assert.ok(btnLine.indexOf('aria-label') === -1, 'the toggle carries NO aria-label (the visible text is the accessible name)');
+  assert.ok(btnLine.indexOf('aria-pressed=') !== -1, 'the toggle ships aria-pressed');
   const at = css.indexOf('.theme-toggle {');
   assert.ok(at !== -1, 'the .theme-toggle rule exists in style.css');
   const span = css.slice(at, css.indexOf('}', at));
