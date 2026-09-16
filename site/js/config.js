@@ -100,15 +100,16 @@
     // The ROAMER STACK (protocol v2 — the agent-native LP layer on chain 4663).
     // RoamVault DEPLOYED 2026-09-09 (16/16 keyless verification); vault LIVE
     // 2026-09-13 (P0/P1/P2 executed, seeded 12.473590 USDG, share price 1:1,
-    // DEPOSIT_CAP 25,000). P3 pair QUEUED, NOT executed — 48h windows ready
-    // 2026-09-15. EVERY consumer must render BOTH states (all-idle today;
-    // deployed after P3-B lands) — zero hard-coded assumptions about the split.
+    // DEPOSIT_CAP 25,000). P3 executed 2026-09-15 — the roamer is fully live:
+    // 12.473590 USDG total, 9.504377 deployed in the USDG/ETH anchor book,
+    // 2.969213 idle. EVERY consumer must render BOTH states (deployed AND
+    // idle shares) — zero hard-coded assumptions about the split.
     // Every id is the FULL 32-byte value read from on-chain WellstreetTimelock
     // CallQueued/CallExecuted logs + live eth_call verification 2026-09-13 —
     // never an ellipsis, never a truncated pin.
     // ------------------------------------------------------------------
     roamStack: {
-      statusNote: 'vault LIVE 2026-09-13; P3 deploy queued, ready 2026-09-15',
+      statusNote: 'vault LIVE 2026-09-13; P3 executed 2026-09-15 — roamer fully live: 12.473590 USDG total, 9.504377 deployed in the USDG/ETH anchor book, 2.969213 idle',
       vault: '0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86',       // RoamVault — ERC-4626, USDG asset (src/RoamVault.sol)
       roamer: '0xC7a21Aa8C15C7032eE2e8352244a0f3D2154dC68',      // RoamingHarvester — the POL roamer (vault-authorized deploy/egress)
       allowlist: '0x6040bA3e356cb023C67002De45D2af56FED4e81A',   // RoamAllowlist — book registry (USDG/ETH anchor added P0)
@@ -120,9 +121,11 @@
       // same pool). P3-B deploys idle vault capital into a range around this book.
       usdgEthPoolId: '0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551',
       // Governance tape (the "checkable" record — dates, full ids, tx links).
-      // executedAt/readyAt are ISO UTC timestamps read from block/event data
-      // 2026-09-13; a queued op's readyAt is also readable live via the timelock's
-      // readyAt(bytes32) mapping getter (0 = not queued → treat as cancelled).
+      // executedAt/queuedAt/readyAt are ISO UTC timestamps read from block/event
+      // data (2026-09-13 queue, P3 executed 2026-09-15). Executed rows carry the
+      // FULL execute tx (CallExecuted) plus the original queuedTx verbatim; a
+      // live op's queue state is read via the timelock's readyAt(bytes32) mapping
+      // getter (0 = not queued → treat as cancelled) — never from a stale row.
       governance: {
         executed: [
           {
@@ -142,24 +145,25 @@
             id: null,
             tx: '0x05b0ef19584b7efe16d83ccd3dd1d1d0102d6c0b87757437a768a7c206b92fe0',
             executedAt: '2026-09-13T08:36:56Z'
-          }
-        ],
-        queued: [
+          },
           {
             label: 'P3-A · vault.setHarvester(roamer) — bind the roamer (until then ALL capital is idle)',
             id: '0x7c982d3603b0c7e4ae3d57b609ddc0aef93e0444cc938ad52afff5058640f5ee',
-            tx: '0xc341c565de203f383c98198f8d53cd4cc9eddf65017bf1eb7eeebc472d322bf3',
+            tx: '0x2baa06ed54446656db2f839032733c8cd3dfbb157c1e3a92be7760a7c8428922',
             queuedAt: '2026-09-13T09:46:26Z',
-            readyAt: '2026-09-15T09:46:26Z'
+            executedAt: '2026-09-15T11:12:58Z',
+            queuedTx: '0xc341c565de203f383c98198f8d53cd4cc9eddf65017bf1eb7eeebc472d322bf3'
           },
           {
             label: 'P3-B · vault.vaultDeploy(USDG/ETH band −198210/−198010, 10 USDG) — first deploy',
             id: '0x57fc2f0d3ff91ef752f442373bbc35e7d48e84066575adba91feb72084b876c6',
-            tx: '0xda1cfe8e9813b83577f661a16a5ecd9ec0db1ad19ccf938c583b523e88f961f0',
+            tx: '0xb2de3d0068876038d4f11b44103718b6a45af99ef1ca1a4993c0b2d49f0175cd',
             queuedAt: '2026-09-13T09:50:52Z',
-            readyAt: '2026-09-15T09:50:52Z'
+            executedAt: '2026-09-15T11:15:19Z',
+            queuedTx: '0xda1cfe8e9813b83577f661a16a5ecd9ec0db1ad19ccf938c583b523e88f961f0'
           }
-        ]
+        ],
+        queued: []
       }
     },
 
@@ -299,14 +303,14 @@
       {
         id: 'roam-usdg',
         status: 'LIVE',
-        statusNote: 'activated 2026-09-13 — P0/P1/P2 executed, seeded 12.473590 USDG at 1:1, deposits open, cap 25,000 USDG; the P3 capital deploy is Safe-queued (48h windows)',
+        statusNote: 'activated 2026-09-13 — P0/P1/P2 executed, seeded 12.473590 USDG at 1:1, deposits open, cap 25,000 USDG; P3 executed 2026-09-15 — 9.504377 USDG deployed in the USDG/ETH anchor book, 2.969213 idle',
         displayName: 'RoamVault',
         shareSymbol: 'wsrUSDG',
         tierLabel: 'USDG / ETH quote (v4 roamer)',
         riskLabel: null,
         highRisk: false,
         vault: '0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86',
-        harvester: '0xC7a21Aa8C15C7032eE2e8352244a0f3D2154dC68',   // the roamer — vault.harvester() reads 0x0 until P3-A executes (queued)
+        harvester: '0xC7a21Aa8C15C7032eE2e8352244a0f3D2154dC68',   // the roamer — vault.harvester() = this roamer since 2026-09-15 (P3-A execute tx 0x2baa06ed54446656db2f839032733c8cd3dfbb157c1e3a92be7760a7c8428922, also pinned full-length in governance.executed)
         asset: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168',
         quote: null,
         pool: null,

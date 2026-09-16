@@ -50,10 +50,18 @@ const html = fs.readFileSync(path.join(SITE, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(SITE, 'css', 'style.css'), 'utf8');
 const mainSrc = fs.readFileSync(path.join(SITE, 'js', 'main.js'), 'utf8');
 
-// Config-truth fixtures (config.roamStack.governance — the 2026-09-13 pins).
+// Config-truth fixtures (config.roamStack.governance — the 2026-09-13 queue
+// pins, EXECUTED 2026-09-15: the P3 rows moved to executed[] and queued[] is
+// empty, so the P3-A id is found in the executed rows — never queued[0]).
 const cfg = global.WS.config;
-const P3A_ID = cfg.roamStack.governance.queued[0].id;
+const P3A_ROW = cfg.roamStack.governance.executed.find(
+  (r) => r && r.id === '0x7c982d3603b0c7e4ae3d57b609ddc0aef93e0444cc938ad52afff5058640f5ee');
+const P3A_ID = P3A_ROW.id;
 const TL_ADDR = cfg.roamStack.timelock;
+// The HISTORICAL P3-A readyAt (queuedAt 2026-09-13T09:46:26Z + 48h) — kept as a
+// pure-timestamp fixture for the governanceStatus/formatReadyAt/readTimelockReadyAt
+// state-machine units; the executed row itself carries NO readyAt field and the
+// on-chain readyAt(P3-A id) now reads 0.
 const READY_A = Math.floor(Date.UTC(2026, 8, 15, 9, 46, 26) / 1000); // 2026-09-15 09:46:26 UTC
 
 function hexWord(v) { return '0x' + BigInt(v).toString(16).padStart(64, '0'); }

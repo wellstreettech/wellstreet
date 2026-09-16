@@ -163,23 +163,39 @@ test('config.roamStack: the vault + roamer carry the verified 2026-09-13 address
   assert.strictEqual(config.roamStack.timelock, config.contracts.treasuryTimelock);
 });
 
-test('config.roamStack.governance: exactly TWO queued P3 ops with FULL ids matching the locked goal', () => {
-  const q = config.roamStack.governance.queued;
-  assert.ok(Array.isArray(q) && q.length === 2, 'two queued ops');
-  assert.match(q[0].id, HEX32);
-  assert.match(q[1].id, HEX32);
-  assert.notStrictEqual(q[0].id, q[1].id);
+test('config.roamStack.governance: queued EMPTY — the P3 pair EXECUTED 2026-09-15 (rows moved to executed[], never deleted)', () => {
+  const g = config.roamStack.governance;
+  assert.ok(Array.isArray(g.queued) && g.queued.length === 0,
+    'queued[] ends empty — the live readyAt(bytes32) read is the queue-state source');
   // FULL ids pinned EXACTLY as read from the on-chain WellstreetTimelock
-  // CallQueued logs (2026-09-13). Note: the locked goal doc's truncated P3-A
+  // CallQueued logs (2026-09-13), EXECUTED 2026-09-15 (CallExecuted logs,
+  // blocks 63613942 / 63615327). Note: the locked goal doc's truncated P3-A
   // form read "0x7c982d36…64f5ee" — the on-chain id ends "…8640f5ee"; the log
   // is authoritative over the doc's human-truncated suffix. P3-B matches the
   // doc exactly (0x57fc2f0d…b876c6).
-  assert.strictEqual(q[0].id, '0x7c982d3603b0c7e4ae3d57b609ddc0aef93e0444cc938ad52afff5058640f5ee');
-  assert.strictEqual(q[1].id, '0x57fc2f0d3ff91ef752f442373bbc35e7d48e84066575adba91feb72084b876c6');
-  for (const op of q) {
-    assert.match(op.tx, TXHASH, 'queue tx link present');
-    assert.strictEqual(op.readyAt.slice(0, 10), '2026-09-15', '48h window lands 2026-09-15');
-  }
+  const p3a = g.executed.find((r) => r.id === '0x7c982d3603b0c7e4ae3d57b609ddc0aef93e0444cc938ad52afff5058640f5ee');
+  const p3b = g.executed.find((r) => r.id === '0x57fc2f0d3ff91ef752f442373bbc35e7d48e84066575adba91feb72084b876c6');
+  assert.ok(p3a, 'P3-A id lives in executed[]');
+  assert.ok(p3b, 'P3-B id lives in executed[]');
+  // tx REPOINTED to the FULL execute tx hashes (never truncated)
+  assert.strictEqual(p3a.tx, '0x2baa06ed54446656db2f839032733c8cd3dfbb157c1e3a92be7760a7c8428922');
+  assert.strictEqual(p3b.tx, '0xb2de3d0068876038d4f11b44103718b6a45af99ef1ca1a4993c0b2d49f0175cd');
+  assert.strictEqual(p3a.executedAt.slice(0, 10), '2026-09-15', 'P3-A executed 2026-09-15');
+  assert.strictEqual(p3b.executedAt.slice(0, 10), '2026-09-15', 'P3-B executed 2026-09-15');
+  // queuedAt kept verbatim; the ORIGINAL queue txs preserved verbatim as queuedTx
+  assert.strictEqual(p3a.queuedAt, '2026-09-13T09:46:26Z');
+  assert.strictEqual(p3b.queuedAt, '2026-09-13T09:50:52Z');
+  assert.strictEqual(p3a.queuedTx, '0xc341c565de203f383c98198f8d53cd4cc9eddf65017bf1eb7eeebc472d322bf3');
+  assert.strictEqual(p3b.queuedTx, '0xda1cfe8e9813b83577f661a16a5ecd9ec0db1ad19ccf938c583b523e88f961f0');
+  // readyAt DELETED on the moved rows — a stale readyAt string on an executed
+  // row would be a future false-claim (on-chain readyAt(id) reads 0 for both)
+  assert.strictEqual('readyAt' in p3a, false, 'moved P3-A row carries NO readyAt field');
+  assert.strictEqual('readyAt' in p3b, false, 'moved P3-B row carries NO readyAt field');
+  // appended in order: P0, P1, P2, P3-A, P3-B
+  assert.strictEqual(g.executed.length, 5, 'five executed rows — P0 P1 P2 P3-A P3-B');
+  assert.match(g.executed[3].id, HEX32);
+  assert.match(g.executed[4].id, HEX32);
+  assert.notStrictEqual(g.executed[3].id, g.executed[4].id);
 });
 
 test('config.roamStack.governance: P0/P1/P2 executed with dated tx links', () => {
@@ -191,7 +207,7 @@ test('config.roamStack.governance: P0/P1/P2 executed with dated tx links', () =>
 
 test('config.roamStack: the dated status note is present', () => {
   assert.ok(/vault LIVE 2026-09-13/.test(config.roamStack.statusNote), 'LIVE date');
-  assert.ok(/2026-09-15/.test(config.roamStack.statusNote), 'P3 ready date');
+  assert.ok(/2026-09-15/.test(config.roamStack.statusNote), 'P3 executed date');
 });
 
 // ---------------- readRoamVaultSnapshot: live-shape decode + fail-closed --------

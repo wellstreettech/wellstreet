@@ -1614,14 +1614,14 @@
     executed: 'executed',
     queued: 'queued — 48h window open',
     executable: 'executable — window open, anyone may land it',
-    notqueued: 'no longer queued — executed or cancelled (replay the events)',
+    'not-queued': 'no longer queued — executed or cancelled (replay the events)',
     unknown: 'status unavailable (RPC)'
   };
   var GOV_STATUS_CLASS = {
     executed: 'gov-status--executed',
     queued: 'gov-status--queued',
     executable: 'gov-status--executable',
-    notqueued: 'gov-status--gone',
+    'not-queued': 'gov-status--gone',
     unknown: 'gov-status--unknown'
   };
 

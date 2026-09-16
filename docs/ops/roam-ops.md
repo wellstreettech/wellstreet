@@ -1,7 +1,9 @@
 # Roam Ops — the POL Roamer (RoamingHarvester) Operating Runbook
 
-Status: LIVE CODE, CAPITAL-INERT (v1 S1 build complete 2026-09-07; nothing deployed, no
-capital funded). Authority chain: `docs/internal/GOAL_ROAMING_HARVESTER_2026-09-07.md`
+Status: LIVE — DEPLOYED AND FUNDED (build complete 2026-09-07; P0–P3 executed: vault LIVE
+2026-09-13 with 12.473590 USDG seeded, P3 executed 2026-09-15 — 9.504377 USDG deployed in
+the USDG/ETH anchor book, 2.969213 idle; authoritative STATUS blocks:
+`docs/ops/roamer-deploy-runbook.md` §3). Authority chain: `docs/internal/GOAL_ROAMING_HARVESTER_2026-09-07.md`
 (LOCKED contract) → `docs/research/yield_farming/07_ROAM_POLICY_BACKTEST_2026-09-06.md`
 (VIBE repo — guardrails + ratified on-chain/off-chain split, BINDING) →
 `docs/internal/DEEP_DIVE_TOP8_ROAM_POLICY_2026-09-06.md` (rankings + NO-RL warning) →
@@ -115,23 +117,39 @@ must cover BOTH distribution lanes (the Pons creator-stream lane AND this stake-
 LP-fee distributor's replacement, the automated buyback-burn) before the burn tail goes
 live. Nothing in the build blocks on F3; the GO-LIVE does.
 
-## 4. OPERATOR GATE — capital funding (USER GATE, never silently resolved)
+## 4. OPERATOR GATE — capital funding (RESOLVED DE-FACTO — capital funded and deployed)
 
-The contract ships CAPITAL-INERT: no position can open until the Safe funds the harvester
-AND queues the seed. Before the FIRST seed, the user must decide (template — fill in and
-record the decision inline below when made):
+RESOLVED DE-FACTO: capital funded (P0/P1/P2 executed 2026-09-13) and deployed (P3-B
+executed 2026-09-15). Initial capital: 12.473590 USDG seeded 2026-09-13 — provenance by
+REFERENCE: the full executed/queued tx record for P0–P3 is pinned full-length in
+`site/js/config.js` (`roamStack.governance.executed`) and the seed provenance record is
+`docs/ops/roamer-deploy-runbook.md` §3 'STATUS 2026-09-13 — ACTIVATION EXECUTED' (no seed
+tx hash literal is pinned in THIS file — recover it first from the 2026-09-13
+USDG Transfer-to-vault logs if a literal is ever wanted; never embed a truncation). The
+gate closed the way the deploys actually ran — no user-gate meeting was held, the
+executed on-chain record above IS the resolution, and no user decision is fabricated
+here. The original decision template is retained as history, each row given its
+explicit disposition:
 
-- [ ] **Initial capital** (total): ______ (suggested evidence basis: the 05 fee screen's
-      book depths at the intended bands; the target books' 30-day fee-yield at the
-      intended size; gas is ~free on RH-4663)
-- [ ] **Per-book capital cap**: ______ (the Safe's own sizing discipline; ≤10% of a
-      book's TVL is the house off-chain sizing precedent for dust tiers)
-- [ ] **MIN position size**: ______ (below it, migration fees dominate yield — the 07
-      break-even table is the calibration input)
-- [ ] **Operating `migrationFeeBps`**: ______ (≤ 2000 hard cap; see §6 CALIBRATION ONLY)
-- [ ] **Operating guardrail values** (defaults ratified: 7d / 4-per-365d / 3911 bps)
+- [x] **Initial capital** (total): 12.473590 USDG seeded 2026-09-13 (evidence basis as
+      templated: the 05 fee screen's book depths at the intended bands; gas ~free on
+      RH-4663)
+- [x] **Per-book capital cap**: DISPOSITION — the actual discipline used: the 09-15
+      deploy sized 9.504377 USDG into the SINGLE USDG/ETH anchor band, dust-tier (the
+      ≤10%-of-book-TVL house precedent sits far above it)
+- [x] **MIN position size**: DISPOSITION — the actual discipline used: the 09-15 deploy
+      is one dust-tier anchor position (9.504377 USDG in the USDG/ETH band); no second
+      book has been sized yet — OPEN — decide before the next deploy if a second book
+      is ever funded
+- [x] **Operating `migrationFeeBps`**: DISPOSITION — owned by §6 CALIBRATION ONLY (the
+      ≤ 2000 hard cap stands; the operating value is calibrated there, never quoted from
+      the frozen grid)
+- [x] **Operating guardrail values**: DISPOSITION — the ratified defaults stand
+      (7d / 4-per-365d / 3911 bps)
 
-Decision date + decision maker recorded here when made: ________________
+Decision date + decision maker: RESOLVED DE-FACTO by the executed Safe/timelock record —
+funded 2026-09-13 (P0/P1/P2), deployed 2026-09-15 (P3-A/P3-B); see the provenance
+reference above.
 
 ## 5. Administration (Safe 2-of-3 → 48h timelock; the ONLY admin surface)
 
