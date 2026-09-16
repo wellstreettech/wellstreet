@@ -208,6 +208,73 @@ depositor APR = pool_net_rate × (L_pos / L_pool) × (pool_TVL / vault_TVL) × 0
 6. **Report risk alongside yield.** Any yield report names the counterfactual honestly: same income divided among more depositors dilutes per-depositor APR; the LP principal that generates it is treasury capital that bears IL/LVR and can shrink.
 7. **Coverage percent truncates toward zero; excess is never clamped.** A 99.95%-covered vault prints "99.9%", never "100.0%", and `> 1e18` excess prints as-is ("199.9%", not capped at 100) — the same rule the site's formatter enforces (`site/js/vault.js:103-110`). Rounding under-coverage up to a round number misreports the protocol's worst risk; clamping excess hides real donations.
 
+## PERMISSION MODEL — WHO FIRES WHAT (ROAMER STACK)
+
+Every roamer-stack surface is classified into exactly two tiers. **Fail-closed default: any roamer-surface function not listed AGENT-SAFE is treated OPERATOR-SCOPED by default.** Live-stack addresses come ONLY from `site/js/config.js:110-119` (`roamStack`) per the skill's pin-first rule — never approve or call an address not pinned there. This section governs every write flow in this skill — where any other region shows a capital-moving roamer call, this section's tier overrides.
+
+### AGENT-SAFE (the complete sanctioned set — nothing outside this list is agent-safe)
+
+1. **Keyless reads.** `positionRecord(bytes32)` / `migrationsThisPeriod()` / `openKeyCount()` (`src/RoamingHarvester.sol:384-394`), `isVaultPosition(bytes32)` (`RoamingHarvester.sol:1412-1414`), and `vaultAccrued(token)` (`:1367`, public mapping auto-getter). The guardrail getters are the PUBLIC state declarations `minHoldSeconds` / `maxMigrationsPerPeriod` / `minExpectedGainBps` / `migrationFeeBps` (`RoamingHarvester.sol:239-242`) whose compiler auto-getters ARE the read surface — there are NO explicit getter functions (`:410-425` is the onlyTimelock SETTER region and belongs to the OPERATOR-SCOPED tier below). Agents READ the live values (Safe-settable within immutable ceilings) and never write them.
+2. **sweepVaultYield()** (`RoamingHarvester.sol:1435-1441`) — permissionless no-tip public good that fills the vault's 90% bucket (split constants DEPOSITOR_BPS 9000 / BURN_BPS 1000, declared `src/RoamVault.sol:91`/`:96`; the roamer's split docstring `RoamingHarvester.sol:1194-1201` cites them).
+3. **sweepToBurn()** (`RoamingHarvester.sol:671-678`) — permissionless no-tip, but FAIL-CLOSED INERT until the one-shot setWellToken fires (revert NoWellToken `:672-673`). A NoWellToken revert is DATA — the burn lane is dormant — never a bug to work around and never a reason to hunt for another burn path.
+4. **Vault ERC-4626 read/deposit/redeem flows.** The skill's CURRENT ws-SPY YieldShares flows (the WRITE FLOWS region) are governed by this tier, AND RoamVault ERC-4626 read/deposit/redeem (user-own-capital flows; approvals to the pinned vault only) is PRE-CLASSIFIED AGENT-SAFE here so sibling goals' future flows inherit the tier — the skill carries NO RoamVault flows today and none are added here; where those flows land later they are governed by this section once landed. Deposit/redeem moves the caller's OWN position capital, never depositor capital — that distinction is what separates this tier from migrate().
+
+**SEAM CORRECTION:** there is NO agent-callable harvest() on the roamer — collectOnePosition (`RoamingHarvester.sol:798`) and sweepOneToken (`:808`) are guarded self-calls (CallbackNotActive revert), and RoamVault.harvest(uint256) (`src/RoamVault.sol:407-416`) is harvester-gated (NotHarvester) — the internal credit seam the roamer's own sweep drives (`RoamingHarvester.sol:1663`). The 90% leg's agent action IS sweepVaultYield().
+
+### OPERATOR-SCOPED — NEVER FIRE
+
+1. **migrate(bytes fromKey, bytes toKey, uint256[2] minOuts, uint32 expectedGainBps)** (`RoamingHarvester.sol:579`) — the function IS contract-permissionless (anyone can fire it, which is exactly why the skill gates it), and `expectedGainBps` is a caller-supplied ATTESTATION — the source line says it plainly: "It is NOT a proof" (`RoamingHarvester.sol:100`). An agent firing migrate() with guessed minOuts / expected-gain gambles DEPOSITOR capital (position capital is protocol/vault capital; the caller's only stake is gas). Contract backstops, as context and never as a recipe: MIN_HOLD 604800 seconds (`:239`), MAX_MIGRATIONS_PER_PERIOD 4 rolling-365d with re-ranges counting (`:240`), MIN_EXPECTED_GAIN_BPS 3911 attestation floor (`:241`) — live-verified 604800/4/3911 (`docs/ops/roamer-deploy-runbook.md`, DEPLOYED ADDRESSES "Verified:" block) — plus per-currency MinOutBreached floors (`:956-957`), and the toKey is allowlist-railed + salt-0 (`:606-609`: _validateBand `:606`, SaltMustBeZero `:607`, allowlist.isListed `:609`).
+
+   **POLICY RULE: migrate() is NEVER FIRED by an agent — observe and report ONLY.** Migrations are executed OFF-CHAIN by the operator from the fleet screen per the ratified on-chain/off-chain split (`docs/ops/roam-ops.md`, BINDING: "the operator runs migrations off-chain (feed → candidates → guardrail pre-checks …)"). The agent's report IS the operator's feed row: candidate from-book → to-book, measured fee-APR spread, and expectedGainBps recorded verbatim as an unbounded claim sanity-bound off-chain per roam-ops.md's reporting rules — never a fire command.
+
+2. **exitBook(bytes fromKey, address to)** (`RoamingHarvester.sol:634`) — onlyTimelock (NotTimelock revert; contract-enforced impossible for an agent), vault-tagged positions additionally VaultPositionProtected (`:639`) — observe and report ONLY.
+
+3. All onlyTimelock surfaces — the setters (`:410-461`), seedBook (`:532`), rescueToTreasury (`:475`), and the one-shot setWellToken (`:461`) — and the vault-only surfaces vaultDeploy / vaultEgress (NotVault `:1456`/`:1487`) are OPERATOR/CONTRACT-ONLY, each one line here: named for completeness, never taught, never provisioned with a command.
+
+4. **Fail-closed REVERT MAP** — every revert is data, none is a bug to work around: HoldLocked · MigrationCapReached · GainAttestationMissing · GainAttestationBelowFloor · MinOutBreached · UnknownPosition (toKey not allowlisted) · SaltMustBeZero · BooksShareNoCurrency · NoWellToken · NotTimelock · NotHarvester (RoamVault.harvest(uint256) is harvester-only — data, not a bug to work around) · ExcessTooSmall (RoamVault) · CallbackNotActive.
+
+### The two tier markers — safe has a recipe, gated never does
+
+The AGENT-SAFE sweeps are no-tip public goods and are the ONLY two send recipes this skill carries:
+
+```bash
+# sweepVaultYield — fills the vault's 90% bucket (DEPOSITOR_BPS 9000). Fire on explicit operator instruction only; no self-scheduled keeper cadence in this skill.
+cast send $ROAMER 'sweepVaultYield()' --rpc-url $RPC --private-key $KEY
+# sweepToBurn — moves the BURN-PENDING accrual toward the burn lane (NoWellToken revert until setWellToken fires). Fire on explicit operator instruction only; no self-scheduled keeper cadence in this skill.
+cast send $ROAMER 'sweepToBurn()' --rpc-url $RPC --private-key $KEY
+```
+
+The prohibition on the OPERATOR-SCOPED tier is absolute and stated in prose only: that tier carries no command string anywhere in this skill — not as an example, not negated, not disguised — and nothing in this skill self-schedules any send; the two recipes above fire on explicit operator instruction only.
+
+### BURN-PENDING DISCLOSURE RIDER
+
+Every RoamVault yield report the agent produces carries this line: vault-lane revenue splits 90/10 (DEPOSITOR_BPS / BURN_BPS), and the 10% accrues for burn — burn activates when $WELL launches. Until then the 10% sits BURN-PENDING as accounted accrual (conserved, never treasury, never junk-forwarded) until the ONE-SHOT setWellToken fires, after which the next sweep burns it. Source: `docs/ops/roam-ops.md` §6a "RoamVault provenance split + the BURN-PENDING dormant lane" (cite by heading only — that doc is live-edited and its line numbers move).
+
+### Section self-check
+
+The dots in the overclaim pattern are deliberate regex any-chars and the gated-call sentinels use the house bracket trick, so the pattern list never matches its own banned phrases:
+
+```bash
+S=skills/wellstreet-vaults/SKILL.md
+grep -c '^## PERMISSION MODEL' "$S"                        # >= 1  (gate section present)
+grep -c 'AGENT-SAFE' "$S"                                  # >= 2  (tier named)
+grep -c 'OPERATOR-SCOPED' "$S"                             # >= 2  (tier named)
+grep -c 'It is NOT a proof' "$S"                           # >= 1  (attestation quote)
+grep -c 'NEVER FIRE' "$S"                                  # >= 1  (policy rule)
+grep -c 'sweepVaultYield' "$S"                             # >= 2  (tier entry + recipe)
+grep -cE '\b604800\b' "$S"                                 # >= 1  (MIN_HOLD pin)
+grep -cE '\b3911\b' "$S"                                   # >= 1  (attestation floor pin)
+grep -c 'MAX_MIGRATIONS_PER_PERIOD' "$S"                   # >= 1  (cap pin)
+grep -c 'NoWellToken' "$S"                                 # >= 1  (inert-until-setWellToken)
+grep -c 'harvest(uint256)' "$S"                            # >= 2  (SEAM CORRECTION + NotHarvester revert-map row)
+grep -c '10% accrues for burn' "$S"                        # >= 1  (disclosure rider)
+grep -cE 'cast send.*sweepVaultYield' "$S"                 # >= 1  (safe-sweep recipe present)
+grep -cE 'cast send.*sweepToBurn' "$S"                     # >= 1  (safe-sweep recipe present)
+grep -cE 'cast send.*[m]igrate' "$S"                       # 0     (no fire recipe for the gated roam surface)
+grep -cE 'cast send.*[e]xitBook' "$S"                      # 0     (no fire recipe for the gated exit surface)
+grep -icE '[a]uto-rebalance|[s]afe.to.migrate' "$S"        # 0     (overclaim guard)
+```
+
 ## SELF-CHECK
 
 Run these against your own copy of this skill (and your own drafted output) before acting. The dots in the overclaim pattern are deliberate regex any-chars so the pattern list does not itself contain the banned phrases:
