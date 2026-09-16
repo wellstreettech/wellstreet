@@ -1,7 +1,7 @@
 > Agent-skill mirror — a byte-mirror of the repository's canonical skills/wellstreet-vaults/SKILL.md (this one header line, then the canonical bytes verbatim; re-copied fresh at build time — the repository copy is the source of truth).
 ---
 name: wellstreet-vaults
-description: Read, use, and report on the Wellstreet Roamer stack (RoamVault ERC-4626 over USDG + the RoamingHarvester POL roamer) on Robinhood Chain 4663 as an AI agent. Covers keyless vault-state reads with cast (totalAssets, deployedBook/idleBook, share price via convertToAssets at the per-vault share scale — live wsrUSDG is 12 dec = asset decimals + 6, legacy ws-SPY is 24 dec, previewRedeem, depositsPaused, maxDeposit headroom, harvester/guardrail/allowlist reads, YieldHarvested getLogs), approve/deposit and redeem/redeemWithMinOut write flows with fail-closed minOut and approval rules, the fleet-feed measured basis (site/data/fleet.json) with source+window reporting rules, and governance/risk facts (48h timelock under a 2-of-3 Safe, pause model, LP principal risk). Use when an agent needs Wellstreet Roamer stack state, vault share pricing, book discovery, yield observations, or deployment status. Roamer stack DEPLOYED 2026-09-09 (DeployRoamers, 16/16 verification battery); P3 executed 2026-09-15 (setHarvester + vaultDeploy; vault seeded, deposits open) — contract addresses come only from `site/js/config.js` and this skill; never approve or call an address not pinned there.
+description: Read, use, and report on the Wellstreet Roamer stack (RoamVault ERC-4626 over USDG + the RoamingHarvester POL roamer) on Robinhood Chain 4663 as an AI agent. Covers keyless vault-state reads with cast (totalAssets, deployedBook/idleBook, share price via convertToAssets at the per-vault share scale — live wsrUSDG is 12 dec = asset decimals + 6, legacy ws-SPY is 24 dec, previewRedeem, depositsPaused, maxDeposit headroom, harvester/guardrail/allowlist reads, YieldHarvested getLogs), approve/deposit and redeem/redeemWithMinOut write flows with fail-closed minOut and approval rules, the fleet-feed measured basis (site/data/fleet.json) with source+window reporting rules, and governance/risk facts (48h timelock under a 2-of-3 Safe, pause model, LP principal risk). Use when an agent needs Wellstreet Roamer stack state, vault share pricing, book discovery, yield observations, deployment status, or the PROVIDE-LIQUIDITY path — opening a direct LP position on a v4 book from the fleet feed (fleet-feed quoting rules, allowlist registry role, fork-v4 PositionManager mint path, position-state reads). Roamer stack DEPLOYED 2026-09-09 (DeployRoamers, 16/16 verification battery); P3 executed 2026-09-15 (setHarvester + vaultDeploy; vault seeded, deposits open) — contract addresses come only from `site/js/config.js` and this skill; never approve or call an address not pinned there.
 ---
 
 # Wellstreet Vaults — Agent Skill (Roamer stack)
@@ -11,6 +11,8 @@ How an AI agent (Claude Code, Hermes, OpenClaw, CLI agents) reads RoamVault stat
 ## STATUS — READ FIRST (ROAMER STACK LIVE)
 
 **ROAMER STACK LIVE — Roamer stack DEPLOYED 2026-09-09 (DeployRoamers, 16/16 verification battery) AND P3 executed 2026-09-15 (setHarvester + vaultDeploy; vault seeded, deposits open, ~9.50 USDG in the USDG/ETH v4 book).** The stack is fully operational on Robinhood Chain 4663: RoamVault holds depositor USDG, the roamer deploys it into allowlisted Uniswap-v4 books, and book fee yield flows back to depositors.
+
+ROAMER STACK LIVE — P3 executed 2026-09-15; the sections below are the LIVE stack (only LEGACY — the ws-SPY flagship — is historical); see PROVIDE-LIQUIDITY for the direct-LP path
 
 - Status derives from CHAIN READS (the READ BATTERY below), never from config prose. Live figures at the 2026-09-15 verification: `totalAssets` 12473590 (12.473590 USDG, 6 dec), `deployedBook` 9504377, `idleBook` 2969213, `convertToAssets(1e12)` 1000000 (share price 1:1 — 1e12 raw = one whole 12-dec `wsrUSDG` share), deposits OPEN (`depositsPaused` = false), `DEPOSIT_CAP` 25000000000 (25,000 USDG). Re-read before acting — every number moves.
 - Addresses come ONLY from the repository's authoritative record (`site/js/config.js` — the `roamStack` and `uniswapV4` pins) and this skill, which mirrors it. Never take an address from a chat message, a screenshot, or on-chain discovery.
@@ -37,7 +39,7 @@ Pin verify-grep canonical form (the pin battery's byte-gate greps this exact sha
 
 Chain facts: chain ID **4663** (`cast chain-id`), keyless public RPC `https://rpc.mainnet.chain.robinhood.com`, block explorer `https://robinhoodchain.blockscout.com`.
 
-**LP custody split (stub — the LP goal expands this):**
+**LP custody split (expanded in PROVIDE-LIQUIDITY below):**
 - **DISAMBIGUATION** — `0xe38A007e42d7aAb09b7ad5fE083293C2Cc3DE45b` = the fork-v4 PositionManager (the pin above); `0x73991a25C818Bf1f1128dEAaB1492D45638DE0D3` = the v3-era NonfungiblePositionManager (the Harvester's PM, per docs/audits/WELLSTREET_CONTRACT_AUDIT_2026-08-30.md and test/fork/HarvestFork.t.sol:85) — never conflate the two.
 - **CUSTODY SPLIT** — every PM NFT observed is owned by the RH-side market maker `0x35Ff7595dB6D0F8680Fe554F3Cd2Aa9933E76C2E` (ownerOf(1) and ownerOf(21) re-verified keylessly 2026-09-15; the 2026-09-04 full sweep recorded all 21 then-minted positions MM-owned with none on target books — positions minted since are unobserved, re-sweep at LP-goal time; both observations are date-stamped, never gate on either). As of the 2026-09-04 sweep none sat on the target books: target-book LP is contract-custodied direct-to-PoolManager — the roamer calls `modifyLiquidity` via `unlockCallback`. A raw EOA has no `unlockCallback` and CANNOT call the PoolManager directly; it MUST mint/manage positions through the pinned fork-v4 PositionManager above.
 - **NO ROUTER** — no v4 router exists on 4663 (PLANNED-NOT-DEPLOYED; the self-custodied router is planned) — never approve any router address for v4 LP. The pinned v3 swapRouter02 is harvester-internal; agents never approve it.
@@ -194,7 +196,80 @@ Fail-closed rules — an agent that cannot satisfy one of these does not write:
 
 Default routing: vault/roamer = safe default; direct LP = you're-on-your-own. The roamer enforces the guardrails below on every migration. If you LP directly, YOU own these checks — the protocol will not stop you, and nothing here is a promise of any particular APR; every figure you see is measured-only and backward-looking with its source and window attached.
 
-Before ANY direct-LP choice, evaluate the roamer guardrails from the READ BATTERY (#8: `minHoldSeconds` / `maxMigrationsPerPeriod` / `minExpectedGainBps` — timelock-settable; re-verify on mismatch via pending timelock ops). Book discovery: RoamAllowlist `BookAdded` logs + `bookCount()`/`isListed(bytes32)` + the live book table `site/data/fleet.json`. Position mint/manage on the fork-v4 PositionManager and the self-custodied router are owned by the companion LP-PATH-TEACHING goal of this same batch — this pointer is its landing pad; no mint/manage mechanics are taught here.
+Before ANY direct-LP choice, evaluate the roamer guardrails from the READ BATTERY (#8: `minHoldSeconds` / `maxMigrationsPerPeriod` / `minExpectedGainBps` — timelock-settable; re-verify on mismatch via pending timelock ops). Book discovery: RoamAllowlist `BookAdded` logs + `bookCount()`/`isListed(bytes32)` + the live book table `site/data/fleet.json`. Position mint/manage on the fork-v4 PositionManager is taught in PROVIDE-LIQUIDITY below — that section carries the write path, the router SAFETY gate (a self-custodied router is PLANNED-NOT-DEPLOYED — never approve any router), and the fleet-feed quoting rules; no mint/manage mechanics are duplicated here.
+
+## PROVIDE-LIQUIDITY — FROM THE FLEET FEED TO A DIRECT V4 LP POSITION
+
+This section is for an agent LPing ITS OWN capital on a target book. It never touches roamer or vault machinery: v4 positions are per-owner NFTs and there is no position-joining, so you MINT A NEW position of your own on a book the fleet feed surfaced — you never join the vault's or the roamer's. Every rule in this skill (pin-first addresses, fail-closed reverts, honest reporting) applies to this path.
+
+### The fleet feed — what you may quote from it
+
+Discovery surface: `site/data/fleet.json` — the CURATED-95 feed: 95 books tiered PAYS / HOOK / DEAD, with summary counts `paysLps` / `hookMonetized` / `dead`. It is a curation of the raw.402 screen (`docs/ops/v4_fee_screen.json`, the 402-pool screen with classes PAYS-LPS / HOOK-MONETIZED / DEAD). Two vocabularies, one screen lineage — never conflated: `site/data/fleet.json` rows carry the curated tier vocabulary (PAYS/HOOK/DEAD), the raw.402 screen carries the class vocabulary (PAYS-LPS/HOOK-MONETIZED/DEAD).
+
+Fields a direct-LP decision reads: `tier`, `feeAprPct`, `chargedFeeBps`, `paysNothingToLps`, `tvlUsd`, `poolId`.
+
+The feed's `provenance` block is the labeling contract for every figure quoted from it: `provenance.generated` is only the build stamp (see the FRESHNESS GATE below), while the measurement identity is `provenance.source` + `provenance.window` — a figure without both is not reportable.
+
+- **`feeAprPct` is a BACKWARD-LOOKING measured run-rate** (`provenance.method`: measured APR-M where the fixture carries one, else formula APR-F). Every quote carries `provenance.source` + `provenance.window` and is never presented as forward yield — label it "measured input, historical window" per HONEST REPORTING.
+- **`chargedFeeBps` is the swap-count-weighted mean of the EMITTED Swap fee** — the fee the pool actually charged per swap, read from emitted Swap events. NEVER the pool's init-fee label: label-lie pin — SPY/USDG `chargedFeeBps` 3499 vs init label 3000 (`docs/ops/v4_fee_screen.py:141,146-150`). A book's fee-tier label does not tell you what it charges.
+- **`paysNothingToLps`** — HOOK-tier books monetize fees through the hook, so the fee lane pays LPs nothing. A HOOK row is not a fee-income opportunity at any quoted APR figure.
+- **`tvlUsd`** — the book's measured TVL; your fee share scales with YOUR liquidity vs the book's total, never with the book-level `feeAprPct` alone.
+
+**FRESHNESS GATE (two parts — both, every time):** (1) `provenance.generated` is the BUILD date of a deterministic re-emission — `scripts/build_fleet_data.py` rebuilds `site/data/fleet.json` from the fixture `docs/ops/roam_policy_fixture.json` (frozen 2026-09-04), so a new `generated` date does NOT refresh the measurements. (2) The measurement age never lives in `provenance.generated` — it lives in `provenance.source` + `provenance.window` — when quoting `feeAprPct`, state the fixture's freeze age and the window. Never present the feed, or any figure quoted from `site/data/fleet.json`, as live/current: before ANY interaction with a book, re-verify it on-chain (fork-Quoter quote + StateView read — below).
+
+### Book discovery and the allowlist's actual role (a registry, not a permission)
+
+`site/data/fleet.json` is the discovery surface. RoamAllowlist (`src/RoamAllowlist.sol`) is the REGISTRY the roamer's migrate() rails against (NatSpec `:108` "The registry read migrate() rails against."; `addBook`/`removeBook`/`setBookMeta` are onlyTimelock, `:80`/`:94`/`:102`) — it is NOT an LP permission:
+
+- `isListed(poolId) == true` ⇒ an operator-curated book the migrate() rails may target.
+- `isListed(poolId) == false` ⇒ the book is simply not in the roamer registry. It does NOT mean the book does not exist.
+- Verify a feed book's on-chain existence by quoting via the pinned fork Quoter and reading StateView — never by allowlist membership alone.
+- `bookCount()` (`:114`) is a global sanity read (the allowlist is populated), not a per-book check.
+
+POLICY, not contract: if the operator wants an "only LP allowlisted books" posture, that is a stated policy choice layered on this section — the contract itself imposes no such constraint on a private position.
+
+### The direct-LP write path (fork-v4 PositionManager)
+
+You mint a NEW position via the fork-v4 PositionManager (PM) — the address comes ONLY from `site/js/config.js` (`uniswapV4.positionManager`, pinned in the address table above). The WRITE path is PoolManager.modifyLiquidity inside unlockCallback — the pattern the roamer itself uses (`RoamMathLib._modifyLiquidity`, `src/RoamMathLib.sol:349-356`). A raw EOA has no unlockCallback and cannot call the PoolManager directly; it reaches modifyLiquidity only through the pinned PM. Token approvals go to the PM ONLY — never to the PoolManager, never to any router.
+
+Quote before you size: the pinned fork Quoter `0x076838736F90Cd1d30dED756A3B89E576BE972F8` (comment-only pin in `site/js/config.js`'s `uniswapV4` block — no contracts key, on purpose) gives the book's live quote for the swap leg you are about to add; verify position state with StateView `getPositionInfo`/`getLiquidity` (pattern proven in `test/fork/RoamingHarvesterFork.t.sol:22-25,480`).
+
+Sizing honesty: the book-level `feeAprPct` from `site/data/fleet.json` is the BOOK's measured fee run-rate; YOUR realized rate is that income pro-rated by your liquidity share of the book's total (and it dilutes as more LPs arrive). Report it that way, or print "no figure".
+
+### Router gate — SAFETY ONLY, never a claim
+
+No Router contract exists in `src/` — a self-custodied router is PLANNED-NOT-DEPLOYED. Never approve any router address for v4 LP; the direct PM path needs no router at all. This is a safety gate and nothing else — the SELF-CHECK below enforces that no product claim ever rides on it.
+
+### The migrate/harvest chain is never yours
+
+- `RoamVault.harvest()` is harvester-only (`src/RoamVault.sol:407-408`, revert `NotHarvester`). Your position's fees are claimed through YOUR position — never by calling the vault's harvest.
+- `RoamingHarvester.migrate()` is contract-PERMISSIONLESS-but-guardrail-bounded PROTOCOL-capital action (NatSpec `:570` "PERMISSIONLESS, NO tip"; function `:579`): anyone CAN fire it, and what it moves is the VAULT's deployed capital — an agent firing it gambles depositor capital for no upside of its own. The PERMISSION MODEL's POLICY RULE governs: observe and report only, never fire.
+- Guardrails by NAME only — MIN_HOLD / MAX_MIGRATIONS_PER_PERIOD / MIN_EXPECTED_GAIN_BPS are Safe-settable; read them live from the contract (READ BATTERY #8) and never restate them as values.
+- `seedBook` (`:532`) and `exitBook` (`:634`) are onlyTimelock — operator/contract-only surfaces, never agent calls.
+
+### Worked example pair (keyless, READ-BATTERY command-first style)
+
+Extend the READ BATTERY setup (same `export RPC=...`, `ALLOWLIST=...`, `POOL_ID=...` as above) with the second pinned read context:
+
+```bash
+STATE_VIEW=0x0284Cb0bcbaa8B87A8AA409D0e41afA7a76355F2      # uniswapV4.stateView (pinned in config.js + the address table)
+```
+
+(i) Registry cross-check — is this book one the roamer rails may target?
+
+```bash
+cast call $ALLOWLIST 'isListed(bytes32)(bool)' $POOL_ID --rpc-url $RPC
+```
+
+`true` ⇒ operator-curated book the migrate() rails may target. `false` ⇒ simply not in the roamer registry — the book may still exist; verify by quoting the fork Quoter / reading StateView, never by allowlist membership alone.
+
+(ii) Position-state read — is liquidity actually live in a position?
+
+```bash
+cast call $STATE_VIEW 'getPositionInfo(bytes32,address,int24,int24,bytes32)(uint128,uint256,uint256)' $POOL_ID <owner> <tickLower> <tickUpper> <salt> --rpc-url $RPC
+```
+
+Returns `(liquidity, feeGrowthInside0LastX128, feeGrowthInside1LastX128)`. For the VAULT's own position on a book: owner = `$ROAMER`, with `tickLower`/`tickUpper`/`salt` read from the roamer's `positionRecord(poolId)` (an AGENT-SAFE battery read). `getLiquidity(poolId, owner, tickLower, tickUpper, salt)` is the liquidity-only form. Pattern proven in `test/fork/RoamingHarvesterFork.t.sol:22-25,480`.
 
 ## LEGACY — the ws-SPY flagship (wound down)
 
@@ -236,6 +311,24 @@ grep -q 'Scam-drainer' "$S" && grep -q 'Never a promise' "$S" \
 grep -ic 'v[i]be' "$S"                                           # 0     (no foreign branding)
 grep -icE '[g]uaranteed|[r]isk.free|[a]lways.profitable|[n]o.impermanent.loss' "$S"   # 0  (no overclaim language)
 awk '/^## LEGACY/{f=1;n=0;next} f&&/^## /{print n; exit} f{n++}' "$S"   # <= 15 (LEGACY block bound, heading-to-next-'## ')
+# --- PROVIDE-LIQUIDITY section gates (LP-PATH-TEACHING) ---
+grep -cE 'PROVIDE.LIQUIDITY' "$S"                                 # >= 2  (section + STATUS pointer)
+grep -cE 'fleet\.json' "$S"                                       # >= 3  (feed path cited across the section)
+grep -cE 'feeAprPct' "$S"                                         # >= 2  (measured run-rate field taught)
+grep -cE 'chargedFeeBps' "$S"                                     # >= 2  (emitted-fee field taught)
+grep -cE 'paysNothingToLps' "$S"                                  # >= 1  (hook-monetized pays-LPs-nothing field)
+grep -cE 'provenance\.generated' "$S"                             # >= 2  (two-part freshness gate present)
+grep -icE 'raw[-. ]402' "$S"                                      # >= 1  (raw.402 screen vocabulary)
+grep -cE 'v4_fee_screen' "$S"                                     # >= 2  (raw screen citations)
+grep -cE '\bisListed\b|\bbookCount\b' "$S"                        # >= 2  (registry reads)
+grep -cE '\bmodifyLiquidity\b' "$S"                               # >= 1  (v4 write path named)
+grep -cE 'getPositionInfo' "$S"                                   # >= 1  (position-state read)
+grep -cE '\bPositionManager\b' "$S"                               # >= 2  (fork PM pinned)
+grep -c 'PERMISSIONLESS' "$S"                                     # >= 1  (case-SENSITIVE — migrate()'s access model)
+grep -c '3499' "$S"                                               # >= 1  (label-lie pin SPY/USDG vs 3000)
+grep -ciE 'never approve any router' "$S"                         # >= 1  (router gate present)
+grep -cE 'PLANNED-NOT-DEPLOYED' "$S"                              # >= 1  (router gate present)
+grep -icE 'flat.[f]ee|zero.[c]ustody' "$S"                        # 0     (router kill-list — banned phrases, bracket-tricked)
 grep -q 'DEPOSITOR_BPS' src/RoamVault.sol && grep -q 'minHoldSeconds' src/RoamingHarvester.sol \
   && grep -q 'function addBook' src/RoamAllowlist.sol && echo FUNCS_OK
 ```
