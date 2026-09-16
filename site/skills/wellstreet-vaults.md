@@ -29,10 +29,18 @@ Addresses pinned (from `site/js/config.js` `roamStack` + `uniswapV4`; infrastruc
 | `0x0Fd4B5495698b4EC04AeaC64567867083760ccea` | Safe (2-of-3) — the timelock's proposer | `roamStack.safe` |
 | `0x8366a39CC670B4001A1121B8F6A443A643e40951` | v4-fork PoolManager (read context for the roamer's books) | `uniswapV4.poolManager` |
 | `0x0284Cb0bcbaa8B87A8AA409D0e41afA7a76355F2` | v4-fork StateView (read context) | `uniswapV4.stateView` |
+| `0xe38A007e42d7aAb09b7ad5fE083293C2Cc3DE45b` | Fork-v4 PositionManager (Uniswap v4 fork PM — the ONLY position mint/manage surface for EOAs; NOT the v3-era harvester NPM). Verified: live keyless probe battery 2026-09-15 (name / poolManager-binding / nextTokenId + dead-sibling revert) + 04-doc §5.2; Blockscout verified-source unfetchable from CLI (Cloudflare wall) — keyless probe battery instead | `uniswapV4.positionManager` |
 | `0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551` | `usdgEthPoolId` — the vault's deployed USDG/ETH v4 book (the anchor) | `roamStack.usdgEthPoolId` |
 | *(no address — never a target)* | RoamMathLib — delegatecall-linked library (`src/RoamMathLib.sol`); it has NO address pin and is NEVER a call/approval target | — |
 
+Pin verify-grep canonical form (the pin battery's byte-gate greps this exact shape): | \`0xe38A007e42d7aAb09b7ad5fE083293C2Cc3DE45b\` |
+
 Chain facts: chain ID **4663** (`cast chain-id`), keyless public RPC `https://rpc.mainnet.chain.robinhood.com`, block explorer `https://robinhoodchain.blockscout.com`.
+
+**LP custody split (stub — the LP goal expands this):**
+- **DISAMBIGUATION** — `0xe38A007e42d7aAb09b7ad5fE083293C2Cc3DE45b` = the fork-v4 PositionManager (the pin above); `0x73991a25C818Bf1f1128dEAaB1492D45638DE0D3` = the v3-era NonfungiblePositionManager (the Harvester's PM, per docs/audits/WELLSTREET_CONTRACT_AUDIT_2026-08-30.md and test/fork/HarvestFork.t.sol:85) — never conflate the two.
+- **CUSTODY SPLIT** — every PM NFT observed is owned by the RH-side market maker `0x35Ff7595dB6D0F8680Fe554F3Cd2Aa9933E76C2E` (ownerOf(1) and ownerOf(21) re-verified keylessly 2026-09-15; the 2026-09-04 full sweep recorded all 21 then-minted positions MM-owned with none on target books — positions minted since are unobserved, re-sweep at LP-goal time; both observations are date-stamped, never gate on either). As of the 2026-09-04 sweep none sat on the target books: target-book LP is contract-custodied direct-to-PoolManager — the roamer calls `modifyLiquidity` via `unlockCallback`. A raw EOA has no `unlockCallback` and CANNOT call the PoolManager directly; it MUST mint/manage positions through the pinned fork-v4 PositionManager above.
+- **NO ROUTER** — no v4 router exists on 4663 (PLANNED-NOT-DEPLOYED; the self-custodied router is planned) — never approve any router address for v4 LP. The pinned v3 swapRouter02 is harvester-internal; agents never approve it.
 
 ## WHAT THE STACK IS
 

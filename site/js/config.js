@@ -224,7 +224,14 @@
     // ------------------------------------------------------------------
     uniswapV4: {
       poolManager: '0x8366a39CC670B4001A1121B8F6A443A643e40951',
-      stateView: '0x0284Cb0bcbaa8B87A8AA409D0e41afA7a76355F2'
+      stateView: '0x0284Cb0bcbaa8B87A8AA409D0e41afA7a76355F2',
+      // positionManager evidence — live keyless probe 2026-09-15: name() = 'Uniswap v4 Positions NFT';
+      // poolManager() = 0x8366a39CC670B4001A1121B8F6A443A643e40951 == the pinned poolManager key (ctor-arg-bound, verified);
+      // nextTokenId is decodable and GROWING — never gate an exact value (22 at the 2026-09-04 04-doc, 28 at the 2026-09-15 re-verify);
+      // dead sibling 0x588C683EcC450F8b2aAdb13D7f63792b840425DC reverts name() (probe exits 1 if it stops reverting);
+      // v3-era harvester NPM = 0x73991a25C818Bf1f1128dEAaB1492D45638DE0D3 (comment-only negative context — NOT the fork PM, never a pin);
+      // creator 0x9cec3041CFab96Ef36b0ed0504dC7A675673Edd2 per the 04-doc §5.2 (stack-location research 2026-09-04; CONTEXT-ONLY — never a pin source).
+      positionManager: '0xe38A007e42d7aAb09b7ad5fE083293C2Cc3DE45b',
       // Fork Quoter (custom quoteSingle view) PIN — 0x076838736F90Cd1d30dED756A3B89E576BE972F8 (one of 6 identical PM-bound deploys, shared codehash 0x6f47a0e4…34fe8cb; QUOTER-PIN-FORK-TEST 2026-09-06; comment-only, no contracts key on purpose)
     },
 
