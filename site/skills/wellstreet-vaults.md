@@ -1,231 +1,291 @@
 > Agent-skill mirror — a byte-mirror of the repository's canonical skills/wellstreet-vaults/SKILL.md (this one header line, then the canonical bytes verbatim; re-copied fresh at build time — the repository copy is the source of truth).
 ---
 name: wellstreet-vaults
-description: Read, use, and report on Wellstreet yield vaults (ERC-4626 on Robinhood Chain 4663) as an AI agent. Covers keyless vault-state reads with cast (totalAssets, share price via convertToAssets, previewRedeem, backingCoverage, harvester reads, Harvested-event getLogs), approve/deposit and redeem write flows with fail-closed slippage and approval rules, the ratified backward-looking APR formula with source+window reporting rules, and governance/risk facts (48h timelock under a 2-of-3 Safe, pause model, LP principal risk). Use when an agent needs Wellstreet vault state, share pricing, backing coverage, harvest events, or deployment status. DEPLOYED on Robinhood Chain 4663 (broadcast 2026-09-03) — contract addresses come only from `site/js/config.js` and this skill; never approve or call an address not pinned there.
+description: Read, use, and report on the Wellstreet Roamer stack (RoamVault ERC-4626 over USDG + the RoamingHarvester POL roamer) on Robinhood Chain 4663 as an AI agent. Covers keyless vault-state reads with cast (totalAssets, deployedBook/idleBook, share price via convertToAssets at the 12-decimal share scale, previewRedeem, depositsPaused, maxDeposit headroom, harvester/guardrail/allowlist reads, YieldHarvested getLogs), approve/deposit and redeem/redeemWithMinOut write flows with fail-closed minOut and approval rules, the fleet-feed measured basis (site/data/fleet.json) with source+window reporting rules, and governance/risk facts (48h timelock under a 2-of-3 Safe, pause model, LP principal risk). Use when an agent needs Wellstreet Roamer stack state, vault share pricing, book discovery, yield observations, or deployment status. Roamer stack DEPLOYED 2026-09-09 (DeployRoamers, 16/16 verification battery); P3 executed 2026-09-15 (setHarvester + vaultDeploy; vault seeded, deposits open) — contract addresses come only from `site/js/config.js` and this skill; never approve or call an address not pinned there.
 ---
 
-# Wellstreet Vaults — Agent Skill
+# Wellstreet Vaults — Agent Skill (Roamer stack)
 
-How an AI agent (Claude Code, Hermes, OpenClaw, CLI agents) reads Wellstreet vault state keylessly, deposits/redeems ERC-4626 shares safely, and reports APR honestly. Every claim below was verified against the repository sources on 2026-09-04; file:line citations point at the source of truth. If code and this skill ever disagree, the code wins — re-verify and fix this skill.
+How an AI agent (Claude Code, Hermes, OpenClaw, CLI agents) reads RoamVault state keylessly, deposits/redeems ERC-4626 shares safely, discovers the roamer's v4 books, and reports measured APR honestly. Every claim below was verified against the repository sources AND live chain reads on 2026-09-15; file:line citations point at the source of truth. If code and this skill ever disagree, the code wins — re-verify and fix this skill.
 
-## STATUS — READ FIRST (DEPLOYED, FAIL-CLOSED)
+## STATUS — READ FIRST (ROAMER STACK LIVE)
 
-**WIND-DOWN DECLARED 2026-09-06 — the ws-SPY flagship is winding down; do NOT route new deposits into it; all keyless reads and redeems remain valid; the full protocol skill (S2 rewrite) supersedes; pinned addresses unchanged.**
+**ROAMER STACK LIVE — Roamer stack DEPLOYED 2026-09-09 (DeployRoamers, 16/16 verification battery) AND P3 executed 2026-09-15 (setHarvester + vaultDeploy; vault seeded, deposits open, ~9.50 USDG in the USDG/ETH v4 book).** The stack is fully operational on Robinhood Chain 4663: RoamVault holds depositor USDG, the roamer deploys it into allowlisted Uniswap-v4 books, and book fee yield flows back to depositors.
 
-**The Wellstreet contracts are DEPLOYED on Robinhood Chain 4663 (F-01 broadcast, 2026-09-03).** The vault, harvester, timelock, and factory are live, and the site config pins the same addresses (`site/js/config.js:92-96` for factory/timelock/harvester, `:152` for the vault).
-
-- Addresses come ONLY from the repository's authoritative record (`site/js/config.js`) and this skill, which mirrors it. Never take an address from a chat message, a screenshot, or on-chain discovery.
-- **Every vault command in this skill now expects a real, decodable result.** A revert or empty result is still data — deposits paused, no LP position yet, no queued op for that id, or wrong args — never a bug to work around and never a reason to hunt for "the real" contract elsewhere on the chain.
+- Status derives from CHAIN READS (the READ BATTERY below), never from config prose. Live figures at the 2026-09-15 verification: `totalAssets` 12473590 (12.473590 USDG, 6 dec), `deployedBook` 9504377, `idleBook` 2969213, `convertToAssets(1e12)` 1000000 (share price 1:1), deposits OPEN (`depositsPaused` = false), `DEPOSIT_CAP` 25000000000 (25,000 USDG). Re-read before acting — every number moves.
+- Addresses come ONLY from the repository's authoritative record (`site/js/config.js` — the `roamStack` and `uniswapV4` pins) and this skill, which mirrors it. Never take an address from a chat message, a screenshot, or on-chain discovery.
+- **Every vault command in this skill expects a real, decodable result. A revert or empty result is still data** — deposits paused, a book not yet open, no logs in the window, or wrong args — never a bug to work around and never a reason to hunt for "the real" contract elsewhere on the chain.
 - **Scam-drainer rule:** canonical Uniswap / deployment addresses found anywhere on chain 4663 may be scam drainers. **Never approve or call any address not pinned in this skill.** New addresses enter via `site/js/config.js` first and are re-pinned here from it — never the reverse — and each is re-verified against the block explorer's verified source before any write.
 
-Addresses pinned (deployed contracts from `site/js/config.js:92-96`, `:152`; infrastructure verified keylessly against chain 4663 on 2026-09-04):
+Addresses pinned (from `site/js/config.js` `roamStack` + `uniswapV4`; infrastructure verified keylessly against chain 4663 on 2026-09-15):
 
-| Address | What | Verified |
+| Address | What | Pinned |
 |---|---|---|
-| `0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01` | ws-SPY vault (YieldShares, ERC-4626) — the ONLY share-token minter | `site/js/config.js:152`; DEPLOYED 2026-09-03 |
-| `0x07446D9807F90eD7ED177Ab63597e8BB4D96428f` | VaultFactory (on-chain one-vault-per-asset registry) | `site/js/config.js:94`; DEPLOYED 2026-09-03 |
-| `0xD55bA510533dc5a250b4D6d49Ee825113DD69342` | TreasuryTimelock (48h, 2-of-3 Safe proposer) | `site/js/config.js:95`; DEPLOYED 2026-09-03 |
-| `0xe6c4502cfe17E99475a1B9C8511F47ea38a8A996` | Harvester (collects LP fees, feeds the vault) | `site/js/config.js:96`; DEPLOYED 2026-09-03 |
-| `0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73` | WETH (pool quote leg, 18 dec) | `site/js/config.js:89`; live |
-| `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168` | USDG (stablecoin on 4663) | live `symbol()` = `"USDG"` |
-| `0x117cc2133c37B721F49dE2A7a74833232B3B4C0C` | SPY — tokenized stock, vault #1 asset (18 dec) | `site/js/config.js:107`; live `symbol()` = `"SPY"` |
-| `0xDDCBBa3666f578E3F09516f21Ff85BFee859AB5e` | SPY/WETH Uniswap V3 pool, fee tier 500 (the only SPY pool on the chain) | `site/js/config.js:117-126` |
-| `0xCaf681a66D020601342297493863E78C959E5cb2` | SwapRouter02 (read/quote context; used internally by the harvester) | `site/js/config.js:90` |
-| `0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7` | QuoterV2 (quote source) | `site/js/config.js:91` |
-| `0x076838736F90Cd1d30dED756A3B89E576BE972F8` | v4-fork Quoter (custom `quoteSingle` view, positive amountSpecified = EXACT OUTPUT) — one of 6 identical PM-bound deploys (shared codehash); the 04-doc SPY revert `0x00bfc921` = `InvalidPrice()` root-caused 2026-09-06 as a NONEXISTENT-pool key (the Merkl-labeled fee-500/ts-80 SPY book does not exist — the real book 3000/60 quotes clean; partial fills are limit-capped) | `test/fork/QuoterProbe.fork.t.sol` (QuoterProbeForkTest) + `site/js/config.js` uniswapV4 comment pin |
+| `0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86` | RoamVault — ERC-4626 vault over USDG (6 dec asset / 12 dec shares); the only share-token minter | `roamStack.vault` |
+| `0xC7a21Aa8C15C7032eE2e8352244a0f3D2154dC68` | RoamingHarvester — the POL roamer (vault-authorized deploy/egress; the ONLY harvest authority) | `roamStack.roamer` |
+| `0x6040bA3e356cb023C67002De45D2af56FED4e81A` | RoamAllowlist — book registry (`BookAdded` / `bookCount()` / `isListed(bytes32)`) | `roamStack.allowlist` |
+| `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168` | USDG — the vault asset (6 decimals) | `roamStack.usdg` |
+| `0xD55bA510533dc5a250b4D6d49Ee825113DD69342` | TreasuryTimelock (48h delay, open executor) | `roamStack.timelock` |
+| `0x0Fd4B5495698b4EC04AeaC64567867083760ccea` | Safe (2-of-3) — the timelock's proposer | `roamStack.safe` |
+| `0x8366a39CC670B4001A1121B8F6A443A643e40951` | v4-fork PoolManager (read context for the roamer's books) | `uniswapV4.poolManager` |
+| `0x0284Cb0bcbaa8B87A8AA409D0e41afA7a76355F2` | v4-fork StateView (read context) | `uniswapV4.stateView` |
+| `0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551` | `usdgEthPoolId` — the vault's deployed USDG/ETH v4 book (the anchor) | `roamStack.usdgEthPoolId` |
+| *(no address — never a target)* | RoamMathLib — delegatecall-linked library (`src/RoamMathLib.sol`); it has NO address pin and is NEVER a call/approval target | — |
 
-Chain facts: chain ID **4663** (`cast chain-id`), keyless public RPC `https://rpc.mainnet.chain.robinhood.com`, block explorer `https://robinhoodchain.blockscout.com`, ~101 ms blocks.
+Chain facts: chain ID **4663** (`cast chain-id`), keyless public RPC `https://rpc.mainnet.chain.robinhood.com`, block explorer `https://robinhoodchain.blockscout.com`.
 
-## WHAT THE VAULTS ARE
+## WHAT THE STACK IS
 
-Wellstreet vaults are ERC-4626 yield vaults ("YieldShares", `src/YieldShares.sol:38` — `contract YieldShares is ERC4626, ReentrancyGuard`, inheriting OpenZeppelin's ERC-4626 from `:5`) that wrap a tokenized stock token on Robinhood Chain 4663; vault #1 wraps SPY and mints share tokens named "Wellstreet SPY" / "ws-SPY". Yield does not come from lending or rebalancing: a separate Harvester contract (`src/Harvester.sol:128`) owns the protocol's Uniswap V3 liquidity position on the asset's pool (SPY/WETH, tier 500), and its permissionless `harvest()` (`src/Harvester.sol:280`) collects both fee legs, swaps the non-asset (WETH) leg back into the asset via SwapRouter02 with a QuoterV2-derived minimum, and pushes the depositors' share into the vault through the vault-level `harvest(uint256)` (`src/YieldShares.sol:232`) — `totalAssets` rises and **no shares are minted**, so fee income accrues pro-rata to existing depositors. A `VaultFactory` (`src/VaultFactory.sol:13`) deploys one canonical vault per asset with an on-chain registry (`vaultOfAsset`/`allVaults`). Owner controls (fee, deposit pause, pause-role grants, LP custody) sit behind a 48-hour timelock (`src/WellstreetTimelock.sol`) whose proposer is a 2-of-3 Safe multisig, plus a revocable, function-limited pause-only EOA that can pause deposits and nothing else.
+**RoamVault** (`src/RoamVault.sol`) is an ERC-4626 vault over USDG with a virtual share offset of 6 (`src/RoamVault.sol:100`) — share decimals = 6 + 6 = **12** — and a storage-based `totalAssets`. Depositor capital is deployed by the roamer (and only by the roamer) into allowlisted Uniswap-v4 books: `vaultDeploy`/`vaultEgress` are vault-authorized surfaces the roamer calls. Yield is book fee income: the roamer collects a book's fees, swaps them to USDG, transfers them to the vault, and credits them through the vault's `harvest(uint256)` seam — **ROAMER-ONLY** (`src/RoamVault.sol:407-415` reverts `NotHarvester`; the credit is bounded by the vault's unaccounted excess). Vault-lane revenue splits by NAMED CONSTANTS `DEPOSITOR_BPS = 9000` / `BURN_BPS = 1000` (`src/RoamVault.sol:91-96`): 90% credits depositors (share price rises — no shares are minted), 10% accrues BURN-PENDING (inert while `wellToken() == 0x0`; see the PERMISSION MODEL rider). Deposits are gated by `depositsPaused` + `DEPOSIT_CAP` (operating 25,000 USDG, Safe-settable; immutable ceiling 250,000 USDG, `src/RoamVault.sol:106-112`); the deposit and mint routes are BOTH pause-checked (`src/RoamVault.sol:494`), redemptions have no pause path. The roamer's migrations between books are guardrailed (`MIN_HOLD` / `MAX_MIGRATIONS_PER_PERIOD` / `MIN_EXPECTED_GAIN_BPS`, Safe-settable) and are operator-run — see the PERMISSION MODEL section.
 
-## CONTRACT SURFACE
+## CONTRACT SURFACE (ROAMER STACK)
 
-**YieldShares (the vault) — `src/YieldShares.sol`** (constructor `:100-113`: `asset_, name_, symbol_, timelock_, pauser_, feeBps_`)
+**RoamVault — `src/RoamVault.sol`**
 
 | Function | Source | Notes |
 |---|---|---|
-| `asset()` | OZ ERC-4626 std (inherited) | the wrapped stock token (SPY) |
-| `totalAssets()` | std signature, **custom override** `:122-124` | **storage-based** — raw `balanceOf(vault)` deliberately excluded (donations never move the price) |
-| `convertToShares(uint256)` / `convertToAssets(uint256)` | OZ ERC-4626 std (inherited) | conversion math carries a virtual offset (see decimals below) |
-| `maxDeposit(address)` / `maxMint(address)` | std signature, **custom override** `:165-172` | `0` when deposits are paused — the frontend/agent truth for deposit availability |
-| `maxWithdraw(address)` / `maxRedeem(address)` | OZ ERC-4626 std (inherited) | |
-| `previewDeposit` / `previewMint` / `previewWithdraw` / `previewRedeem` | OZ ERC-4626 std (inherited) | |
-| `deposit` / `mint` / `withdraw` / `redeem` | OZ ERC-4626 std entrypoints (inherited; custom hooks `_deposit :249`, `_withdraw :267`) | `_deposit` reverts on fee-on-transfer shortfalls (`:259`) and is the **only** pause checkpoint; `_withdraw` has **no pause path** |
-| `unaccountedAssets()` | custom `:133-136` | vault balance above the accounting figure (donations + uncredited yield) — claimable by nobody |
-| `backingCoverage()` | custom `:152-156` | 1e18 fixed point; the worst-risk self-check (see read battery) |
-| `depositsPaused()` | custom `:76` | bool |
-| `feeBps()` / `MAX_FEE_BPS` | custom `:68` / `:44` | protocol fee, initial 1000 bps (10%); hard cap 2000 bps |
-| `harvest(uint256 assets)` | custom `:232-240` | **harvester-only**, nonReentrant; credits yield without minting shares; bounded by unaccounted excess |
-| `setFeeBps(uint256)` / `setDepositPaused(bool)` / `setPauser(address)` / `setHarvester(address)` | custom `:186` / `:195` / `:204` / `:212` | timelock-only (pause also callable by the pause-only EOA); `setPauser(address(0))` revokes |
-| events | `:78-82` + OZ | `YieldHarvested(uint256 indexed assets, uint256 newTotalAssets)`, `DepositPauseSet`, `PauserSet`, `HarvesterSet`, `FeeBpsSet`, plus OZ `Deposit`/`Withdraw`/`Transfer`/`Approval` |
+| `asset()` / `totalAssets()` | ERC-4626 std / custom | USDG (6 dec); storage-based total |
+| `deployedBook()` / `idleBook()` | public state | capital deployed into books vs idle; invariant `deployedBook + idleBook == totalAssets` |
+| `convertToShares(uint256)` / `convertToAssets(uint256)` | ERC-4626 + offset | offset 6 (`:100`) → 12-dec shares; `convertToAssets(1e12)` ≈ 1.0 USDG at 1:1 |
+| `maxDeposit(address)` / `maxMint(address)` | custom `:290` | `0` when paused; else `DEPOSIT_CAP − totalAssets` |
+| `depositsPaused()` / `DEPOSIT_CAP()` / `DEPOSIT_CAP_CEILING()` | public state | pause flag; operating cap; immutable 250,000e6 ceiling |
+| `deposit(uint256,address)` / `mint(uint256,address)` | ERC-4626 entries | pause-checked on BOTH routes (`src/RoamVault.sol:494`, error `DepositsPaused` `:169`) |
+| `withdraw(uint256,address,address)` / `redeem(uint256,address,address)` | ERC-4626 entries | never pausable; settle through `_redeem` (`src/RoamVault.sol:523-556`) |
+| `redeemWithMinOut(uint256,address,address,uint256)` | custom `:337` | fail-closed exit: reverts `PayoutBelowMin` when the payout lands below `minPayout` — the DEFAULT exit (see WRITE FLOWS) |
+| `previewDeposit/Mint/Withdraw/Redeem` | ERC-4626 std | preview before send, always |
+| `harvest(uint256 assets)` | custom `:407-415` | **ROAMER-ONLY** (`NotHarvester`); excess-bounded credit; agents OBSERVE, never call |
+| `wellToken()` | public state | `0x0` until the one-shot `setWellToken` — the burn lane stays BURN-PENDING |
+| events | `:160` + OZ | `YieldHarvested(uint256 indexed assets, uint256 newIdleBook)` + OZ `Deposit`/`Withdraw`/`Transfer`/`Approval` |
 
-**Share decimals:** `_SHARE_DECIMALS_OFFSET = 6` (`:49`) means share decimals = asset decimals + 6 = **24** for an 18-decimal asset. A depositor of `x` assets into an empty vault mints `x * 10**6` shares (`:45-49`). Do share math at 1e24-share scale (1e24 shares = "1 share" at human scale → `convertToAssets(1e24)` returns asset-wei for one human share).
+**RoamingHarvester — `src/RoamingHarvester.sol`** (reads only — the write surfaces are tiered in the PERMISSION MODEL section)
 
-**Harvester — `src/Harvester.sol`** (constructor `:204-231`: `vault_, timelock_, treasury_, asset_, weth_, poolFee_, npm_, router_, quoter_`; asset is the tokenized stock `:149`, poolFee SPY/WETH = 500 `:152-153`)
-
-| Function | Source | Notes |
+| Surface | Source | Notes |
 |---|---|---|
-| `harvest()` | custom `:280-309` | **permissionless**, nonReentrant; collects BOTH fee legs from the owned position, swaps the collected WETH leg to the asset via SwapRouter02 (QuoterV2-derived minOut, 1% allowance `:137`, `:355`), splits proceeds: vault share = `proceeds × (10000 − feeBps)/10000` (fee read live `:387`), caller tip 0.1% (`TIP_BPS = 10`, `:134`) deducted from the protocol share; a failed swap reverts the whole harvest (fees stay in the LP position) |
-| `sweepToTreasury()` / `forwardToken(address)` | custom `:318` / `:333` | permissionless; moves accrued protocol fees and force-sent/donated tokens to the treasury **unswapped** |
-| `transferPosition(address, uint256)` | custom `:260-268` | timelock-only; the single custody path for the protocol LP principal — there is no decreaseLiquidity path |
-| `onERC721Received(...)` | custom `:242-253` | accepts ONLY a position on the configured (WETH, asset, poolFee) pool; one position max |
-| `positionId()` / `protocolAccrued()` | custom `:162` / `:166` | LP position NFT id / accrued protocol share awaiting sweep |
-| event `Harvested(...)` | custom `:170-181` | `tokenId, caller` indexed; data: `amount0Collected, amount1Collected, swappedOut, proceeds, vaultShare, vaultCredited, tip, accrued` |
+| `minHoldSeconds` / `maxMigrationsPerPeriod` / `minExpectedGainBps` / `migrationFeeBps` | `:239-242` | public state; the compiler auto-getters ARE the read surface; Safe-settable within immutable ceilings |
+| `positionRecord(bytes32)` / `migrationsThisPeriod()` / `openKeyCount()` / `isVaultPosition(bytes32)` | `:384-394`, `:1412-1414` | book/position state reads |
+| `vaultAccrued(token)` | `:1367` | the 90% vault bucket awaiting `sweepVaultYield()` |
+| `sweepVaultYield()` | `:1435-1441` | AGENT-SAFE (operator instruction only) — fills the vault's 90% bucket |
+| `sweepToBurn()` | `:671-678` | AGENT-SAFE but INERT until `setWellToken` (revert `NoWellToken` = data) |
+| events | `:267-273` | `BookOpened`, `FeesCollected(bytes32 indexed keyHash, bytes32 indexed poolId, uint256 amount0, uint256 amount1)`, `MigrationExecuted` |
+| `migrate(...)` / `exitBook(...)` | `:579` / `:634` | OPERATOR-SCOPED — never fired by an agent (PERMISSION MODEL) |
 
-**WellstreetTimelock — `src/WellstreetTimelock.sol`**
-
-| Function | Source | Notes |
-|---|---|---|
-| `MIN_DELAY` | `:27` | 48-hour floor, enforced in the constructor |
-| `queue(target, value, data, salt)` / `cancel(id)` | `:85` / `:99` | proposer-only (the 2-of-3 Safe) |
-| `execute(target, value, data, salt)` | `:107-120` | **permissionless** once `readyAt` has passed |
-| `hashCall(...)` / `readyAt(bytes32)` | `:76` / `:37` | deterministic op id / queue state (0 = not queued) |
-| events | `:39-48` | `CallQueued`, `CallCancelled`, `CallExecuted` — the 48h window is public |
-
-**VaultFactory — `src/VaultFactory.sol`**
-
-| Function | Source | Notes |
-|---|---|---|
-| `createVault(asset, name, symbol)` | `:54-68` | permissionless; one vault per asset, enforced on-chain (a v4-capable second creation path, `createVaultV4`, exists at `:116` — same one-vault-per-asset invariant) |
-| `vaultOfAsset(asset)` / `allVaults()` / `allVaultsLength()` | `:27` / `:71` / `:137` | the on-chain registry — how any agent discovers the canonical vault without an API |
+**RoamAllowlist — `src/RoamAllowlist.sol`**: `bookCount()` (`:114`), `isListed(bytes32)` (`:109`), `BookAdded(bytes32 indexed poolId, PoolKey key, BookMeta bookMeta)` (`:48`); `addBook` is onlyTimelock (`:80`).
 
 ## READ BATTERY
 
-All keyless. Set up once:
+All keyless, every command live-verified 2026-09-15. Set up once:
 
 ```bash
 export RPC=https://rpc.mainnet.chain.robinhood.com
-# DEPLOYED 2026-09-03 — pinned byte-exact from site/js/config.js:92-96, :152.
+# Pinned byte-exact from site/js/config.js roamStack / uniswapV4 (live verification 2026-09-15).
 # DO NOT substitute any other hex: addresses come only from config.js / this skill.
-VAULT=0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01
-HARVESTER=0xe6c4502cfe17E99475a1B9C8511F47ea38a8A996
-FACTORY=0x07446D9807F90eD7ED177Ab63597e8BB4D96428f
+VAULT=0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86        # RoamVault
+ROAMER=0xC7a21Aa8C15C7032eE2e8352244a0f3D2154dC68       # RoamingHarvester
+ALLOWLIST=0x6040bA3e356cb023C67002De45D2af56FED4e81A    # RoamAllowlist
+USDG=0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168         # vault asset (6 dec)
 TIMELOCK=0xD55bA510533dc5a250b4D6d49Ee825113DD69342
+POOL_ID=0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551  # USDG/ETH anchor book
 ```
 
-**Expected result for every $VAULT/$HARVESTER/$FACTORY/$TIMELOCK command below: a real, decodable value.** The contracts are live since 2026-09-03. A revert or empty result is still data — deposits paused, no LP position yet, no queued op for that id, or wrong args — not a bug to work around and not a reason to hunt for "the real" contract elsewhere on the chain. The "works today" reads at the end succeed regardless.
+**Expected result for every command below: a real, decodable value.** The stack is live. A revert or empty result is still data — deposits paused, a book not listed, no logs in the window, or wrong args — not a bug to work around and not a reason to hunt for "the real" contract elsewhere on the chain.
 
 | # | Read | Command | Expected output SHAPE |
 |---|---|---|---|
-| 1 | Total accounted assets | `cast call $VAULT 'totalAssets()(uint256)' --rpc-url $RPC` | one uint256, asset-wei (SPY, 18 dec). Storage-based — donations excluded |
-| 2 | Share price (assets per human share) | `cast call $VAULT 'convertToAssets(uint256)(uint256)' 1000000000000000000000000 --rpc-url $RPC` | one uint256, asset-wei backing 1e24 shares; divide by 1e18 → SPY-per-share (first deposits sit at 1.0) |
-| 3 | Redeem preview | `cast call $VAULT 'previewRedeem(uint256)(uint256)' <shares-wei> --rpc-url $RPC` | one uint256, asset-wei you would receive for those shares |
-| 4 | Backing coverage | `cast call $VAULT 'backingCoverage()(uint256)' --rpc-url $RPC` | one uint256, 1e18 fixed point: `= 1e18` exact cover; `> 1e18` unaccounted excess (donations / uncredited yield); `< 1e18` under-coverage — today only reachable via an issuer `adminBurn` against the vault; redemptions are served from the remaining balance and late redeemers revert (`src/YieldShares.sol:152-156`). TWO reporting traps: an EMPTY vault reads exactly 1e18 by construction (`ta == 0` short-circuits, `:152-156`) — 1e18 alone is "no accounted liability", not proof of deposits or of backing; and under-coverage is the F-04b class — the views degrade gracefully instead of panicking (`unaccountedAssets()` returns 0 rather than reverting, `:132-136`), so a burned vault is a state you REPORT, never an error you suppress |
+| 1 | Harvester binding | `cast call $VAULT 'harvester()(address)' --rpc-url $RPC` | the roamer pin — the one-shot `setVault` binding; any other value = do not interact, re-pin from config first |
+| 2 | Total accounted assets | `cast call $VAULT 'totalAssets()(uint256)' --rpc-url $RPC` | one uint256, USDG-wei (6 dec) |
+| 3 | Book split | `cast call $VAULT 'deployedBook()(uint256)' --rpc-url $RPC` and `cast call $VAULT 'idleBook()(uint256)' --rpc-url $RPC` | two uint256, USDG-wei; invariant `deployedBook + idleBook == totalAssets` — a mismatch is a mid-settlement state: re-read and report, never patch |
+| 4 | Deposit headroom | `cast call $VAULT 'maxDeposit(address)(uint256)' 0x0000000000000000000000000000000000000000 --rpc-url $RPC` | uint256 USDG-wei; while `depositsPaused == false`, `maxDeposit + totalAssets == DEPOSIT_CAP` (operating 25_000e6; immutable ceiling 250_000e6, `src/RoamVault.sol:106-112`); `0` = HARD STOP |
 | 5 | Deposit pause flag | `cast call $VAULT 'depositsPaused()(bool)' --rpc-url $RPC` | `true`/`false` |
-| 6 | Protocol fee | `cast call $VAULT 'feeBps()(uint256)' --rpc-url $RPC` | uint256 bps (initial 1000; cap 2000) |
-| 7 | Unaccounted excess | `cast call $VAULT 'unaccountedAssets()(uint256)' --rpc-url $RPC` | uint256 asset-wei sitting above the accounting figure |
-| 8 | Harvester position | `cast call $HARVESTER 'positionId()(uint256)' --rpc-url $RPC` | uint256 NFT id (0 = none) |
-| 9 | Accrued protocol share | `cast call $HARVESTER 'protocolAccrued()(uint256)' --rpc-url $RPC` | uint256 asset-wei awaiting `sweepToTreasury()` |
-| 10 | Harvester config | `cast call $HARVESTER 'poolFee()(uint24)' --rpc-url $RPC` (also `asset()`, `weth()`, `treasury()`, `vault()`) | `poolFee` must read `500` for vault #1; addresses echo the pinned tokens |
-| 11 | Harvest history | `cast logs --from-block <N> --to-block latest --address $HARVESTER 'Harvested(uint256,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)' --rpc-url $RPC` | list of logs: topics = tokenId, caller; data = amount0Collected, amount1Collected, swappedOut, proceeds, vaultShare, vaultCredited, tip, accrued. `vaultShare ≠ vaultCredited` = a transfer shortfall occurred (credit is the actual delta) |
-| 12 | Vault yield credits | `cast logs --from-block <N> --to-block latest --address $VAULT 'YieldHarvested(uint256,uint256)' --rpc-url $RPC` | list of logs: assets credited + resulting totalAssets |
-| 13 | Vault discovery | `cast logs --from-block 0 --to-block latest --address $FACTORY 'VaultCreated(address,address,string,string)' --rpc-url $RPC` | one log per vault: asset, vault, name, symbol — or just read `cast call $FACTORY 'vaultOfAsset(address)(address)' 0x117cc2133c37B721F49dE2A7a74833232B3B4C0C` |
-| 14 | Pending timelock ops | `cast call $TIMELOCK 'readyAt(bytes32)(uint256)' <id> --rpc-url $RPC` | uint256 unix timestamp (0 = not queued); enumerate via `CallQueued` logs |
-| 15 | Holder share balance | `cast call $VAULT 'balanceOf(address)(uint256)' $USER --rpc-url $RPC` | uint256 RAW share balance at the 1e24-per-human-share scale (offset 6): a 1.0-SPY depositor into an empty vault holds 1e24, not 1e18 — never print a raw count as "shares" without the scale |
-| 16 | Holder position value | `cast call $VAULT 'convertToAssets(uint256)(uint256)' <raw-shares-from-15> --rpc-url $RPC` | uint256 asset-wei the position stands behind — the holder-state figure the site's position row shows (`site/js/vault.js:280-295`, same two reads batched). Two scales in play: raw balances are 1e24-per-human-share while the site's per-share price line uses `convertToAssets(1e18)` = a 1e18-share (1e-6-human-share) basis — they differ by 1e6, never mix them in one sentence |
-| 17 | Withdraw preview (asset-exact exit) | `cast call $VAULT 'previewWithdraw(uint256)(uint256)' <assets-wei> --rpc-url $RPC` | uint256 shares that would be BURNED to receive that asset amount (OZ rounds the share side CEIL). Pair with #3 (`previewRedeem`, which floors the asset side) and the preview-discipline rule below |
+| 6 | Share price | `cast call $VAULT 'convertToAssets(uint256)(uint256)' 1000000000000 --rpc-url $RPC` | uint256 USDG-wei backing 1e12 shares (= 1.0 USDG at 1:1). Share scale is **12 decimals** (USDG 6 + offset 6, `src/RoamVault.sol:100`) — never print a raw share count without the scale |
+| 7 | Redeem preview | `cast call $VAULT 'previewRedeem(uint256)(uint256)' <shares-wei> --rpc-url $RPC` | uint256 USDG-wei you would receive — the input to `redeemWithMinOut`'s `minPayout` |
+| 8 | Roamer guardrails | `cast call $ROAMER 'minHoldSeconds()(uint32)' --rpc-url $RPC` / `cast call $ROAMER 'maxMigrationsPerPeriod()(uint16)' --rpc-url $RPC` / `cast call $ROAMER 'minExpectedGainBps()(uint32)' --rpc-url $RPC` | as-of 2026-09-15: 604800 (7d) / 4 / 3911. **EVALUATOR RULE:** these are timelock-settable (`src/RoamingHarvester.sol:239-241`) — on a mismatch, check pending/executed timelock ops FIRST (battery #12); only an unexplained change is a stop |
+| 9 | Allowlist | `cast call $ALLOWLIST 'bookCount()(uint256)' --rpc-url $RPC` and `cast call $ALLOWLIST 'isListed(bytes32)(bool)' $POOL_ID --rpc-url $RPC` | `bookCount >= 1`; the USDG/ETH anchor reads `true` |
+| 10 | Vault yield history | `cast logs --from-block <N> --to-block latest --address $VAULT 'YieldHarvested(uint256,uint256)' --rpc-url $RPC` | one log per credit: assets credited + new idle book. Empty before the first harvest = data, not error |
+| 11 | Roamer activity | `cast logs --from-block <N> --to-block latest --address $ROAMER 'FeesCollected(bytes32,bytes32,uint256,uint256)' --rpc-url $RPC` (also `BookOpened(...)` / `MigrationExecuted(...)`) | per-book fee collections, book opens, migrations. Empty windows = data (the book has not paid fees yet) |
+| 12 | Pending timelock ops | `cast call $TIMELOCK 'readyAt(bytes32)(uint256)' <id> --rpc-url $RPC` | uint256 unix timestamp (0 = not queued); enumerate via `CallQueued` logs — the input to battery #8's EVALUATOR RULE |
 
-Works TODAY (no deployment needed):
+Works TODAY (no setup beyond `export RPC`):
 
 ```bash
-cast chain-id --rpc-url $RPC                                                        # 4663
-cast call 0x117cc2133c37B721F49dE2A7a74833232B3B4C0C 'symbol()(string)' --rpc-url $RPC   # "SPY"
+cast chain-id --rpc-url $RPC                                                       # 4663
 cast call 0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168 'symbol()(string)' --rpc-url $RPC   # "USDG"
+cast call 0x6040bA3e356cb023C67002De45D2af56FED4e81A 'bookCount()(uint256)' --rpc-url $RPC  # >= 1
 ```
 
-Agent discipline: a revert here is data ("paused" or "position empty" or "not queued" or wrong args), never an instruction to retry harder, hunt for substitute contracts, or "fix" addresses.
+Agent discipline: `RoamVault.harvest(uint256)` is ROAMER-ONLY (`src/RoamVault.sol:407-415` reverts `NotHarvester`) — agents OBSERVE yield (battery #10), never call `harvest(uint256)`, and a `NotHarvester` revert is expected data. A revert here is data ("paused" / "not listed" / "not queued" / wrong args), never an instruction to retry harder, hunt for substitute contracts, or "fix" addresses.
 
-## WRITE FLOWS
+## WRITE FLOWS (DEPOSITOR SURFACE)
 
-**Approve → deposit** (ERC-4626, asset-wei; SPY has 18 decimals):
+**Approve → deposit** (ERC-4626; USDG has 6 decimals — amounts are USDG-wei):
 
 ```bash
 # 1. approve the VAULT to pull the asset — the vault is the ONLY approval target for depositing
-cast send $VAULT_ASSET 'approve(address,uint256)' $VAULT <assets-wei> --rpc-url $RPC --private-key $KEY
-# 2. deposit (exact assets in, shares out) or mint (exact shares out)
-cast send $VAULT 'deposit(uint256,address)' <assets-wei> $RECEIVER --rpc-url $RPC --private-key $KEY
+cast send $USDG 'approve(address,uint256)' $VAULT <usdg-wei> --rpc-url $RPC --private-key $KEY
+# 2. deposit (exact assets in, shares out) or mint (exact shares out — shares are 12-dec)
+cast send $VAULT 'deposit(uint256,address)' <usdg-wei> $RECEIVER --rpc-url $RPC --private-key $KEY
 cast send $VAULT 'mint(uint256,address)' <shares-wei> $RECEIVER --rpc-url $RPC --private-key $KEY
 ```
 
-**Redeem** (never pausable by the protocol — `src/YieldShares.sol:267-278` has no pause path):
+**Exits — PRE-EXIT READS first.** Before ANY redeem/withdraw, read `idleBook()` and `deployedBook()` (battery #3). A payout above `idleBook` egresses the shortfall through the roamer's book exit under the house ±`SWAP_SLIPPAGE_BPS` per-leg band (`SWAP_SLIPPAGE_BPS = 100`, `src/RoamMathLib.sol:36`; egress settlement `src/RoamVault.sol:523-556` — pro-rata decrease-only slices, never gated by MIN_HOLD, never consuming the migration cap).
+
+- **DEFAULT exit = `redeemWithMinOut`** (`src/RoamVault.sol:337`): plain `redeem()`/`withdraw()` carry NO redeemer floor (their `minPayout` is 0 — the house per-leg band inside the roamer is the only protection), so derive `minPayout` from a FRESH `previewRedeem(shares)` immediately before the send:
 
 ```bash
-cast send $VAULT 'redeem(uint256,address,address)' <shares-wei> $RECEIVER $OWNER --rpc-url $RPC --private-key $KEY
-# or asset-exact: withdraw(uint256 assets, address receiver, address owner)
+cast send $VAULT 'redeemWithMinOut(uint256,address,address,uint256)' <shares-wei> $RECEIVER $OWNER <minPayout> --rpc-url $RPC --private-key $KEY
+# vanilla entries exist — redeem(uint256,address,address) / withdraw(uint256,address,address) — but are NOT the default
 ```
 
-**Pause mode — read before ANY deposit write.** The pause model is one-sided: DEPOSITS are pausable, REDEMPTIONS never (`_deposit` is the only pause checkpoint in the contract, `src/YieldShares.sol:249` + revert `DepositsPaused` `:254`; `_withdraw` `:267-278` has no pause path).
+- `InsufficientBacking` (claim > idle + deployed, `src/RoamVault.sol:546`) and `PayoutBelowMin` (`:578`) reverts are expected data, never errors to work around: the first means the claim exceeds backing (report the state), the second means the fresh preview moved against you between preview and mine (re-preview and decide — never raise `minPayout` to force a send).
 
-- Before a deposit/mint, read `depositsPaused()` (battery #5) and/or `maxDeposit(receiver)` — `maxDeposit`/`maxMint` encode the same truth as `0` when paused (`:165-172`). A `0` is a HARD STOP, never an amount to clamp down to. (The site's deposit widget gates on exactly this verified read — `readDepositsPaused`, `site/js/vault.js:265-274` — where an unknown/unread state never enables a deposit.)
-- A pause can flip between your read and your send: `setDepositPaused` is callable by the timelock OR the pause-only EOA (`:195-199`) and every flip emits `DepositPauseSet` (`:78`). A `DepositsPaused` revert on send is data — re-read the flag and report the paused state; never retry harder and never route around it.
-- "Paused" means deposits ONLY: all reads and redeem/withdraw keep working, and no agent may report a paused vault as "funds trapped" — the protocol's own controls cannot trap user funds.
-
-**Preview discipline — the chain prices the final amount.** Never quote an exit from `convertToAssets` arithmetic, a remembered share price, or a stale read: call `previewRedeem(shares)` (battery #3) for a share-exact exit or `previewWithdraw(assets)` (battery #17) for an asset-exact exit immediately before the send. The OZ `redeem`/`withdraw` entrypoints execute through these same previews (`previewWithdraw`/`previewRedeem` called internally, `lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol:215,228`), so a preview is EXACT against the state it was computed from — and stale the moment state moves (another deposit or a `harvest()` between preview and mine shifts the number). Quote → send without sitting on the quote, and label the figure "previewed" — a live quote, never a promise. The site's redeem widget runs the same two previews live before any send (`previewRedeem`/`previewWithdraw`, `site/js/vault.js:301-321`).
+**Pause mode — read before ANY deposit write.** `depositsPaused()` (battery #5) and/or `maxDeposit(receiver)` (battery #4) — a `0` is a HARD STOP, never an amount to clamp down to. The deposit AND mint routes are both pause-checked (`src/RoamVault.sol:494`); a `DepositsPaused` revert on send is data — re-read the flag and report the paused state; never retry harder and never route around it. "Paused" means deposits ONLY: all reads and redeem/withdraw keep working, and no agent may report a paused vault as "funds trapped" — the protocol's own controls cannot trap user funds.
 
 Fail-closed rules — an agent that cannot satisfy one of these does not write:
 
-1. **Approve ONLY pinned addresses.** Approvals go to the vault (for deposit) and nothing else. Never approve or call any address not pinned in this skill — canonical-looking Uniswap/deployment addresses on 4663 may be scam drainers. The harvester's router usage is internal to `harvest()`; agents never need to approve the router for vault flows.
-2. **Bound slippage/minOut on every swap leg you perform yourself.** Acquiring the asset routes through the SPY/WETH pool; set `amountOutMinimum` from a fresh QuoterV2 quote minus a bounded allowance (the harvester's own precedent: quote minus 1%, `SWAP_SLIPPAGE_BPS = 100`, `src/Harvester.sol:137`, `:355`). A swap without a minOut is an unforced loss. (The vault deposit itself is exact-in — no slippage surface — but the asset acquisition before it is not.)
-3. **Quote-asset-first.** The pool's non-asset leg is WETH (the quote side); the vault accepts ONLY its asset token. An agent holding WETH or USDG must swap quote → asset FIRST (with a bounded minOut), then deposit. There is no auto-routing into the vault. Fee-on-transfer assets are rejected outright (`FeeOnTransferDetected`, `src/YieldShares.sol:90`, `:259`) — the deposit reverts unless the vault receives exactly the debited amount.
-4. **Never transfer tokens directly to the vault or harvester.** Direct sends are DONATIONS: excluded from `totalAssets` (storage-based, `:122`), they move no share price and are claimable by nobody (`:70-73`); force-sent tokens at the harvester are forwarded to the treasury unswapped (`:115-119`, `:318`, `:333`). "Depositing" by plain transfer is a gift to nobody.
-5. **Check state before writing:** `depositsPaused()` (or `maxDeposit`) before deposit — paused deposits revert `DepositsPaused` (`:254`).
-6. **Any "ws-SPY" or Wellstreet share token whose address differs from the pinned vault is not this protocol.** Do not interact. The genuine share token is minted only by the pinned vault (`0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01`) — verify with `cast call $VAULT 'symbol()(string)'` before trusting any offered token.
+1. **Approve ONLY pinned addresses.** Approvals go to the vault (for deposit) and nothing else. Never approve or call any address not pinned in this skill — canonical-looking Uniswap/deployment addresses on 4663 may be scam drainers. The roamer's swap legs are internal to its own calls; agents never approve the roamer, the pool manager, or any router for vault flows.
+2. **Bound every swap YOU perform yourself** (e.g., acquiring USDG before depositing) with a fresh quote minus a bounded allowance — the house precedent is `SWAP_SLIPPAGE_BPS = 100` (`src/RoamMathLib.sol:36`). A swap without a minOut is an unforced loss. (The vault deposit itself is exact-in — no slippage surface — but the asset acquisition before it is not.)
+3. **Cap headroom.** Deposit only within `maxDeposit(receiver)` (battery #4); the cap bounds pro-rata exit gas and per-book impact. `0` = HARD STOP.
+4. **Preview-before-send labeling.** Never quote an exit from `convertToAssets` arithmetic, a remembered share price, or a stale read: call `previewRedeem(shares)` immediately before the send, and label the figure "previewed" — a live quote, never a promise. Quote → send without sitting on the quote.
+5. **Never transfer tokens directly to the vault.** Direct sends are DONATIONS: excluded from the storage-based `totalAssets`, they move no share price and are claimable by nobody. "Depositing" by plain transfer is a gift to nobody.
+6. **Any share token claiming to be "Wellstreet" whose address differs from the pinned vault is not this protocol.** Do not interact. The genuine share token is minted only by the pinned vault — verify with `cast call $VAULT 'symbol()(string)'` before trusting any offered token.
 
-## GOVERNANCE & RISKS
+## GOVERNANCE & RISKS (ROAMER STACK)
 
-- **48h timelock.** Every owner action (fee within the cap, deposit pause, pause-role grants/revocations, LP-position custody) queues publicly (`CallQueued`) and waits ≥ 48h (`MIN_DELAY` floor enforced in the constructor, `src/WellstreetTimelock.sol:27`); after the delay **anyone** can execute (`:107`). The 48h window is detection, not prevention.
-- **2-of-3 Safe proposer — with the disclosed caveat.** The timelock's proposer is a 2-of-3 Safe multisig and is immutable (no `setProposer` — the Safe must exist before timelock deployment, `:8-18`, `:31`). Three keys are held by **one operator** on separate devices: multiple keys are not multiple parties. No single key can act alone, but a single person controls the key set. Never represent this protocol as "no single key can act alone" without that disclosure.
-- **Pause authority.** Deposits can be paused by the timelock OR a revocable, function-limited pause-only EOA (`:195-199`); the timelock can strip a compromised pause key via `setPauser(address(0))` (`:204`). **Redemptions have no pause path** — protocol controls can never trap user funds, though an issuer pause of the underlying token freezes the underlying transfer for everyone, including the vault.
-- **Fee bounds.** Protocol fee starts at 1000 bps (10% protocol / 90% depositors), timelock-settable, hard cap `MAX_FEE_BPS = 2000` (`src/YieldShares.sol:44`) — the only structural bound on fee escalation.
-- **LP principal risk (treasury capital, not depositor assets).** The harvester's liquidity position is seeded with treasury capital and is EXCLUDED from `totalAssets` — only fee income flows to depositors, never the position. That principal bears impermanent loss between SPY and WETH, WETH price risk, and predictable loss (LVR; measured context ≈ σ̂²/8 ≈ 3.5%/yr for the SPY/WETH pool) — the treasury's own capital can shrink. At full range IL is small; concentrated bands carry 10–100× the IL and need 48h-cadence re-anchoring. LP custody moves only via timelock `transferPosition` (`:260`); `harvest()` can never touch the principal.
-- **Single-pool concentration.** All of vault #1's yield comes from ONE pool (SPY/WETH tier 500), and the wrapped asset's exit to spendable value runs through that same single pool. Yield scales with trading volume and approaches zero when volume does. A quiet pool earns nothing.
-- **Issuer risk on the underlying stock token.** The issuer can pause the token, upgrade the whole fleet behind one beacon, `adminBurn` balances (including the vault's), and blocklist addresses — all outside this protocol's control. Deposit = accepting all of it. Details: `docs/public/risk-disclosure.md`.
-- **Force-sent tokens.** Anything force-sent to the vault or harvester is donated — to nobody (vault, unaccounted excess) or to the treasury (harvester, swept unswapped). Do not "recover" such tokens; there is no recovery path, by design.
+- **48h timelock, open executor.** Every admin action (cap, pause policy, pause-role revocation, allowlist books, guardrail setters) queues publicly (`CallQueued`) and waits ≥ 48h; after the delay anyone can execute. The window is detection, not prevention.
+- **2-of-3 Safe proposer — with the disclosed caveat.** Three keys are held by **one operator** on separate devices: multiple keys are not multiple parties. No single key can act alone, but a single person controls the key set. Never represent this protocol as "no single key can act alone" without that disclosure.
+- **Pause authority.** Deposits can be paused by the timelock or the pause-role holder; **redemptions have no pause path** — protocol controls can never trap user funds.
+- **Cap bounds.** `DEPOSIT_CAP` starts at 25,000 USDG (Safe-settable) under the immutable 250,000 USDG ceiling (`src/RoamVault.sol:106-112`) — the only structural bound on cap escalation.
+- **LP principal risk (depositor capital IS the deployed capital).** RoamVault's `deployedBook` is DEPOSITOR capital inside v4 books: it bears impermanent loss on USDG/ETH, and an exit that exceeds `idleBook` realizes the marked shortfall through the book exit (proceeds vs the mark are the redeemer's slice). Books are guardrailed (MIN_HOLD / migration cap / min-gain floor), but guardrails bound migration frequency — they do not remove IL.
+- **Single-book concentration.** The vault's deployed capital sits in the USDG/ETH anchor book; yield scales with that book's trading volume and approaches zero when volume does. A quiet book earns nothing.
+- **USDG issuer risk.** The vault asset is a third-party stablecoin; issuer pause/blocklist/upgrade risk sits outside this protocol's control. Details: `docs/public/risk-disclosure.md`.
+- **Force-sent tokens.** Anything force-sent to the vault is donated — to nobody. Do not "recover" such tokens; there is no recovery path, by design.
 - **Experimental, unaudited software with no operating history.** No third-party audit has been performed. The Foundry suite (`forge test`) covers the invariants; it does not eliminate the risk.
 
-## HONEST REPORTING RULES
+## HONEST REPORTING
 
-**The ratified APR form** (GO/NO-GO packet 2026-09-03 §3 + GATE OUTCOME; pinned in `site/js/config.js:203-211`):
+**The measured basis is the fleet feed — `site/data/fleet.json`.** Its `provenance.method` is the labeling contract: "feeAprPct prefers the fixture's measured APR-M run-rate, else its formula APR-F (locked formula on DexScreener vol24h); chargedFeeBps is the fixture's swap-count-weighted mean of the charged-fee dist; zero-swap books are never estimated." Match the vault's anchor book by poolId `0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551` and cite the file's `generated` date with every figure (at the 2026-09-16 generation the anchor row read: `feeAprPct` 165, `chargedFeeBps` 1057.0 wavg over 1488 swaps, window a, tier PAYS). That figure is a BOOK-level measured fee APR — never print it as a depositor figure.
 
-```
-depositor APR = pool_net_rate × (L_pos / L_pool) × (pool_TVL / vault_TVL) × 0.9     [floor: 0.10%/yr]
-```
-
-- `pool_net_rate` — gross fee APR from the pool's Swap events, net of the pool's own protocol cut (decoded live from the pool's `slot0.feeProtocol` word; currently 1/4 per side → ×0.75). Ratified measured basis: median of three 2h weekday-peak windows, 2026-08-25..27 → 40.310%/yr pool-net (windows 32.595 / 40.310 / **40.310** / 49.514 — the MAX window is forbidden as an input; median only). This is a pool-level input, never a depositor figure.
-- `(L_pos / L_pool)` — the harvester's liquidity share of the pool (ratified pin: 1% seed at full range → `liquidityShareFullRange = 0.000369`).
-- `(pool_TVL / vault_TVL)` — dilution by total deposits (pins: `poolTvlWethBasis = 482.77` WETH at the 2026-09-02 basis; `targetVaultTvlUsd = 58000`).
-- `× 0.9` — the depositors' share at the initial 1000 bps protocol fee (recompute from live `feeBps()`).
-- Floor `0.10%/yr` — the ratified depositor-APR floor (`depositorAprFloorPct`); it clears at full range only with vault TVL ≤ ~$58k. The pool-level floor 3.542%/yr (`poolFloorNetAprPct`) is a pool input — never print it as a depositor figure.
+- **Vault-lane split as NAMED CONSTANTS.** Vault-lane revenue splits `DEPOSITOR_BPS = 9000` / `BURN_BPS = 1000` (`src/RoamVault.sol:91-96`); the burn tail is inert while `wellToken() == 0x0` (BURN-PENDING accrual — see the PERMISSION MODEL rider). A depositor-realization chain labels EVERY input: book fee APR (fleet feed, source+window) × the vault's in-book LP share (chain reads: `deployedBook` vs the book's TVL) × 9000/10000. Skip any input you cannot measure — print "no figure", not a guess.
+- **Historical note (retired formula).** The pre-roamer ws-SPY flagship used `pool_net_rate × (L_pos / L_pool) × (pool_TVL / vault_TVL) × 0.9` — RETIRED with the wind-down; kept for history only, never computed again.
 
 **Rules for any number an agent prints:**
 
-1. **Source + window + formula, every time.** Every APR figure carries what it was measured from, the window it covers, and the formula chain that produced it. A bare "APR: X%" is a violation of this skill.
+1. **Source + window + formula, every time.** Every APR figure carries what it was measured from, the window it covers, and the chain that produced it. A bare "APR: X%" is a violation of this skill.
 2. **Backward-looking only.** A measured figure is historical and reproducible only from the evidence it was computed from. Yield is swap-fee income — it varies with volume hourly and seasonally, and it approaches zero when volume does. Never present a past rate as a future one.
 3. **Never a promise, target, or headline.** Label figures "projected, not promised" or "measured input, historical window". No figure in this project is an offer, solicitation, or financial advice. If a label and a headline number disagree, the labeling rules win.
-4. **Never print from thin data.** Windows with fewer than 20 Swap events are excluded; incomplete log retrieval drops the window rather than patching it (`site/js/config.js:222-239`, `docs/public/methodology.md`). If the pipeline is unavailable, print "no figure" — not the last number, not a fallback presented as current.
-5. **Scenario tables are upper bounds where marked.** Band rows assume always-in-range; real band economics multiply by the in-range fraction, which the measured tick drift makes materially < 1.
-6. **Report risk alongside yield.** Any yield report names the counterfactual honestly: same income divided among more depositors dilutes per-depositor APR; the LP principal that generates it is treasury capital that bears IL/LVR and can shrink.
-7. **Coverage percent truncates toward zero; excess is never clamped.** A 99.95%-covered vault prints "99.9%", never "100.0%", and `> 1e18` excess prints as-is ("199.9%", not capped at 100) — the same rule the site's formatter enforces (`site/js/vault.js:103-110`). Rounding under-coverage up to a round number misreports the protocol's worst risk; clamping excess hides real donations.
+4. **Never print from thin data.** Zero-swap books are never estimated; incomplete feeds drop the window rather than patching it. If the fleet feed is unavailable, print "no figure" — not the last number, not a fallback presented as current.
+5. **Report risk alongside yield.** Any yield report names the counterfactual honestly: the same book income divided among more depositors dilutes per-depositor APR, and the deployed book capital that generates it bears IL and can shrink.
+6. **Scales are part of the figure.** USDG amounts are 6-dec wei; share amounts are 12-dec (`convertToAssets(1e12)` ≈ 1.0 USDG). Never print a raw wei count as a human figure without naming the scale.
+
+## LP ROUTING — DEFAULT AND DISCOVERY
+
+Default routing: vault/roamer = safe default; direct LP = you're-on-your-own. The roamer enforces the guardrails below on every migration. If you LP directly, YOU own these checks — the protocol will not stop you, and nothing here is a promise of any particular APR; every figure you see is measured-only and backward-looking with its source and window attached.
+
+Before ANY direct-LP choice, evaluate the roamer guardrails from the READ BATTERY (#8: `minHoldSeconds` / `maxMigrationsPerPeriod` / `minExpectedGainBps` — timelock-settable; re-verify on mismatch via pending timelock ops). Book discovery: RoamAllowlist `BookAdded` logs + `bookCount()`/`isListed(bytes32)` + the live book table `site/data/fleet.json`. Position mint/manage on the fork-v4 PositionManager and the self-custodied router are owned by the companion LP-PATH-TEACHING goal of this same batch — this pointer is its landing pad; no mint/manage mechanics are taught here.
+
+## LEGACY — the ws-SPY flagship (wound down)
+
+The pre-roamer ws-SPY vault is WOUND DOWN: no new deposits. The vault is still live on-chain with real share holders, so its reads and redeem remain valid — a fail-closed skill tells an agent holding ws-SPY how to exit. Old pinned addresses are unchanged.
+
+| Address | What |
+|---|---|
+| `0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01` | ws-SPY vault (YieldShares, ERC-4626) — old pinned address, unchanged |
+| `0x117cc2133c37B721F49dE2A7a74833232B3B4C0C` | SPY — the wrapped stock token (18 dec) |
+
+Valid keyless reads: `totalAssets()`, `convertToAssets(uint256)` (share scale 1e24-per-human-share, offset 6), `previewRedeem(uint256)`, `depositsPaused()`.
+
+Exit (never pausable — `_withdraw` has no pause path, `src/YieldShares.sol:267-278`); preview immediately before send:
+`cast send 0x3a1c83ABc79A512aAd68ac721CE0F10F41de3a01 'redeem(uint256,address,address)' <shares-wei> $RECEIVER $OWNER --rpc-url $RPC --private-key $KEY`
+
+Any "ws-SPY" token whose address differs from the pinned vault is not this protocol — do not interact. The full old-world surface lives in this file's git history; nothing there is a routing recommendation.
 
 ## SELF-CHECK
 
-Run these against your own copy of this skill (and your own drafted output) before acting. The dots in the overclaim pattern are deliberate regex any-chars so the pattern list does not itself contain the banned phrases:
+Run these against your own copy of this skill (and your own drafted output) before acting. The dots in the overclaim pattern and the bracket-trick patterns are deliberate regex constructions so the pattern list never matches its own banned/pinned phrases:
 
 ```bash
 S=skills/wellstreet-vaults/SKILL.md
 test -f "$S" && echo SKILL_OK
 grep -c '4663' "$S"                                              # >= 2  (chain pinned)
-grep -cE 'DEPLOYED 2026-09-03' "$S"                              # >= 2  (deployed pins present)
+grep -cE 'DEPLOYED 2026-09-0[3]' "$S"                            # 0     (old-world deploy pins gone — frontmatter included)
+grep -c '0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86' "$S"        # >= 2  (RoamVault address count)
+grep -cE 'DEPLOYED 2026-09-09' "$S"                              # >= 1  (satisfied by construction — the STATUS banner carries it verbatim)
+grep -c 'ws-SP[Y]' "$S"                                          # <= 25 (legacy flagship mentions bounded)
+grep -c 'pool_net_rat[e]' "$S"                                   # <= 1  (retired formula — the single historical note)
 grep -cE 'backward-looking|window' "$S"                          # >= 3  (honest-APR labeling present)
+grep -q 'Scam-drainer' "$S" && grep -q 'Never a promise' "$S" \
+  && grep -qi 'risk alongside' "$S" && grep -q 'empty result is' "$S" && echo RULES_PRESENT
 grep -ic 'v[i]be' "$S"                                           # 0     (no foreign branding)
 grep -icE '[g]uaranteed|[r]isk.free|[a]lways.profitable|[n]o.impermanent.loss' "$S"   # 0  (no overclaim language)
-grep -q 'ERC4626' src/YieldShares.sol && grep -q 'function harvest' src/YieldShares.sol \
-  && grep -q 'function backingCoverage' src/YieldShares.sol \
-  && grep -q 'function harvest' src/Harvester.sol && grep -q 'poolFee' src/Harvester.sol && echo FUNCS_OK
+awk '/^## LEGACY/{f=1;n=0;next} f&&/^## /{print n; exit} f{n++}' "$S"   # <= 15 (LEGACY block bound, heading-to-next-'## ')
+grep -q 'DEPOSITOR_BPS' src/RoamVault.sol && grep -q 'minHoldSeconds' src/RoamingHarvester.sol \
+  && grep -q 'function addBook' src/RoamAllowlist.sol && echo FUNCS_OK
 ```
 
-If any count is off, your copy is stale or your output drifted — re-read the sources (`src/YieldShares.sol`, `src/Harvester.sol`, `src/WellstreetTimelock.sol`, `src/VaultFactory.sol`, `site/js/config.js` aprPins, `docs/public/methodology.md`) before acting.
+If any count is off, your copy is stale or your output drifted — re-read the sources (`src/RoamVault.sol`, `src/RoamingHarvester.sol`, `src/RoamAllowlist.sol`, `src/RoamMathLib.sol`, `site/js/config.js` roamStack, `site/data/fleet.json`, `docs/ops/roamer-deploy-runbook.md`) before acting.
 
-Vault #1 wraps SPY on chain 4663; further multi-asset vaults via `VaultFactory` (one vault per asset) are planned — the same read/write/report surface applies, with each new address gated until it is pinned in this skill from `site/js/config.js`. The config seam is already family-shaped: `vaults[]` (`site/js/config.js:147-157`) is an ARRAY, so a vault #2 entry slots in beside the ws-SPY entry and nothing about this skill's structure changes — only the pinned-address table above grows, and each new address obeys the same pin-first gate (config.js entry, on-chain verification via the factory registry read #13, then re-pin here — never the reverse).
+## PERMISSION MODEL — WHO FIRES WHAT (ROAMER STACK)
+
+Every roamer-stack surface is classified into exactly two tiers. **Fail-closed default: any roamer-surface function not listed AGENT-SAFE is treated OPERATOR-SCOPED by default.** Live-stack addresses come ONLY from `site/js/config.js:110-119` (`roamStack`) per the skill's pin-first rule — never approve or call an address not pinned there. This section governs every write flow in this skill — where any other region shows a capital-moving roamer call, this section's tier overrides.
+
+### AGENT-SAFE (the complete sanctioned set — nothing outside this list is agent-safe)
+
+1. **Keyless reads.** `positionRecord(bytes32)` / `migrationsThisPeriod()` / `openKeyCount()` (`src/RoamingHarvester.sol:384-394`), `isVaultPosition(bytes32)` (`RoamingHarvester.sol:1412-1414`), and `vaultAccrued(token)` (`:1367`, public mapping auto-getter). The guardrail getters are the PUBLIC state declarations `minHoldSeconds` / `maxMigrationsPerPeriod` / `minExpectedGainBps` / `migrationFeeBps` (`RoamingHarvester.sol:239-242`) whose compiler auto-getters ARE the read surface — there are NO explicit getter functions (`:410-425` is the onlyTimelock SETTER region and belongs to the OPERATOR-SCOPED tier below). Agents READ the live values (Safe-settable within immutable ceilings) and never write them.
+2. **sweepVaultYield()** (`RoamingHarvester.sol:1435-1441`) — permissionless no-tip public good that fills the vault's 90% bucket (split constants DEPOSITOR_BPS 9000 / BURN_BPS 1000, declared `src/RoamVault.sol:91`/`:96`; the roamer's split docstring `RoamingHarvester.sol:1194-1201` cites them).
+3. **sweepToBurn()** (`RoamingHarvester.sol:671-678`) — permissionless no-tip, but FAIL-CLOSED INERT until the one-shot setWellToken fires (revert NoWellToken `:672-673`). A NoWellToken revert is DATA — the burn lane is dormant — never a bug to work around and never a reason to hunt for another burn path.
+4. **Vault ERC-4626 read/deposit/redeem flows.** RoamVault ERC-4626 read/deposit/redeem (user-own-capital flows; approvals to the pinned vault only) is PRE-CLASSIFIED AGENT-SAFE here and IS the skill's WRITE FLOWS region as of the 2026-09-15 S2 rewrite (deposits + redeemWithMinOut exits); the legacy ws-SPY redeem (LEGACY region) is likewise user-own-capital and stays agent-safe. Deposit/redeem moves the caller's OWN position capital, never depositor capital — that distinction is what separates this tier from migrate().
+
+**SEAM CORRECTION:** there is NO agent-callable harvest() on the roamer — collectOnePosition (`RoamingHarvester.sol:798`) and sweepOneToken (`:808`) are guarded self-calls (CallbackNotActive revert), and RoamVault.harvest(uint256) (`src/RoamVault.sol:407-416`) is harvester-gated (NotHarvester) — the internal credit seam the roamer's own sweep drives (`RoamingHarvester.sol:1663`). The 90% leg's agent action IS sweepVaultYield().
+
+### OPERATOR-SCOPED — NEVER FIRE
+
+1. **migrate(bytes fromKey, bytes toKey, uint256[2] minOuts, uint32 expectedGainBps)** (`RoamingHarvester.sol:579`) — the function IS contract-permissionless (anyone can fire it, which is exactly why the skill gates it), and `expectedGainBps` is a caller-supplied ATTESTATION — the source line says it plainly: "It is NOT a proof" (`RoamingHarvester.sol:100`). An agent firing migrate() with guessed minOuts / expected-gain gambles DEPOSITOR capital (position capital is protocol/vault capital; the caller's only stake is gas). Contract backstops, as context and never as a recipe: MIN_HOLD 604800 seconds (`:239`), MAX_MIGRATIONS_PER_PERIOD 4 rolling-365d with re-ranges counting (`:240`), MIN_EXPECTED_GAIN_BPS 3911 attestation floor (`:241`) — live-verified 604800/4/3911 (`docs/ops/roamer-deploy-runbook.md`, DEPLOYED ADDRESSES "Verified:" block) — plus per-currency MinOutBreached floors (`:956-957`), and the toKey is allowlist-railed + salt-0 (`:606-609`: _validateBand `:606`, SaltMustBeZero `:607`, allowlist.isListed `:609`).
+
+   **POLICY RULE: migrate() is NEVER FIRED by an agent — observe and report ONLY.** Migrations are executed OFF-CHAIN by the operator from the fleet screen per the ratified on-chain/off-chain split (`docs/ops/roam-ops.md`, BINDING: "the operator runs migrations off-chain (feed → candidates → guardrail pre-checks …)"). The agent's report IS the operator's feed row: candidate from-book → to-book, measured fee-APR spread, and expectedGainBps recorded verbatim as an unbounded claim sanity-bound off-chain per roam-ops.md's reporting rules — never a fire command.
+
+2. **exitBook(bytes fromKey, address to)** (`RoamingHarvester.sol:634`) — onlyTimelock (NotTimelock revert; contract-enforced impossible for an agent), vault-tagged positions additionally VaultPositionProtected (`:639`) — observe and report ONLY.
+
+3. All onlyTimelock surfaces — the setters (`:410-461`), seedBook (`:532`), rescueToTreasury (`:475`), and the one-shot setWellToken (`:461`) — and the vault-only surfaces vaultDeploy / vaultEgress (NotVault `:1456`/`:1487`) are OPERATOR/CONTRACT-ONLY, each one line here: named for completeness, never taught, never provisioned with a command.
+
+4. **Fail-closed REVERT MAP** — every revert is data, none is a bug to work around: HoldLocked · MigrationCapReached · GainAttestationMissing · GainAttestationBelowFloor · MinOutBreached · UnknownPosition (toKey not allowlisted) · SaltMustBeZero · BooksShareNoCurrency · NoWellToken · NotTimelock · NotHarvester (RoamVault.harvest(uint256) is harvester-only — data, not a bug to work around) · ExcessTooSmall (RoamVault) · CallbackNotActive.
+
+### The two tier markers — safe has a recipe, gated never does
+
+The AGENT-SAFE sweeps are no-tip public goods and are the ONLY two send recipes this skill carries:
+
+```bash
+# sweepVaultYield — fills the vault's 90% bucket (DEPOSITOR_BPS 9000). Fire on explicit operator instruction only; no self-scheduled keeper cadence in this skill.
+cast send $ROAMER 'sweepVaultYield()' --rpc-url $RPC --private-key $KEY
+# sweepToBurn — moves the BURN-PENDING accrual toward the burn lane (NoWellToken revert until setWellToken fires). Fire on explicit operator instruction only; no self-scheduled keeper cadence in this skill.
+cast send $ROAMER 'sweepToBurn()' --rpc-url $RPC --private-key $KEY
+```
+
+The prohibition on the OPERATOR-SCOPED tier is absolute and stated in prose only: that tier carries no command string anywhere in this skill — not as an example, not negated, not disguised — and nothing in this skill self-schedules any send; the two recipes above fire on explicit operator instruction only.
+
+### BURN-PENDING DISCLOSURE RIDER
+
+Every RoamVault yield report the agent produces carries this line: vault-lane revenue splits 90/10 (DEPOSITOR_BPS / BURN_BPS), and the 10% accrues for burn — burn activates when $WELL launches. Until then the 10% sits BURN-PENDING as accounted accrual (conserved, never treasury, never junk-forwarded) until the ONE-SHOT setWellToken fires, after which the next sweep burns it. Source: `docs/ops/roam-ops.md` §6a "RoamVault provenance split + the BURN-PENDING dormant lane" (cite by heading only — that doc is live-edited and its line numbers move).
+
+### Section self-check
+
+The dots in the overclaim pattern are deliberate regex any-chars and the gated-call sentinels use the house bracket trick, so the pattern list never matches its own banned phrases:
+
+```bash
+S=skills/wellstreet-vaults/SKILL.md
+grep -c '^## PERMISSION MODEL' "$S"                        # >= 1  (gate section present)
+grep -c 'AGENT-SAFE' "$S"                                  # >= 2  (tier named)
+grep -c 'OPERATOR-SCOPED' "$S"                             # >= 2  (tier named)
+grep -c 'It is NOT a proof' "$S"                           # >= 1  (attestation quote)
+grep -c 'NEVER FIRE' "$S"                                  # >= 1  (policy rule)
+grep -c 'sweepVaultYield' "$S"                             # >= 2  (tier entry + recipe)
+grep -cE '\b604800\b' "$S"                                 # >= 1  (MIN_HOLD pin)
+grep -cE '\b3911\b' "$S"                                   # >= 1  (attestation floor pin)
+grep -c 'MAX_MIGRATIONS_PER_PERIOD' "$S"                   # >= 1  (cap pin)
+grep -c 'NoWellToken' "$S"                                 # >= 1  (inert-until-setWellToken)
+grep -c 'harvest(uint256)' "$S"                            # >= 2  (SEAM CORRECTION + NotHarvester revert-map row)
+grep -c '10% accrues for burn' "$S"                        # >= 1  (disclosure rider)
+grep -cE 'cast send.*sweepVaultYield' "$S"                 # >= 1  (safe-sweep recipe present)
+grep -cE 'cast send.*sweepToBurn' "$S"                     # >= 1  (safe-sweep recipe present)
+grep -cE 'cast send.*[m]igrate' "$S"                       # 0     (no fire recipe for the gated roam surface)
+grep -cE 'cast send.*[e]xitBook' "$S"                      # 0     (no fire recipe for the gated exit surface)
+grep -icE '[a]uto-rebalance|[s]afe.to.migrate' "$S"        # 0     (overclaim guard)
+```
