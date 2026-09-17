@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "skills": [
+    {
+      "name": "wellstreet-vaults",
+      "description": "Read, use, and report on the Wellstreet Roamer stack (RoamVault ERC-4626 over USDG + the RoamingHarvester POL roamer) on Robinhood Chain 4663 as an AI agent. Covers keyless vault-state reads with cast (totalAssets, deployedBook/idleBook, share price via convertToAssets at the per-vault share scale — live wsrUSDG is 12 dec = asset decimals + 6, legacy ws-SPY is 24 dec, previewRedeem, depositsPaused, maxDeposit headroom, harvester/guardrail/allowlist reads, YieldHarvested getLogs), approve/deposit and redeem/redeemWithMinOut write flows with fail-closed minOut and approval rules, the fleet-feed measured basis (site/data/fleet.json) with source+window reporting rules, and governance/risk facts (48h timelock under a 2-of-3 Safe, pause model, LP principal risk). Use when an agent needs Wellstreet Roamer stack state, vault share pricing, book discovery, yield observations, deployment status, or the PROVIDE-LIQUIDITY path — opening a direct LP position on a v4 book from the fleet feed (fleet-feed quoting rules, allowlist registry role, fork-v4 PositionManager mint path, position-state reads). Roamer stack DEPLOYED 2026-09-09 (DeployRoamers, 16/16 verification battery); P3 executed 2026-09-15 (setHarvester + vaultDeploy; vault seeded, deposits open) — contract addresses come only from `site/js/config.js` and this skill; never approve or call an address not pinned there.",
+      "triggers": [
+        "RoamVault state, share price, deposits, or redeems",
+        "fleet feed — book discovery, fee APR quotes, or the measured basis",
+        "roaming LP position — opening a direct v4 LP position on an allowlisted book",
+        "Wellstreet Roamer stack status or governance"
+      ],
+      "scope": "read-write",
+      "addressSource": "site/js/config.js",
+      "feed": {
+        "path": "site/data/fleet.json",
+        "servedAt": "/data/fleet.json",
+        "freshness": "provenance.generated is the build stamp of a deterministic re-emission over the frozen fixture — the freshness signal, never a measurement age (the measurement identity lives in provenance.source + provenance.window); no operator re-screen cadence is operated, so consumers must re-verify feed-derived values against on-chain state before any write"
+      },
+      "guardrails": {
+        "minHoldSeconds": 604800,
+        "maxMigrationsPerPeriod": 4,
+        "maxMigrationsPeriodDays": 365,
+        "minExpectedGainBps": 3911,
+        "minExpectedGainAttestation": true,
+        "depositCapUsdg": 25000,
+        "ceilings": {
+          "minHoldDays": 30,
+          "maxMigrationsPerPeriod": 52,
+          "minExpectedGainBps": 31286,
+          "depositCapUsdg": 250000
+        }
+      },
+      "status": "live",
+      "version": "1.0.0"
+    }
+  ]
+}
