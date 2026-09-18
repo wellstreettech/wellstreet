@@ -156,14 +156,17 @@ test('renderMarkdown handles null/undefined and CRLF line endings', () => {
 // These tests pin the index to the files that actually exist in docs/public/
 // so the tab can never silently list phantom pages again.
 
-test('docs index lists exactly the 8 published docs', () => {
-  assert.strictEqual(config.docs.index.length, 8);
+test('docs index lists exactly the 9 published docs', () => {
+  assert.strictEqual(config.docs.index.length, 9);
   // SECTION_IMPROVE G2 (2026-09-08): the order re-pin — the first pane proves the
   // thesis ('Vaults for agents' leads, 'Run it yourself' follows; the compliance/
   // legal register moves behind the substance). Same 8 members, new ratified order.
+  // WS-WP-WRITE (2026-09-18): whitepaper joins at position 2 (index 1) — the
+  // Cestus-grade paper of record, on disk and claim-checked by
+  // site-tests/whitepaper.test.js + site-tests/docs-claims.test.js.
   assert.deepStrictEqual(
     config.docs.index.map(function (d) { return d.id; }),
-    ['agent-vault-ops', 'run-it-yourself', 'methodology',
+    ['agent-vault-ops', 'whitepaper', 'run-it-yourself', 'methodology',
      'risk-disclosure', 'not-guaranteed', 'guarantees', 'compliance',
      'tokenomics']
   );

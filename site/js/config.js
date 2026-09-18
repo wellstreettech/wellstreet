@@ -522,6 +522,7 @@
       // follows; the compliance/legal register moves behind the substance.
       index: [
         { id: 'agent-vault-ops', title: 'Vaults for agents',      file: 'agent-vault-ops.md' },
+        { id: 'whitepaper',      title: 'Whitepaper',             file: 'whitepaper.md' },
         { id: 'run-it-yourself', title: 'Run it yourself',        file: 'run-it-yourself.md' },
         { id: 'methodology',     title: 'APR methodology',        file: 'methodology.md' },
         { id: 'risk-disclosure', title: 'Risk disclosure',        file: 'risk-disclosure.md' },
