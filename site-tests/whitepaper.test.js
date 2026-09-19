@@ -336,3 +336,21 @@ test('renderer discipline: no tables, no HTML tags, fenced blocks only for math'
   const htmlTags = paper.match(/<(\/?(?:b|i|em|strong|code|pre|div|span|table|br|img|a|h[1-6])\b)/gi) || [];
   assert.deepStrictEqual(htmlTags, [], 'whitepaper.md embeds raw HTML — everything renders through docs.js escaping');
 });
+
+// ---- PDF LOCKSTEP (2026-09-19) ----------------------------------------------------------
+// The PDF rendering (site/whitepaper.pdf) is generated FROM this md by
+// scripts/whitepaper_pdf.js + whitepaper_pdf_render.py. Same ceremony as the skill
+// registry: the md's PDF line and the artifact must exist together, or the paper
+// advertises a download that 404s (or ships a PDF nobody links).
+
+test('(h) PDF lockstep: the md names the PDF and the artifact exists on disk', () => {
+  assert.ok(
+    paperLower.indexOf('wellstreet.tech/whitepaper.pdf') !== -1,
+    'whitepaper.md no longer carries the whitepaper.pdf link line — restore it or remove the PDF'
+  );
+  const pdfPath = path.join(__dirname, '..', 'site', 'whitepaper.pdf');
+  assert.ok(fs.existsSync(pdfPath), 'site/whitepaper.pdf is missing — regenerate: node scripts/whitepaper_pdf.js > /tmp/wellstreet-whitepaper.html && python3 scripts/whitepaper_pdf_render.py');
+  const pdf = fs.readFileSync(pdfPath);
+  assert.ok(pdf.length > 100 * 1024, 'site/whitepaper.pdf is suspiciously small (' + pdf.length + ' bytes)');
+  assert.strictEqual(pdf.slice(0, 5).toString('ascii'), '%PDF-', 'site/whitepaper.pdf is not a PDF');
+});

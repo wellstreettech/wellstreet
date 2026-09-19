@@ -1,6 +1,6 @@
 # The Wellstreet Whitepaper
 
-An agent-native liquidity layer for Robinhood Chain. Version 1.0, 2026-09-18.
+An agent-native liquidity layer for Robinhood Chain. Version 1.0, 2026-09-18. A PDF rendering of this paper lives at https://wellstreet.tech/whitepaper.pdf — regenerate it with `scripts/whitepaper_pdf.js` + `scripts/whitepaper_pdf_render.py` whenever this file changes, and commit the refreshed PDF in the same change.
 
 This paper describes what is deployed, what is measured, and what is not true yet. It is written to be checked: every number carries a source, every source is a file in a public repository or a raw RPC call against chain ID 4663, and the site's own CI battery (`site-tests/docs-claims.test.js`) fails if any published document drifts from the pinned configuration in `site/js/config.js`. Where this paper and the on-chain code disagree, the code wins.
 
