@@ -2098,10 +2098,12 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 #hero-stat-zero { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); margin: 0 0 var(--space-8); }
 #hero-stat-zero.hero-stat--unavailable { border: 1px dashed var(--line); padding: var(--space-12) var(--space-14); }
 .hero-census-note { position: relative; margin: 0 0 var(--space-24) 0; font-family: var(--mono); font-size: var(--step-2); letter-spacing: 0.06em; color: var(--ink-soft); }
-/* The SOURCE badge rides the nav's link register (44px floor inherited);
-   a hairline box marks it as chrome-from-outside, not a section anchor. */
-.site-nav a.source-badge { border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-4) var(--space-10); }
-.site-nav a.source-badge:hover { border-color: var(--ink-soft); }
+/* The SOURCE badge lives in the right cluster beside the theme toggle (a
+   hairline box marks it as chrome-from-outside, not a section anchor); the
+   cluster keeps the nav to its six section anchors on one row. */
+.header-actions { display: flex; align-items: center; gap: var(--space-10); flex: 0 0 auto; }
+.source-badge { display: inline-flex; align-items: center; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-6) var(--space-12); min-height: 44px; }
+.source-badge:hover { border-color: var(--ink-soft); }
 /* Verify chips + panels — token-only, so the light theme re-inks them by
    construction; the command block is text, never a load channel. */
 .verify-wrap { margin: var(--space-8) 0 0; }

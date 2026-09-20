@@ -82,12 +82,16 @@
           <a href="#docs">Docs</a>
           <a href="#docs">Whitepaper</a>
           <a href="#agents" class="nav-cta">Run it yourself</a>
-          <!-- WS-POSITIONING-COPY (2026-09-20): the open-source receipt in
-               the chrome. href is JS-assigned at init from cfg.branding.repoUrl
-               — markup carries no absolute external href (resource-gate scans
-               href= as a load channel). -->
-          <a id="source-badge" class="source-badge">SOURCE · MIT</a>
         </nav>
+        <!-- WS-POSITIONING-COPY (2026-09-20): the right cluster. The badge is
+             chrome-from-outside, not a section anchor — it lives beside the
+             theme toggle so the nav keeps its six section anchors on ONE row
+             (the wrap is a capped-width container; a 7th nav item orphans onto
+             a second row). href is JS-assigned at init from
+             cfg.branding.repoUrl — markup carries no absolute external href
+             (resource-gate scans href= as a load channel). -->
+        <div class="header-actions">
+          <a id="source-badge" class="source-badge">SOURCE · MIT</a>
         <!-- G1 THEME-FOUNDATION (2026-09-08): the light/dark toggle. The static
              label/aria-pressed pair is the DARK-DEFAULT state (dark active ->
              pressing gets LIGHT); js/theme-toggle.js re-syncs both at init and
@@ -99,6 +103,7 @@
              both ways); the button's purpose rides the text itself
              ("pressing gets LIGHT") + aria-pressed. -->
         <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false">LIGHT</button>
+        </div>
       </div>
     </header>
 
