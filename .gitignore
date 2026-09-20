@@ -14,6 +14,9 @@ out/
 /docs/ops/
 /docs/internal/
 
+# Broadcast artifacts (signed-tx evidence) are LOCAL-ONLY: never committed.
+/broadcast/
+
 # docs/public/ is intentionally NOT ignored — it is the public documentation.
 .vercel
 .env*

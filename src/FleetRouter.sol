@@ -20,8 +20,10 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 /// deployed Blockscout source, 2026-09-20). Therefore the router: (1) pulls the desired
 /// amounts from the caller, (2) approves the NPM, (3) lets the NPM pull the exact-owed
 /// amounts from the router during mint, (4) refunds desired-minus-owed to the caller in
-/// the SAME transaction, and (5) asserts the end-of-tx zero-balance invariant: the
-/// router's token0/token1/native balances are 0 on every path.
+/// the SAME transaction, and (5) asserts the end-of-tx balance-delta invariant: the
+/// router retains NOTHING it did not hold at entry (token legs assert the entry delta
+/// per audit F-1 — a force-sent donation sits inert forever, never extracted; native
+/// asserts ==0 — force-ETH is structurally impossible with no receive/fallback).
 ///
 /// FEE POLICY — flat native-ETH fee, 100% recycled into the protocol endowment
 /// (docs/public/whitepaper.md §6.1 Lane 3: the protocol pocket is the vault feeBps plus
@@ -41,7 +43,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 /// adds no permission, no privilege and no exclusivity.
 ///
 /// LIMITATIONS (honest tape): caller must supply standard ERC20s (fee-on-transfer or
-/// rebasing tokens break the refund math and the zero-balance assertion reverts the
+/// rebasing tokens break the refund math and the balance-delta assertion reverts the
 /// whole open — no funds are stranded, the caller loses only gas); the caller must wrap
 /// native ETH itself where a book is WETH-denominated (the router only moves the flat
 /// fee in native ETH); non-standard balanceOf implementations fail the end-of-tx
@@ -121,7 +123,8 @@ contract FleetRouter is ReentrancyGuard {
     ///         amounts from the caller, forwards into the NPM's mint (which pulls the
     ///         exact-owed amounts from this router), refunds desired-minus-owed to the
     ///         caller, forwards the flat fee to the timelock, and asserts the
-    ///         end-of-tx zero-balance invariant. The position NFT is minted directly to
+    ///         end-of-tx balance-delta invariant (the router retains nothing it did
+    ///         not hold at entry). The position NFT is minted directly to
     ///         the caller — this router retains nothing but the fee lane.
     /// @param p full position params (recipient deliberately absent — forced to caller).
     /// @return tokenId the NFT id of the new position (owned by msg.sender).
@@ -136,6 +139,15 @@ contract FleetRouter is ReentrancyGuard {
     {
         // Exact fee — no refund path for overpayment (A6: require(msg.value == fee)).
         if (msg.value != fee) revert WrongFee(fee, msg.value);
+
+        // F-1 (audit 2026-09-20): snapshot the PRE-CALL balances. The end-of-tx
+        // invariant below asserts a DELTA — the router retains nothing it did not
+        // hold at entry — so a force-sent donation cannot permanently brick the pair
+        // (an ==0 assert would be unsatisfiable forever and the router has no rescue
+        // path). Donations sit inert: nothing new is retained, nothing pre-existing
+        // is ever extractable.
+        uint256 pre0 = IERC20(p.token0).balanceOf(address(this));
+        uint256 pre1 = IERC20(p.token1).balanceOf(address(this));
 
         // 1. PULL: desired amounts from the caller into the router.
         if (p.amount0Desired > 0) {
@@ -187,12 +199,15 @@ contract FleetRouter is ReentrancyGuard {
         (bool ok,) = timelock.call{value: fee}("");
         if (!ok) revert FeeForwardFailed();
 
-        // 6. END-OF-TX ZERO-BALANCE INVARIANT: the router retains NOTHING (A6 —
-        //    asserted after BOTH the refund and the fee forward, on every path).
+        // 6. END-OF-TX BALANCE-DELTA INVARIANT: the router retains NOTHING NEW (A6 —
+        //    asserted after BOTH the refund and the fee forward, on every path). The
+        //    token legs assert the entry delta (F-1): pre-existing force-sent
+        //    donations are tolerated but never touched. Native asserts ==0 — force-ETH
+        //    is structurally impossible (no receive/fallback).
         uint256 left0 = IERC20(p.token0).balanceOf(address(this));
         uint256 left1 = IERC20(p.token1).balanceOf(address(this));
-        if (left0 != 0) revert BalanceLeak(p.token0, left0);
-        if (left1 != 0) revert BalanceLeak(p.token1, left1);
+        if (left0 != pre0) revert BalanceLeak(p.token0, left0);
+        if (left1 != pre1) revert BalanceLeak(p.token1, left1);
         uint256 leftNative = address(this).balance;
         if (leftNative != 0) revert NativeLeak(leftNative);
 

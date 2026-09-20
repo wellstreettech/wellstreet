@@ -12,13 +12,15 @@ import {MockForkNPM, MockFeeReceiver, MockReenteringOpenToken} from "./mocks/Moc
 ///         deployed source: docs/ops/phase0/npm-mint-payer-semantics.md). Covers the
 ///         goal's named teeth: verbatim-mint equivalence vs direct NPM, fee accrual to
 ///         the TreasuryTimelock (exact value, wrong-value reverts), the end-of-tx
-///         zero-balance invariant on EVERY mint path (full-consume + refund), the
-///         timelock-only setFee with the MAX_FEE ceiling, no payable fallback (stray
-///         ETH reverts), and the FleetPositionOpened emission with caller + book
-///         identity — plus model-fidelity teeth (deadline/slippage enforced inside the
-///         NPM; fee-on-transfer opens revert whole with nothing stranded) and the
-///         reentrancy-guard proof (a reentrant open from inside the token pull reverts
-///         with the guard's own selector while the outer open completes).
+///         balance-delta invariant on EVERY mint path (full-consume + refund, plus the
+///         F-1 force-sent-donation tolerance: a pre-existing donation sits inert while
+///         the open succeeds), the timelock-only setFee with the MAX_FEE ceiling, no
+///         payable fallback (stray ETH reverts), and the FleetPositionOpened emission
+///         with caller + book identity — plus model-fidelity teeth (deadline/slippage
+///         enforced inside the NPM; fee-on-transfer opens revert whole with nothing
+///         stranded) and the reentrancy-guard proof (a reentrant open from inside the
+///         token pull reverts with the guard's own selector while the outer open
+///         completes).
 contract FleetRouterTest is Test {
     MockERC20 token0;
     MockERC20 token1;
@@ -384,5 +386,44 @@ contract FleetRouterTest is Test {
         assertEq(address(treasury).balance, 2 * FEE, "one fee per open");
         assertEq(token0.balanceOf(address(router)), 0);
         assertEq(token1.balanceOf(address(router)), 0);
+    }
+
+    // ---------------------------------------------------------------------
+    // F-1 regression (audit 2026-09-20): a force-sent donation must NOT brick
+    // the pair. The balance-delta invariant tolerates a PRE-EXISTING balance
+    // (it sits inert forever — nothing new is retained, nothing pre-existing
+    // is ever extractable), where the old ==0 assert would have made EVERY
+    // subsequent open on that token revert forever with no rescue path.
+    // (A MID-FLIGHT donation still trips the delta — the FoT tooth above is
+    // that proof: the open reverts whole, fail-closed.)
+    // ---------------------------------------------------------------------
+    function test_ForceSentDonation_OpenSucceeds_DonationSitsInert() public {
+        // Mallory force-sends a donation straight to the router — no approval,
+        // no open. Under the old ==0 invariant this would brick token0 opens.
+        token0.mint(mallory, AMT0);
+        vm.prank(mallory);
+        token0.transfer(address(router), 1 wei);
+        assertEq(token0.balanceOf(address(router)), 1 wei, "donation landed");
+
+        FleetRouter.PositionParams memory p = _params();
+        _approveRouter(alice, AMT0, AMT1);
+
+        vm.prank(alice);
+        (, , uint256 used0, uint256 used1) = router.openPosition{value: FEE}(p);
+
+        // The open completed normally — payer pulled, fee forwarded.
+        assertEq(used0, AMT0);
+        assertEq(used1, AMT1);
+        assertEq(address(treasury).balance, FEE);
+
+        // The donation sits inert: the router's balance is EXACTLY the donation
+        // (the delta invariant retained nothing NEW), never extractable.
+        assertEq(token0.balanceOf(address(router)), 1 wei, "donation must sit inert - nothing new retained");
+        assertEq(token1.balanceOf(address(router)), 0);
+        assertEq(address(router).balance, 0);
+
+        // The caller made whole: spent exactly the consumed amounts.
+        assertEq(token0.balanceOf(alice), 1_000_000e18 - AMT0);
+        assertEq(token1.balanceOf(alice), 1_000_000e18 - AMT1);
     }
 }
