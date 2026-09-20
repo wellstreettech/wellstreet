@@ -1937,8 +1937,10 @@
     }
     if (stat && stat.classList) { stat.classList.remove('hero-stat--unavailable'); }
     num.textContent = String(summary.books);
-    label.textContent = 'books measured — ' + summary.paysLps + ' pay LPs · ' +
-      summary.hookMonetized + ' pay nothing';
+    // WS-P1-DESIGN-FIXES (2026-09-20): the label is plain — the zero-fee stat
+    // beside it in .hero-stat-row carries the pay-LPs / pay-nothing breakdown
+    // (one fact, one place; the unavailable labels stay byte-identical).
+    label.textContent = 'books measured';
     // WS-POSITIONING-COPY (2026-09-20): the zero-fee flex as a second
     // first-class stat — same feed, same summary, same fail-closed contract.
     var zStat = $('hero-stat-zero');

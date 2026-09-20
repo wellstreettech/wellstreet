@@ -101,3 +101,34 @@ test('kill list: no hype vocabulary anywhere in the page', () => {
   assert.ok(!/guaranteed|risk-free|passive income/i.test(html), 'no hype terms');
   assert.ok(html.includes('every number checkable'), 'the census note keeps the voice');
 });
+
+// ---- R6: WS-P1-DESIGN-FIXES (2026-09-20) — footer audit truth, one Docs nav
+// item, the census stats on one row. The three P1 fixes from the design audit,
+// each pinned so the page cannot drift back. ----
+test('P1 footer truth: the audit claim is real and stated once', () => {
+  assert.ok(!html.includes('No audit.'), 'the false no-audit claim is gone from the whole page');
+  assert.strictEqual(html.split('Audited — reports in the repo').length - 1, 1,
+    'the audited claim appears exactly once');
+  assert.ok(html.includes('No company. Owner controls behind a public 48-hour timelock.'),
+    'the rest of the honesty line is untouched');
+});
+
+test('P1 nav: one item per anchor target — the Whitepaper duplicate of Docs is gone', () => {
+  assert.ok(!html.includes('href="#docs">Whitepaper'), 'the duplicate nav item is removed');
+  assert.strictEqual(html.split('href="#docs">Docs').length - 1, 1, 'exactly one Docs nav item');
+});
+
+test('P1 census row: the two stats share one flex row, the duplicated label is gone', () => {
+  assert.ok(html.includes('class="hero-stat-row"'), 'the .hero-stat-row wrapper exists in the markup');
+  assert.ok(html.includes('class="hero-census-note"'), 'the census note stays outside the row');
+  assert.ok(css.includes('.hero-stat-row { display: flex; flex-wrap: wrap;'),
+    'the flex-row rule exists in style.css');
+  assert.ok(css.includes('gap: var(--space-16); align-items: flex-start'),
+    'the row gaps on tokens and top-aligns its items');
+  assert.ok(!main.includes('pay LPs ·'), 'the duplicated live breakdown label is gone from the hero stat');
+  assert.ok(!main.includes(' pay nothing'), 'the pay-nothing count left the hero label with it');
+  assert.ok(main.includes('String(summary.hookMonetized)'),
+    'the zero stat still fills from the summary (fail-closed contract intact)');
+  assert.ok(main.includes("'books measured — unavailable (feed)'"),
+    'the unavailable label stays byte-identical (render-degrade pins it)');
+});

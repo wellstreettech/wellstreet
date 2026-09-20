@@ -2082,6 +2082,11 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
    the null path) — the old :has(:empty) detector would match forever now
    that the span is permanently empty, pinning the dashed band onto the live
    state. */
+/* WS-P1-DESIGN-FIXES (2026-09-20): the two census stats share ONE flex row —
+   the stacked pair duplicated the zero-fee fact within a glance and ate
+   vertical hero space. flex-wrap stacks the pair naturally on mobile; site
+   tokens only (theme-safe by construction). */
+.hero-stat-row { display: flex; flex-wrap: wrap; gap: var(--space-16); align-items: flex-start; }
 #hero-stat { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); margin: var(--space-24) 0 var(--space-16); }
 .hero-stat-num { font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-size: var(--step-7); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink); } /* WS5-DOTO: the hero's one live figure joins the dot-matrix number register; size/color/tabular-nums untouched */
 .hero-stat-label { font-family: var(--mono); font-size: var(--step-2); color: var(--ink-soft); }
@@ -2100,7 +2105,7 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 .hero-census-note { position: relative; margin: 0 0 var(--space-24) 0; font-family: var(--mono); font-size: var(--step-2); letter-spacing: 0.06em; color: var(--ink-soft); }
 /* The SOURCE badge lives in the right cluster beside the theme toggle (a
    hairline box marks it as chrome-from-outside, not a section anchor); the
-   cluster keeps the nav to its six section anchors on one row. */
+   cluster keeps the nav to its five section anchors on one row. */
 .header-actions { display: flex; align-items: center; gap: var(--space-10); flex: 0 0 auto; }
 .source-badge { display: inline-flex; align-items: center; font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-6) var(--space-12); min-height: 44px; }
 .source-badge:hover { border-color: var(--ink-soft); }
@@ -2176,7 +2181,7 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   .hero .wrap > .hero-rule { margin-bottom: var(--space-12); }
   .hero .wrap > .hero-meta { margin-bottom: var(--space-20); }
   .hero .wrap > .cta-row { margin-top: 0; } /* full-width stacked (the ≤640 .cta-row block above), the CTA in the thumb third */
-  .hero .wrap > #hero-stat { margin: var(--space-12) 0; }
+  .hero .wrap > #hero-stat, .hero .wrap > .hero-stat-row > #hero-stat { margin: var(--space-12) 0; } /* WS-P1-DESIGN-FIXES: the stat now sits inside .hero-stat-row — the measured one-screen margin holds on both paths */
   .hero .wrap > #chain-badge { margin-top: var(--space-8); }
 }
 /* WS5-TREATMENT: the deposit widget now lives INSIDE the flagship fleet card's

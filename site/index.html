@@ -80,12 +80,11 @@
           <a href="#vault">The Vault</a>
           <a href="#deposit">Deposit</a>
           <a href="#docs">Docs</a>
-          <a href="#docs">Whitepaper</a>
           <a href="#agents" class="nav-cta">Run it yourself</a>
         </nav>
         <!-- WS-POSITIONING-COPY (2026-09-20): the right cluster. The badge is
              chrome-from-outside, not a section anchor — it lives beside the
-             theme toggle so the nav keeps its six section anchors on ONE row
+             theme toggle so the nav keeps its five section anchors on ONE row
              (the wrap is a capped-width container; a 7th nav item orphans onto
              a second row). href is JS-assigned at init from
              cfg.branding.repoUrl — markup carries no absolute external href
@@ -146,19 +145,25 @@
                js/main.js renderHeroStat removes it when a live summary lands.
                The window span is never written — provenance lives in the
                fleet surface. -->
-          <div id="hero-stat" class="hero-stat--unavailable">
-            <span class="hero-stat-num" id="hero-stat-num">—</span>
-            <span class="hero-stat-label" id="hero-stat-label">books measured</span>
-            <span class="hero-stat-window" id="hero-stat-window"></span>
-          </div>
-          <!-- WS-POSITIONING-COPY (2026-09-20): the zero-fee flex as a
-               first-class stat — same live feed, same fail-closed contract
-               as #hero-stat (js/main.js renderHeroStat fills both; static
-               pre-JS is the honest em-dash). hookMonetized books run swaps
-               whose fees never reach LPs. -->
-          <div id="hero-stat-zero" class="hero-stat--unavailable">
-            <span class="hero-stat-num" id="hero-stat-zero-num">—</span>
-            <span class="hero-stat-label" id="hero-stat-zero-label">books pay LPs zero</span>
+          <!-- WS-P1-DESIGN-FIXES (2026-09-20): the two census stats share ONE
+               flex row (styled in css/style.css) — the old stacked pair
+               duplicated the zero-fee fact within a glance and ate vertical
+               hero space. The census note stays outside the row. -->
+          <div class="hero-stat-row">
+            <div id="hero-stat" class="hero-stat--unavailable">
+              <span class="hero-stat-num" id="hero-stat-num">—</span>
+              <span class="hero-stat-label" id="hero-stat-label">books measured</span>
+              <span class="hero-stat-window" id="hero-stat-window"></span>
+            </div>
+            <!-- WS-POSITIONING-COPY (2026-09-20): the zero-fee flex as a
+                 first-class stat — same live feed, same fail-closed contract
+                 as #hero-stat (js/main.js renderHeroStat fills both; static
+                 pre-JS is the honest em-dash). hookMonetized books run swaps
+                 whose fees never reach LPs. -->
+            <div id="hero-stat-zero" class="hero-stat--unavailable">
+              <span class="hero-stat-num" id="hero-stat-zero-num">—</span>
+              <span class="hero-stat-label" id="hero-stat-zero-label">books pay LPs zero</span>
+            </div>
           </div>
           <p class="hero-census-note">every number checkable</p>
           <div id="chain-badge" class="muted mt-16" aria-live="polite"></div>
@@ -925,7 +930,7 @@
           </div>
           <div class="footer-col">
             <div class="h">Honesty</div>
-            <div>No audit. No company. Owner controls behind a public 48-hour timelock.</div>
+            <div>Audited — reports in the repo. No company. Owner controls behind a public 48-hour timelock.</div>
             <div>Yield figures are projections tied to a published methodology — they can go to zero.</div>
           </div>
         </div>
