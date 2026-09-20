@@ -373,10 +373,10 @@ test('(f) frozen copy strings present exactly once each (contains-checks)', () =
     'replay them yourself',
     '<a class="cta-solid" href="#fleet">Open the Fleet</a>',
     // head carriers (invisible to the visible-word diet; still single-source):
-    // WS-MESSAGING-V2 2026-09-06 form retained — the meta description and the
-    // og:description short variant stay pinned.
-    'The open liquidity layer of Robinhood Chain, operated by agents and verifiable by anyone. Every number is a raw RPC call — checkable, not sellable.',
-    'No audit. Every number is read by your browser straight from public chain nodes.',
+    // WS-POSITIONING-COPY 2026-09-20 form — the AI-native category claim in
+    // the meta description and the og:description agent-operator variant.
+    'Open-source vaults and an autonomous LP roamer on Robinhood Chain. Every pool fee measured, every claim checkable on-chain. Owned by holders, operated by agents.',
+    'An AI agent operates the LP book — every figure a raw RPC call, checkable by anyone.',
     '1 · Approve',
     '2 · Deposit',
   ];
@@ -402,8 +402,10 @@ test('WS-MESSAGING-V2 kill-list guard (doto re-pin)', () => {
     'the banner headline line 2 lives exactly once');
   assert.strictEqual(countOccurrences(html, 'Checkable, not sellable.'), 0,
     'the capital-form tagline retired with the two-tone h1 (doto copy diet)');
-  assert.strictEqual(countOccurrences(html, 'checkable, not sellable.'), 1,
-    'the lowercase echo lives exactly once, in the meta description');
+  // WS-POSITIONING-COPY re-pin (2026-09-20): the old meta description retired
+  // with it — the honesty echo now lives once, in the new meta description.
+  assert.strictEqual(countOccurrences(html, 'every claim checkable on-chain'), 1,
+    'the checkable echo lives exactly once, in the meta description');
 });
 
 // (g) WS-DARK-DOTO structure-layer teeth (2026-09-07) — the banner anatomy:

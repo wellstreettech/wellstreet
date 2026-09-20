@@ -2088,6 +2088,30 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 .hero-stat-window { font-family: var(--mono); font-size: var(--step-1); color: var(--ink-soft); } /* the window line, muted (span kept for the render pins; never written — provenance lives in the fleet surface) */
 #hero-stat.hero-stat--unavailable { border: 1px dashed var(--line); padding: var(--space-12) var(--space-14); } /* unavailable = dashed hairline + the '—' (WS5-TREATMENT static state styling; class toggled by js/main.js renderHeroStat) */
 
+/* ---- WS-POSITIONING-COPY (2026-09-20) ----
+   The category claim sub-line: mono in the chrome register, one step under
+   the H1; ink (not soft) so the claim reads as a statement while the census
+   receipts below stay muted. */
+.hero-claim { position: relative; margin: 0 0 var(--space-16) 0; font-family: var(--mono); font-size: var(--step-3); font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink); }
+/* The zero-fee stat mirrors #hero-stat's contract exactly (same inner classes,
+   same JS-toggled unavailable band). */
+#hero-stat-zero { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); margin: 0 0 var(--space-8); }
+#hero-stat-zero.hero-stat--unavailable { border: 1px dashed var(--line); padding: var(--space-12) var(--space-14); }
+.hero-census-note { position: relative; margin: 0 0 var(--space-24) 0; font-family: var(--mono); font-size: var(--step-2); letter-spacing: 0.06em; color: var(--ink-soft); }
+/* The SOURCE badge rides the nav's link register (44px floor inherited);
+   a hairline box marks it as chrome-from-outside, not a section anchor. */
+.site-nav a.source-badge { border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-4) var(--space-10); }
+.site-nav a.source-badge:hover { border-color: var(--ink-soft); }
+/* Verify chips + panels — token-only, so the light theme re-inks them by
+   construction; the command block is text, never a load channel. */
+.verify-wrap { margin: var(--space-8) 0 0; }
+.flow-top .verify-wrap--seal { margin: 0; }
+.verify-chip, .verify-copy { font-family: var(--mono); font-size: var(--step-1); text-transform: uppercase; letter-spacing: var(--track-label); color: var(--ink); background: transparent; border: 2px solid var(--line); border-radius: var(--radius); padding: var(--space-6) var(--space-10); min-height: 44px; cursor: pointer; }
+.verify-chip:hover, .verify-copy:hover { border-color: var(--ink-soft); }
+.verify-chip[aria-expanded="true"] { border-color: var(--accent-punch); }
+.verify-panel { margin: var(--space-8) 0 0; }
+.verify-cmd { font-family: var(--mono); font-size: var(--step-1); line-height: 1.7; color: var(--ink); background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-10) var(--space-12); margin: 0 0 var(--space-8); white-space: pre-wrap; word-break: break-word; }
+
 /* ---- movement (c): the plug-in cards + the vanish disclosure ----
    The two skill pointers become card-like tap zones (one link each, whole-card
    44px zone, equal height by identical geometry). NOTE (disclosed): the DOM

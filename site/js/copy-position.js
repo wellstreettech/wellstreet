@@ -254,6 +254,7 @@ removal stays timer-based so reduced motion can never strand the node.
   return {
     build: build,
     serialize: serialize,
-    init: init
+    init: init,
+    toast: toast // WS-POSITIONING-COPY (2026-09-20): the one-toast seam for the verify-chip copy confirmation — same node, same rules
   };
 });

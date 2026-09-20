@@ -1927,15 +1927,79 @@
       label.textContent = 'books measured — unavailable (feed)';
       if (win) { win.textContent = ''; } // NEVER written — the raw provenance window string stays in the fleet surface tooltip/detail
       if (stat && stat.classList) { stat.classList.add('hero-stat--unavailable'); }
+      var zStat = $('hero-stat-zero');
+      var zNum = $('hero-stat-zero-num');
+      var zLabel = $('hero-stat-zero-label');
+      if (zNum) { zNum.textContent = '—'; }
+      if (zLabel) { zLabel.textContent = 'books pay LPs zero — unavailable (feed)'; }
+      if (zStat && zStat.classList) { zStat.classList.add('hero-stat--unavailable'); }
       return;
     }
     if (stat && stat.classList) { stat.classList.remove('hero-stat--unavailable'); }
     num.textContent = String(summary.books);
     label.textContent = 'books measured — ' + summary.paysLps + ' pay LPs · ' +
       summary.hookMonetized + ' pay nothing';
+    // WS-POSITIONING-COPY (2026-09-20): the zero-fee flex as a second
+    // first-class stat — same feed, same summary, same fail-closed contract.
+    var zStat = $('hero-stat-zero');
+    var zNum = $('hero-stat-zero-num');
+    var zLabel = $('hero-stat-zero-label');
+    if (zNum) { zNum.textContent = String(summary.hookMonetized); }
+    if (zLabel) { zLabel.textContent = 'books pay LPs zero'; }
+    if (zStat && zStat.classList) { zStat.classList.remove('hero-stat--unavailable'); }
     // SECTION-IMPROVE G1 #6: the raw provenance window ("05 win key …") retired
     // from this surface — it stays verbatim in the fleet surface tooltip/detail.
     if (win) { win.textContent = ''; }
+  }
+
+  // ------------------------------------------------------------------
+  // WS-POSITIONING-COPY (2026-09-20): verify chips — the replayable
+  // receipts. Each chip expands a copyable command block reproducing the
+  // claim it sits next to; commands compose from config addresses at init
+  // (never a second address literal), and both getters were probed live
+  // before ship (9000 / 1000). Zero RPC at load, zero external hrefs —
+  // the RPC URL is text inside a pre, not a load channel.
+  // ------------------------------------------------------------------
+  var VERIFY_RPC = 'https://rpc.mainnet.chain.robinhood.com';
+  function verifySplitCommand() {
+    var vaultAddr = (cfg.contracts && cfg.contracts.vault) || 'ROAM_VAULT_ADDRESS';
+    return 'cast call --rpc-url ' + VERIFY_RPC + ' \\\n  ' + vaultAddr + ' "DEPOSITOR_BPS()(uint256)"   # -> 9000\n' +
+      'cast call --rpc-url ' + VERIFY_RPC + ' \\\n  ' + vaultAddr + ' "BURN_BPS()(uint256)"       # -> 1000\n' +
+      '# 9000 + 1000 = 10000 — immutable constants, no setter on the vault';
+  }
+  function verifySealCommand() {
+    var vaultAddr = (cfg.contracts && cfg.contracts.vault) || 'ROAM_VAULT_ADDRESS';
+    return 'cast call --rpc-url ' + VERIFY_RPC + ' \\\n  ' + vaultAddr + ' "DEPOSITOR_BPS()(uint256)"   # -> 9000 (depositors)\n' +
+      'cast call --rpc-url ' + VERIFY_RPC + ' \\\n  ' + vaultAddr + ' "BURN_BPS()(uint256)"       # -> 1000 (buys $WELL, burns)\n' +
+      '# these two constants are the whole split — the developer share is zero by construction';
+  }
+  function copyVerifyText(text) {
+    var clip = (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') ? navigator.clipboard : null;
+    var say = (WS.copyPosition && typeof WS.copyPosition.toast === 'function') ? WS.copyPosition.toast : null;
+    if (!clip) { if (say) { say('copy failed — your browser blocked the clipboard'); } return; }
+    Promise.resolve(clip.writeText(text)).then(
+      function () { if (say) { say('command copied — replay it in any terminal'); } },
+      function () { if (say) { say('copy failed — your browser blocked the clipboard'); } }
+    );
+  }
+  function initVerifyChips() {
+    var makers = { split: verifySplitCommand, seal: verifySealCommand };
+    Object.keys(makers).forEach(function (key) {
+      var chip = $('verify-chip-' + key);
+      var panel = $('verify-panel-' + key);
+      var pre = $('verify-cmd-' + key);
+      if (!chip || !panel || !pre || typeof chip.addEventListener !== 'function') { return; }
+      pre.textContent = makers[key]();
+      chip.addEventListener('click', function () {
+        var show = panel.hidden;
+        panel.hidden = !show;
+        chip.setAttribute('aria-expanded', show ? 'true' : 'false');
+      });
+      var copyBtn = $('verify-copy-' + key);
+      if (copyBtn && typeof copyBtn.addEventListener === 'function') {
+        copyBtn.addEventListener('click', function () { copyVerifyText(pre.textContent || ''); });
+      }
+    });
   }
 
   function initFleet() {
@@ -2071,6 +2135,7 @@
     initTapeStrip();  // WS3-HEADER P4: writes the header tape strip's family rows from config
     initReveal();   // R3 IMP-3: after the cards render — arms .ws-reveal on section heads + the flagship card
     initFleet();  // WS5-SKELETON: the Fleet feed render (movement a's hero-stat + movement b's book column)
+    initVerifyChips();  // WS-POSITIONING-COPY: the verify chips (guarded — stub cohorts boot clean into no-ops)
 
     // WS-ASSET-WIRE: the agent-first section's skill link ships pointing at the
     // relative repository path; it upgrades to the published repository URL the
@@ -2084,6 +2149,19 @@
         skillLink.setAttribute('href', repoUrl.replace(/\/+$/, '') + '/skills/wellstreet-vaults/SKILL.md');
         skillLink.setAttribute('target', '_blank');
         skillLink.setAttribute('rel', 'noopener');
+      }
+    }
+
+    // WS-POSITIONING-COPY (2026-09-20): the SOURCE badge — the same seam as
+    // the skill link (href assigned at init from cfg.branding.repoUrl;
+    // markup carries no absolute external href).
+    var badge = $('source-badge');
+    if (badge && badge.setAttribute) {
+      var repoHref = cfg.branding && cfg.branding.repoUrl;
+      if (typeof repoHref === 'string' && repoHref.indexOf('https://') === 0) {
+        badge.setAttribute('href', repoHref.replace(/\/+$/, ''));
+        badge.setAttribute('target', '_blank');
+        badge.setAttribute('rel', 'noopener');
       }
     }
   }

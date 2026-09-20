@@ -32,7 +32,7 @@
       domain: 'wellstreet.tech',
       ensName: 'wellstreet.eth',
       license: 'MIT',
-      repoUrl: 'PENDING_IDENTITY',   // fresh GitHub identity — wired at identity ops, never before
+      repoUrl: 'https://github.com/wellstreettech/wellstreet',   // PUBLIC, MIT — identity ops done 2026-09-20 (WS-POSITIONING-COPY); upgrades the skill link + the SOURCE badge seam
       // Trademark honesty note (rendered in the footer):
       trademarkNote: 'Wellstreet is not affiliated with, endorsed by, or sponsored by Robinhood Markets, Inc. ' +
         'or State Street Corporation (SPDR). On-chain asset names (for example the "Robinhood Token" suffix) are ' +

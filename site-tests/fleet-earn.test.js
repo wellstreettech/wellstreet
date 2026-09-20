@@ -21,7 +21,10 @@ const block = html.slice(html.indexOf('id="fleet-earn"'), html.indexOf('fleet-ca
 test('fleet-earn: the block exists in the fleet section, before the flagship card', () => {
   assert.ok(html.includes('id="fleet-earn"'), 'the how-you-earn block is present');
   assert.ok(block.includes('href="#flow"'), 'the loop link points at the flow section');
-  assert.ok(block.length > 0 && block.length < 4000, 'the block sits before the flagship card, compact');
+  // WS-POSITIONING-COPY (2026-09-20): the block now also carries the split
+  // claim's VERIFY receipt (~700 chars) — the ceiling moves with it, still
+  // compact, still before the flagship card.
+  assert.ok(block.length > 0 && block.length < 5200, 'the block sits before the flagship card, compact');
 });
 
 test('fleet-earn: the loop line carries the fee lanes verbatim', () => {

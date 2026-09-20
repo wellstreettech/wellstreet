@@ -99,6 +99,7 @@ global.document = {
  'wallet-picker',
  'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
  'hero-stat', 'hero-stat-num', 'hero-stat-label', 'hero-stat-window',
+ 'hero-stat-zero', 'hero-stat-zero-num', 'hero-stat-zero-label', 'source-badge',
  'fleet-books', 'fleet-flagship-apr', 'fleet-vault-reads', 'fleet-coverage'].forEach(function (id) {
   if (!REGISTRY[id]) {
     const node = makeEl('div');
