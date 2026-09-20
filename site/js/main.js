@@ -2143,12 +2143,15 @@
     // relative repository path; it upgrades to the published repository URL the
     // moment cfg.branding.repoUrl lands (it is PENDING_IDENTITY until identity
     // ops — the static relative href is the honest placeholder, never a
-    // fabricated URL, mirroring the pending-address convention).
+    // fabricated URL, mirroring the pending-address convention). The upgrade
+    // composes the GitHub FILE view (/blob/main/…) — the bare repo path
+    // github.com/<owner>/<repo>/<path> is not a route GitHub serves (404,
+    // live catch 2026-09-20).
     var skillLink = $('agents-skill-link');
     if (skillLink && skillLink.setAttribute) {
       var repoUrl = cfg.branding && cfg.branding.repoUrl;
       if (typeof repoUrl === 'string' && repoUrl.indexOf('https://') === 0) {
-        skillLink.setAttribute('href', repoUrl.replace(/\/+$/, '') + '/skills/wellstreet-vaults/SKILL.md');
+        skillLink.setAttribute('href', repoUrl.replace(/\/+$/, '') + '/blob/main/skills/wellstreet-vaults/SKILL.md');
         skillLink.setAttribute('target', '_blank');
         skillLink.setAttribute('rel', 'noopener');
       }

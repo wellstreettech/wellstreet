@@ -81,8 +81,8 @@ test('(a) agent-first section: the plug-in card + skill pointer', () => {
   assert.ok(mainSrc.indexOf('agents-skill-link') !== -1, 'the skill-link upgrade seam is wired in main.js');
   assert.ok(/repoUrl\.indexOf\('https:\/\/'\) === 0/.test(mainSrc),
     'the upgrade is gated on a https:// repoUrl');
-  assert.ok(mainSrc.indexOf("'/skills/wellstreet-vaults/SKILL.md'") !== -1,
-    'the upgraded href reuses the same skill path');
+  assert.ok(mainSrc.indexOf("'/blob/main/skills/wellstreet-vaults/SKILL.md'") !== -1,
+    'the upgraded href is the GitHub file view (/blob/main/) — the bare repo path 404s');
   assert.ok(mainSrc.indexOf("'noopener'") !== -1 && mainSrc.indexOf("'_blank'") !== -1,
     'the upgraded link opens with rel=noopener target=_blank');
 });
