@@ -159,6 +159,10 @@ global.document = {
 // + WS-VAULT-DEPOSIT G3 exit path (2026-09-13) -> 55: the redeemer-bounded
 // exit (redeemWithMinOut) — min-out (the payout-floor input), btn-redeem-min
 // (the floor-redeem button), min-out-note (the static floor signage).
+// + WS-SOCIAL-LINKS (2026-09-21): footer-link-x/tg/gh — footer social surfaces,
+// hrefs JS-assigned from cfg.branding. NOTE: the REGISTRY RIDER JSON-parses
+// THIS ARRAY — comments live HERE, above the brackets, never inside them
+// (a trailing // broke the parse once, 2026-09-21).
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
@@ -171,6 +175,7 @@ global.document = {
  'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
  'hero-stat', 'hero-stat-num', 'hero-stat-label', 'hero-stat-window',
  'hero-stat-zero', 'hero-stat-zero-num', 'hero-stat-zero-label', 'source-badge',
+ 'footer-link-x', 'footer-link-tg', 'footer-link-gh',
  'fleet-flagship-apr', 'fleet-vault-reads', 'fleet-coverage',
  'fleet-surface', 'fleet-table', 'fleet-tbody', 'fleet-cards', 'fleet-sheet',
  'fleet-unavailable',

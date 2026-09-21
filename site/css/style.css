@@ -1792,6 +1792,33 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
 .footer-col > div:last-child { border-bottom: none; }
 /* ---------- end WS3-FOOTER EOF block ---------- */
 
+/* ---------- WS-SOCIAL-LINKS (2026-09-21) — footer social chips, additive EOF block ----------
+   The Elsewhere column's social surfaces as hairline mono chips in the .h label
+   vocabulary (skill: design-taste-frontend — anti-emoji inline-SVG glyphs, one
+   accent, no glows, tactile :active). Colophon doctrine holds: no entrance
+   motion, state transitions ride the existing --t-fast/--ease-enter family on
+   color/border-color only; the :active push is the header P7 punch precedent.
+   Hrefs are NOT in markup — JS-assigned at init from cfg.branding (main.js
+   WS-SOCIAL-LINKS block; the href-seam rule). Tokens only, zero new external
+   origins; glyph paths are inline SVG (fill=currentColor), no external asset. */
+.footer-socials { /* one cell row (F5 cell rule applies): chips flow and wrap */
+  display: flex; flex-wrap: wrap; gap: var(--space-6);
+}
+.site-footer .social-chip { /* (0,2,0) — must out-rank .site-footer a's F3 hairline underline */
+  display: inline-flex; align-items: center; gap: var(--space-6);
+  padding: var(--space-4) var(--space-8);
+  border: 1px solid var(--footer-muted);
+  color: var(--ink);
+  font-family: var(--mono); font-size: var(--step-1);
+  letter-spacing: var(--track-label);
+  transition: color var(--t-fast) var(--ease-enter), border-color var(--t-fast) var(--ease-enter);
+}
+.site-footer .social-chip svg { width: 13px; height: 13px; flex: none; color: var(--footer-muted); transition: color var(--t-fast) var(--ease-enter); }
+.site-footer .social-chip:hover { border-color: var(--ink); color: var(--ink); } /* F3 contract: border steps toward ink */
+.site-footer .social-chip:hover svg { color: var(--accent-text); } /* the one accent move — the glyph only */
+.site-footer .social-chip:active { transform: translateY(1px); } /* P7 active punch — instant, not animated */
+/* ---------- end WS-SOCIAL-LINKS EOF block ---------- */
+
 /* ---------- WS3-HEADER (2026-09-06) — header + nav additive EOF block ----------
    From docs/inventory/UI_IMPROVE2_HEADER_2026-09-05.md. In-place single-line edits
    (P1 scroll-margin, P2 hover, P3 pill register, P5 mark ratio, P7 active punch)

@@ -10,7 +10,7 @@ No third-party audit has been performed or is scheduled. The contracts are new a
 
 The protocol has no operating history. No depositors have ridden a full market cycle, no harvest has run in production, no edge case has been hit by real users at real size. Tests and invariants reduce risk; they do not remove it.
 
-The deployment is young, and how young is checkable. The four contracts went live on Robinhood Chain (chain ID 4663) on 2026-09-03 (addresses in [guarantees.md](guarantees.md)). When the repository's Foundry suite was run on 2026-09-05 it executed 84 tests across 11 suites — including fork suites that read live chain 4663 state, with CI failing the job if any fork test is skipped — and all of them passed. The site's own Node battery goes further: one of its tests pins the factual claims in these very docs against the deployed configuration (`site/js/config.js`), so a doc that drifts from the config fails CI. None of that is operating history. A test suite is evidence about the cases its authors imagined; a market cycle, a live incident, and real deposits at real size are evidence about everything else. The deployed vault is empty (measured on-chain, 2026-09-05): nobody's money has ever ridden these contracts, so nothing has been defended yet.
+The deployment is young, and how young is checkable. The four contracts went live on Robinhood Chain (chain ID 4663) on 2026-09-03 (addresses in [guarantees.md](guarantees.md)). When the repository's Foundry suite was run on 2026-09-05 it executed 84 tests across 11 suites — including fork suites that read live chain 4663 state, with CI failing the job if any fork test is skipped — and all of them passed. The site's own Node battery goes further: one of its tests pins the factual claims in these very docs against the deployed configuration (`site/js/config.js`), so a doc that drifts from the config fails CI. None of that is operating history. A test suite is evidence about the cases its authors imagined; a market cycle, a live incident, and real deposits at real size are evidence about everything else. The v1 flagship vault remains empty (measured on-chain, 2026-09-05); the live RoamVault went live 2026-09-13 with deposits capped at 25,000 USDG. Nobody's money has ridden a full market cycle on either, so nothing has been defended yet.
 
 ## The underlying stock token is issuer-controlled
 
@@ -45,18 +45,22 @@ The cost of the design is real and disclosed: the protocol's own capital can shr
 
 The protocol runs **no algorithmic peg defense and no market-intervention
 mechanism, now or planned** — no protocol-owned trading operation, no price floor,
-no buyback-against-decline program beyond the pad's automated buyback leg, and no
-discretionary market ops behind the operator's keys. $WELL's only accrual is
-the pons buyback stream (a market mechanism, not a defense policy); ws-SPY is
-price-anchored by instant burn-for-underlying redemption arbitrage — anyone can
-arbitrage a premium or discount, and the protocol itself will never trade to
-defend a price. If a price moves, the protocol's only action is disclosure.
+no buyback-against-decline program of any kind, and no discretionary market ops
+behind the operator's keys. $WELL's accruals are the creator fee stream (trading
+fees plus a 2.00% tax on every trade, routed to holders via the pad's fee
+distributor — a payment, not a defense) and the vault's 10% burn lane (a fixed
+share of LP fees that buys and burns $WELL on every harvest regardless of price
+direction — a market mechanism, not a defense policy): neither activates against
+a decline, neither targets a price. ws-SPY is price-anchored by instant
+burn-for-underlying redemption arbitrage — anyone can arbitrage a premium or
+discount, and the protocol itself will never trade to defend a price. If a price
+moves, the protocol's only action is disclosure.
 
 ## Key control is concentrated in one operator
 
 - The treasury timelock's proposer is a **2-of-3 Safe multisig**: two of the three owner keys must sign to schedule any owner action; execution after the 48-hour delay is open to anyone, scheduling is not. The three keys are held by **one operator** on separate devices — disclosed plainly, because multiple keys are NOT multiple parties. A single person controls the operator set. The openness this project claims — open source, MIT, permissionlessly forkable — is a claim about the code, not the keys; the concentration here is real and disclosed.
 - The deployer EOA holds a **function-limited pause-only authority** over deposits (it can pause deposits and do nothing else privileged) and remains a single point of failure for its other roles — the harvester LP seeding and the token-launch initial buy. The timelock can revoke the pause authority.
-- `MAX_FEE_BPS` (20%) is the **only structural bound** on fee escalation. Keeping the fee at 10% is a governance commitment, not a code guarantee — the code's job is only to keep it under 20%.
+- On the legacy flagship, `MAX_FEE_BPS` (20%) is the **only structural bound** on fee escalation: keeping the fee at 10% is a governance commitment, not a code guarantee — the code's job is only to keep it under 20%. On the live RoamVault there is no fee escalation to bound: the 90/10 split is immutable constants with no setter (`DEPOSITOR_BPS = 9000` / `BURN_BPS = 1000`), so the dev take is structurally zero there.
 
 Key custody: [compliance.md](compliance.md).
 

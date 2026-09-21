@@ -1,6 +1,8 @@
 # What the contracts guarantee
 
-Every claim on this page describes a property the v1 contracts are specified and tested to have. Each property is covered by the Foundry test suite in this repository — run `forge test` and watch them execute. If the code and this file ever disagree, the code wins and this file gets corrected.
+Every claim on this page describes a property the contracts are specified and tested to have. Each property is covered by the Foundry test suite in this repository — run `forge test` and watch them execute. If the code and this file ever disagree, the code wins and this file gets corrected.
+
+**Scope:** sections 1–8 describe the v1 flagship contracts (deployed 2026-09-03, wind-down declared — empty, no new deposits sought); their economics stay pinned here so the older fee model remains checkable. Section 9 covers the live vault, RoamVault, whose guarantees are stricter.
 
 What this page deliberately does not promise is in [not-guaranteed.md](not-guaranteed.md).
 
@@ -57,7 +59,7 @@ The page itself reads the same view. The site calls `backingCoverage()` on every
 
 Owner-controlled parameters go through a 48-hour timelock: the protocol fee (within its cap), the deposit pause, grants and revocations of the pause-only role, and any removal or rebalancing of the treasury's LP capital. A proposal is public on-chain, waits at least 48 hours, and can then be executed by anyone — execution is permissionless. No owner action takes effect immediately.
 
-**Who schedules them: a 2-of-3 Safe multisig.** The timelock's proposer is a Safe multisig — two of three owner keys must sign to put an owner action into the queue; execution after the delay is open to everyone, scheduling is not. The three keys are held by one operator on separate devices (disclosed — multiple keys are not multiple parties), and the $WELL creator fee stream also accrues under this same multisig custody: the launch routes it to the Safe, not to a single key. That concentration is a fact about the v1 deployment and is stated here because this page is where control claims live. What is decentralized about Wellstreet is the code — open source, MIT-licensed, forkable, runnable by anyone from their own key ([run-it-yourself.md](run-it-yourself.md)) — not the keys, and this page does not pretend otherwise.
+**Who schedules them: a 2-of-3 Safe multisig.** The timelock's proposer is a Safe multisig — two of three owner keys must sign to put an owner action into the queue; execution after the delay is open to everyone, scheduling is not. The three keys are held by one operator on separate devices (disclosed — multiple keys are not multiple parties), and an earlier draft of the launch plan routed the $WELL creator fee stream to the Safe as well. The live plan supersedes that: the creator fee stream routes to $WELL holders through the pad's fee distributor (opted in at launch, permanent once routed) — no fee accrues to multisig custody. The key-concentration fact is stated here because this page is where control claims live. What is decentralized about Wellstreet is the code — open source, MIT-licensed, forkable, runnable by anyone from their own key ([run-it-yourself.md](run-it-yourself.md)) — not the keys, and this page does not pretend otherwise.
 
 Sweeping already-accrued fees to the treasury is permissionless and needs no owner action.
 
@@ -65,6 +67,17 @@ Sweeping already-accrued fees to the treasury is permissionless and needs no own
 
 - Deposits can be paused by (a) the treasury timelock and (b) a function-limited pause-only authority — an EOA whose only privileged capability is pausing deposits. The pause-only authority is revocable by the timelock, so a compromised pause key can be stripped.
 - `redeem` / `withdraw` have no pause path at all.
+
+## 9. The live vault: RoamVault
+
+The live vault (ERC-4626, USDG asset, live since 2026-09-13) is a separate contract with its own, stricter guarantees:
+
+- **The 90/10 split is immutable.** Of the yield the roamer accounts for, **90%** (`DEPOSITOR_BPS = 9000`) accrues to depositors through the share price and **10%** (`BURN_BPS = 1000`) buys $WELL and burns it. The two are named constants in the verified source — there is no `feeBps`, no `setFeeBps`, and no treasury cut anywhere on this path, so the dev take is structurally zero and no role can change the split.
+- **The harvest is permissionless and tip-free.** `harvest()` on the roamer can be called by anyone, and the caller receives **no tip** — a burn output cannot self-deal. If nobody harvests, fees accrue in the LP position until someone does.
+- **Redemption is never pausable** — section 6 applies unchanged: there is no pause path on withdrawals or redemptions.
+- **Deposits are capped in code.** The deposit cap is settable only within an immutable ceiling, and only by the treasury timelock.
+
+The $WELL creator fee stream is **not** multisig custody: it routes to $WELL holders through the pad's fee distributor (opted in at launch, permanent once routed). The Safe proposes timelock actions; it takes no fee.
 
 ## How to check these
 

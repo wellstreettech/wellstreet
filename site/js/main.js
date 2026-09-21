@@ -2169,6 +2169,29 @@
         badge.setAttribute('rel', 'noopener');
       }
     }
+
+    // WS-SOCIAL-LINKS (2026-09-21): footer social surfaces — the same seam as
+    // the skill link (hrefs assigned at init from cfg.branding; markup carries
+    // no absolute external href). The GitHub link reuses repoUrl — one source
+    // per fact, no duplicated truth in config. Id queries are LITERAL dollar-
+    // calls with string ids: the REGISTRY RIDER statically extracts ids from
+    // that form — a dynamic query (element id from a variable) escapes its net.
+    function wireSocialLink(el, href) {
+      if (el && el.setAttribute && typeof href === 'string' && href.indexOf('https://') === 0) {
+        el.setAttribute('href', href);
+        el.setAttribute('target', '_blank');
+        el.setAttribute('rel', 'noopener');
+      }
+    }
+    var socials = cfg.branding && cfg.branding.socials;
+    if (socials) {
+      wireSocialLink($('footer-link-x'), socials.x);
+      wireSocialLink($('footer-link-tg'), socials.telegram);
+    }
+    wireSocialLink($('footer-link-gh'),
+      (cfg.branding && typeof cfg.branding.repoUrl === 'string')
+        ? cfg.branding.repoUrl.replace(/\/+$/, '')
+        : null);
   }
 
   if (document.readyState === 'loading') {

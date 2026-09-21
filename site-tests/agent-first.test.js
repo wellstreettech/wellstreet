@@ -418,7 +418,7 @@ test('(m1) WS-MOTION-POLISH: :active press grammar + stamp stagger (doto re-pin;
     assert.strictEqual(countOccurrences(css, sel), 1,
       'the press rule ships exactly once in the per-class form: ' + sel.slice(0, 44) + '…');
   }
-  assert.strictEqual(countOccurrences(css, 'translateY(1px)'), 2, 'tab/copy keep the 1px dip (out of the button register)');
+  assert.strictEqual(countOccurrences(css, 'translateY(1px)'), 3, 'tab/copy keep the 1px dip (out of the button register); WS-SOCIAL-LINKS 2026-09-21: the footer .social-chip joins the dip register — colophon-adjacent, out of the button register (skill: design-taste-frontend tactile feedback)');
   // FLEET-SORT 2026-09-21: the register grows to NINE — the .fleet-more-btn
   // collapse-toggle chip (user ask: sortable/collapsible fleet table) ships the
   // same press-at-0.985 grammar; same assertion structure, count re-valued.

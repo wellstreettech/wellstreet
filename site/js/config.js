@@ -33,6 +33,14 @@
       ensName: 'wellstreet.eth',
       license: 'MIT',
       repoUrl: 'https://github.com/wellstreettech/wellstreet',   // PUBLIC, MIT — identity ops done 2026-09-20 (WS-POSITIONING-COPY); upgrades the skill link + the SOURCE badge seam
+      // Social surfaces (2026-09-21, user-supplied handles) — hrefs are
+      // JS-assigned at init in main.js (markup carries no absolute external
+      // href). GitHub is NOT duplicated here: the footer GitHub link reuses
+      // repoUrl — one source per fact.
+      socials: {
+        x: 'https://x.com/WellStreetTech',
+        telegram: 'https://t.me/WellStreetPortal'
+      },
       // Trademark honesty note (rendered in the footer):
       trademarkNote: 'Wellstreet is not affiliated with, endorsed by, or sponsored by Robinhood Markets, Inc. ' +
         'or State Street Corporation (SPDR). On-chain asset names (for example the "Robinhood Token" suffix) are ' +

@@ -12,10 +12,15 @@
 //       pre-broadcast phrases are banned (the contracts DEPLOYED 2026-09-03,
 //       config.js:92-96; "the harvester LP is not yet seeded" is a TRUE state
 //       claim and stays allowed — only the vault-pending phrasings are banned)
-//   (c) the fee-split claims state the config economics: 90/10 at
-//       protocolFeeBpsInitial, hard cap MAX_FEE_BPS = maxFeeBps, harvest tip =
-//       harvesterTipBps — derived from config, so a deliberate re-pin must move
-//       doc and config together
+//   (c) the fee-split claims state the economics that hold on-chain: the live
+//       RoamVault split (DEPOSITOR_BPS = 9000 / BURN_BPS = 1000, immutable
+//       constants, no feeBps setter, dev take structurally zero) and the $WELL
+//       holder-share routing (trading fees + 2.00% trade tax → holders via the
+//       pad's fee distributor, permanent once routed). The LEGACY flagship's
+//       economics (90/10 at protocolFeeBpsInitial, cap MAX_FEE_BPS = maxFeeBps,
+//       tip harvesterTipBps — config.economics) stay pinned too: that vault is
+//       wind-down-declared and its mechanics remain checkable. A deliberate
+//       re-pin must move doc and config together
 //   (d) methodology.md carries the ratified 2026-09-03 liquidity-share formula
 //       (the L_pos/L_pool and pool-TVL/vault-TVL legs) and NOT the superseded
 //       2026-08-30 TVL-share form; not-guaranteed.md's verbal formula keeps the
@@ -192,9 +197,10 @@ test('(b) no doc claims the vault is pending/undeployed', () => {
 
 // ---- (c) fee-split claims vs config economics -----------------------------------
 
-test('(c) config economics sanity: the split the docs must state', () => {
-  // Guard against silent re-derivation: if config re-pins the economics, the
-  // doc-facing pins below must move in the SAME change (checkable-docs contract).
+test('(c) config economics sanity: the LEGACY flagship split the docs must state', () => {
+  // config.economics describes the LEGACY flagship (broadcast 2026-09-03,
+  // wind-down declared). If config re-pins these, the doc-facing pins below
+  // must move in the SAME change (checkable-docs contract).
   assert.strictEqual(econ.maxFeeBps, 2000, 'maxFeeBps re-pinned — update the docs-facing pins in this battery');
   assert.strictEqual(econ.protocolFeeBpsInitial, 1000, 'protocolFeeBpsInitial re-pinned — update the docs-facing pins in this battery');
   assert.strictEqual(econ.harvesterTipBps, 10, 'harvesterTipBps re-pinned — update the docs-facing pins in this battery');
@@ -204,26 +210,50 @@ test('(c) config economics sanity: the split the docs must state', () => {
   assert.strictEqual(tipPct, '0.1%');
 });
 
-test('(c) tokenomics.md states the 90/10 split within the MAX_FEE_BPS cap', () => {
+test('(c) tokenomics.md states the live RoamVault split and the holder-share routing', () => {
   const text = docs['tokenomics.md'];
   const lower = text.toLowerCase();
+  // Live vault split — immutable constants, no setter, dev take structurally zero.
+  assert.ok(countOccurrences(text, 'DEPOSITOR_BPS = 9000') >= 1,
+    'tokenomics.md must carry the literal DEPOSITOR_BPS = 9000');
+  assert.ok(countOccurrences(text, 'BURN_BPS = 1000') >= 1,
+    'tokenomics.md must carry the literal BURN_BPS = 1000');
+  assert.ok(countOccurrences(lower, 'no `setfeebps`') >= 1,
+    'tokenomics.md must state there is no setFeeBps on the live path');
+  assert.ok(countOccurrences(text, 'structurally zero') >= 1,
+    'tokenomics.md must state the dev take is structurally zero');
+  // Holder-share routing — trading fees + 2.00% tax → holders via the distributor.
+  assert.ok(countOccurrences(text, '2.00%') >= 1, 'tokenomics.md must state the 2.00% trade tax');
+  assert.ok(countOccurrences(text, 'fee distributor') >= 1, 'tokenomics.md must name the pad fee distributor');
+  assert.ok(countOccurrences(text, 'permanent once routed') >= 1, 'tokenomics.md must state the routing is permanent once routed');
+  // Legacy flagship economics stay stated (wind-down declared, still checkable).
   assert.ok(countOccurrences(lower, 'max_fee_bps = ' + econ.maxFeeBps) >= 1,
-    'tokenomics.md must carry the literal cap: MAX_FEE_BPS = ' + econ.maxFeeBps);
-  assert.ok(countOccurrences(text, initialPct) >= 1, 'tokenomics.md must state the initial protocol fee ' + initialPct);
+    'tokenomics.md must carry the legacy literal cap: MAX_FEE_BPS = ' + econ.maxFeeBps);
+  assert.ok(countOccurrences(text, initialPct) >= 1, 'tokenomics.md must state the legacy initial protocol fee ' + initialPct);
   assert.ok(countOccurrences(text, depositorPct) >= 1, 'tokenomics.md must state the depositor share ' + depositorPct);
-  assert.ok(countOccurrences(text, capPct) >= 1, 'tokenomics.md must state the hard cap ' + capPct);
-  assert.ok(countOccurrences(text, tipPct) >= 1, 'tokenomics.md must state the harvest tip ' + tipPct);
+  assert.ok(countOccurrences(text, capPct) >= 1, 'tokenomics.md must state the legacy hard cap ' + capPct);
+  assert.ok(countOccurrences(text, tipPct) >= 1, 'tokenomics.md must state the legacy harvest tip ' + tipPct);
 });
 
-test('(c) guarantees.md states the 90/10 split within the MAX_FEE_BPS cap', () => {
+test('(c) guarantees.md states the legacy cap AND the live RoamVault guarantees', () => {
   const text = docs['guarantees.md'];
   const lower = text.toLowerCase();
+  // Legacy flagship sections (1–8) keep the original pins.
   assert.ok(countOccurrences(lower, 'max_fee_bps = ' + econ.maxFeeBps) >= 1,
-    'guarantees.md must carry the literal cap: MAX_FEE_BPS = ' + econ.maxFeeBps);
-  assert.ok(countOccurrences(text, initialPct) >= 1, 'guarantees.md must state the initial protocol fee ' + initialPct);
+    'guarantees.md must carry the legacy literal cap: MAX_FEE_BPS = ' + econ.maxFeeBps);
+  assert.ok(countOccurrences(text, initialPct) >= 1, 'guarantees.md must state the legacy initial protocol fee ' + initialPct);
   assert.ok(countOccurrences(text, depositorPct) >= 1, 'guarantees.md must state the depositor share ' + depositorPct);
-  assert.ok(countOccurrences(text, capPct) >= 1, 'guarantees.md must state the hard cap ' + capPct);
-  assert.ok(countOccurrences(text, tipPct) >= 1, 'guarantees.md must state the harvest tip ' + tipPct);
+  assert.ok(countOccurrences(text, capPct) >= 1, 'guarantees.md must state the legacy hard cap ' + capPct);
+  assert.ok(countOccurrences(text, tipPct) >= 1, 'guarantees.md must state the legacy harvest tip ' + tipPct);
+  // Live vault section (9) — the stricter, immutable split.
+  assert.ok(countOccurrences(text, 'DEPOSITOR_BPS = 9000') >= 1,
+    'guarantees.md section 9 must carry the literal DEPOSITOR_BPS = 9000');
+  assert.ok(countOccurrences(text, 'BURN_BPS = 1000') >= 1,
+    'guarantees.md section 9 must carry the literal BURN_BPS = 1000');
+  assert.ok(countOccurrences(text, 'no tip') >= 1,
+    'guarantees.md section 9 must state the live harvest is tip-free');
+  assert.ok(countOccurrences(text, 'structurally zero') >= 1,
+    'guarantees.md section 9 must state the dev take is structurally zero');
 });
 
 test('(c) every doc quoting MAX_FEE_BPS pairs it with the configured cap percent', () => {
