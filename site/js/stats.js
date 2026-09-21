@@ -51,12 +51,12 @@
   var WEI = 1000000000000000000n;
 
   // The honest waiting register (the brief's verbatim sentences).
-  var WAIT_SENT = 'waiting for the first sweep — this ledger lights up from the first burn';
-  var WAIT_TIP = 'waiting for the first sweep — this figure reads Burned events from the roamer once it is live';
-  var STRIP_NOTE = 'waiting for the first sweep — this strip updates from on-chain events';
-  var ERROR_SENT = 'the burn read failed (RPC) — nothing is estimated here';
-  var ERROR_TIP = 'the eth_getLogs read failed — the figure stays unavailable, never estimated';
-  var FEED_FAIL_SENT = 'the feed file did not load — no numbers are shown';
+  var WAIT_SENT = 'waiting for the first sweep: this ledger lights up from the first burn';
+  var WAIT_TIP = 'waiting for the first sweep: this figure reads Burned events from the roamer once it is live';
+  var STRIP_NOTE = 'waiting for the first sweep: this strip updates from on-chain events';
+  var ERROR_SENT = 'the burn read failed (RPC): nothing is estimated here';
+  var ERROR_TIP = 'the eth_getLogs read failed: the figure stays unavailable, never estimated';
+  var FEED_FAIL_SENT = 'the feed file did not load: no numbers are shown';
   // G5 pending register (SECTION_IMPROVE 2026-09-08): the chips + lines ship in
   // the static markup (the static paint IS the pending state); the live and error
   // branches hide them — a chip that outlives its state lies. Ids are
@@ -195,7 +195,7 @@
   // without it the track's solid paper-2 read as a filled bar in light mode.
   // The live branch clears BOTH stamps and any stale empty-title (a title that
   // outlives its state lies).
-  var EMPTY_BAR_TIP = 'bars compare counted Burned and Forwarded events — no counted pair yet, so neither bar is drawn';
+  var EMPTY_BAR_TIP = 'bars compare counted Burned and Forwarded events: no counted pair yet, so neither bar is drawn';
   function setBar(id, share) {
     var n = $(id);
     if (!n) { return; }
@@ -259,7 +259,7 @@
     var parts = [];
     if (prov.window) { parts.push(String(prov.window)); }
     if (prov.source) { parts.push('source: ' + prov.source); }
-    return parts.join(' — ');
+    return parts.join(' · ');
   }
 
   function renderBooks() {
@@ -268,14 +268,14 @@
     var prov = f && typeof f.provenance === 'function' ? f.provenance() : null;
     var tip = booksTip(prov);
     var sent = s ? null : FEED_FAIL_SENT;
-    setCell('st-books-count', s ? String(s.books) : '—', s ? tip : 'the fleet feed is unavailable — the count renders when the file loads');
-    setCell('st-books-pays', s ? String(s.paysLps) : '—', s ? tip : 'the fleet feed is unavailable — the count renders when the file loads');
-    setCell('st-books-hook', s ? String(s.hookMonetized) : '—', s ? tip : 'the fleet feed is unavailable — the count renders when the file loads');
+    setCell('st-books-count', s ? String(s.books) : '—', s ? tip : 'the fleet feed is unavailable: the count renders when the file loads');
+    setCell('st-books-pays', s ? String(s.paysLps) : '—', s ? tip : 'the fleet feed is unavailable: the count renders when the file loads');
+    setCell('st-books-hook', s ? String(s.hookMonetized) : '—', s ? tip : 'the fleet feed is unavailable: the count renders when the file loads');
     // G5 fleet census: the grid leads with the split (the black-hole truth) —
     // feed-fed counts only, never hardcoded; fail-closed to '—' + a title.
     setCell('st-census-split',
-      s ? (s.paysLps + ' books pay their LPs — ' + s.hookMonetized + ' pay nothing') : '—',
-      s ? tip : 'the fleet feed is unavailable — the split renders when the file loads');
+      s ? (s.paysLps + ' books pay their LPs · ' + s.hookMonetized + ' pay nothing') : '—',
+      s ? tip : 'the fleet feed is unavailable: the split renders when the file loads');
     if (!bookSentOriginal) {
       bookSentOriginal = {};
       ['st-books-count-sent', 'st-books-pays-sent', 'st-books-hook-sent'].forEach(function (id) {
@@ -326,15 +326,15 @@
     // live: payload = { allTime: BigInt|null, win: BigInt|null, forwards: number|null, burnEvents: number|null }
     var p = payload || {};
     var totalTip = 'all Burned events on record · sweepToBurn burn tail · eth_getLogs on the roamer · chain 4663';
-    var winTip = 'Burned events in the last ' + days + ' days · eth_getLogs on the roamer · chain 4663 — a range the node refuses renders unavailable, never an estimate';
+    var winTip = 'Burned events in the last ' + days + ' days · eth_getLogs on the roamer · chain 4663: a range the node refuses renders unavailable, never an estimate';
     setPendingRegister('live');
     setCell('st-burn-total', fmtWell(p.allTime), totalTip);
     setCell('st-burn-window', fmtWell(p.win), winTip);
-    setSent('st-burn-sent', 'measured from the roamer\'s Burned events — the buyback-and-burn tail runs permissionless, every figure replays on chain 4663');
+    setSent('st-burn-sent', 'measured from the roamer\'s Burned events: the buyback-and-burn tail runs permissionless, every figure replays on chain 4663');
     setCell('st-lane-burn-value', fmtWell(p.allTime) === '—' ? '—' : fmtWell(p.allTime) + ' $WELL', totalTip);
     setCell('st-lane-treasury-value',
       (typeof p.forwards === 'number' && isFinite(p.forwards)) ? groupThousands(String(p.forwards)) + ' events' : '—',
-      'junk the sweep forwarded to the treasury — raw fee tokens of mixed denominations, counted in events and never summed into $WELL');
+      'junk the sweep forwarded to the treasury: raw fee tokens of mixed denominations, counted in events and never summed into $WELL');
     // bars: the same-unit pair is COUNTED EVENTS (G5) — the Burned-event count
     // vs the Forwarded-event count; the lane VALUES above keep their own
     // denominations and both bars are disclosed 'counted in events'
@@ -452,7 +452,7 @@
         else { b.classList.remove('is-active'); }
       }
     }
-    setCell('st-burn-window-label', 'burned · last ' + d + ' days', 'the window toggles the windowed Burned figure — all-time stays on the left card');
+    setCell('st-burn-window-label', 'burned · last ' + d + ' days', 'the window toggles the windowed Burned figure: all-time stays on the left card');
     // RE-READ, never a replay: the cached payload's windowed figure belongs to
     // the PREVIOUS window — replaying it would paint old data under the new
     // window's label. refreshBurn() recomputes from the new currentDays (and

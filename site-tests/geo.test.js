@@ -19,10 +19,16 @@ test('config carries the same verbatim disclosure (block page + mirror banner)',
 });
 
 test('the static block-page template carries the F19 disclosure verbatim (no-JS survival)', () => {
+  // LEDGER-PRESS 2026-09-20: the STATIC carriers in index.html re-valued to the
+  // colon form (the taste-skill §9.F prose em-dash ban on page copy); the
+  // JS-injected F19 constant (geo.js/config.js) keeps its original em-dash
+  // form — the disclosure text itself is unchanged, only the static fallback
+  // punctuation differs.
   const fs = require('node:fs');
   const html = fs.readFileSync(require('node:path').join(__dirname, '..', 'site', 'index.html'), 'utf8');
-  assert.ok(html.indexOf(F19) !== -1, 'index.html must carry the F19 line statically');
-  const occurrences = html.split(F19).length - 1;
+  const F19_STATIC = 'geo-blocking has no adjudicated safe harbor: it reduces, not eliminates, exposure';
+  assert.ok(html.indexOf(F19_STATIC) !== -1, 'index.html must carry the F19 line statically');
+  const occurrences = html.split(F19_STATIC).length - 1;
   assert.ok(occurrences >= 2, 'disclosure present on block page AND mirror banner, got ' + occurrences);
 });
 

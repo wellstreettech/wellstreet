@@ -375,7 +375,8 @@ test('redeem-min pre-check: quote-below-floor refuses with the honest reason; a 
   // an empty/zero floor is refused with the honest redirect — silently degrading
   // to a plain redeem would change the money semantics without the user choosing them
   assert.ok(branch.includes("'Min out: ' + minRaw.reason"), 'an unparseable floor surfaces the parse reason');
-  assert.ok(branch.includes('Enter a min-out floor greater than zero — or use Redeem, which needs no floor.'),
+  // LEDGER-PRESS 2026-09-20: carrier re-valued to the ',' form (the prose em-dash ban on rendered strings); same refusal role.
+  assert.ok(branch.includes('Enter a min-out floor greater than zero, or use Redeem, which needs no floor.'),
     'a zero floor is refused, not silently downgraded');
 });
 
@@ -389,21 +390,23 @@ test('redeem-min gates: the floor input + button ride the REDEEM-side gates (wal
     'both ride the shared redeem-side readiness flag');
   assert.ok(gate.includes("'Connect a wallet first.'"), 'no-wallet reason');
   assert.ok(gate.includes("'Vault contract pending deploy.'"), 'pre-deploy reason');
-  assert.ok(gate.includes('Redeem with a payout floor — the redeem reverts below it.'),
+  // LEDGER-PRESS 2026-09-20: title carrier re-valued to the ':' form (prose em-dash ban); same semantics.
+  assert.ok(gate.includes('Redeem with a payout floor: the redeem reverts below it.'),
     'the connected-state title carries the floor semantics');
   // an exit is an exit: the redeem-side gates never consult the deposit pause
   assert.ok(!gate.includes('depositsPaused'), 'the exit path never gates on the deposit pause');
 });
 
 test('index.html: the min-out surface ships in the first paint — field, button, and the honest floor signage', () => {
-  assert.ok(html.includes('<label for="min-out" id="min-out-label">Min out (USDG) — payout floor</label>'),
+  // LEDGER-PRESS 2026-09-20: label/note carriers re-valued ('·' / ':') per the prose em-dash ban; same signage roles.
+  assert.ok(html.includes('<label for="min-out" id="min-out-label">Min out (USDG) · payout floor</label>'),
     'the label names the ASSET denomination');
   assert.ok(html.includes('<input type="text" id="min-out" inputmode="decimal" placeholder="0.0" disabled>'),
     'the floor input ships (disabled until the gates open)');
   assert.ok(html.includes('<button type="button" class="btn" id="btn-redeem-min" disabled>Redeem w/ floor</button>'),
     'the floor-redeem button ships (44px .btn, disabled until the gates open)');
   assert.ok(html.includes('per-call, never vault-held'), 'the markup comment states the floor lifetime');
-  assert.ok(html.includes('The floor reverts this redeem if the payout lands below it — the chain is the final arbiter.'),
+  assert.ok(html.includes('The floor reverts this redeem if the payout lands below it: the chain is the final arbiter.'),
     'the honest slippage note');
   assert.ok(html.includes('Leave it empty and use Redeem for the no-floor exit.'),
     'the no-floor exit stays discoverable');

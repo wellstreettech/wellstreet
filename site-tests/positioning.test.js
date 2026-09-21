@@ -20,19 +20,21 @@ const cpos = read('site/js/copy-position.js');
 const css = read('site/css/style.css');
 
 // ---- R1: the category claim in the head carriers ----
+// LEDGER-PRESS 2026-09-20: title/og re-pinned to the colon form — the
+// taste-skill §9.F prose em-dash ban re-valued the head carriers (same claim).
 test('title carries the AI-native category claim', () => {
-  assert.ok(html.includes('<title>Wellstreet — the AI-native liquidity layer of Robinhood Chain</title>'),
+  assert.ok(html.includes('<title>Wellstreet: the AI-native liquidity layer of Robinhood Chain</title>'),
     'the title claims the category');
   assert.ok(!html.includes('the open liquidity layer of Robinhood Chain</title>'),
     'the old title form is gone');
 });
 
 test('og:title + descriptions carry the claim and the agent-operator receipt', () => {
-  assert.ok(html.includes('content="Wellstreet — the open, AI-native liquidity layer of Robinhood Chain"'),
+  assert.ok(html.includes('content="Wellstreet: the open, AI-native liquidity layer of Robinhood Chain"'),
     'og:title');
   assert.ok(html.includes('content="Open-source vaults and an autonomous LP roamer on Robinhood Chain. Every pool fee measured, every claim checkable on-chain. Owned by holders, operated by agents."'),
     'meta description');
-  assert.ok(html.includes('An AI agent operates the LP book — every figure a raw RPC call, checkable by anyone.'),
+  assert.ok(html.includes('An AI agent operates the LP book: every figure a raw RPC call, checkable by anyone.'),
     'og:description');
   const head = html.slice(0, html.indexOf('</head>'));
   assert.ok(!head.includes('No audit.'), 'the stale no-audit line is retired from the head');
@@ -106,8 +108,9 @@ test('kill list: no hype vocabulary anywhere in the page', () => {
 // item, the census stats on one row. The three P1 fixes from the design audit,
 // each pinned so the page cannot drift back. ----
 test('P1 footer truth: the audit claim is real and stated once', () => {
+  // LEDGER-PRESS 2026-09-20: carrier re-valued to the colon form (prose em-dash ban); same once-only assertion.
   assert.ok(!html.includes('No audit.'), 'the false no-audit claim is gone from the whole page');
-  assert.strictEqual(html.split('Audited — reports in the repo').length - 1, 1,
+  assert.strictEqual(html.split('Audited: reports in the repo').length - 1, 1,
     'the audited claim appears exactly once');
   assert.ok(html.includes('No company. Owner controls behind a public 48-hour timelock.'),
     'the rest of the honesty line is untouched');
@@ -129,6 +132,7 @@ test('P1 census row: the two stats share one flex row, the duplicated label is g
   assert.ok(!main.includes(' pay nothing'), 'the pay-nothing count left the hero label with it');
   assert.ok(main.includes('String(summary.hookMonetized)'),
     'the zero stat still fills from the summary (fail-closed contract intact)');
-  assert.ok(main.includes("'books measured — unavailable (feed)'"),
+  // LEDGER-PRESS 2026-09-20: label carrier re-valued to the '·' form (prose em-dash ban on rendered strings); same byte-identity role.
+  assert.ok(main.includes("'books measured · unavailable (feed)'"),
     'the unavailable label stays byte-identical (render-degrade pins it)');
 });

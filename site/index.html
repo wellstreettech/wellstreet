@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Open-source vaults and an autonomous LP roamer on Robinhood Chain. Every pool fee measured, every claim checkable on-chain. Owned by holders, operated by agents.">
-  <meta property="og:title" content="Wellstreet — the open, AI-native liquidity layer of Robinhood Chain">
-  <meta property="og:description" content="Open-source ERC-4626 vaults and protocol-owned liquidity on Robinhood Chain (4663). An AI agent operates the LP book — every figure a raw RPC call, checkable by anyone.">
+  <meta property="og:title" content="Wellstreet: the open, AI-native liquidity layer of Robinhood Chain">
+  <meta property="og:description" content="Open-source ERC-4626 vaults and protocol-owned liquidity on Robinhood Chain (4663). An AI agent operates the LP book: every figure a raw RPC call, checkable by anyone.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://wellstreet.tech/">
   <meta property="og:site_name" content="Wellstreet">
@@ -16,9 +16,9 @@
   <meta name="twitter:image" content="https://wellstreet.tech/og.png">
   <meta name="theme-color" content="#0A0E12">
   <meta name="color-scheme" content="dark">
-  <title>Wellstreet — the AI-native liquidity layer of Robinhood Chain</title>
+  <title>Wellstreet: the AI-native liquidity layer of Robinhood Chain</title>
   <!-- G1 THEME-FOUNDATION (2026-09-08) anti-FOUC: apply the stored theme BEFORE
-       first paint (the button does not exist yet — label/aria sync happens in
+       first paint (the button does not exist yet · label/aria sync happens in
        js/theme-toggle.js). Absent/invalid key = no attribute = system follow
        via the stylesheet's prefers-color-scheme block. Storage blocked =
        dark default, same as today. -->
@@ -35,7 +35,7 @@
   </script>
   <link rel="stylesheet" href="css/style.css">
   <!-- WS-DARK-DOTO (2026-09-07): the dot-matrix identity. Doto is the machine
-       voice — display plus every measured figure and status; monospace is the
+       voice · display plus every measured figure and status; monospace is the
        only other voice (labels and metadata). No serif, no images, no
        gradients. The subset variable face (wght 100-900, ROND instanced at
        100 in the ttf fallback) ships same-origin; the woff2 stays primary.
@@ -43,7 +43,7 @@
   <link rel="preload" href="fonts/doto-var.woff2" as="font" type="font/woff2" crossorigin>
   <!-- favicon: the mark as a solid-ink silhouette, re-rendered from the doto
        token values (URL-encoded, so the theme hex bans cannot see it). Still
-       an inline data-URI — zero new files, zero requests. -->
+       an inline data-URI · zero new files, zero requests. -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23070B0E'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%23EDE9DC' stroke-opacity='0.4' stroke-width='2'/%3E%3Cpath fill='%23EDE9DC' d='M13 29h8v22h-8zM24 51c-2.8 0-5-2.2-5-5V31.5c0-1.5.6-2.9 1.7-3.9l7.6-7.2c1.1-1 1.7-2.5 1.7-4v-6c0-2 1.6-3.6 3.6-3.6 3.6 0 6.4 2.9 6.4 6.4v9.3h7.2c3.2 0 5.6 2.8 5.1 5.9l-2 13.9c-.4 2.9-2.9 5-5.8 5L24 51z'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -64,8 +64,8 @@
          is injected verbatim by js/geo.js. -->
     <div id="ws-jurisdiction-banner" class="jurisdiction-banner" hidden>
       <div class="wrap">
-        <span>The protocol performs no jurisdictional blocking — you are responsible for complying with the law where you are.</span>
-        <span class="disclosure" data-geo-disclosure>geo-blocking has no adjudicated safe harbor — it reduces, not eliminates, exposure</span>
+        <span>The protocol performs no jurisdictional blocking: you are responsible for complying with the law where you are.</span>
+        <span class="disclosure" data-geo-disclosure>geo-blocking has no adjudicated safe harbor: it reduces, not eliminates, exposure</span>
       </div>
     </div>
 
@@ -83,11 +83,11 @@
           <a href="#agents" class="nav-cta">Run it yourself</a>
         </nav>
         <!-- WS-POSITIONING-COPY (2026-09-20): the right cluster. The badge is
-             chrome-from-outside, not a section anchor — it lives beside the
+             chrome-from-outside, not a section anchor · it lives beside the
              theme toggle so the nav keeps its five section anchors on ONE row
              (the wrap is a capped-width container; a 7th nav item orphans onto
              a second row). href is JS-assigned at init from
-             cfg.branding.repoUrl — markup carries no absolute external href
+             cfg.branding.repoUrl · markup carries no absolute external href
              (resource-gate scans href= as a load channel). -->
         <div class="header-actions">
           <a id="source-badge" class="source-badge">SOURCE · MIT</a>
@@ -95,7 +95,7 @@
              label/aria-pressed pair is the DARK-DEFAULT state (dark active ->
              pressing gets LIGHT); js/theme-toggle.js re-syncs both at init and
              on every change. aria-pressed = light is active. WS-VAULT-GATES
-             (2026-09-13): the visible text IS the accessible name — the old
+             (2026-09-13): the visible text IS the accessible name · the old
              aria-label="switch theme" failed the label-content-name audit
              (the name must contain the visible text, and the visible text
              flips LIGHT/DARK at runtime, so no static label can contain it
@@ -116,67 +116,86 @@
     </div>
 
     <main>
-      <!-- ============ MOVEMENT 1 — WHAT IT IS (the banner, extended) ============ -->
+      <!-- ============ MOVEMENT 1 · WHAT IT IS (the banner, extended) ============ -->
       <section class="hero" id="top">
         <!-- the halftone field: the doto dot grid + faint ledger column lines,
              the page's whole backdrop texture. Purely decorative, zero requests. -->
         <div class="hero-field" aria-hidden="true"></div>
         <div class="wrap">
-          <p class="hero-ticker">WELLSTREET — ROBINHOOD CHAIN 4663</p>
-          <h1>OWNED BY HOLDERS.<br>OPERATED BY AGENTS.</h1>
-          <!-- WS-POSITIONING-COPY (2026-09-20): the category claim — the
-               site's slogan line, static (it is a claim about what the
-               protocol IS; the receipts below carry the numbers). -->
-          <p class="hero-claim">THE OPEN, AI-NATIVE LIQUIDITY LAYER OF ROBINHOOD CHAIN.</p>
-          <div class="hero-rule" aria-hidden="true"></div>
-          <p class="hero-meta">every number is a raw RPC call<span class="hero-meta-dot"> ●</span><br>replay them yourself</p>
-          <!-- WS-MESSAGING-V3 (2026-09-08): the fee-lane truth in five words —
-               amber as TEXT here, never a second filled CTA. -->
-          <p class="hero-cut">THE PROTOCOL'S CUT: <span class="hero-cut-zero">ZERO</span></p>
-          <div class="cta-row">
-            <a class="cta-solid" href="#fleet">Open the Fleet</a>
-          </div>
-          <!-- the ONE live hero stat: the fleet count from js/fleet.js's
-               same-origin feed. Static pre-JS is the honest unavailable state
-               (em-dash); initFleet fills it and fails closed, never a
-               fabricated zero. -->
-          <!-- SECTION-IMPROVE G1 #6 (2026-09-08): the container carries the
-               unavailable class statically (no-JS keeps the dashed hairline);
-               js/main.js renderHeroStat removes it when a live summary lands.
-               The window span is never written — provenance lives in the
-               fleet surface. -->
-          <!-- WS-P1-DESIGN-FIXES (2026-09-20): the two census stats share ONE
-               flex row (styled in css/style.css) — the old stacked pair
-               duplicated the zero-fee fact within a glance and ate vertical
-               hero space. The census note stays outside the row. -->
-          <div class="hero-stat-row">
-            <div id="hero-stat" class="hero-stat--unavailable">
-              <span class="hero-stat-num" id="hero-stat-num">—</span>
-              <span class="hero-stat-label" id="hero-stat-label">books measured</span>
-              <span class="hero-stat-window" id="hero-stat-window"></span>
+          <p class="hero-ticker">WELLSTREET · ROBINHOOD CHAIN 4663</p>
+          <!-- LEDGER-PRESS (2026-09-20): the banner recomposes as an asymmetric
+               split. Left column (.hero-copy): the manifesto stack (h1, claim,
+               amber rule, meta line, the ONE CTA). Right column
+               (aside.hero-plate): the census plate, the page's data instrument
+               (the cut, the two live stats, the checkability note, the chain
+               cell). Every id/class of the moved elements is byte-identical to
+               the pre-split stack (render/positioning pins + the main.js fill
+               points depend on them); the old single-column stack order is
+               superseded, not deleted (see the WS-MOBILE-FIXES rank note in
+               css/style.css for the dated amendment). -->
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <h1>OWNED BY HOLDERS.<br>OPERATED BY AGENTS.</h1>
+              <!-- WS-POSITIONING-COPY (2026-09-20): the category claim · the
+                   site's slogan line, static (it is a claim about what the
+                   protocol IS; the receipts below carry the numbers). -->
+              <p class="hero-claim">THE OPEN, AI-NATIVE LIQUIDITY LAYER OF ROBINHOOD CHAIN.</p>
+              <div class="hero-rule" aria-hidden="true"></div>
+              <p class="hero-meta">every number is a raw RPC call<span class="hero-meta-dot"> ●</span><br>replay them yourself</p>
+              <div class="cta-row">
+                <a class="cta-solid" href="#fleet">Open the Fleet</a>
+              </div>
             </div>
-            <!-- WS-POSITIONING-COPY (2026-09-20): the zero-fee flex as a
-                 first-class stat — same live feed, same fail-closed contract
-                 as #hero-stat (js/main.js renderHeroStat fills both; static
-                 pre-JS is the honest em-dash). hookMonetized books run swaps
-                 whose fees never reach LPs. -->
-            <div id="hero-stat-zero" class="hero-stat--unavailable">
-              <span class="hero-stat-num" id="hero-stat-zero-num">—</span>
-              <span class="hero-stat-label" id="hero-stat-zero-label">books pay LPs zero</span>
-            </div>
+            <aside class="hero-plate" aria-label="The census, live">
+              <!-- WS-MESSAGING-V3 (2026-09-08): the fee-lane truth in five words ·
+                   amber as TEXT here, never a second filled CTA. LEDGER-PRESS
+                   (2026-09-20): the cut now leads the census plate. -->
+              <p class="hero-cut">THE PROTOCOL'S CUT: <span class="hero-cut-zero">ZERO</span></p>
+              <!-- the ONE live hero stat: the fleet count from js/fleet.js's
+                   same-origin feed. Static pre-JS is the honest unavailable state
+                   (em-dash); initFleet fills it and fails closed, never a
+                   fabricated zero. -->
+              <!-- SECTION-IMPROVE G1 #6 (2026-09-08): the container carries the
+                   unavailable class statically (no-JS keeps the dashed hairline);
+                   js/main.js renderHeroStat removes it when a live summary lands.
+                   The window span is never written · provenance lives in the
+                   fleet surface. -->
+              <!-- WS-P1-DESIGN-FIXES (2026-09-20): the two census stats share ONE
+                   flex row (styled in css/style.css) · the old stacked pair
+                   duplicated the zero-fee fact within a glance and ate vertical
+                   hero space. The census note stays outside the row.
+                   LEDGER-PRESS (2026-09-20): the row moved inside the plate;
+                   ids and inner markup byte-identical. -->
+              <div class="hero-stat-row">
+                <div id="hero-stat" class="hero-stat--unavailable">
+                  <span class="hero-stat-num" id="hero-stat-num">—</span>
+                  <span class="hero-stat-label" id="hero-stat-label">books measured</span>
+                  <span class="hero-stat-window" id="hero-stat-window"></span>
+                </div>
+                <!-- WS-POSITIONING-COPY (2026-09-20): the zero-fee flex as a
+                     first-class stat · same live feed, same fail-closed contract
+                     as #hero-stat (js/main.js renderHeroStat fills both; static
+                     pre-JS is the honest em-dash). hookMonetized books run swaps
+                     whose fees never reach LPs. -->
+                <div id="hero-stat-zero" class="hero-stat--unavailable">
+                  <span class="hero-stat-num" id="hero-stat-zero-num">—</span>
+                  <span class="hero-stat-label" id="hero-stat-zero-label">books pay LPs zero</span>
+                </div>
+              </div>
+              <p class="hero-census-note">every number checkable</p>
+              <div id="chain-badge" class="muted mt-16" aria-live="polite"></div>
+            </aside>
           </div>
-          <p class="hero-census-note">every number checkable</p>
-          <div id="chain-badge" class="muted mt-16" aria-live="polite"></div>
         </div>
       </section>
 
-      <!-- ============ MOVEMENT 2 — HOW TO PLUG IN ============
-           One skill file — the agent-native thesis, stated before the data.
+      <!-- ============ MOVEMENT 2 · HOW TO PLUG IN ============
+           One skill file · the agent-native thesis, stated before the data.
            (FLEET-UI-V2 follow-up 2026-09-08, user: lift it higher.) Card
            hrefs stay RELATIVE forever; only the repo pointer is repoUrl-
-           upgraded by main.js the moment cfg.branding.repoUrl lands — it is
+           upgraded by main.js the moment cfg.branding.repoUrl lands · it is
            PENDING_IDENTITY until identity ops, never a fabricated URL).
-           SECTION_IMPROVE G2 (2026-09-08): the WORKING link leads — the served
+           SECTION_IMPROVE G2 (2026-09-08): the WORKING link leads · the served
            mirror is the primary pointer (the bare repo path 404'd in prod while
            repoUrl is PENDING_IDENTITY); the canonical skill path follows as the
            secondary pointer, now backed by a served byte-copy under
@@ -184,50 +203,48 @@
       <section class="block" id="agents">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">01</span>
             <h2>Plug in.</h2>
             <span class="spacer"></span>
             <span class="muted">no API keys · no permission</span>
           </div>
           <p class="block-sub">
-            We press launch. Agents press everything. One skill file — any agent can operate this protocol. Same contracts. Same rules.
+            We press launch. Agents press everything. One skill file, any agent can operate this protocol. Same contracts. Same rules.
             <a id="agents-skill-mirror-link" href="skills/wellstreet-vaults.md">skills/wellstreet-vaults.md</a>
-            — canonical source:
+            · canonical source:
             <a id="agents-skill-link" href="skills/wellstreet-vaults/SKILL.md">skills/wellstreet-vaults/SKILL.md</a>
           </p>
           <ul class="agents-caps">
             <li>Keyless reads: a 17-read cast battery covers totalAssets, share price, backing coverage, harvest history.</li>
             <li>Writes fail closed: approvals go to pinned addresses only, depositsPaused() gates every deposit, exits price through previewRedeem immediately before the send.</li>
-            <li>Sourced reporting: every figure carries its window and formula chain — backward-looking, never a promise.</li>
+            <li>Sourced reporting: every figure carries its window and formula chain; backward-looking, never a promise.</li>
           </ul>
         </div>
       </section>
 
-      <!-- ============ MOVEMENT 3 — THE FLEET ============
+      <!-- ============ MOVEMENT 3 · THE FLEET ============
            The measured books, one column. The intro carries the PROTECTED
            launch-fact seam (#vaults-launch-fact, byte-synced with main.js's
            writer) and the dead-simple promise: one vault, deposit USDG, 90%
            of the roamer's trading fees flow to depositors. The books render
            client-side from WS.fleet.rows() through
            the FLEET-UI-V2 surface skeleton below (terminal table >=641px, card
-           stack <=640px — both DOMs always render, CSS decides visibility);
-           the FLAGSHIP card is the static first card — a SIBLING that precedes
+           stack <=640px · both DOMs always render, CSS decides visibility);
+           the FLAGSHIP card is the static first card · a SIBLING that precedes
            the render target, never a child of it (the renderer wipes its
            mounts wholesale on every path). Its detail hosts the collapsed
            verify disclosure (live vault reads, the four fact rows, the
-           coverage seam) and the ENTIRE deposit widget OUTSIDE it — always
+           coverage seam) and the ENTIRE deposit widget OUTSIDE it · always
            visible, ids byte-unchanged. -->
       <section class="block" id="fleet">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">02</span>
             <h2>The Fleet</h2>
             <span class="spacer"></span>
             <span class="muted">the feed is a file</span>
           </div>
           <p class="block-sub">
-            <span id="vaults-launch-fact">The vault is on-chain — four contracts, verifiable at the addresses these cards read.</span>
-            One vault on Robinhood Chain holds the roamer's capital — RoamVault (wsrUSDG), live today. You deposit USDG and hold wsrUSDG, your claim on the pool. 90% of the roamer's trading fees flow to depositors automatically — earnings start at the first harvest, nothing estimated until then.
+            <span id="vaults-launch-fact">The vault is on-chain: four contracts, verifiable at the addresses these cards read.</span>
+            One vault on Robinhood Chain holds the roamer's capital: RoamVault (wsrUSDG), live today. You deposit USDG and hold wsrUSDG, your claim on the pool. 90% of the roamer's trading fees flow to depositors automatically: earnings start at the first harvest, nothing estimated until then.
           </p>
           <!-- FLEET-SIMPLE-EARN (2026-09-14): the dead-simple path, static —
                no JS, no images, no external origins. The numbers are explicit
@@ -238,17 +255,17 @@
             <li><span class="fleet-step-num">2</span> · Deposit</li>
             <li><span class="fleet-step-num">3</span> · Watch your share of every fee land</li>
           </ol>
-          <!-- FLEET-APR-LOOP (2026-09-14): the how-you-earn block — the roamer
+          <!-- FLEET-APR-LOOP (2026-09-14): the how-you-earn block · the roamer
                and the loop in one breath, then where the projected ~0.3% comes
                from. The 40.3% figure is the measured pool-net fee APR median,
-               owned by site/js/config.js (netAprPct) — fleet-earn.test.js pins
+               owned by site/js/config.js (netAprPct) · fleet-earn.test.js pins
                this copy to that constant, so a baseline re-pin forces the copy
                to move with it. Static: no fetched resources, no images, the
                loop link is an in-page anchor. -->
           <div class="fleet-earn" id="fleet-earn">
-            <p class="fleet-earn-loop" id="fleet-earn-loop">The roamer is the protocol's own automated LP: it moves the vault's USDG into the highest measured-fee pools on Robinhood Chain and harvests the fees. 90% of every fee streams to depositors; the other 10% buys and burns $WELL — parked until $WELL launches, not earning. Harvest after harvest, the loop closes — <a href="#flow">see the whole loop</a>.</p>
+            <p class="fleet-earn-loop" id="fleet-earn-loop">The roamer is the protocol's own automated LP: it moves the vault's USDG into the highest measured-fee pools on Robinhood Chain and harvests the fees. 90% of every fee streams to depositors; the other 10% buys and burns $WELL, parked until $WELL launches, not earning. Harvest after harvest, the loop closes: <a href="#flow">see the whole loop</a>.</p>
             <!-- WS-POSITIONING-COPY (2026-09-20): the replayable receipt for
-                 the split claim — command text composed by js/main.js from
+                 the split claim · command text composed by js/main.js from
                  config addresses at init; panel ships hidden, carries no
                  external href (resource-gate scans href= as a load channel). -->
             <div class="verify-wrap">
@@ -258,10 +275,10 @@
                 <button class="verify-copy" type="button" id="verify-copy-split">COPY COMMAND</button>
               </div>
             </div>
-            <p class="fleet-earn-apr" id="fleet-earn-apr"><strong>Where the ~0.3% comes from.</strong> The pools earned a measured 40.3% net fee rate in the phase-0 baseline windows (measured baseline, Aug 2026 — see the verify panel). A depositor's cut of that rate is the slice the vault's capital represents, times the 90% depositor split. Today the vault is seeded tiny, so the projection is ~0.3% — projected until the first harvest makes it measured. And it moves as the vault's share of the pool moves: more capital captures more of the pool's fees, and each deposit dilutes earlier ones.</p>
+            <p class="fleet-earn-apr" id="fleet-earn-apr"><strong>Where the ~0.3% comes from.</strong> The pools earned a measured 40.3% net fee rate in the phase-0 baseline windows (measured baseline, Aug 2026 · see the verify panel). A depositor's cut of that rate is the slice the vault's capital represents, times the 90% depositor split. Today the vault is seeded tiny, so the projection is ~0.3%: projected until the first harvest makes it measured. And it moves as the vault's share of the pool moves: more capital captures more of the pool's fees, and each deposit dilutes earlier ones.</p>
           </div>
           <!-- ALWAYS-CONNECT-ENTRY (2026-09-08, user: the Connect wallet button
-               was buried inside the collapsed flagship — visible at every
+               was buried inside the collapsed flagship · visible at every
                viewport now; one tap opens the card AND runs the same connect
                flow, state mirrored by renderWidgetState. -->
           <div class="btn-row connect-lane">
@@ -269,9 +286,9 @@
           </div>
 
                   <!-- MOBILE-WALLET-GUIDE (2026-09-08): iOS Safari injects NO
-                       provider — without this the honest 'Connect failed' is a
-                       dead end — the panel sits ABOVE the flagship card so the path is visible without opening it. Shown by js/main.js when no wallet exists
-                       AND (the UA is iOS — the Safari lead line below — OR the
+                       provider · without this the honest 'Connect failed' is a
+                       dead end · the panel sits ABOVE the flagship card so the path is visible without opening it. Shown by js/main.js when no wallet exists
+                       AND (the UA is iOS · the Safari lead line below · OR the
                        UA is not iOS AND no provider exists: no window.ethereum,
                        empty eip-6963 registry; UI_LOOP_2 G5 swaps the lead line
                        for the desktop install hint at show time). hrefs are
@@ -281,31 +298,31 @@
                        navigation is not a loaded resource. -->
                   <div id="mobile-wallet-guide" class="mwg" hidden>
                     <p class="mwg-lead">Safari carries no wallet of its own. Open Wellstreet inside your wallet app's browser:</p>
-                    <a class="mwg-link" data-mwg-open="metamask" target="_blank" rel="noopener">MetaMask — open the app</a>
-                    <a class="mwg-link" data-mwg-open="rainbow" target="_blank" rel="noopener">Rainbow — open the app</a>
+                    <a class="mwg-link" data-mwg-open="metamask" target="_blank" rel="noopener">MetaMask: open the app</a>
+                    <a class="mwg-link" data-mwg-open="rainbow" target="_blank" rel="noopener">Rainbow: open the app</a>
                     <div class="mwg-row">
-                      <span class="mwg-note">Coinbase Wallet — open the app, browse to:</span>
+                      <span class="mwg-note">Coinbase Wallet: open the app, browse to:</span>
                       <span class="mwg-url" id="mwg-url">wellstreet.tech</span>
                       <button type="button" class="mwg-copy" id="mwg-copy-url">copy</button>
                     </div>
-                    <p class="mwg-foot">No wallet needed anywhere else on this page — every number is a public read.</p>
+                    <p class="mwg-foot">No wallet needed anywhere else on this page: every number is a public read.</p>
                   </div>
           <details class="fleet-card fleet-card--flagship">
             <summary class="fleet-summary">
               <span class="fleet-pair">wsrUSDG</span>
               <span class="fleet-apr" id="fleet-flagship-apr">—</span>
               <span class="fleet-apr-mark">projected</span>
-              <span class="fleet-meta">the live vault — deposits open, exits never paused</span>
+              <span class="fleet-meta">the live vault: deposits open, exits never paused</span>
             </summary>
             <div class="fleet-detail">
               <p class="fleet-tier-note">One token is one share. The live reads and the deposit widget live in this card.</p>
               <!-- FLEET-SIMPLE-EARN (2026-09-14): the technical reads collapse
-                   behind ONE disclosure — the deposit widget (03) below stays
+                   behind ONE disclosure · the deposit widget (03) below stays
                    OUTSIDE it and always visible. ids byte-unchanged (the
                    id-based fills are relocation-safe); collapsed by default
                    (no `open` attribute). -->
               <details class="fleet-verify">
-                <summary>Verify it yourself — every number, live</summary>
+                <summary>Verify it yourself: every number, live</summary>
                 <div class="fleet-verify-body">
                   <div id="fleet-vault-reads"></div>
                   <div class="hero-facts">
@@ -315,7 +332,7 @@
                     </div>
                     <div class="hero-fact">
                       <span class="k">Keys</span>
-                      <span class="v">Yours — redeems have no pause path.</span>
+                      <span class="v">Yours: redeems have no pause path.</span>
                     </div>
                     <div class="hero-fact">
                       <span class="k">Numbers</span>
@@ -328,8 +345,8 @@
                   </div>
                   <!-- the backingCoverage seam: ONE line, one fill point in
                        js/main.js, isDeployed-gated, fails to the honest
-                       unavailable state — never a fabricated figure. -->
-                  <p class="fleet-coverage-line">Backing invariant: <span id="fleet-coverage" aria-live="polite">live from backingCoverage() — verify it yourself with any RPC client.</span></p>
+                       unavailable state · never a fabricated figure. -->
+                  <p class="fleet-coverage-line">Backing invariant: <span id="fleet-coverage" aria-live="polite">live from backingCoverage(): verify it yourself with any RPC client.</span></p>
                 </div>
               </details>
               <!-- ============ DEPOSIT / REDEEM WIDGET ============
@@ -338,13 +355,12 @@
               <section class="block" id="deposit">
                 <div class="wrap">
                   <div class="block-head">
-                    <span class="index">03</span>
                     <h2>Deposit / Redeem</h2>
                     <span class="spacer"></span>
                     <span class="muted" id="widget-chain"></span>
                   </div>
                   <p class="block-sub">
-                    Approve, deposit, redeem — plain ERC-4626. Exits have no pause path.
+                    Approve, deposit, redeem: plain ERC-4626. Exits have no pause path.
                   </p>
 
                   <div class="widget-grid">
@@ -365,7 +381,7 @@
                         </div>
                         <!-- live deposit preview row: one previewDeposit(uint256)
                              eth_call per debounced input, priced by the vault's
-                             own view — an estimate, never a receive-promise;
+                             own view · an estimate, never a receive-promise;
                              degrades to the honest unavailable state.
                              (WS-VAULT-DEPOSIT G3 completion, 2026-09-13) -->
                         <p class="flag" id="deposit-preview" aria-live="polite"></p>
@@ -377,7 +393,7 @@
                         <h3>Redeem</h3>
                         <span class="share-symbol">wsrUSDG</span>
                         <!-- permanent signage: static, always true, NOT a
-                             state read — the truth asymmetry the pause
+                             state read · the truth asymmetry the pause
                              staging fixes closes here. -->
                         <span class="panel-tag panel-tag--safe">exits: no pause path</span>
                       </div>
@@ -395,16 +411,16 @@
                              YOURS, per-call, never vault-held (a stale vault-held
                              floor would be a redemption trap). -->
                         <div class="field">
-                          <label for="min-out" id="min-out-label">Min out (USDG) — payout floor</label>
+                          <label for="min-out" id="min-out-label">Min out (USDG) · payout floor</label>
                           <input type="text" id="min-out" inputmode="decimal" placeholder="0.0" disabled>
                         </div>
                         <div class="btn-row">
                           <button type="button" class="btn" id="btn-redeem-min" disabled>Redeem w/ floor</button>
                         </div>
-                        <p class="flag" id="min-out-note">The floor reverts this redeem if the payout lands below it — the chain is the final arbiter. Leave it empty and use Redeem for the no-floor exit.</p>
+                        <p class="flag" id="min-out-note">The floor reverts this redeem if the payout lands below it: the chain is the final arbiter. Leave it empty and use Redeem for the no-floor exit.</p>
                         <!-- live redeem/withdraw preview row: one eth_call per
                              debounced input, priced by the vault's own preview
-                             view — never a receive-promise; degrades to the
+                             view · never a receive-promise; degrades to the
                              honest unavailable state. -->
                         <p class="flag" id="redeem-preview" aria-live="polite"></p>
                       </div>
@@ -427,7 +443,7 @@
                   <div class="apr-sim" id="apr-sim">
                     <div class="sim-head">
                       <span class="sim-title">Deposit size?</span>
-                      <span class="sim-note">illustrative — nothing here takes a deposit</span>
+                      <span class="sim-note">illustrative: nothing here takes a deposit</span>
                     </div>
                     <label class="sim-slider-label" for="sim-slider">Deposit size (USD)</label>
                     <input type="range" id="sim-slider" min="500" max="50000" step="500" value="5000">
@@ -439,7 +455,7 @@
                       <div class="sim-region">
                         <span class="sim-region-k">Your size ÷ pool TVL (live)</span>
                         <span class="sim-bar" role="img" aria-label="Your illustrative deposit as a share of the live pool TVL"><span class="sim-bar-fill" id="sim-bar-fill"></span></span>
-                        <span class="sim-region-v" id="sim-share">pool TVL unavailable — the dilution bar will not invent a denominator</span>
+                        <span class="sim-region-v" id="sim-share">pool TVL unavailable: the dilution bar will not invent a denominator</span>
                       </div>
                       <div class="sim-region sim-region--static">
                         <span class="sim-region-k">Projected depositor APR</span>
@@ -457,7 +473,7 @@
                The table and the card stack both render client-side from
                WS.fleet.rows() on every load (CSS decides which is visible; no
                resize JS); the sheet fills on Details; any load or validation
-               failure unhides the designed unavailable state — never a fake
+               failure unhides the designed unavailable state · never a fake
                zero, never a fabricated count. Empty in the static markup by
                design. -->
           <div id="fleet-surface" aria-live="polite">
@@ -468,7 +484,7 @@
               <button class="fleet-filter" data-filter="DEAD" type="button">dead</button>
             </div>
             <!-- W1 G1-BAND (2026-09-08): horizontal scroller around the table
-                 ONLY — the table's min-content overflows the document at
+                 ONLY · the table's min-content overflows the document at
                  641-892px; this div is the table's horizontal scrollport there
                  (CSS band-scoped; js/fleet-table.js re-implements the sticky
                  thead inside the band against the live header height), and the
@@ -492,21 +508,21 @@
             </table>
             </div><!-- /#fleet-table-scroller -->
             <!-- G4 #3 / DECISION-2 (2026-09-08): the il/age columns diet to
-                 '—' at every width until the feed carries the figures — this
+                 '—' at every width until the feed carries the figures · this
                  colophon is the honesty line for that absence. Cells are
                  still emitted (the §1 DOM contract is untouched). -->
             <p class="fleet-colophon">il + age render when the feed carries them</p>
             <div class="fleet-cards" id="fleet-cards"></div>
             <aside class="fleet-sheet" id="fleet-sheet" hidden></aside>
             <div class="fleet-unavailable" id="fleet-unavailable" hidden>
-              <p>the feed file did not load or failed validation — no numbers are shown</p>
+              <p>the feed file did not load or failed validation: no numbers are shown</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ============ MOVEMENT 3.5 — THE FLOW (FLOW_SECTION_2026-09-08) ============
-           The live-wired flywheel — the protocol's self-portrait drawn from its own
+      <!-- ============ MOVEMENT 3.5 · THE FLOW (FLOW_SECTION_2026-09-08) ============
+           The live-wired flywheel · the protocol's self-portrait drawn from its own
            chain state. Composition authority: docs/internal/design-kit/twitter/
            flywheel.html + -light (nodes, two lanes, marker-end arrowheads, the
            'DEV TAKE: 0' seal). Every wired node rides the SAME PENDING_DEPLOY
@@ -514,16 +530,16 @@
            existing WS.rpc client when the config seam exists (cfg.contracts
            .roamVault / .roamer / .roamAllowlist land at the RoamVault build-wave
            broadcast; the flagship harvester seam is LIVE today), else the honest
-           waiting register — '—' + a plain sentence + a title tooltip, NEVER a
+           waiting register · '—' + a plain sentence + a title tooltip, NEVER a
            fabricated figure. JS fills from WS.flow (js/flow.js): vault TVL
-           (totalAssets), the share price (convertToAssets — never a fabricated
+           (totalAssets), the share price (convertToAssets · never a fabricated
            1.00 for an empty vault), DEPOSIT_CAP facts, roamer positions +
            allowlist books, the flagship's Harvested-event count, and the 10%
            burn lane DELEGATED to the same Burned-event machinery js/stats.js
            runs. The split percentages are the RoamVault contract's own immutable
-           constants (DEPOSITOR_BPS 9000 / BURN_BPS 1000 — checkable, not
+           constants (DEPOSITOR_BPS 9000 / BURN_BPS 1000 · checkable, not
            measured). The seal is the ratified claim: the 10% protocol share is
-           the $WELL buy+burn leg — parked until $WELL launches, not earning —
+           the $WELL buy+burn leg · parked until $WELL launches, not earning ·
            never a developer fee. The 90/10 split is immutable on-chain
            (contract constants), nothing to set. The one-motion budget
            spends its second
@@ -533,13 +549,12 @@
       <section class="block" id="flow">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">04</span>
             <h2>Where every fee goes.</h2>
             <span class="spacer"></span>
-            <span class="muted">wired to the chain — not to a slide</span>
+            <span class="muted">wired to the chain · not to a slide</span>
           </div>
           <!-- the marker defs: ONE inline svg sprite, referenced by every
-               arrow's marker-end (same-document reference — zero requests,
+               arrow's marker-end (same-document reference · zero requests,
                resource-gate-clean). The arrowhead re-inks with the theme
                through the CSS fill rule in style.css. -->
           <svg class="flow-defs" aria-hidden="true" focusable="false">
@@ -550,7 +565,7 @@
             </defs>
           </svg>
           <div class="flow-top">
-            <span class="flow-seal" title="the developer takes nothing — the 10% protocol share is the $WELL buy+burn leg, parked until $WELL launches, not earning; the 90/10 split is immutable on-chain — nothing to set">DEV TAKE: 0</span>
+            <span class="flow-seal" title="the developer takes nothing: the 10% protocol share is the $WELL buy+burn leg, parked until $WELL launches, not earning; the 90/10 split is immutable on-chain: nothing to set">DEV TAKE: 0</span>
             <!-- WS-POSITIONING-COPY (2026-09-20): replay the zero-take claim —
                  the two split constants sum to 10000; nothing else to take. -->
             <div class="verify-wrap verify-wrap--seal">
@@ -563,17 +578,17 @@
           </div>
           <div class="flow-stage">
             <!-- LANE 1: the vault flow (kit lane 1). The ids below are the
-                 wiring surface — variable-mediated in js/flow.js (the SECTION_ID
+                 wiring surface · variable-mediated in js/flow.js (the SECTION_ID
                  idiom), so the query-surface registry never needs them. -->
             <div class="flow-lane">
-              <span class="flow-lane-label">lane 1 — the vault (user capital)</span>
+              <span class="flow-lane-label">lane 1 · the vault (user capital)</span>
               <div class="flow-chain">
                 <article class="flow-node flow-node--src">
                   <h3 class="flow-node-h">Users &amp; agents</h3>
                   <p class="flow-node-s">deposit USDG. receive shares. exit anytime.</p>
-                  <span class="flow-fig doto" id="fl-users-cap" title="waiting — the deposit cap reads DEPOSIT_CAP() on RoamVault once it is live — never estimated">—</span>
+                  <span class="flow-fig doto" id="fl-users-cap" title="waiting: the deposit cap reads DEPOSIT_CAP() on RoamVault once it is live: never estimated">—</span>
                   <span class="flow-fig-unit" id="fl-users-cap-unit">deposit cap · usdg</span>
-                  <span class="flow-chip" id="fl-users-chip">waiting — RoamVault build wave</span>
+                  <span class="flow-chip" id="fl-users-chip">waiting · RoamVault build wave</span>
                 </article>
                 <div class="flow-link">
                   <span class="flow-link-label">deposit</span>
@@ -586,9 +601,9 @@
                 <article class="flow-node">
                   <h3 class="flow-node-h">RoamVault</h3>
                   <p class="flow-node-s">shares = claims. 90% of fees raise the share price.</p>
-                  <span class="flow-fig doto" id="fl-vault-value" title="waiting — TVL reads totalAssets() on RoamVault once it is live — never estimated">—</span>
+                  <span class="flow-fig doto" id="fl-vault-value" title="waiting: TVL reads totalAssets() on RoamVault once it is live: never estimated">—</span>
                   <span class="flow-fig-unit" id="fl-vault-unit">tvl</span>
-                  <p class="flow-state" id="fl-vault-sent">waiting — RoamVault build wave</p>
+                  <p class="flow-state" id="fl-vault-sent">waiting · RoamVault build wave</p>
                 </article>
                 <div class="flow-link">
                   <span class="flow-link-label">deploys</span>
@@ -599,12 +614,12 @@
                 </div>
                 <a class="flow-node" href="#fleet">
                   <h3 class="flow-node-h">Roamer</h3>
-                  <p class="flow-node-s">farms the fleet — measured, allowlisted books only. guardrails on-chain.</p>
-                  <span class="flow-fig doto" id="fl-roamer-value" title="waiting — open positions read openKeyCount() on the roamer once it is live — never estimated">—</span>
+                  <p class="flow-node-s">farms the fleet: measured, allowlisted books only. guardrails on-chain.</p>
+                  <span class="flow-fig doto" id="fl-roamer-value" title="waiting: open positions read openKeyCount() on the roamer once it is live: never estimated">—</span>
                   <span class="flow-fig-unit" id="fl-roamer-unit">open positions</span>
-                  <span class="flow-fig doto" id="fl-roamer-books" title="waiting — the book count reads bookCount() on RoamAllowlist once it is live — never estimated">—</span>
+                  <span class="flow-fig doto" id="fl-roamer-books" title="waiting: the book count reads bookCount() on RoamAllowlist once it is live: never estimated">—</span>
                   <span class="flow-fig-unit" id="fl-roamer-books-unit">allowlisted books</span>
-                  <p class="flow-state" id="fl-roamer-sent">waiting — not yet broadcast</p>
+                  <p class="flow-state" id="fl-roamer-sent">waiting · not yet broadcast</p>
                 </a>
                 <div class="flow-link">
                   <span class="flow-link-label">fees</span>
@@ -614,9 +629,9 @@
                   </span>
                 </div>
                 <article class="flow-node flow-node--wide">
-                  <h3 class="flow-node-h">Fees — the split</h3>
+                  <h3 class="flow-node-h">Fees: the split</h3>
                   <p class="flow-node-s">measured per swap, never a static rate. two destinations:</p>
-                  <span class="flow-fig doto" id="fl-fees-value" title="the flagship engine is live; its vault is empty — a zero would dress itself as a measurement, so nothing renders">—</span>
+                  <span class="flow-fig doto" id="fl-fees-value" title="the flagship engine is live; its vault is empty: a zero would dress itself as a measurement, so nothing renders">—</span>
                   <span class="flow-fig-unit" id="fl-fees-unit">harvest events · flagship engine</span>
                   <p class="flow-state" id="fl-fees-sent">the flagship engine is live; its vault is empty</p>
                 </article>
@@ -630,10 +645,10 @@
                   <svg class="flow-arr-v" viewBox="0 0 12 64" width="12" height="64" aria-hidden="true" focusable="false"><line x1="6" y1="2" x2="6" y2="50" marker-end="url(#flow-ah)"></line></svg>
                   <a class="flow-node flow-node--dep" href="#deposit">
                     <h3 class="flow-node-h">Depositors</h3>
-                    <p class="flow-node-s">share price rises. no claims. no staking. exit anytime — never paused.</p>
-                    <span class="flow-fig doto" id="fl-dep-value" title="waiting — the share price reads convertToAssets(1e18) on RoamVault once it is live; an empty vault's 1.00 will not be dressed up as a figure">—</span>
+                    <p class="flow-node-s">share price rises. no claims. no staking. exit anytime, never paused.</p>
+                    <span class="flow-fig doto" id="fl-dep-value" title="waiting: the share price reads convertToAssets(1e18) on RoamVault once it is live; an empty vault's 1.00 will not be dressed up as a figure">—</span>
                     <span class="flow-fig-unit" id="fl-dep-unit">assets per share</span>
-                    <p class="flow-state" id="fl-dep-sent">waiting — RoamVault build wave</p>
+                    <p class="flow-state" id="fl-dep-sent">waiting · RoamVault build wave</p>
                   </a>
                 </div>
                 <div class="flow-col">
@@ -641,27 +656,27 @@
                   <svg class="flow-arr-v" viewBox="0 0 12 64" width="12" height="64" aria-hidden="true" focusable="false"><line x1="6" y1="2" x2="6" y2="50" marker-end="url(#flow-ah)"></line></svg>
                   <a class="flow-node flow-node--burn" href="#stats">
                     <h3 class="flow-node-h">$WELL burned</h3>
-                    <p class="flow-node-s">supply shrinks — every holder's share rises.</p>
-                    <span class="flow-fig doto" id="fl-burn-value" title="this figure reads the roamer's Burned events on chain 4663 once the roamer is live — never estimated">—</span>
+                    <p class="flow-node-s">supply shrinks: every holder's share rises.</p>
+                    <span class="flow-fig doto" id="fl-burn-value" title="this figure reads the roamer's Burned events on chain 4663 once the roamer is live: never estimated">—</span>
                     <span class="flow-fig-unit">$WELL to the dead address</span>
                     <!-- UI_LOOP_3 W3b: the waiting line lived 3x across the page
-                         (flow + footer strip + stats card) — this node now
+                         (flow + footer strip + stats card) · this node now
                          cross-references instead. flow.js overwrites the text
                          with measured copy when the burn seam goes live. -->
                     <p class="flow-state" id="fl-burn-sent">the burn ledger below reads the same events</p>
                   </a>
                 </div>
               </div>
-              <!-- UI_LOOP_3 W2: discovery bridge — the vault lane answers "where
+              <!-- UI_LOOP_3 W2: discovery bridge · the vault lane answers "where
                    does my money work?", this line answers "what if I want to
                    drive myself?". One sentence, links to the measured table. -->
               <p class="flow-discovery">want a position of your own? <a href="#fleet">the fleet table copies measured position params for agents</a></p>
             </div>
-            <!-- LANE 2: trading fees on $WELL (kit lane 2). Static copy — the
+            <!-- LANE 2: trading fees on $WELL (kit lane 2). Static copy · the
                  Pons distributor is not a config seam, so nothing here renders a
                  figure; present tense only, the token launches on Pons. -->
             <div class="flow-lane flow-lane--two">
-              <span class="flow-lane-label">lane 2 — trading fees on $WELL</span>
+              <span class="flow-lane-label">lane 2 · trading fees on $WELL</span>
               <div class="flow-chain flow-chain--two">
                 <article class="flow-node flow-node--src">
                   <h3 class="flow-node-h">Pons native fee share</h3>
@@ -678,25 +693,25 @@
                   <h3 class="flow-node-h">$WELL holders</h3>
                   <p class="flow-node-s">the trading-fee lane. no action. no staking. no claims.</p>
                 </article>
-                <aside class="flow-note">two lanes. one rule: no developer address is paid — the 90/10 split is immutable on-chain, nothing to set.</aside>
+                <aside class="flow-note">two lanes. one rule: no developer address is paid; the 90/10 split is immutable on-chain, nothing to set.</aside>
               </div>
-              <!-- UI_LOOP_3 W3c: the holder loop — the lane feeds itself. Desktop
+              <!-- UI_LOOP_3 W3c: the holder loop · the lane feeds itself. Desktop
                    only (<=900 hides; the vertical read already carries order).
                    A stroked arc, no fill, reusing the arrowhead marker. -->
               <svg class="flow-loop" viewBox="0 0 600 56" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
                 <path d="M 578 6 C 596 6, 596 50, 576 50 L 34 50 C 12 50, 10 22, 26 10" marker-end="url(#flow-ah)"></path>
               </svg>
-              <span class="flow-loop-label">rinse · repeat — every sweep feeds the fleet again</span>
+              <span class="flow-loop-label">rinse · repeat · every sweep feeds the fleet again</span>
             </div>
-            <p class="flow-foot">every arrow is an on-chain event <span class="flow-foot-dot">●</span> replay any one of them — wellstreet.tech</p>
+            <p class="flow-foot">every arrow is an on-chain event <span class="flow-foot-dot">●</span> replay any one of them · wellstreet.tech</p>
           </div>
         </div>
       </section>
 
-      <!-- ============ MOVEMENT 3.6 — THE VAULT (WS-VAULT-DASHBOARD, 2026-09-13)
+      <!-- ============ MOVEMENT 3.6 · THE VAULT (WS-VAULT-DASHBOARD, 2026-09-13)
            The live RoamVault dashboard: the numbers, the flywheel in one
            paragraph, the three fee lanes never mixed, and the governance
-           tape (the "checkable" record — dates, truncated ids, statuses).
+           tape (the "checkable" record · dates, truncated ids, statuses).
            Static first paint IS the honest waiting register ('—' + plain
            sentences + title tooltips, the flow-section convention); main.js
            (WS-VAULT-DASHBOARD block) upgrades it through G1's
@@ -704,101 +719,100 @@
            house 60s refresh loop. Fail-closed: a failed read renders the
            em-dash, never a zero, never an estimate. Ids are queried only
            through variable-mediated consts in main.js (the SECTION_ID idiom
-           — the resource-gate query-surface registry never needs them).
+           · the resource-gate query-surface registry never needs them).
            Explorer links are JS-assigned: an absolute external href in
            static markup is a resource-gate scanner channel; a user-initiated
            navigation is not a loaded resource (the mobile-wallet-guide
-           precedent). The 90/10 figures below are STATIC on purpose — they
+           precedent). The 90/10 figures below are STATIC on purpose · they
            are the vault's own immutable contract constants (DEPOSITOR_BPS
            9000 / BURN_BPS 1000, src/RoamVault.sol), the same
            checkable-not-measured register the flow split renders. -->
       <section class="block" id="vault">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">05</span>
             <h2>The Vault</h2>
             <span class="spacer"></span>
             <span class="muted">RoamVault · USDG · chain 4663</span>
           </div>
           <p class="block-sub">
-            You deposit USDG. Shares are the claim — the share price carries every fee
+            You deposit USDG. Shares are the claim: the share price carries every fee
             the roamer's positions earn, and exits are never paused. Capital sits idle
             until the roamer's first deploy lands, then works the measured books. The
             deposit cap gates deposits, never exits.
           </p>
-          <!-- the three fee lanes, compact and diagram-free — NEVER mixed. The
+          <!-- the three fee lanes, compact and diagram-free · NEVER mixed. The
                verbatim split line appears exactly once on the page (this list). -->
           <div class="st-streams">
             <span class="st-label">Three lanes. Never mixed.</span>
-            <p class="st-stream"><span class="st-stream-name">lane 1 — vault LP fees:</span> 90% to depositors · 10% burns $WELL · 0% to anyone else. The burn leg starts when $WELL launches — checkable on-chain until then.</p>
-            <p class="st-stream"><span class="st-stream-name">lane 2 — trading fees on $WELL:</span> route to holders through Pons' own distributor, post-launch.</p>
-            <p class="st-stream"><span class="st-stream-name">lane 3 — the protocol's cut:</span> none on this vault. The 90/10 split is a contract constant — no treasury hook, nothing to set.</p>
+            <p class="st-stream"><span class="st-stream-name">lane 1 · vault LP fees:</span> 90% to depositors · 10% burns $WELL · 0% to anyone else. The burn leg starts when $WELL launches: checkable on-chain until then.</p>
+            <p class="st-stream"><span class="st-stream-name">lane 2 · trading fees on $WELL:</span> route to holders through Pons' own distributor, post-launch.</p>
+            <p class="st-stream"><span class="st-stream-name">lane 3 · the protocol's cut:</span> none on this vault. The 90/10 split is a contract constant: no treasury hook, nothing to set.</p>
           </div>
           <!-- the dashboard strip: every figure is the browser's own eth_call
                (G1's readRoamVaultSnapshot), fail-closed to the em-dash. -->
           <div class="st-grid" aria-live="polite">
             <article class="st-card">
-              <span class="st-label">tvl — total assets</span>
-              <span class="st-value doto" id="va-tvl" title="waiting — this figure reads totalAssets() on RoamVault once the page's read lands; unavailable renders the dash, never an estimate">—</span>
+              <span class="st-label">tvl · total assets</span>
+              <span class="st-value doto" id="va-tvl" title="waiting: this figure reads totalAssets() on RoamVault once the page's read lands; unavailable renders the dash, never an estimate">—</span>
               <span class="st-unit" id="va-tvl-unit">usdg · totalAssets()</span>
-              <p class="st-sent" id="va-tvl-sent">the idle book plus the deployed book at par — read by your browser, replayable</p>
+              <p class="st-sent" id="va-tvl-sent">the idle book plus the deployed book at par: read by your browser, replayable</p>
             </article>
             <article class="st-card">
               <span class="st-label">share price</span>
-              <span class="st-value doto" id="va-price" title="waiting — this figure reads convertToAssets(10^shareDecimals) on RoamVault; a share price with no shares outstanding would be vacuous, so none renders">—</span>
+              <span class="st-value doto" id="va-price" title="waiting: this figure reads convertToAssets(10^shareDecimals) on RoamVault; a share price with no shares outstanding would be vacuous, so none renders">—</span>
               <span class="st-unit" id="va-price-unit">usdg per whole share</span>
-              <p class="st-sent" id="va-price-sent">every fee credit raises it — convertToAssets on the vault</p>
+              <p class="st-sent" id="va-price-sent">every fee credit raises it: convertToAssets on the vault</p>
             </article>
             <article class="st-card">
               <span class="st-label">backing coverage</span>
-              <span class="st-value doto" id="va-coverage" title="waiting — this figure reads backingCoverage() on RoamVault (1e18 fixed point); unavailable renders the dash, never an estimate">—</span>
+              <span class="st-value doto" id="va-coverage" title="waiting: this figure reads backingCoverage() on RoamVault (1e18 fixed point); unavailable renders the dash, never an estimate">—</span>
               <span class="st-unit">backingCoverage()</span>
-              <p class="st-sent" id="va-coverage-sent">raw assets against the accounted figure — 100.0% is exact cover</p>
+              <p class="st-sent" id="va-coverage-sent">raw assets against the accounted figure: 100.0% is exact cover</p>
             </article>
             <article class="st-card">
               <span class="st-label">deposit cap</span>
-              <span class="st-value doto" id="va-cap" title="waiting — used reads totalAssets() and the cap reads DEPOSIT_CAP() on RoamVault; unavailable renders the dash, never an estimate">—</span>
+              <span class="st-value doto" id="va-cap" title="waiting: used reads totalAssets() and the cap reads DEPOSIT_CAP() on RoamVault; unavailable renders the dash, never an estimate">—</span>
               <span class="st-unit">used of DEPOSIT_CAP() · usdg</span>
-              <p class="st-sent" id="va-cap-sent">the cap gates deposits only — exits are never pausable</p>
+              <p class="st-sent" id="va-cap-sent">the cap gates deposits only: exits are never pausable</p>
             </article>
             <article class="st-card">
               <span class="st-label">fee lane status</span>
               <span class="st-value doto">90 / 10</span>
-              <span class="st-unit">depositors / buy + burn — immutable constants</span>
-              <p class="st-sent" id="va-lane-sent">the 90% lane is wired in the contract — the 10% burn leg is PARKED until $WELL launches, not earning, checkable on-chain</p>
+              <span class="st-unit">depositors / buy + burn · immutable constants</span>
+              <p class="st-sent" id="va-lane-sent">the 90% lane is wired in the contract: the 10% burn leg is PARKED until $WELL launches, not earning, checkable on-chain</p>
             </article>
             <article class="st-card">
               <span class="st-label">deposits</span>
-              <span class="st-value doto" id="va-deposits" title="waiting — this state reads depositsPaused() on RoamVault; unknown renders the dash, never a guess">—</span>
+              <span class="st-value doto" id="va-deposits" title="waiting: this state reads depositsPaused() on RoamVault; unknown renders the dash, never a guess">—</span>
               <span class="st-unit">depositsPaused()</span>
-              <p class="st-sent" id="va-deposits-sent">the pause gates deposits only — redemptions are never pausable</p>
+              <p class="st-sent" id="va-deposits-sent">the pause gates deposits only: redemptions are never pausable</p>
             </article>
             <article class="st-card st-card--wide">
-              <span class="st-label">capital state — idle vs deployed</span>
-              <span class="st-value doto" id="va-idle" title="waiting — the idle book reads idleBook() on RoamVault; unavailable renders the dash, never an estimate">—</span>
+              <span class="st-label">capital state · idle vs deployed</span>
+              <span class="st-value doto" id="va-idle" title="waiting: the idle book reads idleBook() on RoamVault; unavailable renders the dash, never an estimate">—</span>
               <span class="st-unit" id="va-idle-unit">idle book · usdg</span>
-              <p class="st-sent" id="va-idle-sent">waiting — idleBook() and deployedBook() report the split; no read, no figure</p>
+              <p class="st-sent" id="va-idle-sent">waiting: idleBook() and deployedBook() report the split; no read, no figure</p>
               <p class="st-sent" id="va-deployed-sent">deployed book: —</p>
             </article>
           </div>
           <!-- the governance tape: rendered by main.js from the on-chain
-               record (config.roamStack.governance — dates + full ids read from
+               record (config.roamStack.governance · dates + full ids read from
                CallQueued/CallExecuted events 2026-09-13) + the LIVE
                readyAt(bytes32) read per queued op. Explorer links are
                JS-assigned (see the section note). -->
           <div class="st-card gov-tape">
-            <span class="st-label">the governance tape — every owner action, dated + replayable</span>
+            <span class="st-label">the governance tape: every owner action, dated + replayable</span>
             <div id="gov-tape-rows" aria-live="polite">
-              <p class="st-sent" id="gov-tape-fallback">rendered by your browser from the on-chain record — the timelock's CallQueued/CallExecuted events are public and replayable</p>
+              <p class="st-sent" id="gov-tape-fallback">rendered by your browser from the on-chain record: the timelock's CallQueued/CallExecuted events are public and replayable</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ============ MOVEMENT 4 — THE BURN LEDGER (STATS) ============
+      <!-- ============ MOVEMENT 4 · THE BURN LEDGER (STATS) ============
            FLEET-UI-V2 G3 (2026-09-07), the R3 exemplar's "OUR VERSION":
            the burn ledger + flywheel + books grid. The static first paint
-           carries the honest waiting register ('—' + plain sentences) — the
+           carries the honest waiting register ('—' + plain sentences) · the
            roamer is PRE-F-01, so "waiting for first sweep" IS the correct
            default render, never a fabricated total. JS fills from
            WS.statsPage (js/stats.js): Burned events via eth_getLogs on the
@@ -809,7 +823,6 @@
       <section class="block" id="stats">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">06</span>
             <h2>Everything the protocol has burned</h2>
             <span class="spacer"></span>
             <div class="st-toggle" role="group" aria-label="measurement window" title="applies once the roamer is live">
@@ -826,24 +839,24 @@
                sentences byte-identical to the ratified copy. -->
           <div class="st-streams">
             <span class="st-label">Two streams. Zero dev take.</span>
-            <p class="st-stream"><span class="st-stream-name">to holders —</span> Trading fees route to holders through Pons' distributor.</p>
-            <p class="st-stream"><span class="st-stream-name">to the burn —</span> LP fees buy back and burn.</p>
-            <p class="st-stream"><span class="st-stream-name">$WELL —</span> the token that accrues the burn — launches on Pons.</p>
+            <p class="st-stream"><span class="st-stream-name">to holders:</span> Trading fees route to holders through Pons' distributor.</p>
+            <p class="st-stream"><span class="st-stream-name">to the burn:</span> LP fees buy back and burn.</p>
+            <p class="st-stream"><span class="st-stream-name">$WELL:</span> the token that accrues the burn, launches on Pons.</p>
           </div>
           <div class="st-grid" aria-live="polite">
             <article class="st-card">
               <span class="st-label">burned · all time<span class="st-pending-chip" id="st-pending-chip-total">pending</span></span>
-              <span class="st-value doto" id="st-burn-total" title="waiting for the first sweep — this figure reads Burned events from the roamer once it is live">—</span>
+              <span class="st-value doto" id="st-burn-total" title="waiting for the first sweep: this figure reads Burned events from the roamer once it is live">—</span>
               <span class="st-unit">$WELL to the dead address</span>
-              <p class="st-sent" id="st-burn-sent">waiting for the first sweep — this ledger lights up from the first burn</p>
-              <p class="st-pending-line" id="st-pending-line-total">this will read the roamer's Burned events — replayable from the first sweep</p>
+              <p class="st-sent" id="st-burn-sent">waiting for the first sweep: this ledger lights up from the first burn</p>
+              <p class="st-pending-line" id="st-pending-line-total">this will read the roamer's Burned events: replayable from the first sweep</p>
             </article>
             <article class="st-card">
               <span class="st-label" id="st-burn-window-label">burned · last 7 days<span class="st-pending-chip" id="st-pending-chip-window">pending</span></span>
-              <span class="st-value doto" id="st-burn-window" title="Burned events in the selected window — a range the node refuses renders unavailable, never an estimate">—</span>
+              <span class="st-value doto" id="st-burn-window" title="Burned events in the selected window: a range the node refuses renders unavailable, never an estimate">—</span>
               <span class="st-unit is-pending" id="st-unit-window">$WELL in the window</span>
-              <p class="st-sent">the window is block-derived from the chain's own measured block time — nothing here is sampled or extrapolated</p>
-              <p class="st-pending-line" id="st-pending-line-window">this will read the roamer's Burned events — replayable from the first sweep</p>
+              <p class="st-sent">the window is block-derived from the chain's own measured block time: nothing here is sampled or extrapolated</p>
+              <p class="st-pending-line" id="st-pending-line-window">this will read the roamer's Burned events: replayable from the first sweep</p>
             </article>
             <article class="st-card st-card--wide">
               <span class="st-label">flywheel</span>
@@ -851,51 +864,50 @@
                 <span class="st-lane-name">burn lane</span>
                 <span class="st-lane-value" id="st-lane-burn-value">—</span>
                 <span class="st-bar" role="img" aria-label="share of counted events that reached the burn"><span class="st-bar-fill" id="st-lane-burn-bar"></span></span>
-                <p class="st-lane-sent">fees the roamer buys $WELL back with and sends to the burn address — the figure stays $WELL, the bar is counted in events</p>
+                <p class="st-lane-sent">fees the roamer buys $WELL back with and sends to the burn address: the figure stays $WELL, the bar is counted in events</p>
               </div>
               <div class="st-lane">
                 <span class="st-lane-name">treasury lane</span>
                 <span class="st-lane-value" id="st-lane-treasury-value">—</span>
                 <span class="st-bar" role="img" aria-label="share of counted events forwarded to the treasury"><span class="st-bar-fill" id="st-lane-treasury-bar"></span></span>
-                <p class="st-lane-sent">raw-balance junk the sweep forwards to the treasury instead of the burn — counted in events, never summed into $WELL</p>
+                <p class="st-lane-sent">raw-balance junk the sweep forwards to the treasury instead of the burn: counted in events, never summed into $WELL</p>
               </div>
             </article>
           </div>
           <!-- G5 (SECTION_IMPROVE 2026-09-08): the books grid leads as 'the fleet
-               census' — the pay / pay-nothing split first (the black-hole truth,
+               census' · the pay / pay-nothing split first (the black-hole truth,
                feed-fed, never hardcoded), the cross-link points at the table. -->
           <div class="st-census-head">
             <span class="st-label">the fleet census</span>
-            <p class="st-sent" id="st-census-split" title="counts render from the fleet feed — windowed and sourced">—</p>
+            <p class="st-sent" id="st-census-split" title="counts render from the fleet feed: windowed and sourced">—</p>
             <p class="st-census-link"><a href="#fleet">the same census the fleet table is built on</a></p>
           </div>
           <div class="st-books">
             <article class="st-book">
               <span class="st-label">paying LPs</span>
-              <span class="st-value doto" id="st-books-pays" title="counts render from the fleet feed — windowed and sourced">—</span>
+              <span class="st-value doto" id="st-books-pays" title="counts render from the fleet feed: windowed and sourced">—</span>
               <p class="st-sent" id="st-books-pays-sent">books whose charged fees reach the liquidity providers</p>
             </article>
             <article class="st-book">
               <span class="st-label">zero-fee books</span>
-              <span class="st-value doto" id="st-books-hook" title="counts render from the fleet feed — windowed and sourced">—</span>
-              <p class="st-sent" id="st-books-hook-sent">books where the fees flow to the hook — LPs earn zero — we measured</p>
+              <span class="st-value doto" id="st-books-hook" title="counts render from the fleet feed: windowed and sourced">—</span>
+              <p class="st-sent" id="st-books-hook-sent">books where the fees flow to the hook: LPs earn zero, we measured</p>
             </article>
             <article class="st-book">
               <span class="st-label">books measured</span>
-              <span class="st-value doto" id="st-books-count" title="counts render from the fleet feed — windowed and sourced">—</span>
+              <span class="st-value doto" id="st-books-count" title="counts render from the fleet feed: windowed and sourced">—</span>
               <p class="st-sent" id="st-books-count-sent">every book in the fleet feed, measured by replaying real swaps</p>
             </article>
           </div>
         </div>
       </section>
 
-      <!-- Card two: the docs pane (markdown, rendered locally — the
+      <!-- Card two: the docs pane (markdown, rendered locally · the
            explanatory prose lives here and under /docs/public/, not repeated
            on the page) and the vanish disclosure. -->
       <section class="block" id="docs">
         <div class="wrap">
           <div class="block-head">
-            <span class="index">07</span>
             <h2>Docs</h2>
             <span class="spacer"></span>
             <span class="muted">markdown, rendered locally</span>
@@ -903,7 +915,7 @@
           <p class="block-sub">Every methodology, one hop away.</p>
           <div id="doc-tabs"></div>
           <div id="doc-pane" role="tabpanel" tabindex="0"></div>
-          <noscript><div class="doc-pane-empty">The raw markdown lives under /docs/public/ — the same files this pane reads.</div></noscript>
+          <noscript><div class="doc-pane-empty">The raw markdown lives under /docs/public/: the same files this pane reads.</div></noscript>
           <p class="vanish-line">If we vanish, the chain does not. MIT code, public timelock, the feed is a file. Read it, run it, or fork it.</p>
         </div>
       </section>
@@ -914,13 +926,13 @@
         <!-- FLEET-UI-V2 G3 (2026-09-07): the live proof strip, the R3
              exemplar's footer-counter pattern on every page. N renders from
              the fleet feed's own census; X/Y stay '—' with the waiting
-             sentence until on-chain Burned events exist — never a fabricated
+             sentence until on-chain Burned events exist · never a fabricated
              figure, never a fake zero. -->
-        <div class="lc-strip" id="live-counters" title="waiting for the first sweep — this strip updates from on-chain events">
+        <div class="lc-strip" id="live-counters" title="waiting for the first sweep: this strip updates from on-chain events">
           <span class="lc-item"><span class="lc-num doto" id="lc-books">—</span><span class="lc-label">books measured</span></span>
           <span class="lc-item"><span class="lc-num doto" id="lc-burned">—</span><span class="lc-label">$WELL burned</span></span>
           <span class="lc-item"><span class="lc-num doto" id="lc-fees">—</span><span class="lc-label">fees routed</span></span>
-          <span class="lc-note" id="lc-note">waiting for the first sweep — this strip updates from on-chain events</span>
+          <span class="lc-note" id="lc-note">waiting for the first sweep: this strip updates from on-chain events</span>
         </div>
         <div class="footer-grid">
           <div class="footer-col">
@@ -930,8 +942,8 @@
           </div>
           <div class="footer-col">
             <div class="h">Honesty</div>
-            <div>Audited — reports in the repo. No company. Owner controls behind a public 48-hour timelock.</div>
-            <div>Yield figures are projections tied to a published methodology — they can go to zero.</div>
+            <div>Audited: reports in the repo. No company. Owner controls behind a public 48-hour timelock.</div>
+            <div>Yield figures are projections tied to a published methodology: they can go to zero.</div>
           </div>
         </div>
         <div class="footer-fine">
@@ -945,7 +957,7 @@
   <!-- ============ OPERATOR GATE PAGE TEMPLATE ============
        NOT served by this protocol: nothing in this repository returns a 403.
        The template is retained only because js/geo.js renders it if a site
-       operator ever configures a gate — if you are seeing it, the gate belongs
+       operator ever configures a gate · if you are seeing it, the gate belongs
        to whoever serves this copy. The F19 disclosure is injected verbatim by
        js/geo.js into the data-geo-disclosure spans. -->
   <template id="ws-geo-block">
@@ -957,8 +969,8 @@
         </div>
         <div class="geo-block-body">
           <h1>Access gated from <span data-geo-country></span></h1>
-          <p>The protocol performs no jurisdictional blocking. This page is an operator-level access rule — chosen by whoever serves this copy of the site, not a control the protocol or its contracts exercise. You are responsible for complying with your local law.</p>
-          <div class="geo-disclosure" data-geo-disclosure>geo-blocking has no adjudicated safe harbor — it reduces, not eliminates, exposure</div>
+          <p>The protocol performs no jurisdictional blocking. This page is an operator-level access rule: chosen by whoever serves this copy of the site, not a control the protocol or its contracts exercise. You are responsible for complying with your local law.</p>
+          <div class="geo-disclosure" data-geo-disclosure>geo-blocking has no adjudicated safe harbor: it reduces, not eliminates, exposure</div>
           <p>The same open-source protocol runs anywhere without one: fork the repository, deploy and serve it yourself, or use any mirror another operator publishes.</p>
         </div>
       </div>

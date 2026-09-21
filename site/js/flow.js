@@ -83,35 +83,35 @@
   // The waiting/error/measured register (fresh strings — each appears exactly
   // once on the page; nothing here reuses a count-pinned sentence).
   var SENT = {
-    vaultWait: 'waiting — RoamVault build wave',
-    roamerWait: 'waiting — not yet broadcast',
+    vaultWait: 'waiting · RoamVault build wave',
+    roamerWait: 'waiting · not yet broadcast',
     burnWait: 'waiting for the first sweep',
     feesEmpty: 'the flagship engine is live; its vault is empty',
-    vaultError: 'the vault read failed (RPC) — nothing is estimated here',
-    roamerError: 'the roamer read failed (RPC) — nothing is estimated here',
-    feesError: 'the flagship harvest read failed (RPC) — nothing is estimated here',
-    burnError: 'the burn read failed (RPC) — nothing is estimated here',
-    vaultLive: 'measured on-chain — totalAssets() is the idle book plus the deployed book at par',
+    vaultError: 'the vault read failed (RPC): nothing is estimated here',
+    roamerError: 'the roamer read failed (RPC): nothing is estimated here',
+    feesError: 'the flagship harvest read failed (RPC): nothing is estimated here',
+    burnError: 'the burn read failed (RPC): nothing is estimated here',
+    vaultLive: 'measured on-chain: totalAssets() is the idle book plus the deployed book at par',
     usersLive: 'the operating cap is Safe-settable within the immutable on-chain ceiling',
-    roamerLive: 'measured on-chain — replayable from any RPC client',
-    feesLive: 'measured from the flagship harvester\'s Harvested events — replayable on chain 4663',
-    depLive: 'measured share price — convertToAssets(1e18), raised by every fee deposit',
-    depVacuous: 'the vault has no shares outstanding yet — a share price would be vacuous, so none renders',
-    burnLive: 'measured from the roamer\'s Burned events — the buyback-and-burn tail, replayable on chain 4663'
+    roamerLive: 'measured on-chain: replayable from any RPC client',
+    feesLive: 'measured from the flagship harvester\'s Harvested events: replayable on chain 4663',
+    depLive: 'measured share price: convertToAssets(1e18), raised by every fee deposit',
+    depVacuous: 'the vault has no shares outstanding yet: a share price would be vacuous, so none renders',
+    burnLive: 'measured from the roamer\'s Burned events: the buyback-and-burn tail, replayable on chain 4663'
   };
 
   var TIP = {
-    error: 'the eth_call / eth_getLogs read failed — the figure stays unavailable, never estimated',
-    vaultLive: 'totalAssets() — the idle book plus the deployed book at par — eth_call on RoamVault · chain 4663',
-    vaultBaseUnits: 'the asset\'s decimals() read failed — the figure is raw base units, never re-scaled by guesswork',
-    usersLive: 'DEPOSIT_CAP() — the operating cap; the immutable ceiling is DEPOSIT_CAP_CEILING() — eth_call on RoamVault · chain 4663',
-    roamerPositions: 'openKeyCount() — eth_call on the roamer · chain 4663',
-    roamerBooks: 'bookCount() — eth_call on RoamAllowlist · chain 4663',
-    feesEmpty: 'the flagship engine is live; its vault is empty — a zero would dress itself as a measurement, so nothing renders',
-    feesLive: 'count of Harvested events — eth_getLogs on the flagship harvester · chain 4663',
-    depLive: 'convertToAssets(1e18) — eth_call on RoamVault · chain 4663',
-    depVacuous: 'totalSupply() is 0 — convertToAssets(1e18) would return a vacuous 1.00, which is not a figure',
-    burnLive: 'sum of the Burned events\' wellBurned word — eth_getLogs on the roamer · chain 4663 — the same machinery the burn ledger runs'
+    error: 'the eth_call / eth_getLogs read failed: the figure stays unavailable, never estimated',
+    vaultLive: 'totalAssets(): the idle book plus the deployed book at par · eth_call on RoamVault · chain 4663',
+    vaultBaseUnits: 'the asset\'s decimals() read failed: the figure is raw base units, never re-scaled by guesswork',
+    usersLive: 'DEPOSIT_CAP(): the operating cap; the immutable ceiling is DEPOSIT_CAP_CEILING() · eth_call on RoamVault · chain 4663',
+    roamerPositions: 'openKeyCount() · eth_call on the roamer · chain 4663',
+    roamerBooks: 'bookCount() · eth_call on RoamAllowlist · chain 4663',
+    feesEmpty: 'the flagship engine is live; its vault is empty: a zero would dress itself as a measurement, so nothing renders',
+    feesLive: 'count of Harvested events · eth_getLogs on the flagship harvester · chain 4663',
+    depLive: 'convertToAssets(1e18) · eth_call on RoamVault · chain 4663',
+    depVacuous: 'totalSupply() is 0: convertToAssets(1e18) would return a vacuous 1.00, which is not a figure',
+    burnLive: 'sum of the Burned events\' wellBurned word · eth_getLogs on the roamer · chain 4663 · the same machinery the burn ledger runs'
   };
 
   // The wiring table — the section's data layer, exported for the test battery.
@@ -122,7 +122,7 @@
     roamer:     { seam: 'roamer',       read: 'openKeyCount() + RoamAllowlist bookCount()',       waiting: SENT.roamerWait },
     fees:       { seam: 'harvester',    read: 'Harvested event count via eth_getLogs',            waiting: null },
     depositors: { seam: 'roamVault',    read: 'convertToAssets(1e18), gated on totalSupply()',    waiting: SENT.vaultWait },
-    burn:       { seam: 'roamer',       read: 'Burned events — WS.statsPage machinery',           waiting: SENT.burnWait }
+    burn:       { seam: 'roamer',       read: 'Burned events · WS.statsPage machinery',           waiting: SENT.burnWait }
   };
 
   var WEI = 1000000000000000000n;

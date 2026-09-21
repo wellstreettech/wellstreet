@@ -63,7 +63,7 @@ const flow = require('../site/js/flow.js');
 
 const INDEX_SRC = fs.readFileSync(INDEX_HTML, 'utf8');
 const FLOW_AT = INDEX_SRC.indexOf('<section class="block" id="flow">');
-const FLOW_SLICE = INDEX_SRC.slice(FLOW_AT, INDEX_SRC.indexOf('MOVEMENT 4 — THE BURN LEDGER'));
+const FLOW_SLICE = INDEX_SRC.slice(FLOW_AT, INDEX_SRC.indexOf('MOVEMENT 4 · THE BURN LEDGER'));
 
 fixture['flow'] = el('block');
 for (const id of Object.values(flow.ID)) {
@@ -167,10 +167,12 @@ test('wiring table: all six brief nodes, exact waiting registers, every cell shi
   assert.deepStrictEqual(Object.keys(flow.WIRING).sort(),
     ['burn', 'depositors', 'fees', 'roamer', 'users', 'vault'].sort(),
     'the wiring table covers exactly the brief\'s six nodes');
-  assert.strictEqual(flow.WIRING.users.waiting, 'waiting — RoamVault build wave');
-  assert.strictEqual(flow.WIRING.vault.waiting, 'waiting — RoamVault build wave');
-  assert.strictEqual(flow.WIRING.depositors.waiting, 'waiting — RoamVault build wave');
-  assert.strictEqual(flow.WIRING.roamer.waiting, 'waiting — not yet broadcast');
+  // LEDGER-PRESS 2026-09-20: waiting registers re-valued to the '·' form (the
+  // taste-skill §9.F prose em-dash ban on rendered strings); same roles.
+  assert.strictEqual(flow.WIRING.users.waiting, 'waiting · RoamVault build wave');
+  assert.strictEqual(flow.WIRING.vault.waiting, 'waiting · RoamVault build wave');
+  assert.strictEqual(flow.WIRING.depositors.waiting, 'waiting · RoamVault build wave');
+  assert.strictEqual(flow.WIRING.roamer.waiting, 'waiting · not yet broadcast');
   assert.strictEqual(flow.WIRING.burn.waiting, 'waiting for the first sweep',
     'the burn lane keeps the existing copy');
   assert.strictEqual(flow.WIRING.fees.waiting, null,
@@ -186,19 +188,24 @@ test('wiring table: all six brief nodes, exact waiting registers, every cell shi
 });
 
 // ------------------------------------------------------------------
-test('section markup: id=flow, head 04, muted caption, seal, renumbered 04/05/06', () => {
+test('section markup: id=flow, muted caption, seal, section numbers retired', () => {
   const html = fs.readFileSync(INDEX_HTML, 'utf8');
   assert.ok(html.includes('<section class="block" id="flow">'), 'the flow section ships');
-  assert.ok(html.includes('wired to the chain — not to a slide'), 'the muted caption ships');
+  // LEDGER-PRESS 2026-09-20: caption carrier re-valued to the '·' form (prose em-dash ban); same role.
+  assert.ok(html.includes('wired to the chain · not to a slide'), 'the muted caption ships');
   assert.ok(html.includes('DEV TAKE: 0'), 'the seal ships');
+  // LEDGER-PRESS 2026-09-20 (amended from 1-each): the taste-skill §9.F
+  // section-number ban retired the .index eyebrows — every section numeral
+  // span is gone from the markup; the .index CSS rules remain as retired
+  // register records (theme.test.js (a2) still pins the #deposit .index rule).
   const idx = (n) => (html.match(new RegExp('class="index">' + n + '</span>', 'g')) || []).length;
-  assert.strictEqual(idx('04'), 1, 'flow is the only 04');
-  assert.strictEqual(idx('05'), 1, 'stats renumbered to 05');
-  assert.strictEqual(idx('06'), 1, 'docs renumbered to 06');
+  assert.strictEqual(idx('04'), 0, 'flow ships no 04 eyebrow (retired)');
+  assert.strictEqual(idx('05'), 0, 'stats ships no 05 eyebrow (retired)');
+  assert.strictEqual(idx('06'), 0, 'docs ships no 06 eyebrow (retired)');
   // placement: flow sits between the #fleet close and the burn-ledger comment
   const fleetEnd = html.indexOf('</section>', html.indexOf('id="fleet-surface"'));
   const flowAt = html.indexOf('<section class="block" id="flow">');
-  const statsComment = html.indexOf('MOVEMENT 4 — THE BURN LEDGER');
+  const statsComment = html.indexOf('MOVEMENT 4 · THE BURN LEDGER');
   assert.ok(fleetEnd !== -1 && flowAt > fleetEnd && flowAt < statsComment,
     'flow sits between #fleet and the MOVEMENT 4 comment');
   assert.ok(/<script defer src="js\/flow.js"><\/script>/.test(html), 'flow.js ships with a defer script tag');
@@ -226,8 +233,9 @@ test('waiting state: seams absent → the static paint stands, NO RPC issued, no
   assert.strictEqual(before.depValue, '—');
   assert.strictEqual(before.burnValue, '—');
   assert.strictEqual(before.usersCap, '—');
-  assert.strictEqual(before.vaultSent, 'waiting — RoamVault build wave');
-  assert.strictEqual(before.roamerSent, 'waiting — not yet broadcast');
+  // LEDGER-PRESS 2026-09-20: static-paint carriers re-valued to the '·' form (prose em-dash ban); same fail-closed roles.
+  assert.strictEqual(before.vaultSent, 'waiting · RoamVault build wave');
+  assert.strictEqual(before.roamerSent, 'waiting · not yet broadcast');
   assert.strictEqual(before.feesSent, 'the flagship engine is live; its vault is empty');
   assert.ok(before.burnSent.indexOf('the burn ledger below reads the same events') === 0, 'UI_LOOP_3 W3b: shipped burn line cross-references the ledger (the node itself is the link — no nested anchors)');
   assert.strictEqual(fixture[flow.ID.usersChip].hidden, false, 'the vault-seam chip ships visible while waiting');
@@ -275,11 +283,11 @@ test('flipped-live: the same nodes render measured values, the chip hides, burn 
   assert.strictEqual(fixture[flow.ID.usersChip].hidden, true, 'the waiting chip hides once live — a chip that outlives its state lies');
   assert.strictEqual(t.roamerValue, '3', 'openKeyCount() renders');
   assert.strictEqual(t.roamerBooks, '9', 'allowlist bookCount() renders');
-  assert.strictEqual(t.roamerSent, 'measured on-chain — replayable from any RPC client');
+  assert.strictEqual(t.roamerSent, 'measured on-chain: replayable from any RPC client');
   assert.strictEqual(t.feesValue, '2', 'the Harvested-event count renders measured');
   assert.strictEqual(t.depValue, '1.23', 'the share price renders from convertToAssets(1e18)');
   assert.strictEqual(t.burnValue, realFmt(1500000000000000000n), 'the burn figure is fmtWell\'s output');
-  assert.strictEqual(t.burnSent, 'measured from the roamer\'s Burned events — the buyback-and-burn tail, replayable on chain 4663');
+  assert.strictEqual(t.burnSent, 'measured from the roamer\'s Burned events: the buyback-and-burn tail, replayable on chain 4663');
   assert.strictEqual(burnSumCalls, 1, 'the burn read DELEGATES to stats.sumBurnField');
   assert.strictEqual(burnFmtCalls, 1, 'the burn figure DELEGATES to stats.fmtWell');
   // zero markup change: the same node objects were mutated, never replaced
@@ -312,7 +320,8 @@ test('FEES fail-closed: a failed getLogs renders the error sentence', async () =
   setConfig({ harvester: HARVESTER });
   respond = () => { throw new Error('rpc down'); };
   await flow.refreshAll();
-  assert.strictEqual(snapText().feesSent, 'the flagship harvest read failed (RPC) — nothing is estimated here');
+  // LEDGER-PRESS 2026-09-20: error-register carriers re-valued to the ':' form (prose em-dash ban); same fail-closed roles.
+  assert.strictEqual(snapText().feesSent, 'the flagship harvest read failed (RPC): nothing is estimated here');
   assert.strictEqual(snapText().feesValue, '—');
 });
 
@@ -336,7 +345,7 @@ test('no 1.00 fabrication: an empty vault (totalSupply 0) keeps the share price 
   await flow.refreshAll();
   const t = snapText();
   assert.strictEqual(t.depValue, '—', 'the vacuous 1.00 must not render');
-  assert.strictEqual(t.depSent, 'the vault has no shares outstanding yet — a share price would be vacuous, so none renders');
+  assert.strictEqual(t.depSent, 'the vault has no shares outstanding yet: a share price would be vacuous, so none renders');
   assert.strictEqual(t.vaultValue, '0.00', 'a MEASURED zero TVL on a live vault is honest data, not a fabrication');
 });
 
@@ -353,7 +362,7 @@ test('burn fail-closed: zero Burned events keep the waiting register; a failed r
 
   respond = () => { throw new Error('rpc down'); };
   await flow.refreshAll();
-  assert.strictEqual(snapText().burnSent, 'the burn read failed (RPC) — nothing is estimated here');
+  assert.strictEqual(snapText().burnSent, 'the burn read failed (RPC): nothing is estimated here');
   assert.strictEqual(snapText().burnValue, '—');
 });
 
@@ -363,7 +372,7 @@ test('vault fail-closed: a failing batch demotes all three vault-fed nodes to th
   respond = () => { throw new Error('rpc down'); };
   await flow.refreshAll();
   const t = snapText();
-  assert.strictEqual(t.vaultSent, 'the vault read failed (RPC) — nothing is estimated here');
+  assert.strictEqual(t.vaultSent, 'the vault read failed (RPC): nothing is estimated here');
   assert.strictEqual(t.vaultValue, '—');
   assert.strictEqual(t.depValue, '—');
   assert.strictEqual(fixture[flow.ID.usersChip].hidden, false, 'the chip returns while the figure is unavailable');
@@ -386,7 +395,7 @@ test('pure formatter: measured decimals only, base-unit fallback, no guessed sca
 test('kill-list + no-claims: every new flow string is clean and present-tense', () => {
   const html = fs.readFileSync(INDEX_HTML, 'utf8');
   const flowAt = html.indexOf('<section class="block" id="flow">');
-  const flowEnd = html.indexOf('MOVEMENT 4 — THE BURN LEDGER');
+  const flowEnd = html.indexOf('MOVEMENT 4 · THE BURN LEDGER');
   const slice = html.slice(flowAt, flowEnd);
   assert.ok(slice.length > 0, 'the flow slice resolves');
   assert.ok(!/guaranteed|risk-free|auto yield|passive income/i.test(slice), 'no yield overclaim');

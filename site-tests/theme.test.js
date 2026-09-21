@@ -359,7 +359,9 @@ test('(e) geo freeze strings present (secondary guard; mechanical proof = GEO-FR
     'jurisdiction banner div present');
   assert.ok(html.includes('<template id="ws-geo-block">'), 'geo template present');
   assert.ok(css.includes('background: #fbfaf5; }'), 'frozen geo-card literal present');
-  const f19 = 'geo-blocking has no adjudicated safe harbor — it reduces, not eliminates, exposure';
+  // LEDGER-PRESS 2026-09-20: static carrier re-valued to the colon form (the
+  // prose em-dash ban); the JS-injected F19 constant keeps its original form.
+  const f19 = 'geo-blocking has no adjudicated safe harbor: it reduces, not eliminates, exposure';
   assert.strictEqual(countOccurrences(html, f19), 2, 'F19 disclosure present exactly twice (banner + template)');
 });
 
@@ -368,7 +370,9 @@ test('(f) frozen copy strings present exactly once each (contains-checks)', () =
     // WS-DARK-DOTO 2026-09-07: the banner headline is the h1 — the ratified
     // north-star copy (docs/internal/design-kit/twitter/twitter-banner.html).
     '<h1>OWNED BY HOLDERS.<br>OPERATED BY AGENTS.</h1>',
-    'WELLSTREET — ROBINHOOD CHAIN 4663',
+    // LEDGER-PRESS 2026-09-20: ticker/og carriers re-valued to the '·'/':' forms
+    // (the taste-skill §9.F prose em-dash ban); same once-only roles.
+    'WELLSTREET · ROBINHOOD CHAIN 4663',
     'every number is a raw RPC call',
     'replay them yourself',
     '<a class="cta-solid" href="#fleet">Open the Fleet</a>',
@@ -376,7 +380,7 @@ test('(f) frozen copy strings present exactly once each (contains-checks)', () =
     // WS-POSITIONING-COPY 2026-09-20 form — the AI-native category claim in
     // the meta description and the og:description agent-operator variant.
     'Open-source vaults and an autonomous LP roamer on Robinhood Chain. Every pool fee measured, every claim checkable on-chain. Owned by holders, operated by agents.',
-    'An AI agent operates the LP book — every figure a raw RPC call, checkable by anyone.',
+    'An AI agent operates the LP book: every figure a raw RPC call, checkable by anyone.',
     '1 · Approve',
     '2 · Deposit',
   ];
@@ -641,7 +645,8 @@ test('(i) G5 stats: absence register, pending dual-state, fleet census, stream l
     .forEach((id) => {
       assert.ok(html.includes('id="' + id + '"'), 'the pending register id ships in index.html: ' + id);
     });
-  assert.strictEqual(countOccurrences(html, "this will read the roamer's Burned events — replayable from the first sweep"), 2,
+  // LEDGER-PRESS 2026-09-20: carrier re-valued to the ':' form (prose em-dash ban); same twice-on-both-cards role.
+  assert.strictEqual(countOccurrences(html, "this will read the roamer's Burned events: replayable from the first sweep"), 2,
     'the pending line ships on both burned cards');
   assert.ok(html.includes('title="applies once the roamer is live"'),
     'the toggle group carries the pending title in the static paint');
@@ -666,12 +671,14 @@ test('(i) G5 stats: absence register, pending dual-state, fleet census, stream l
     'the census cross-links the fleet table');
   assert.ok(html.includes('id="st-census-split"'), 'the split line is feed-fed (st-census-split), never hardcoded');
   // the two-stream mini-list: labels + byte-identical sentences
+  // LEDGER-PRESS 2026-09-20: label carriers re-valued to the ':' form (prose
+  // em-dash ban); the label-opens-sentence structure is unchanged.
   assert.ok(html.includes('<div class="st-streams">'), 'the stream list ships');
   assert.ok(html.includes("Two streams. Zero dev take."), 'the ratified lead line survives byte-identical');
-  assert.ok(html.includes("<span class=\"st-stream-name\">to holders —</span> Trading fees route to holders through Pons' distributor.</p>"),
+  assert.ok(html.includes("<span class=\"st-stream-name\">to holders:</span> Trading fees route to holders through Pons' distributor.</p>"),
     'stream line 1: label added, sentence byte-identical');
-  assert.ok(html.includes('<span class="st-stream-name">to the burn —</span> LP fees buy back and burn.</p>'),
+  assert.ok(html.includes('<span class="st-stream-name">to the burn:</span> LP fees buy back and burn.</p>'),
     'stream line 2: label added, sentence byte-identical');
-  assert.ok(html.includes('<span class="st-stream-name">$WELL —</span> the token that accrues the burn — launches on Pons.</p>'),
+  assert.ok(html.includes('<span class="st-stream-name">$WELL:</span> the token that accrues the burn, launches on Pons.</p>'),
     'stream line 3: the $WELL label carries the sentence opening byte-identically');
 });

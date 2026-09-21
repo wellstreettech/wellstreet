@@ -146,7 +146,8 @@ test('wallet-connect is discoverable: persistent entry + iOS guide ship honest',
 // leaks between riders.
 // =======================================================================
 const G5_LEAD_IOS = 'Safari carries no wallet of its own. Open Wellstreet inside your wallet app\'s browser:';
-const G5_LEAD_DESKTOP = 'No wallet extension detected — install one, or open this page inside your wallet app\'s browser:';
+// LEDGER-PRESS 2026-09-20: lead carrier re-valued to the ':' form (the prose em-dash ban on rendered strings); same role.
+const G5_LEAD_DESKTOP = 'No wallet extension detected: install one, or open this page inside your wallet app\'s browser:';
 const g5fs = require('fs');
 const g5path = require('path');
 
@@ -349,7 +350,8 @@ test('G5 rider: mwg-copy feedback resets to copy after ~2.5s; a repeat tap clear
   try {
     g5Click(g5.copyBtn);
     await g5Settle();
-    assert.strictEqual(g5.copyBtn.textContent, 'copied — paste in the app');
+    // LEDGER-PRESS 2026-09-20: toast carrier re-valued to the ':' form (prose em-dash ban); same role.
+    assert.strictEqual(g5.copyBtn.textContent, 'copied: paste in the app');
     // unrelated rpc retry timers share the swap window — pin the RESET timers by their delay
     const resets = scheduled.filter(function (h) { return h.ms === 2500; });
     assert.strictEqual(resets.length, 1, 'exactly one reset timer scheduled');

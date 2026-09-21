@@ -180,9 +180,11 @@ test('launch fact single-sourced: one quoted literal per state, statics byte-equ
   // (a) each state literal occurs exactly once in main.js as a QUOTED literal
   assert.strictEqual((mainSrc.match(/'awaiting on-chain deploy'/g) || []).length, 1,
     'pendingShort quoted exactly once (it is a strict substring of the long form — quote-counting is mandatory)');
-  assert.strictEqual((mainSrc.match(/'awaiting on-chain deploy — yield phase not started'/g) || []).length, 1,
+  // LEDGER-PRESS 2026-09-20: state literals re-valued to the '·' form (the
+  // taste-skill §9.F prose em-dash ban on rendered strings); same quote-count roles.
+  assert.strictEqual((mainSrc.match(/'awaiting on-chain deploy · yield phase not started'/g) || []).length, 1,
     'the long pending literal quoted exactly once (inside LAUNCH_FACT)');
-  assert.strictEqual((mainSrc.match(/'deployed — yield phase live'/g) || []).length, 1,
+  assert.strictEqual((mainSrc.match(/'deployed · yield phase live'/g) || []).length, 1,
     'the deployed literal quoted exactly once (inside LAUNCH_FACT)');
   assert.strictEqual((mainSrc.match(/'The vault is not yet on-chain[^']*'/g) || []).length, 1,
     'prosePending quoted exactly once');
@@ -241,7 +243,8 @@ test('P1 depositsOpen: a verified pause blocks the deposit side; unknown never d
 // self-verify truth. (WS5-SKELETON 2026-09-07: the flow deposit node's pending
 // sentence retired WITH the flow figure — its pin retired dated below.)
 test('WS-PRODUCT-GAPS honesty strings: verbatim single-source pins, no overclaim', () => {
-  assert.strictEqual((mainSrc.match(/Deposits are paused on the vault\. Redemptions are never pausable — exits stay open\./g) || []).length, 1,
+  // LEDGER-PRESS 2026-09-20: PAUSE_ROW carrier re-valued to the ':' form (prose em-dash ban); same quote-count role.
+  assert.strictEqual((mainSrc.match(/Deposits are paused on the vault\. Redemptions are never pausable: exits stay open\./g) || []).length, 1,
     'the pause row is quoted exactly once in main.js');
   assert.ok(mainSrc.indexOf('at the current share price.') !== -1, 'the position ≈ carries the share-price qualifier');
   assert.ok(mainSrc.indexOf('the chain prices the final amount.') !== -1, 'the preview names the chain as the final pricer');

@@ -368,15 +368,26 @@ pre code { background: none; border: none; padding: var(--space-0); }
    only texture). One 2px rule per boundary, .hero and section.block separate
    blocks. */
 .hero { border-bottom: 2px solid var(--line); }
-/* V10 hero whitespace: the wrap centers its stack within >=80vh on desktop.
-   Mobile (<=640px) keeps the compact padding band. */
+/* LEDGER-PRESS HERO (2026-09-20, the taste-skill overhaul): the banner is an
+   ASYMMETRIC SPLIT. Left column: the manifesto stack (h1 at two lines, the
+   claim, the amber rule, the meta line, ONE CTA). Right column: the census
+   plate — a hard-bordered data instrument carrying the fee-lane truth and the
+   two live census figures (the front-page numbers). The old single 80vh stack
+   is gone: the CTA lands above the fold at every desktop width and the hero
+   stack obeys the 4-element discipline (ticker, h1, claim, CTA; the meta line
+   is the CTA's caption). Mobile keeps the ratified one-screen rank — the grid
+   is one column there and the <=640 block below re-ties the fold margins. */
 .hero .wrap {
   padding-top: var(--space-56);
   padding-bottom: var(--space-48);
-  min-height: 80vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-32); }
+.hero-copy { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+@media (min-width: 1000px) {
+  .hero-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: var(--space-48); align-items: center; }
 }
 /* the halftone field: the banner's fine dot grid (1px dots on a 14px grid)
    plus the faint ledger column lines on the right rhythm — the page's whole
@@ -465,6 +476,35 @@ pre code { background: none; border: none; padding: var(--space-0); }
 .hero-fact:nth-child(4) { z-index: 4; }
 .hero-fact:first-child { margin-left: 0; }
 
+/* ---------- LEDGER-PRESS: the census plate (2026-09-20) ----------
+   The hero's right rail — the page's trust instrument as a designed object.
+   Hard 2px ink border on the raised face (the data register), the amber tick
+   on the top-left corner (the hero-rule's FILL role, re-stated small), and
+   the plate carries ONLY data + the fee-lane truth: the cut, the two live
+   census figures, the checkability note, the chain cell. No prose. */
+.hero-plate {
+  position: relative;
+  border: 2px solid var(--ink);
+  background: var(--paper-raised);
+  padding: var(--space-20);
+  min-width: 0;
+}
+.hero-plate::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 56px;
+  height: 6px;
+  background: var(--accent);
+}
+.hero-plate .hero-cut { margin: 0 0 var(--space-20); }
+.hero-plate .hero-cut-zero { font-size: var(--step-6); } /* the ZERO is the plate's headline — one display step up inside the plate */
+.hero-plate .hero-stat-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-20); } /* the two census figures STACK in the plate (the base .hero-stat-row flex rule above is untouched — positioning.test.js pins its declaration) */
+.hero-plate #hero-stat { margin: 0; }
+.hero-plate .hero-census-note { margin: var(--space-16) 0 0; }
+.hero-plate #chain-badge { margin-top: var(--space-8); }
+
 /* ---------- sections ---------- */
 /* band boundary: a plain hard 2px rule per block (WS-DARK-DOTO — the hatches
    retire with the identity; the halftone field is the only texture). */
@@ -479,8 +519,16 @@ section.block { border-bottom: 2px solid var(--line); }
 section.block, .hero { scroll-margin-top: 124px; }
 #doc-pane [id] { scroll-margin-top: 124px; }
 section.block .wrap { padding-top: var(--space-64); padding-bottom: var(--space-48); } /* R3 IMP-13: blocks standardize 64/48 — more air reads more expensive at zero cost */
-.block-head { display: flex; align-items: baseline; gap: var(--space-14); margin-bottom: var(--space-8); }
-.block-head .index { font-family: var(--mono); color: var(--accent-text); font-weight: 700; font-size: var(--step-4); letter-spacing: 0.22em; } /* V1: section numbers promoted — accent-as-TEXT rides --accent-text on light paper; P-01: numeral scales with the display head (was --step-6) */
+/* LEDGER-PRESS SECTION HEAD (2026-09-20): the broadsheet rule. Every section
+   opens on a full-width 2px INK rule with a short amber tab at its left end —
+   the printed-folio section break — and the Doto h2 sits under it. The
+   numbered eyebrow (.index spans) is RETIRED from the markup (the taste-skill
+   §9.F section-number ban); the .index CSS rules stay as retired-register
+   records (theme.test.js (a2) pins the #deposit slot). Border-TOP only: the
+   pinned 2px bottom-rule register (theme.test.js (g) count) is untouched. */
+.block-head { display: flex; align-items: baseline; gap: var(--space-14); margin-bottom: var(--space-8); border-top: 2px solid var(--ink); padding-top: var(--space-12); position: relative; }
+.block-head::before { content: ''; position: absolute; top: -2px; left: 0; width: 48px; height: 6px; background: var(--accent); }
+.block-head .index { font-family: var(--mono); color: var(--accent-text); font-weight: 700; font-size: var(--step-4); letter-spacing: 0.22em; } /* V1: section numbers promoted — accent-as-TEXT rides --accent-text on light paper; P-01: numeral scales with the display head (was --step-6). RETIRED-REGISTER (2026-09-20): no markup consumes the index spans anymore — the rule survives as the theme battery's (a2) pin record. */
 .block-head h2 {
   margin: 0;
   font-family: var(--font-display); /* WS-DARK-DOTO: section titles join the machine display register */
@@ -888,8 +936,8 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
   --step-3: 0.875rem;                     /* 14px — data */
   --step-4: 1rem;                         /* 16px — body (the iOS no-zoom input floor) */
   --step-5: 1.25rem;                      /* 20px — heads/panels */
-  --step-6: clamp(1.5rem, 3vw, 2rem);     /* lede / section h2 display */
-  --step-7: clamp(2.75rem, 7.5vw, 7rem);  /* hero h1 / tape giant — the page's loudest number */
+  --step-6: clamp(1.75rem, 3.2vw, 2.5rem);     /* lede / section h2 display — LEDGER-PRESS (2026-09-20): the section voice steps UP one boldness notch (the broadsheet head rule pairs with a louder h2) */
+  --step-7: clamp(2.5rem, 4.6vw, 4rem);  /* hero h1 + the census numerals — LEDGER-PRESS (2026-09-20): the banner headline re-scaled for the split hero (2 lines in the left column, CTA above the fold); the Doto dot-matrix register itself is unchanged */
   /* tracking roles (WS3-TYPOGRAPHY P-10, 2026-09-06): TRACK tokens, not text sizes —
      written justification per the scale law. --track-label = micro metadata labels
      (11-14px mono uppercase, the label register); --track-chrome = actions/nav/chrome
@@ -915,8 +963,18 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
      [G6 (UI_IMPROVE2_GLYPHS, 2026-09-06): the two-register tag rule, recorded —
      future tags pick a register by role: names a verified on-chain fact → square;
      names a live page state → pill.] */
-  --radius: 999px;
-  --radius-soft: 12px;
+  /* LEDGER-PRESS RADIUS LOCK (2026-09-20, the taste-skill overhaul): ONE corner
+     system on the page — ALL-SHARP. Every interactive action, chip, tag and
+     card is square; depth is the 2px/1px border, never a radius. Supersedes
+     the R3 three-radius split (0 / 999px / 12px): the pill actions against the
+     square data surfaces was the one mixed-register left on the page (the
+     header pill CTA vs the square hero CTA). --radius and --radius-soft keep
+     their NAMES (every call site unchanged) and re-value to 0 — the cascade
+     flips every consumer in one move. The G6 two-register TAG rule survives
+     with amended dress: both tag registers are square now; state tags
+     distinguish by EDGE (amber edge vs hairline), not by radius. */
+  --radius: 0;
+  --radius-soft: 0;
   --shadow-soft: none;       /* WS-DARK-DOTO: flat — depth is the 2px border, never a shadow */
   --shadow-soft-hover: none; /* ditto — the hover registers on border/background only */
   /* BTN-MOTION (2026-09-08, docs/internal/BTN_MOTION_2026-09-08.md): the flat
@@ -1672,7 +1730,10 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
      ratified rank now (ticker → h1 → rule → meta → CTA row → hero stat →
      chain badge), so the mobile fold needs no order overrides — the banner
      stack lands in reading order with the CTA and the one live number in
-     the thumb third. */
+     the thumb third. LEDGER-PRESS 2026-09-20: the rank is superseded by the
+     split hero (ticker → .hero-grid [ .hero-copy: h1 → claim → rule → meta →
+     CTA | aside.hero-plate: cut → stats → note → badge ]); the fold margins
+     live in the re-pointed ≤640 WS5-TREATMENT block above. */
   /* P1 — anchored jumps clear the compressed sticky header (value = measured
      header height H + 16, finalized from the post-P3 probe: H = 126.09 → 142). */
   section.block, .hero { scroll-margin-top: 142px; }
@@ -1861,7 +1922,7 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
   max-width: var(--measure-copy);
 }
 .agents-caps li { position: relative; padding-left: var(--space-16); }
-.agents-caps li::before { content: '—'; position: absolute; left: 0; color: var(--accent-text); }
+.agents-caps li::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 10px; height: 2px; background: var(--accent); } /* LEDGER-PRESS (2026-09-20): the em-dash character retires (the taste-skill §9.G ban) — the marker is a graphic amber tick now, the hero-rule's FILL role at list scale */
 @media (min-width: 900px) {
   #agents .wrap {
     display: grid;
@@ -2176,13 +2237,20 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   /* the wrap's min-height subtracts the hero's 2px border-bottom, so the
      .hero ELEMENT lands at exactly one small viewport */
   .hero .wrap { min-height: calc(100vh - 2px); min-height: calc(100svh - 2px); justify-content: flex-start; padding-top: var(--space-16); padding-bottom: var(--space-20); }
+  /* LEDGER-PRESS 2026-09-20: the fold margins re-pointed to the split DOM
+     (.hero-copy children instead of .hero .wrap children) so the 390x846
+     one-screen contract survives the hero restructure: h1 + the CTA + one
+     census number inside the first small viewport, CTA in the thumb third.
+     Spacing-only (tokens), no color/font/motion changes. */
   .hero .wrap > .hero-ticker { margin-bottom: var(--space-16); }
-  .hero .wrap > h1 { margin-bottom: var(--space-16); }
-  .hero .wrap > .hero-rule { margin-bottom: var(--space-12); }
-  .hero .wrap > .hero-meta { margin-bottom: var(--space-20); }
-  .hero .wrap > .cta-row { margin-top: 0; } /* full-width stacked (the ≤640 .cta-row block above), the CTA in the thumb third */
-  .hero .wrap > #hero-stat, .hero .wrap > .hero-stat-row > #hero-stat { margin: var(--space-12) 0; } /* WS-P1-DESIGN-FIXES: the stat now sits inside .hero-stat-row — the measured one-screen margin holds on both paths */
-  .hero .wrap > #chain-badge { margin-top: var(--space-8); }
+  .hero-copy > h1 { margin-bottom: var(--space-16); }
+  .hero-copy > .hero-rule { margin-bottom: var(--space-12); }
+  .hero-copy > .hero-meta { margin-bottom: var(--space-20); }
+  .hero-copy > .cta-row { margin-top: 0; } /* full-width stacked (the ≤640 .cta-row block above), the CTA in the thumb third */
+  .hero-grid { gap: var(--space-20); } /* the plate rides closer on one column — the fold budget */
+  .hero-plate { padding: var(--space-16); } /* the instrument tightens at phone width */
+  .hero-plate .hero-stat-row > #hero-stat { margin: var(--space-12) 0; } /* WS-P1-DESIGN-FIXES: the stat sits inside .hero-stat-row inside the plate — the measured one-screen margin holds */
+  .hero-plate > #chain-badge { margin-top: var(--space-8); }
 }
 /* WS5-TREATMENT: the deposit widget now lives INSIDE the flagship fleet card's
    detail — the page-level .widget-grid minimum (300px columns) exceeds the
@@ -2304,7 +2372,7 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
   font-family: var(--mono); font-size: var(--step-1); font-weight: 400;
   letter-spacing: var(--track-label); text-transform: lowercase;
   color: var(--ink-soft); white-space: nowrap;
-  border-bottom: 1px solid var(--ink-soft);
+  border-bottom: 2px solid var(--ink); /* LEDGER-PRESS (2026-09-20): the terminal head rule steps up to the ink register — the broadsheet head treatment at table scale (--ink, not --line: the pinned bottom-rule count is untouched) */
 }
 .ft-row { border-bottom: 1px solid var(--line); }
 .ft-row.is-protocol { background: var(--chip-tan); } /* skin in the game: the warm band marks the rows where our capital sits */

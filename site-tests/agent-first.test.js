@@ -176,7 +176,8 @@ test('(c) the coverage seam: one relocated cell rides the single fill point', ()
   // the static first paint carries the self-verify truth string (deployed
   // register) — re-pinned 2026-09-07 (WS-DARK-DOTO copy diet): the address
   // lives in js/config.js and the docs; the page states the seam, not the hex.
-  const staticCoverage = 'live from backingCoverage() — verify it yourself with any RPC client.';
+  // LEDGER-PRESS 2026-09-20: static carrier re-valued to the ':' form (the prose em-dash ban); same single-carrier role.
+  const staticCoverage = 'live from backingCoverage(): verify it yourself with any RPC client.';
   assert.strictEqual(countOccurrences(html, staticCoverage), 1,
     'the coverage truth is exactly the ONE relocated seam cell (identical string, single carrier)');
   assert.strictEqual(countOccurrences(html, 'awaiting address wiring'), 0,
@@ -232,9 +233,11 @@ test('(e) LAUNCH_FACT single-source: quoted-literal counts, writer, byte-equal s
   assert.strictEqual(countOccurrences(mainSrc, 'var LAUNCH_FACT = {'), 1, 'LAUNCH_FACT defined exactly once');
   assert.strictEqual((mainSrc.match(/'awaiting on-chain deploy'/g) || []).length, 1,
     'pendingShort quoted exactly once (strict substring of the long form — quote-counting is mandatory)');
-  assert.strictEqual((mainSrc.match(/'awaiting on-chain deploy — yield phase not started'/g) || []).length, 1,
+  // LEDGER-PRESS 2026-09-20: state literals re-valued to the '·' form (the
+  // taste-skill §9.F prose em-dash ban on rendered strings); same quote-count roles.
+  assert.strictEqual((mainSrc.match(/'awaiting on-chain deploy · yield phase not started'/g) || []).length, 1,
     'the long pending literal quoted exactly once (inside LAUNCH_FACT)');
-  assert.strictEqual((mainSrc.match(/'deployed — yield phase live'/g) || []).length, 1,
+  assert.strictEqual((mainSrc.match(/'deployed · yield phase live'/g) || []).length, 1,
     'the deployed literal quoted exactly once (inside LAUNCH_FACT)');
   assert.strictEqual((mainSrc.match(/'The vault is not yet on-chain[^']*'/g) || []).length, 1,
     'prosePending quoted exactly once');
@@ -254,7 +257,7 @@ test('(e) LAUNCH_FACT single-source: quoted-literal counts, writer, byte-equal s
   const rest = mainSrc.replace(constLine, '');
   assert.strictEqual(rest.indexOf("'awaiting on-chain deploy"), -1,
     'no raw pending literal outside the LAUNCH_FACT line');
-  assert.strictEqual(rest.indexOf("'deployed — yield phase live"), -1,
+  assert.strictEqual(rest.indexOf("'deployed · yield phase live"), -1,
     'no raw deployed literal outside the LAUNCH_FACT line');
   // (iv) the writer: null-guarded and state-driven off the SAME isDeployed seam
   assert.ok(/var n = \$\('vaults-launch-fact'\);\s*if \(n\)/.test(mainSrc),

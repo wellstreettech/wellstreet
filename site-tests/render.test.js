@@ -407,7 +407,8 @@ test('page renders fully from mocked live RPC data (serverless-clean)', async ()
   // re-pinned 2026-09-13: the RoamVault entry carries no chainlinkFeed/pool keys —
   // the conditional reads degrade to their honest unavailable rows (never a
   // wrong-vault read, never an invented price).
-  assert.ok(text.indexOf('unavailable (feed — no invented price)') !== -1, 'price row degrades honestly without a feed pin, got: ' + text);
+  // LEDGER-PRESS 2026-09-20: carrier re-valued to the ':' form (prose em-dash ban on rendered strings); same degrade role.
+  assert.ok(text.indexOf('unavailable (feed: no invented price)') !== -1, 'price row degrades honestly without a feed pin, got: ' + text);
   assert.ok(text.indexOf('$770.27') === -1, 'no SPY-feed price may render for the RoamVault card');
   assert.ok(text.indexOf('unavailable (RPC)') !== -1, 'pool row degrades honestly without a pool pin');
   assert.ok(text.indexOf('TVL') !== -1, 'pool TVL rendered');
@@ -620,7 +621,8 @@ test('WS-DARK-DOTO zero-image: agent-first ships the skill pointers and NOT ONE 
   const path2 = require('node:path');
   const html = fs2.readFileSync(path2.join(__dirname, '..', 'site', 'index.html'), 'utf8');
   assert.ok(html.indexOf('OPERATED BY AGENTS.') !== -1, 'the banner headline line 2 present');
-  assert.ok(html.indexOf('One skill file — any agent can operate this protocol.') !== -1,
+  // LEDGER-PRESS 2026-09-20: carrier re-valued to the ',' form (the taste-skill §9.F prose em-dash ban); same role.
+  assert.ok(html.indexOf('One skill file, any agent can operate this protocol.') !== -1,
     'the honest agent-first line present');
   assert.ok(html.indexOf('skills/wellstreet-vaults/SKILL.md') !== -1, 'canonical skill path present');
   assert.ok(html.indexOf('id="agents"') !== -1, 'agents section present');

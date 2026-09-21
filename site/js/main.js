@@ -17,7 +17,7 @@
   // consumer reads the constant, and the static span (#vaults-launch-fact in
   // index.html) stays byte-equal to proseDeployed (wow.test.js pins both sides).
   // Undated by design (a hard date in code goes stale) and carries no yield promise.
-  var LAUNCH_FACT = { pendingShort: 'awaiting on-chain deploy', pending: 'awaiting on-chain deploy — yield phase not started', deployed: 'deployed — yield phase live', prosePending: 'The vault is not yet on-chain — factory, timelock, harvester and vault land on Robinhood Chain; these cards read the pending state until then.', proseDeployed: 'The vault is on-chain — four contracts, verifiable at the addresses these cards read.' };
+  var LAUNCH_FACT = { pendingShort: 'awaiting on-chain deploy', pending: 'awaiting on-chain deploy · yield phase not started', deployed: 'deployed · yield phase live', prosePending: 'The vault is not yet on-chain: factory, timelock, harvester and vault land on Robinhood Chain; these cards read the pending state until then.', proseDeployed: 'The vault is on-chain: four contracts, verifiable at the addresses these cards read.' }; /* LEDGER-PRESS 2026-09-20: rendered em-dashes restructured to ':' / '·' (the prose register), values byte-tracked by the quote-count pins */
 
   // WS5-SKELETON (2026-09-07): FLOW_DEPOSIT_SUB retired — the money-flow figure
   // (its only consumer) is deleted outright in the three-movement rebuild; the
@@ -25,7 +25,7 @@
   // change. The widget's pause/position/preview strings below are untouched.
   // P1: the pause row states the pause and the redeem guarantee — it never
   // guesses a duration, promises a date, or implies an un-pause.
-  var PAUSE_ROW = 'Deposits are paused on the vault. Redemptions are never pausable — exits stay open.';
+  var PAUSE_ROW = 'Deposits are paused on the vault. Redemptions are never pausable: exits stay open.';
 
   // GLYPH REGISTER (G9, UI_IMPROVE2_GLYPHS 2026-09-05): the small-mark census —
   // '·' separates metadata fields (single spaces; HTML collapses doubles, so the
@@ -205,7 +205,7 @@
     // WS-VAULT-FAMILY-GRID: the static label resolves per entry (address match
     // against cfg.tokens); no static entry → the live-read symbol alone.
     var t = tokenCfgFor(vCfg && vCfg.asset);
-    var label = (u.symbol || '?') + (t && t.label ? ' — ' + t.label : '');
+    var label = (u.symbol || '?') + (t && t.label ? ' · ' + t.label : '');
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, label));
     frag.appendChild(el('span', 'muted', ' · ' + (u.state === 'active' ? 'not paused' : u.state === 'unknown' ? 'pause state unknown' : u.state)));
@@ -213,11 +213,11 @@
   }
 
   function priceRow(price) {
-    if (!price) { return row('Underlying price', 'unavailable (feed — no invented price)'); }
+    if (!price) { return row('Underlying price', 'unavailable (feed: no invented price)'); }
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, '$' + price.usd.toFixed(2)));
     frag.appendChild(el('span', 'muted', ' · ' + price.label + ' (Chainlink) · ' + fmtAge(price.ageSeconds) +
-      (price.stale ? ' · equity feeds update 24/5 — weekend/holiday staleness is expected' : '')));
+      (price.stale ? ' · equity feeds update 24/5: weekend/holiday staleness is expected' : '')));
     return row('Underlying price (live)', frag);
   }
 
@@ -240,7 +240,7 @@
   function harvestRow(h) {
     if (h === null || h === undefined) { return row('Harvests credited (live)', 'unavailable (RPC)'); }
     var frag = document.createDocumentFragment();
-    frag.appendChild(el('span', null, h.count === 0 ? 'no harvests yet — the honest pre-accrual state' : String(h.count)));
+    frag.appendChild(el('span', null, h.count === 0 ? 'no harvests yet: the honest pre-accrual state' : String(h.count)));
     frag.appendChild(el('span', 'muted', ' · YieldHarvested log count (getLogs on the vault)'));
     return row('Harvests credited (live)', frag);
   }
@@ -250,7 +250,7 @@
     var c = pool.cut;
     var frag = document.createDocumentFragment();
     frag.appendChild(el('span', null, (c.cutFraction * 100).toFixed(0) + '% of swap fees per side (live slot0: (' +
-      c.token0N + ',' + c.token1N + ')) — LPs keep ' + (c.netMultiplier * 100).toFixed(0) + '%'));
+      c.token0N + ',' + c.token1N + ')) · LPs keep ' + (c.netMultiplier * 100).toFixed(0) + '%'));
     if (c.note) { frag.appendChild(el('span', 'muted', ' · ' + c.note)); }
     return row("The pool owner's cut (live)", frag);
   }
@@ -261,7 +261,7 @@
     if (deployed) {
       frag.appendChild(flagNode(true, 'deployed · ' + fmtAddr(vaultCfg.vault)));
     } else {
-      frag.appendChild(flagNode(false, 'pending deploy — deposits not open; no numbers below pretend otherwise'));
+      frag.appendChild(flagNode(false, 'pending deploy: deposits not open; no numbers below pretend otherwise'));
     }
     return row('Vault contract', frag);
   }
@@ -413,7 +413,7 @@
     var share = simSharePct(simState.size, simState.tvlUsd);
     if (shareEl) {
       shareEl.textContent = share === null
-        ? 'pool TVL unavailable — the dilution bar will not invent a denominator'
+        ? 'pool TVL unavailable: the dilution bar will not invent a denominator'
         : (share < 0.01 ? '<0.01' : share.toFixed(2)) + '% of pool TVL';
     }
     if (bar) {
@@ -460,7 +460,7 @@
   function aprRow(apr) {
     if (!apr) { return row('Projected depositor APR', el('span', 'state', 'computing…'), 'card-row-strong'); }
     var frag = document.createDocumentFragment();
-    frag.appendChild(el('strong', null, fmtPct(apr.depositorAprPct) + ' — ' + apr.label));
+    frag.appendChild(el('strong', null, fmtPct(apr.depositorAprPct) + ' · ' + apr.label));
     return row('Projected depositor APR', frag, 'card-row-strong');
   }
 
@@ -480,7 +480,7 @@
   // the eth_call (isDeployed gate inside WS.vault.readBackingCoverage); a
   // failed/undecodable live read renders "unavailable (RPC)" — never a
   // fabricated figure, never a non-deployment claim.
-  var PENDING_COVERAGE_TEXT = 'awaiting address wiring — coverage goes live when the vault address is published';
+  var PENDING_COVERAGE_TEXT = 'awaiting address wiring: coverage goes live when the vault address is published';
 
   function fillBackingCoverage(client, vCfg) {
     var cells = [$('fleet-coverage')];
@@ -516,7 +516,7 @@
   // Honest null when the address is not deployed (the PENDING_DEPLOY branch
   // NEVER issues an eth_call — the gate is inside readVaultSnapshot) or the
   // decode is empty — never a claim.
-  var EMPTY_VAULT_TAG = 'empty — 0 shares minted';
+  var EMPTY_VAULT_TAG = 'empty: 0 shares minted';
 
   async function readVaultSupply(client, vaultAddr) {
     var snap = await WS.vault.readVaultSnapshot(client, vaultAddr);
@@ -567,12 +567,12 @@
         if (badge) {
           badge.textContent = '';
           if (!okChain) {
-            badge.appendChild(flagNode(false, 'chain ' + Number.parseInt(chainIdHex, 16) + ' — UNEXPECTED, expected 4663'));
+            badge.appendChild(flagNode(false, 'chain ' + Number.parseInt(chainIdHex, 16) + ' · UNEXPECTED, expected 4663'));
           }
         }
       } catch (e) {
         var badge2 = $('chain-badge');
-        if (badge2) { badge2.textContent = ''; badge2.appendChild(flagNode(false, 'RPC unreachable — values below show unavailable, never estimates')); }
+        if (badge2) { badge2.textContent = ''; badge2.appendChild(flagNode(false, 'RPC unreachable: values below show unavailable, never estimates')); }
       }
     }
 
@@ -647,7 +647,7 @@
     if (supply !== null && supply !== undefined) {
       var shDec = supply === 0n ? 18 : await shareDecimalsOf(vaultCfg.vault);
       mounts.rows.appendChild(row('Shares outstanding',
-        supply === 0n ? '0 — the vault is empty; the first deposit mints the first shares'
+        supply === 0n ? '0: the vault is empty; the first deposit mints the first shares'
                       : (shDec === null ? '—' : fmtToken(supply, shDec))));
     } else {
       mounts.rows.appendChild(row('Shares outstanding', 'unavailable (RPC)'));
@@ -664,7 +664,7 @@
       } else if (emptyTag && emptyTag.remove) { emptyTag.remove(); }
     }
 
-    mounts.note.textContent = 'Everything above is read by your browser directly from public RPC nodes — no backend, no keys. ' +
+    mounts.note.textContent = 'Everything above is read by your browser directly from public RPC nodes: no backend, no keys. ' +
       'The ' + vaultCfg.shareSymbol + ' token was created at deploy; shares are minted by the vault on deposit and burned on redeem.';
 
     // the deposit widget is the PRIMARY vault's surface (family-grid contract)
@@ -708,7 +708,7 @@
       if (strong) {
         strong.querySelector('.row-value').textContent = '';
         strong.querySelector('.row-value').appendChild(el('strong', null,
-          (apr.depositorAprPct != null ? fmtPct(apr.depositorAprPct) : '—') + ' — ' + apr.label));
+          (apr.depositorAprPct != null ? fmtPct(apr.depositorAprPct) : '—') + ' · ' + apr.label));
       }
       if (primary) { renderWidgetState(); }
     }
@@ -744,7 +744,7 @@
     // Fallback: the clearly-labeled phase-0 measured baseline feeds the SAME formula.
     var base = cfg.aprMethodology.phase0Baseline;
     var projBase = WS.apr.projectDepositorApr(base.netAprPct, pins, econ);
-    projBase.sourceLabel = 'phase-0 measured baseline (' + base.source + ') — live sampling unavailable' +
+    projBase.sourceLabel = 'phase-0 measured baseline (' + base.source + '): live sampling unavailable' +
       (live && live.reason ? ' [' + live.reason + ']' : '');
     projBase.inputs = { tvlWeth: tvlWeth, tvlUsd: tvlUsd };
     publish(projBase, true);   // WS3-DEGRADED #5: the fallback reading labels itself on band + chip
@@ -796,7 +796,7 @@
   // desktop wallet-app user can open this URL in the app's own browser too).
   // The iOS lead lives in index.html (the markup default); this branch swaps
   // it at show time. Desktop lead text per the locked goal, verbatim.
-  var MWG_LEAD_DESKTOP = 'No wallet extension detected — install one, or open this page inside your wallet app\'s browser:';
+  var MWG_LEAD_DESKTOP = 'No wallet extension detected: install one, or open this page inside your wallet app\'s browser:';
   function isIOSNoWallet() {
     if (typeof window === 'undefined' || !window.navigator) { return false; }
     var nav = window.navigator;
@@ -828,7 +828,7 @@
       // respected; the pending timer is cleared on every repeat tap so labels
       // never stack timers and an old reset can never fire mid-new-feedback.
       var say = function (ok) {
-        btn.textContent = ok ? 'copied — paste in the app' : 'copy failed — select it';
+        btn.textContent = ok ? 'copied: paste in the app' : 'copy failed: select it';
         if (mwgCopyTimer) { clearTimeout(mwgCopyTimer); }
         mwgCopyTimer = setTimeout(function () {
           btn.textContent = 'copy';
@@ -939,7 +939,7 @@
     if (minOutInput) { minOutInput.disabled = !inputsReady; }
     if (minOutBtn) {
       minOutBtn.disabled = !inputsReady;
-      minOutBtn.title = !hasWallet ? 'Connect a wallet first.' : (!deployed ? 'Vault contract pending deploy.' : 'Redeem with a payout floor — the redeem reverts below it.');
+      minOutBtn.title = !hasWallet ? 'Connect a wallet first.' : (!deployed ? 'Vault contract pending deploy.' : 'Redeem with a payout floor: the redeem reverts below it.');
     }
     // WS-VAULT-DEPOSIT G3 completion (2026-09-13): the Max button rides the
     // wallet+deploy gates and its own disabled-with-reason title (never
@@ -962,7 +962,7 @@
             (pCfg.feeTier != null ? pCfg.feeTier : '?') + ' ' + pCfg.label +
             ' pool (SwapRouter02 ' + fmtAddr(cfg.contracts.swapRouter02) + ', quotes via QuoterV2) or bring your own.'
           : 'The vault accepts only ' + ((tCfg && tCfg.symbol) || 'the underlying token') +
-            ' — acquire it on this chain (bridge or swap) or bring your own.')
+            ': acquire it on this chain (bridge or swap) or bring your own.')
         : 'Deposit flows activate when the vault deploys. Until then nothing here takes money or approvals.';
     }
 
@@ -971,8 +971,8 @@
       return;
     }
 
-    if (!hasWallet) { widgetStatus('Not connected — connect a wallet to interact. Reads above still work without one.', false, 'flag--info'); }
-    else if (!deployed) { widgetStatus('Vault contract is pending deploy — write flows stay disabled. This is not a claim screen; there is nothing to claim yet.', true); }
+    if (!hasWallet) { widgetStatus('Not connected: connect a wallet to interact. Reads above still work without one.', false, 'flag--info'); }
+    else if (!deployed) { widgetStatus('Vault contract is pending deploy: write flows stay disabled. This is not a claim screen; there is nothing to claim yet.', true); }
     else { widgetStatus('Connected on chain ' + state.wallet.chainId + '.', false); }
     appendWidgetTruthRows();
     renderMobileWalletGuide(!hasWallet);
@@ -1010,7 +1010,7 @@
     if (state.underlyingState === 'issuer-paused') {
       var tCfg = tokenCfgFor(vaultCfg().asset);
       box.appendChild(el('div', 'flag flag-warn',
-        'The underlying token (' + ((tCfg && tCfg.symbol) || 'underlying') + ') is issuer-paused — token transfers may fail until the issuer lifts the pause.'));
+        'The underlying token (' + ((tCfg && tCfg.symbol) || 'underlying') + ') is issuer-paused: token transfers may fail until the issuer lifts the pause.'));
     }
   }
 
@@ -1098,7 +1098,7 @@
     if (!box) { connectUsing(list[0]); return; }
     box.hidden = false;
     box.textContent = '';
-    box.appendChild(el('span', 'picker-label', 'Multiple wallets detected — choose one:'));
+    box.appendChild(el('span', 'picker-label', 'Multiple wallets detected, choose one:'));
     list.forEach(function (entry) {
       var info = entry.info || {};
       var b = el('button', 'btn picker-btn');
@@ -1158,7 +1158,7 @@
   async function parseSharesInput(id) {
     var shDec = await shareDecimalsOf(vaultCfg().vault);
     if (shDec === null || shDec === undefined) {
-      return { ok: false, noScale: true, reason: 'Share decimals unavailable (RPC) — cannot size a share-amount redeem safely. Use Withdraw (asset amount) instead, or retry.' };
+      return { ok: false, noScale: true, reason: 'Share decimals unavailable (RPC): cannot size a share-amount redeem safely. Use Withdraw (asset amount) instead, or retry.' };
     }
     var n = $(id);
     return WS.amount.parseUnits(n ? n.value : '', shDec);
@@ -1167,7 +1167,7 @@
   // A sent transaction is not a confirmed transaction. Polls for the receipt
   // through the site's own RPC client and reports the honest outcome.
   async function confirmTx(hash, label) {
-    widgetStatus(label + ' sent — waiting for confirmation…', false);
+    widgetStatus(label + ' sent: waiting for confirmation…', false);
     linkTx(hash);
     var receipt = null;
     try {
@@ -1180,10 +1180,10 @@
       widgetStatus(label + ' confirmed in block ' + block + '.', false);
       linkTx(hash);
     } else if (outcome === 'reverted') {
-      widgetStatus(label + ' REVERTED on-chain — no state changed. Do not retry blindly; check the reason in the explorer.', true);
+      widgetStatus(label + ' REVERTED on-chain: no state changed. Do not retry blindly; check the reason in the explorer.', true);
       linkTx(hash);
     } else {
-      widgetStatus(label + ' sent but not confirmed within the polling window — the explorer link shows the live status.', true);
+      widgetStatus(label + ' sent but not confirmed within the polling window: the explorer link shows the live status.', true);
       linkTx(hash);
     }
   }
@@ -1191,7 +1191,7 @@
   async function runFlow(kind) {
     var v = vaultCfg();
     if (!state.wallet) { widgetStatus('Connect a wallet first.', true); return; }
-    if (!WS.vault.isDeployed(v.vault)) { widgetStatus('Vault pending deploy — this flow is intentionally disabled.', true); return; }
+    if (!WS.vault.isDeployed(v.vault)) { widgetStatus('Vault pending deploy: this flow is intentionally disabled.', true); return; }
     flowPending = true;
     try {
       if (kind === 'approve') {
@@ -1208,7 +1208,7 @@
           var curAllow = await WS.wallet.allowance(state.client, v.asset, state.wallet.account, v.vault);
           if (curAllow !== null && curAllow !== undefined && curAllow >= amtA.value) {
             widgetStatus('Allowance already covers ' + fmtToken(amtA.value, tokenDecimals()) +
-              ' — skipping the approval. Go straight to deposit.', false);
+              ': skipping the approval. Go straight to deposit.', false);
             skipped = true;
           }
         } catch (e) { /* read failed — approve anyway (the safe default) */ }
@@ -1231,7 +1231,7 @@
           if (room !== null && room !== undefined && amtD.value > room) {
             var roomSym = (tokenCfgFor(v.asset) || {}).symbol || 'underlying';
             widgetStatus(room === 0n
-              ? 'The vault is not accepting deposits right now (cap reached or deposits paused) — maxDeposit() reads 0.'
+              ? 'The vault is not accepting deposits right now (cap reached or deposits paused): maxDeposit() reads 0.'
               : 'That amount exceeds the vault\'s remaining deposit room (' +
                 fmtToken(room, tokenDecimals()) + ' ' + roomSym + ' left of cap). The chain would reject it.', true);
             return;
@@ -1269,7 +1269,7 @@
         if (amtM.value === 0n) { widgetStatus('Enter an amount greater than zero.', true); return; }
         var minRaw = parseInput('min-out');
         if (!minRaw.ok) { widgetStatus('Min out: ' + minRaw.reason, true); return; }
-        if (minRaw.value === 0n) { widgetStatus('Enter a min-out floor greater than zero — or use Redeem, which needs no floor.', true); return; }
+        if (minRaw.value === 0n) { widgetStatus('Enter a min-out floor greater than zero, or use Redeem, which needs no floor.', true); return; }
         // The honest slippage pre-check: the vault pays previewRedeem at
         // execution and reverts below minPayout — a floor above the CURRENT
         // quote is an on-chain reject by construction, refused client-side with the
@@ -1282,7 +1282,7 @@
             var symM = (tokenCfgFor(v.asset) || {}).symbol || 'underlying';
             widgetStatus('The current quote (' + fmtToken(quote, tokenDecimals()) + ' ' + symM +
               ') is below your floor (' + fmtToken(minRaw.value, tokenDecimals()) + ' ' + symM +
-              ') — the chain would reject this redeem. Lower the floor or retry when the rate moves.', true);
+              '): the chain would reject this redeem. Lower the floor or retry when the rate moves.', true);
             return;
           }
         } catch (e) { /* quote read failed — let the chain decide */ }
@@ -1378,12 +1378,12 @@
         var shares = await WS.vault.previewWithdraw(state.client, v.vault, parsed.value);
         if (seq !== previewSeq) { return; }
         text = (shares === null || shDec === null) ? 'Preview unavailable (RPC).'
-          : '≈ ' + fmtToken(shares, shDec) + ' ' + shareSym + ' at the current rate — the chain prices the final amount.';
+          : '≈ ' + fmtToken(shares, shDec) + ' ' + shareSym + ' at the current rate: the chain prices the final amount.';
       } else {
         var assets = await WS.vault.previewRedeem(state.client, v.vault, parsed.value);
         if (seq !== previewSeq) { return; }
         text = assets === null ? 'Preview unavailable (RPC).'
-          : '≈ ' + fmtToken(assets, assetDec == null ? 18 : assetDec) + ' ' + sym + ' out at the current rate — the chain prices the final amount.';
+          : '≈ ' + fmtToken(assets, assetDec == null ? 18 : assetDec) + ' ' + sym + ' out at the current rate: the chain prices the final amount.';
       }
       out.textContent = text;
     } catch (e) {
@@ -1421,7 +1421,7 @@
       var shares = await WS.vault.previewDeposit(state.client, v.vault, parsed.value);
       if (seq !== depositPreviewSeq) { return; }
       out.textContent = (shares === null || shDec === null) ? 'Preview unavailable (RPC).'
-        : '≈ ' + fmtToken(shares, shDec) + ' ' + shareSym + ' minted at the current rate — the chain prices the final amount.';
+        : '≈ ' + fmtToken(shares, shDec) + ' ' + shareSym + ' minted at the current rate: the chain prices the final amount.';
     } catch (e) {
       if (seq !== depositPreviewSeq) { return; }
       out.textContent = 'Preview unavailable (RPC).';
@@ -1437,11 +1437,11 @@
   // say so and fill nothing.
   async function fillMaxDeposit() {
     var v = vaultCfg();
-    if (!state.wallet) { widgetStatus('Connect a wallet first — Max reads your live token balance.', true); return; }
-    if (!WS.vault.isDeployed(v.vault)) { widgetStatus('Vault contract pending deploy — Max is unavailable.', true); return; }
+    if (!state.wallet) { widgetStatus('Connect a wallet first: Max reads your live token balance.', true); return; }
+    if (!WS.vault.isDeployed(v.vault)) { widgetStatus('Vault contract pending deploy: Max is unavailable.', true); return; }
     try {
       var bal = await WS.wallet.balanceOf(state.client, v.asset, state.wallet.account);
-      if (bal === null || bal === undefined) { widgetStatus('Max unavailable (RPC) — nothing is estimated here.', true); return; }
+      if (bal === null || bal === undefined) { widgetStatus('Max unavailable (RPC): nothing is estimated here.', true); return; }
       var input = $('dep-amount');
       if (input) {
         var t = tokenCfgFor(v.asset);
@@ -1450,7 +1450,7 @@
         scheduleDepositPreview();
       }
     } catch (e) {
-      widgetStatus('Max unavailable (RPC) — nothing is estimated here.', true);
+      widgetStatus('Max unavailable (RPC): nothing is estimated here.', true);
     }
   }
 
@@ -1478,13 +1478,13 @@
   };
 
   var VAULT_TIP = {
-    error: 'the eth_call read failed — the figure stays unavailable, never estimated',
-    tvl: 'totalAssets() — eth_call on RoamVault · chain 4663',
-    price: 'convertToAssets(10^shareDecimals) — eth_call on RoamVault · chain 4663',
-    coverage: 'backingCoverage() — eth_call on RoamVault · chain 4663',
-    cap: 'totalAssets() + DEPOSIT_CAP() — eth_call on RoamVault · chain 4663',
-    deposits: 'depositsPaused() — eth_call on RoamVault · chain 4663',
-    idle: 'idleBook() / deployedBook() — eth_call on RoamVault · chain 4663'
+    error: 'the eth_call read failed: the figure stays unavailable, never estimated',
+    tvl: 'totalAssets() · eth_call on RoamVault · chain 4663',
+    price: 'convertToAssets(10^shareDecimals) · eth_call on RoamVault · chain 4663',
+    coverage: 'backingCoverage() · eth_call on RoamVault · chain 4663',
+    cap: 'totalAssets() + DEPOSIT_CAP() · eth_call on RoamVault · chain 4663',
+    deposits: 'depositsPaused() · eth_call on RoamVault · chain 4663',
+    idle: 'idleBook() / deployedBook() · eth_call on RoamVault · chain 4663'
   };
 
   // The honest capital-state sentences (one per on-chain state — 'unbound' |
@@ -1493,10 +1493,10 @@
   // note rides the unbound sentence: deposits earn from the next fee harvest
   // AFTER capital deploys (the pre-P3-B truth, exactly once, no duplication).
   var DEPLOYMENT_SENT = {
-    unbound: 'unbound — harvester() is 0x0 until P3-A executes; all capital is idle by construction — deposits earn from the next fee harvest after capital deploys',
-    idle: 'bound — the roamer is authorized; deposits earn from the next fee harvest',
-    deployed: 'the roamer\'s book is live — replay VaultDeployed for the bands',
-    unknown: 'state unavailable (RPC) — nothing is estimated here'
+    unbound: 'unbound: harvester() is 0x0 until P3-A executes; all capital is idle by construction, deposits earn from the next fee harvest after capital deploys',
+    idle: 'bound: the roamer is authorized; deposits earn from the next fee harvest',
+    deployed: 'the roamer\'s book is live: replay VaultDeployed for the bands',
+    unknown: 'state unavailable (RPC): nothing is estimated here'
   };
 
   // PURE: group the integer part of an exact decimal string (the house
@@ -1542,33 +1542,33 @@
     // TVL — totalAssets()
     if (norm && norm.totalAssets !== null && norm.totalAssets !== undefined) {
       setVaultCell('tvl', groupExact(norm.totalAssets), VAULT_TIP.tvl);
-      setVaultSent('tvlSent', 'the idle book plus the deployed book at par — measured on-chain, replayable');
+      setVaultSent('tvlSent', 'the idle book plus the deployed book at par: measured on-chain, replayable');
     } else {
       setVaultCell('tvl', '—', VAULT_TIP.error);
-      setVaultSent('tvlSent', 'the read failed (RPC) — nothing is estimated here');
+      setVaultSent('tvlSent', 'the read failed (RPC): nothing is estimated here');
     }
     // share price — GATED on shares outstanding (the flow-section rule: an
     // empty vault's price is vacuous and never renders as 1.00); a missing
     // supply read gates the price the same way (it cannot be verified
     // non-vacuous), never silently.
     if (norm && norm.totalShares === '0') {
-      setVaultCell('price', '—', 'totalSupply() is 0 — a share price would be vacuous, which is not a figure');
-      setVaultSent('priceSent', 'no shares outstanding yet — the first deposit mints the first shares');
+      setVaultCell('price', '—', 'totalSupply() is 0: a share price would be vacuous, which is not a figure');
+      setVaultSent('priceSent', 'no shares outstanding yet: the first deposit mints the first shares');
     } else if (norm && norm.totalShares !== null && norm.totalShares !== undefined &&
                norm.sharePrice !== null && norm.sharePrice !== undefined) {
       setVaultCell('price', groupExact(norm.sharePrice), VAULT_TIP.price);
-      setVaultSent('priceSent', 'every fee credit raises it — measured on-chain');
+      setVaultSent('priceSent', 'every fee credit raises it: measured on-chain');
     } else {
       setVaultCell('price', '—', VAULT_TIP.error);
-      setVaultSent('priceSent', 'the read failed (RPC) — nothing is estimated here');
+      setVaultSent('priceSent', 'the read failed (RPC): nothing is estimated here');
     }
     // backing coverage
     if (norm && norm.coveragePct !== null && norm.coveragePct !== undefined) {
       setVaultCell('coverage', norm.coveragePct, VAULT_TIP.coverage);
-      setVaultSent('coverageSent', 'raw assets against the accounted figure — 100.0% is exact cover');
+      setVaultSent('coverageSent', 'raw assets against the accounted figure: 100.0% is exact cover');
     } else {
       setVaultCell('coverage', '—', VAULT_TIP.error);
-      setVaultSent('coverageSent', 'the read failed (RPC) — nothing is estimated here');
+      setVaultSent('coverageSent', 'the read failed (RPC): nothing is estimated here');
     }
     // deposit cap — used / cap + headroom + the pause state, never mixed
     var capValue = norm ? composeCapValue(norm.totalAssets, norm.depositCap) : null;
@@ -1578,43 +1578,43 @@
       var depState = (norm.depositsPaused === null || norm.depositsPaused === undefined)
         ? 'deposits state unknown (RPC)'
         : (norm.depositsPaused ? 'deposits paused' : 'deposits open');
-      setVaultSent('capSent', 'headroom ' + (headroom === null ? '—' : headroom) + ' — ' + depState + '; exits are never pausable');
+      setVaultSent('capSent', 'headroom ' + (headroom === null ? '—' : headroom) + ' · ' + depState + '; exits are never pausable');
     } else {
       setVaultCell('cap', '—', VAULT_TIP.error);
-      setVaultSent('capSent', 'the read failed (RPC) — nothing is estimated here');
+      setVaultSent('capSent', 'the read failed (RPC): nothing is estimated here');
     }
     // the vault's own deposits flag — shown as a state, never hidden
     if (norm && norm.depositsPaused === true) {
       setVaultCell('deposits', 'paused', VAULT_TIP.deposits);
-      setVaultSent('depositsSent', 'deposits are paused on the vault — redemptions are never pausable');
+      setVaultSent('depositsSent', 'deposits are paused on the vault: redemptions are never pausable');
     } else if (norm && norm.depositsPaused === false) {
       setVaultCell('deposits', 'open', VAULT_TIP.deposits);
-      setVaultSent('depositsSent', 'deposits are open — the cap is the only limit; exits are never pausable');
+      setVaultSent('depositsSent', 'deposits are open: the cap is the only limit; exits are never pausable');
     } else {
       setVaultCell('deposits', '—', VAULT_TIP.error);
-      setVaultSent('depositsSent', 'the pause read failed (RPC) — unknown, never guessed');
+      setVaultSent('depositsSent', 'the pause read failed (RPC): unknown, never guessed');
     }
     // capital state — the idle/deployed split + the binding state
     if (norm && norm.idle !== null && norm.idle !== undefined) {
       setVaultCell('idle', groupExact(norm.idle), VAULT_TIP.idle);
-      setVaultSent('idleSent', 'idleBook() — the physically custodyable capital');
+      setVaultSent('idleSent', 'idleBook(): the physically custodyable capital');
     } else {
       setVaultCell('idle', '—', VAULT_TIP.error);
-      setVaultSent('idleSent', 'the read failed (RPC) — nothing is estimated here');
+      setVaultSent('idleSent', 'the read failed (RPC): nothing is estimated here');
     }
     var deployedTxt = (norm && norm.deployed !== null && norm.deployed !== undefined) ? groupExact(norm.deployed) : null;
     var st = norm ? (norm.deploymentState || 'unknown') : 'unknown';
     setVaultSent('deployedSent', 'deployed book: ' + (deployedTxt === null ? '—' : deployedTxt) +
-      ' — ' + (DEPLOYMENT_SENT[st] || DEPLOYMENT_SENT.unknown));
+      ' · ' + (DEPLOYMENT_SENT[st] || DEPLOYMENT_SENT.unknown));
   }
 
   // The governance tape statuses (the "checkable" register — a failed read
   // renders unavailable, never a guessed state).
   var GOV_STATUS = {
     executed: 'executed',
-    queued: 'queued — 48h window open',
-    executable: 'executable — window open, anyone may land it',
-    'not-queued': 'no longer queued — executed or cancelled (replay the events)',
+    queued: 'queued: 48h window open',
+    executable: 'executable: window open, anyone may land it',
+    'not-queued': 'no longer queued: executed or cancelled (replay the events)',
     unknown: 'status unavailable (RPC)'
   };
   var GOV_STATUS_CLASS = {
@@ -1924,14 +1924,14 @@
     var summary = WS.fleet ? WS.fleet.summary() : null;
     if (!summary) {
       num.textContent = '—';
-      label.textContent = 'books measured — unavailable (feed)';
+      label.textContent = 'books measured · unavailable (feed)';
       if (win) { win.textContent = ''; } // NEVER written — the raw provenance window string stays in the fleet surface tooltip/detail
       if (stat && stat.classList) { stat.classList.add('hero-stat--unavailable'); }
       var zStat = $('hero-stat-zero');
       var zNum = $('hero-stat-zero-num');
       var zLabel = $('hero-stat-zero-label');
       if (zNum) { zNum.textContent = '—'; }
-      if (zLabel) { zLabel.textContent = 'books pay LPs zero — unavailable (feed)'; }
+      if (zLabel) { zLabel.textContent = 'books pay LPs zero · unavailable (feed)'; }
       if (zStat && zStat.classList) { zStat.classList.add('hero-stat--unavailable'); }
       return;
     }
@@ -1978,10 +1978,10 @@
   function copyVerifyText(text) {
     var clip = (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') ? navigator.clipboard : null;
     var say = (WS.copyPosition && typeof WS.copyPosition.toast === 'function') ? WS.copyPosition.toast : null;
-    if (!clip) { if (say) { say('copy failed — your browser blocked the clipboard'); } return; }
+    if (!clip) { if (say) { say('copy failed: your browser blocked the clipboard'); } return; }
     Promise.resolve(clip.writeText(text)).then(
-      function () { if (say) { say('command copied — replay it in any terminal'); } },
-      function () { if (say) { say('copy failed — your browser blocked the clipboard'); } }
+      function () { if (say) { say('command copied: replay it in any terminal'); } },
+      function () { if (say) { say('copy failed: your browser blocked the clipboard'); } }
     );
   }
   function initVerifyChips() {

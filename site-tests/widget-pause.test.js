@@ -306,7 +306,8 @@ test('P1 paused vault: honest row renders, deposit side disabled, redeem side st
   }
 
   const status = allText(REGISTRY['widget-status']).join(' | ');
-  assert.ok(status.indexOf('Deposits are paused on the vault. Redemptions are never pausable — exits stay open.') !== -1,
+  // LEDGER-PRESS 2026-09-20: PAUSE_ROW carrier re-valued to the ':' form (the taste-skill §9.F prose em-dash ban); same verbatim role.
+  assert.ok(status.indexOf('Deposits are paused on the vault. Redemptions are never pausable: exits stay open.') !== -1,
     'the honest pause row renders verbatim, got: ' + status);
 
   // the teeth: IDENTICAL wallet+deployed state on both sides — the pause closes

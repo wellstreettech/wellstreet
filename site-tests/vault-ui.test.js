@@ -221,19 +221,25 @@ test('the #vault section ships: numbered 05, muted caption, nav link, block-sub 
   assert.ok(html.indexOf('<section class="block" id="vault">') !== -1, 'the section ships');
   assert.ok(html.indexOf('<a href="#vault">The Vault</a>') !== -1, 'the nav link ships');
   assert.ok(html.indexOf('You deposit USDG. Shares are the claim') !== -1, 'the flywheel paragraph ships');
+  // LEDGER-PRESS 2026-09-20 (amended from 1-each): the taste-skill §9.F
+  // section-number ban retired the .index eyebrows — zero numeral spans in the
+  // markup; the .index CSS rules remain as retired register records.
   const idx = (n) => (html.match(new RegExp('class="index">' + n + '</span>', 'g')) || []).length;
-  assert.strictEqual(idx('04'), 1, 'flow is still the only 04 (flow.test.js pin preserved)');
-  assert.strictEqual(idx('05'), 1, 'the vault is the only 05 (flow.test.js count pin preserved)');
-  assert.strictEqual(idx('06'), 1, 'stats renumbered to 06 (flow.test.js count pin preserved)');
-  assert.strictEqual(idx('07'), 1, 'docs renumbered to 07');
+  assert.strictEqual(idx('04'), 0, 'flow ships no 04 eyebrow (retired)');
+  assert.strictEqual(idx('05'), 0, 'the vault ships no 05 eyebrow (retired)');
+  assert.strictEqual(idx('06'), 0, 'stats ships no 06 eyebrow (retired)');
+  assert.strictEqual(idx('07'), 0, 'docs ships no 07 eyebrow (retired)');
 });
 
 test('the three fee lanes ship as a compact list, never mixed, with the honest pre-$WELL note', () => {
-  for (const lane of ['lane 1 — vault LP fees:', 'lane 2 — trading fees on $WELL:', 'lane 3 — the protocol\'s cut:']) {
+  // LEDGER-PRESS 2026-09-20: lane-name carriers re-valued to the '·' form (the
+  // prose em-dash ban); same exactly-once roles. The burn-leg note re-valued
+  // to the ':' form, note text intact.
+  for (const lane of ['lane 1 · vault LP fees:', 'lane 2 · trading fees on $WELL:', 'lane 3 · the protocol\'s cut:']) {
     assert.strictEqual((html.match(new RegExp(lane.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length, 1,
       'exactly one occurrence: ' + lane);
   }
-  assert.ok(html.indexOf('The burn leg starts when $WELL launches — checkable on-chain') !== -1,
+  assert.ok(html.indexOf('The burn leg starts when $WELL launches: checkable on-chain') !== -1,
     'the honest pre-$WELL note ships verbatim');
 });
 
