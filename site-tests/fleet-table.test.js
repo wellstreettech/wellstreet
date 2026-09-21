@@ -225,6 +225,19 @@ function renderedRows() {
   });
 }
 function renderedCards() { return collect(REGISTRY['fleet-cards'], '.fleet-card'); }
+// FLEET-SORT 2026-09-21: the renderer now defaults to the top-8 collapsed
+// view. expandAll() drives the REAL toggle (the JS-created .fleet-more strip
+// button) so the pre-sort tests observe the expanded surface through the
+// shipped click path — never a poked module internal. No-op when the strip
+// is hidden (≤8 books) or already expanded.
+function expandAll() {
+  const surface = REGISTRY['fleet-surface'];
+  const strip = surface ? collect(surface, '.fleet-more')[0] : null;
+  const btn = strip ? collect(strip, '[data-fleet-more]')[0] : null;
+  if (strip && btn && strip.hidden === false && /show all/.test(btn.textContent)) {
+    (btn.listeners.click || []).forEach(function (fn) { fn({ target: btn }); });
+  }
+}
 function rowsByPool() {
   const map = new Map();
   for (const r of renderedRows()) { map.set(r.getAttribute('data-pool'), r); }
@@ -279,6 +292,7 @@ function toastsOn(body) {
 
 test('the §1 surface renders the real feed: every book renders once, driven by the file (never a hardcoded count)', async () => {
   await settle(150);
+  expandAll(); // FLEET-SORT 2026-09-21: the renderer defaults to the top-8 collapse — expand for the file-driven count
   assert.strictEqual(REGISTRY['fleet-unavailable'].hidden, true, 'a valid feed hides the unavailable panel');
   const rows = renderedRows();
   const cards = renderedCards();
@@ -292,6 +306,7 @@ test('the §1 surface renders the real feed: every book renders once, driven by 
 });
 
 test('per-tier class badges match each book (row, spine, card, badge — §1 contract)', () => {
+  expandAll(); // FLEET-SORT: every book must be on the surface for the per-book sweep
   const rows = rowsByPool();
   const cards = cardsByPool();
   const badgeByTier = { PAYS: 'badge--pays', HOOK: 'badge--hook', DEAD: 'badge--dead' };
@@ -323,6 +338,7 @@ test('per-tier class badges match each book (row, spine, card, badge — §1 con
 });
 
 test('the §2 HOOK rule: hook-scope books show fee APR 0.0%; measured PAYS books show their own figure; figures the feed lacks stay —', () => {
+  expandAll(); // FLEET-SORT: the per-book sweep needs every book rendered
   const rows = rowsByPool();
   const cards = cardsByPool();
   let hookScope = 0;
@@ -355,6 +371,7 @@ test('the §2 HOOK rule: hook-scope books show fee APR 0.0%; measured PAYS books
 });
 
 test('the window suffix renders whenever the note carries a window letter, derived from the provenance clause', () => {
+  expandAll(); // FLEET-SORT: the per-book sweep needs every book rendered
   const rows = rowsByPool();
   const cards = cardsByPool();
   const hours = clauseHours(feed.provenance.window);
@@ -383,6 +400,7 @@ test('the window suffix renders whenever the note carries a window letter, deriv
 });
 
 test('card anatomy: exactly ONE .fc-state sentence, at most 3 metrics, attribute-only action buttons', () => {
+  expandAll(); // FLEET-SORT: the per-book sweep needs every book rendered
   const cards = cardsByPool();
   for (const b of feed.books) {
     const card = cards.get(b.poolId);
@@ -409,6 +427,7 @@ test('card anatomy: exactly ONE .fc-state sentence, at most 3 metrics, attribute
 });
 
 test('§delta-3 privacy: no 42-hex owner address renders in the table or the cards; the pool key appears only in the sheet', async () => {
+  expandAll(); // FLEET-SORT: book[0] (feed-order) may sit outside the top-8 default view
   const surfaceText = allText(REGISTRY['fleet-tbody']).concat(allText(REGISTRY['fleet-cards'])).join(' | ');
   assert.strictEqual(/0x[0-9a-fA-F]{40}/.test(surfaceText), false,
     'no owner-address-shaped (0x + 40 hex) text renders in the public surfaces — the 66-char pool ids must not leak into cells');
@@ -488,6 +507,7 @@ test('the copy contract: build(book) is pure and byte-exact — five agent keys 
 });
 
 test('copy end-to-end: the delegated button writes the §3 JSON to the clipboard and toasts success only after the write resolves', async () => {
+  expandAll(); // FLEET-SORT: the picked book must be rendered for its button to exist
   const b = feed.books.find(function (x) { return x.tier === 'PAYS'; });
   const row = rowsByPool().get(b.poolId);
   const btn = collect(row, '[data-copy-position]')[0];
@@ -511,6 +531,7 @@ test('copy end-to-end: the delegated button writes the §3 JSON to the clipboard
 });
 
 test('copy honesty: a rejected clipboard, an absent clipboard and an unresolvable pool each say so — never a false success', async () => {
+  expandAll(); // FLEET-SORT: the picked book must be rendered for its button to exist
   const b = feed.books.find(function (x) { return x.tier === 'PAYS'; });
   const row = rowsByPool().get(b.poolId);
   const btn = collect(row, '[data-copy-position]')[0];
@@ -563,6 +584,7 @@ test('copy honesty: a rejected clipboard, an absent clipboard and an unresolvabl
 });
 
 test('Details wiring: [data-details] opens the renderer\'s sheet (the §3 mirror); without the renderer the seam renders its own minimal sheet', async () => {
+  expandAll(); // FLEET-SORT: the picked book must be rendered for its button to exist
   const b = feed.books.find(function (x) { return x.tier === 'HOOK'; });
   const row = rowsByPool().get(b.poolId);
   const btn = collect(row, '[data-details]')[0];
@@ -613,6 +635,7 @@ test('Details wiring: [data-details] opens the renderer\'s sheet (the §3 mirror
 });
 
 test('filters re-render through rows(tier): the HOOK chip shows exactly the feed\'s hook books (counts stay data-driven)', async () => {
+  expandAll(); // FLEET-SORT: the expansion register is kept across filter changes — expand for full counts
   const chips = collect(PHASE1.surface, '.fleet-filter');
   const hookChip = chips.find(function (c) { return c.getAttribute('data-filter') === 'HOOK'; });
   const allChip = chips.find(function (c) { return c.getAttribute('data-filter') === 'all'; });
@@ -644,6 +667,7 @@ test('the §2 rule scope (synthetic feed): a paysNothingToLps PAYS book and a no
   fleetTable.init();
   copyPosition.init();
   await settle(150);
+  expandAll(); // FLEET-SORT: the picked books must be rendered
   const rows = rowsByPool();
   const cards = cardsByPool();
 
@@ -707,6 +731,7 @@ test('G4 #1: the copy toast clamps to the viewport and wraps — the 427px-on-39
   fleetTable.init();
   copyPosition.init();
   await settle(150);
+  expandAll(); // FLEET-SORT: the picked book must be rendered for its button to exist
   const b = feed.books.find(function (x) { return x.tier === 'PAYS'; });
   const btn = collect(rowsByPool().get(b.poolId), '[data-copy-position]')[0];
   stubNavigator({ clipboard: { writeText: function () { return Promise.resolve('ok'); } } });
@@ -768,6 +793,7 @@ test('G4 #5: the detail\'s ours line renders the feed status WORD, never a boole
   serveFeed(mutated);
   fleetTable.init();
   await settle(150);
+  expandAll(); // FLEET-SORT: books[0]/books[1] (feed-order) may sit outside the top-8 default view
   // (1) a tagged book: the status word renders
   fleetTable.openDetail(mutated.books[0].poolId);
   let inl = collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline');
@@ -787,6 +813,7 @@ test('G4 #6: opening an inline detail nudges it into view (scrollIntoView block:
   serveFeed(feed);
   fleetTable.init();
   await settle(150);
+  expandAll(); // FLEET-SORT: books[0] (feed-order) may sit outside the top-8 default view
   const b = feed.books[0];
   fleetTable.openDetail(b.poolId);
   let inl = collect(REGISTRY['fleet-tbody'], '.fleet-sheet-inline')
@@ -833,6 +860,7 @@ test('G2 #2: setFilter closes an open detail BEFORE rebuilding — no silent foc
   serveFeed(feed);
   ftFresh.init();
   await settle(150);
+  expandAll(); // FLEET-SORT: the fresh module defaults to the top-8 collapse — books[0] may sit outside it
   const chips = collect(REGISTRY['fleet-surface'], '.fleet-filter');
   const hookChip = chips.find(function (c) { return c.getAttribute('data-filter') === 'HOOK'; });
   const allChip = chips.find(function (c) { return c.getAttribute('data-filter') === 'all'; });
@@ -872,3 +900,256 @@ test('G2 #2: setFilter closes an open detail BEFORE rebuilding — no silent foc
   assert.strictEqual(renderedRows().length, feed.books.length, 'the all view restores the full file-driven count after the close');
   await settle(0);
 });
+
+// ════════════════════════════════════════════════════════════════════════
+// FLEET-SORT TEETH (2026-09-21) — the sort + collapse registers, fail-closed
+// style: each phase mounts a FRESH module instance (pristine registers) and
+// clicks the REAL paths (the JS-assigned th listeners, the strip button —
+// never a poked module internal). Pinned here: the top-8 default, the
+// expand/collapse round trip, the aria-sort/is-sorted/glyph register with
+// keyboard parity, asc-first book, the deterministic tie-break chain, the
+// null-safe comparator, and the honest strip count.
+// ════════════════════════════════════════════════════════════════════════
+
+const SORT_FIELDS = { book: 'pair', tvl: 'tvlUsd', vol: 'vol24hUsd', apr: 'feeAprPct' };
+
+function freshSortModule() {
+  delete require.cache[require.resolve(FLEET_TABLE_JS_PATH)];
+  return require(FLEET_TABLE_JS_PATH);
+}
+function mountSortPhase(payload) {
+  const ft = freshSortModule();
+  installSurface();
+  serveFeed(payload);
+  ft.init();
+  return ft;
+}
+function sortHead(key) {
+  return collect(REGISTRY['fleet-surface'], '.ft-th')
+    .find(function (th) { return th.getAttribute('data-sort-key') === key; }) || null;
+}
+function clickTh(th) {
+  (th.listeners.click || []).forEach(function (fn) { fn({ target: th }); });
+}
+function renderedPoolOrder() {
+  return renderedRows().map(function (r) { return r.getAttribute('data-pool'); });
+}
+function stripBtn() {
+  const strip = collect(REGISTRY['fleet-surface'], '.fleet-more')[0] || null;
+  return strip ? collect(strip, '[data-fleet-more]')[0] : null;
+}
+function numOrNegInf(v) { return (typeof v === 'number' && isFinite(v)) ? v : -Infinity; }
+// the expected order re-derived INDEPENDENTLY (the renderer may not be trusted
+// to test itself): primary key ±, then the §1a tie-break chain
+// `tvlUsd desc, then pair asc`, then stable feed order (order-of-record).
+function expectedOrder(key, dir) {
+  const sign = dir === 'asc' ? 1 : -1;
+  return feed.books.map(function (b, i) { return { b: b, i: i }; })
+    .sort(function (x, y) {
+      let c;
+      if (key === 'book') {
+        c = String(x.b.pair).localeCompare(String(y.b.pair));
+        c = (c === 0) ? 0 : ((c < 0 ? -1 : 1) * sign);
+      } else {
+        const va = numOrNegInf(x.b[SORT_FIELDS[key]]);
+        const vb = numOrNegInf(y.b[SORT_FIELDS[key]]);
+        c = (va === vb) ? 0 : ((va < vb ? -1 : 1) * sign);
+      }
+      if (c !== 0) { return c; }
+      const ta = numOrNegInf(x.b.tvlUsd);
+      const tb = numOrNegInf(y.b.tvlUsd);
+      if (ta !== tb) { return tb - ta; } // tvlUsd desc (the chain)
+      const p = String(x.b.pair).localeCompare(String(y.b.pair)); // then pair asc
+      if (p !== 0) { return p; }
+      return x.i - y.i; // stable: the feed is the order-of-record
+    })
+    .map(function (x) { return x.b.poolId; });
+}
+
+test('FLEET-SORT #1: the default render is the top-8 collapse — exactly 8 rows + the visible toggle, and the 8 are the top APR books', async () => {
+  assert.ok(feed.books.length > 8, 'precondition: the feed exceeds the collapse limit');
+  mountSortPhase(feed);
+  await settle(150);
+  const pools = renderedPoolOrder();
+  assert.strictEqual(pools.length, 8, 'the collapsed default shows exactly 8 rows');
+  assert.deepStrictEqual(renderedCards().map(function (c) { return c.getAttribute('data-pool'); }), pools,
+    'the card stack rides the same sorted list (one list, both surfaces)');
+  assert.deepStrictEqual(pools, expectedOrder('apr', 'desc').slice(0, 8),
+    'the default view is the top 8 books by fee APR (the paying books lead)');
+  const strip = collect(REGISTRY['fleet-surface'], '.fleet-more')[0];
+  assert.ok(strip, 'the toggle strip exists');
+  assert.strictEqual(strip.hidden, false, 'the strip is visible while the list exceeds 8');
+  assert.strictEqual(stripBtn().getAttribute('type'), 'button', 'the toggle is a button');
+  assert.strictEqual(stripBtn().textContent, 'top 8 · show all ' + feed.books.length + ' books',
+    'the collapsed strip carries the count in its own text — never a fabricated figure');
+  const kids = REGISTRY['fleet-surface'].children;
+  assert.ok(kids.indexOf(strip) > kids.indexOf(REGISTRY['fleet-table']) &&
+    kids.indexOf(strip) < kids.indexOf(REGISTRY['fleet-cards']),
+    'the strip sits under the table, before the cards mount (stub surface: no colophon → cards anchor)');
+});
+
+test('FLEET-SORT #1b: the strip mounts before the .fleet-colophon when one exists (the real DOM anchor)', async () => {
+  const ft = freshSortModule();
+  installSurface();
+  const colophon = makeEl('p');
+  colophon.className = 'fleet-colophon';
+  colophon.textContent = 'il + age render when the feed carries them';
+  REGISTRY['fleet-surface'].appendChild(colophon);
+  serveFeed(feed);
+  ft.init();
+  await settle(150);
+  const surface = REGISTRY['fleet-surface'];
+  const strip = collect(surface, '.fleet-more')[0];
+  assert.ok(strip, 'the strip exists');
+  const kids = surface.children;
+  assert.ok(kids.indexOf(strip) > kids.indexOf(REGISTRY['fleet-table']) &&
+    kids.indexOf(strip) < kids.indexOf(colophon),
+    'the strip sits under the table and BEFORE the colophon (§1b)');
+});
+
+test('FLEET-SORT #2: the toggle expands to every book and collapses back to the top 8', async () => {
+  mountSortPhase(feed);
+  await settle(150);
+  assert.strictEqual(renderedRows().length, 8, 'precondition: the collapsed default');
+  stripBtn().listeners.click[0]({ target: stripBtn() });
+  assert.strictEqual(renderedRows().length, feed.books.length, 'expanding renders every book');
+  assert.strictEqual(renderedCards().length, feed.books.length, 'the card stack expands too');
+  assert.strictEqual(stripBtn().textContent, 'show top 8', 'the expanded strip offers the collapse');
+  stripBtn().listeners.click[0]({ target: stripBtn() });
+  assert.strictEqual(renderedRows().length, 8, 'collapsing returns to the top 8');
+  assert.strictEqual(stripBtn().textContent, 'top 8 · show all ' + feed.books.length + ' books',
+    'the collapsed strip restores the honest count');
+});
+
+test('FLEET-SORT #3: the head register — aria-sort + is-sorted + the direction glyph, with keyboard parity', async () => {
+  mountSortPhase(feed);
+  await settle(150);
+  const apr = sortHead('apr');
+  const book = sortHead('book');
+  const tvl = sortHead('tvl');
+  const vol = sortHead('vol');
+  const spine = collect(REGISTRY['fleet-surface'], '.ft-th')
+    .find(function (th) { return th.getAttribute('data-sort-key') === null; });
+  assert.ok(apr && book && tvl && vol && spine, 'the four sortable heads + a non-sortable head exist');
+  assert.strictEqual(apr.getAttribute('aria-sort'), 'descending', 'the default register is apr descending');
+  assert.ok(apr.classList.contains('is-sorted'), 'the active head is is-sorted');
+  assert.strictEqual(collect(apr, '.ft-sort-mark')[0].textContent, '↓', 'the desc glyph renders');
+  assert.strictEqual(book.getAttribute('aria-sort'), 'none', 'inactive heads register none');
+  assert.strictEqual(book.getAttribute('tabindex'), '0', 'sortable heads are keyboard-reachable');
+  assert.strictEqual(spine.getAttribute('aria-sort'), 'none', 'every th carries the register; non-sortable stay none');
+  assert.strictEqual(spine.getAttribute('data-sort-key'), null, 'the spine/il/age/actions heads are not sortable (§1a)');
+  // book click: asc-first
+  clickTh(book);
+  assert.strictEqual(book.getAttribute('aria-sort'), 'ascending', 'book sorts asc-first');
+  assert.strictEqual(apr.getAttribute('aria-sort'), 'none', 'the previous head resets to none');
+  assert.ok(!apr.classList.contains('is-sorted'), 'is-sorted moves with the register');
+  assert.strictEqual(collect(apr, '.ft-sort-mark')[0].textContent, '', 'the retired head sheds its glyph');
+  assert.strictEqual(collect(book, '.ft-sort-mark')[0].textContent, '↑', 'the asc glyph renders');
+  // apr click while inactive: its FIRST direction is desc — the goal tooth
+  clickTh(apr);
+  assert.strictEqual(apr.getAttribute('aria-sort'), 'descending', 'apr th click sets aria-sort=descending');
+  // re-click the active key flips the direction
+  clickTh(apr);
+  assert.strictEqual(apr.getAttribute('aria-sort'), 'ascending', 'clicking the active key flips the direction');
+  assert.strictEqual(collect(apr, '.ft-sort-mark')[0].textContent, '↑');
+  // keyboard parity: Enter activates, Space flips, other keys do nothing
+  book.listeners.keydown[0]({ key: 'Enter', preventDefault: function () {} });
+  assert.strictEqual(book.getAttribute('aria-sort'), 'ascending', 'Enter activates the sort');
+  book.listeners.keydown[0]({ key: ' ' });
+  assert.strictEqual(book.getAttribute('aria-sort'), 'descending', 'Space flips the sort');
+  book.listeners.keydown[0]({ key: 'a' });
+  assert.strictEqual(book.getAttribute('aria-sort'), 'descending', 'other keys are a no-op');
+});
+
+test('FLEET-SORT #4: book sort is asc-first; tvl/vol first clicks descend — each order re-derived independently', async () => {
+  mountSortPhase(feed);
+  await settle(150);
+  expandAll();
+  clickTh(sortHead('book'));
+  assert.deepStrictEqual(renderedPoolOrder(), expectedOrder('book', 'asc'),
+    'book asc = pair localeCompare with the tie-break chain, over every book');
+  clickTh(sortHead('tvl'));
+  assert.deepStrictEqual(renderedPoolOrder(), expectedOrder('tvl', 'desc'),
+    'tvl first click descends');
+  clickTh(sortHead('vol'));
+  assert.deepStrictEqual(renderedPoolOrder(), expectedOrder('vol', 'desc'),
+    'vol first click descends');
+});
+
+test('FLEET-SORT #5: the tie-break chain is deterministic — same input, same order on every re-render and in a fresh module', async () => {
+  mountSortPhase(feed);
+  await settle(150);
+  expandAll();
+  const first = renderedPoolOrder();
+  clickTh(sortHead('book'));
+  clickTh(sortHead('book'));
+  clickTh(sortHead('apr')); // walk away, come back to the default register
+  assert.deepStrictEqual(renderedPoolOrder(), first,
+    'returning to the same register reproduces the exact order');
+  mountSortPhase(feed);
+  await settle(150);
+  expandAll();
+  assert.deepStrictEqual(renderedPoolOrder(), first,
+    'a fresh module (same input) renders the identical order — the same 8 books lead every cycle');
+});
+
+test('FLEET-SORT #6: null numerics never throw — a feed with every figure missing sorts stably through every key', async () => {
+  const mutated = JSON.parse(JSON.stringify(feed));
+  for (const b of mutated.books) { b.feeAprPct = null; b.tvlUsd = null; b.vol24hUsd = null; }
+  mountSortPhase(mutated);
+  await settle(150);
+  assert.strictEqual(REGISTRY['fleet-unavailable'].hidden, true,
+    'the figure-stripped feed still validates — no unavailable state');
+  assert.strictEqual(renderedRows().length, 8, 'the collapse still applies');
+  for (const key of ['book', 'tvl', 'vol', 'apr']) {
+    let threw = null;
+    try { clickTh(sortHead(key)); } catch (e) { threw = e; }
+    assert.strictEqual(threw, null, key + ' sort throws nothing on an all-null feed');
+    assert.strictEqual(renderedRows().length, 8, key + ': the surface still renders its 8 rows');
+  }
+  expandAll();
+  assert.strictEqual(renderedRows().length, feed.books.length, 'expansion still renders every book');
+  for (const key of ['book', 'tvl', 'vol', 'apr']) {
+    let threw = null;
+    try { clickTh(sortHead(key)); clickTh(sortHead(key)); } catch (e) { threw = e; }
+    assert.strictEqual(threw, null, key + ' direction flips throw nothing');
+  }
+  const order = renderedPoolOrder();
+  mountSortPhase(mutated);
+  await settle(150);
+  expandAll();
+  clickTh(sortHead('book'));
+  clickTh(sortHead('book'));
+  clickTh(sortHead('apr')); // back to the default register
+  assert.deepStrictEqual(renderedPoolOrder(), order,
+    'the same all-equal input renders the same order (the chain absorbs the nulls)');
+});
+
+test('FLEET-SORT #7: a null APR never leads — the collapsed top-8 is measured books only and the null book sorts last on expansion', async () => {
+  const withApr = feed.books.filter(function (b) {
+    return typeof b.feeAprPct === 'number' && isFinite(b.feeAprPct);
+  });
+  const base = withApr.slice(0, 8);
+  const ids = new Set(base.map(function (b) { return b.poolId; }));
+  const nullBook = JSON.parse(JSON.stringify(feed.books.find(function (b) { return !ids.has(b.poolId); })));
+  nullBook.feeAprPct = null;
+  const keep = base.concat([nullBook]);
+  const counts = { PAYS: 0, HOOK: 0, DEAD: 0 };
+  for (const b of keep) { counts[b.tier] += 1; }
+  mountSortPhase({
+    provenance: feed.provenance,
+    summary: { books: keep.length, paysLps: counts.PAYS, hookMonetized: counts.HOOK, dead: counts.DEAD, ours: 0 },
+    books: keep
+  });
+  await settle(150);
+  const pools = renderedPoolOrder();
+  assert.strictEqual(pools.length, 8, 'collapsed: 8 books');
+  assert.strictEqual(pools.indexOf(nullBook.poolId), -1, 'the null-APR book never leads the default view');
+  assert.strictEqual(stripBtn().textContent, 'top 8 · show all 9 books', 'the strip counts the real 9');
+  expandAll();
+  const all = renderedPoolOrder();
+  assert.strictEqual(all.length, 9, 'expanded: every book renders');
+  assert.strictEqual(all[all.length - 1], nullBook.poolId,
+    'the null APR sorts last (it is -Infinity, never NaN, never a thrown compare)');
+});
+

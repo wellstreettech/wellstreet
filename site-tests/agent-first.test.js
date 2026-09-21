@@ -419,7 +419,10 @@ test('(m1) WS-MOTION-POLISH: :active press grammar + stamp stagger (doto re-pin;
       'the press rule ships exactly once in the per-class form: ' + sel.slice(0, 44) + '…');
   }
   assert.strictEqual(countOccurrences(css, 'translateY(1px)'), 2, 'tab/copy keep the 1px dip (out of the button register)');
-  assert.strictEqual(countOccurrences(css, 'scale(0.985)'), 8, 'the button register presses at 0.985 (btn, cta, nav-cta + the five chip/toggle surfaces)');
+  // FLEET-SORT 2026-09-21: the register grows to NINE — the .fleet-more-btn
+  // collapse-toggle chip (user ask: sortable/collapsible fleet table) ships the
+  // same press-at-0.985 grammar; same assertion structure, count re-valued.
+  assert.strictEqual(countOccurrences(css, 'scale(0.985)'), 9, 'the button register presses at 0.985 (btn, cta, nav-cta + the six chip/toggle surfaces)');
   // (ii) release rides the EXTENDED base lists — never a competing second
   // transition property (it would kill the fill/color transitions while pressed)
   // RE-PINNED 2026-09-08 (UI_LOOP_2 W2 G2-MOTION-CONSISTENCY): the three pill

@@ -2328,6 +2328,47 @@ button.btn-primary:disabled { background: var(--paper-2); color: var(--ink-soft)
 .fleet-filter.is-active { color: var(--accent-text); border-color: var(--accent-text); font-weight: 700; }
 .fleet-filter-count { color: var(--ink-soft); margin-left: var(--space-4); } /* G4 #4 (2026-09-08): the chip census, filled by the renderer from WS.fleet.summary() — fail-closed (no summary, no count); stays muted even on the active chip: the amber is the selection, the count is data */
 
+/* ---- FLEET-SORT 2026-09-21 (user ask: "sortable by every column" + top-8
+   default): the sort register rides the §1 head — accent-text on the sorted
+   th (the .fleet-filter.is-active pairing), the ↑/↓ direction glyph in
+   .ft-sort-mark. G8 ARROW-GRAMMAR AMENDMENT (2026-09-21): ↑/↓ join the glyph
+   law as the SORT register — they carry data state (direction), not a
+   navigation promise; →/↗ semantics unchanged. Tokens only, zero new
+   literals, zero radius change; the sticky-thead + 641-892 scroller band
+   behavior is untouched (the clickable head IS the sticky head). */
+.fleet-table thead th[data-sort-key] { cursor: pointer; }
+.fleet-table thead th.is-sorted { color: var(--accent-text); }
+.ft-sort-mark { margin-left: var(--space-4); }
+.fleet-table thead th.is-sorted .ft-sort-mark { color: var(--accent-text); font-weight: 700; }
+/* the muted first-direction hint on an unsorted sortable column's hover —
+   the glyph the FIRST click will apply (book asc-first; the numerics desc) */
+.fleet-table thead th[data-sort-key]:not(.is-sorted):hover .ft-sort-mark { color: var(--ink-soft); }
+.fleet-table thead th[data-sort-key="book"]:not(.is-sorted):hover .ft-sort-mark::before { content: '↑'; }
+.fleet-table thead th[data-sort-key="tvl"]:not(.is-sorted):hover .ft-sort-mark::before { content: '↓'; }
+.fleet-table thead th[data-sort-key="vol"]:not(.is-sorted):hover .ft-sort-mark::before { content: '↓'; }
+.fleet-table thead th[data-sort-key="apr"]:not(.is-sorted):hover .ft-sort-mark::before { content: '↓'; }
+
+/* ---- FLEET-SORT 2026-09-21 (§1b): the collapse toggle strip — the
+   .fleet-filter chip register (44px zone, square, mono lowercase,
+   amber-as-text is the active register elsewhere; here the chip is its own
+   action), JS-created under the table before the .fleet-colophon and
+   hidden until the active list exceeds 8 books. One toggle serves the
+   table AND the card stack. */
+.fleet-more { margin-top: var(--space-12); }
+.fleet-more-btn {
+  appearance: none;
+  min-height: 44px; min-width: 44px;
+  padding: var(--space-10) var(--space-14);
+  background: var(--paper-raised); color: var(--ink-soft);
+  border: 1px solid var(--line); border-radius: var(--r-0, 0);
+  font-family: var(--mono); font-size: var(--step-2);
+  letter-spacing: var(--track-label); text-transform: lowercase;
+  cursor: pointer;
+  transition: color var(--motion), border-color var(--motion), transform var(--motion); /* BTN-MOTION (2026-09-08): + the transform component (compositor-only) */
+}
+.fleet-more-btn:hover:not(:disabled) { color: var(--ink); border-color: var(--ink-soft); transform: translateY(-1px); box-shadow: var(--shadow-btn-hover); } /* BTN-MOTION (2026-09-08): the chip lifts hover-only — outline-flat at rest */
+.fleet-more-btn:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: color var(--t-fast) var(--ease-enter), border-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08): the press settles under the finger */
+
 /* ---- the Doto register class the §1 contract carries on measured figures
    (.fc-metric-value.doto): the machine face for the machine truth. */
 .doto { font-family: var(--font-num); font-weight: 700; font-variation-settings: 'ROND' 100; font-variant-numeric: tabular-nums; }
@@ -2803,7 +2844,8 @@ a.flow-node:hover { border-color: var(--ink-soft); }
   .st-toggle-btn:hover:not(:disabled), .st-toggle-btn:active:not(:disabled),
   .theme-toggle:hover:not(:disabled), .theme-toggle:active:not(:disabled),
   .mwg-link:hover:not(:disabled), .mwg-link:active:not(:disabled),
-  .mwg-copy:hover:not(:disabled), .mwg-copy:active:not(:disabled) {
+  .mwg-copy:hover:not(:disabled), .mwg-copy:active:not(:disabled),
+  .fleet-more-btn:hover:not(:disabled), .fleet-more-btn:active:not(:disabled) { /* FLEET-SORT 2026-09-21: the collapse-toggle chip joins the button register (press-at-0.985 pairing) */
     transform: none;
   }
 }

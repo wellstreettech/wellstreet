@@ -8,7 +8,18 @@
  * on every load; which one is visible is CSS's decision (media queries only, no
  * resize JS). Data comes exclusively from WS.fleet (js/fleet.js — untouched):
  * rows() owns order, summary() owns counts, fmtPct/fmtUsd own every figure.
- * This module never re-sorts, never counts in markup, never invents a number.
+ * Never counts in markup, never invents a number.
+ *
+ * FLEET-SORT 2026-09-21 — invariant amendment (user ask: "collapsable, show by
+ * default top 8 paid by APR, sortable by every column"): "never re-sorts" is
+ * amended to "never re-sorts EXCEPT the ONE user-controlled presentation sort
+ * over the feed rows this module has already received". The feed remains the
+ * order-of-record — rows() owns order, and the presentation sort never
+ * fabricates, re-classifies or re-figures data. Every sort carries the
+ * deterministic tie-break chain `tvlUsd desc, then pair asc` (the same 8 books
+ * render every cycle); missing/null numerics sort as -Infinity — never NaN,
+ * never a thrown compare. The mobile card stack renders the SAME sorted list
+ * (one list, both surfaces — existing architecture).
  *
  * Fail-closed contract (mirrors fleet.js's):
  *   - missing fleet module / fetch failure / invalid payload -> the designed
@@ -52,6 +63,23 @@
 
   var currentFilter = 'all';
   var wired = false;
+
+  // ------------------------------------------------------------------
+  // FLEET-SORT 2026-09-21 — the two new presentation registers (§1a/§1b).
+  // SORT_KEYS maps the §1 head labels to row-model fields (book→pair,
+  // tvl→tvlUsd, vol→vol24hUsd, apr→feeAprPct); the spine (status), il/age
+  // (the DECISION-2 diet hides them at every width — no data) and actions
+  // are NOT sortable. FIRST_DIR is each column's first-click direction
+  // (book asc-first; the numerics desc-first — the paying books lead).
+  // Default state { key: 'apr', dir: 'desc' }; expanded=false default
+  // (collapsed = the first 8 rows of the active sort).
+  // ------------------------------------------------------------------
+  var SORT_KEYS = { book: 'pair', tvl: 'tvlUsd', vol: 'vol24hUsd', apr: 'feeAprPct' };
+  var FIRST_DIR = { book: 'asc', tvl: 'desc', vol: 'desc', apr: 'desc' };
+  var GLYPH = { asc: '↑', desc: '↓' };
+  var COLLAPSE_LIMIT = 8;
+  var currentSort = { key: 'apr', dir: 'desc' };
+  var expanded = false;
 
   function doc() { return root.document; }
   function $(id) { return doc().getElementById(id); }
@@ -173,6 +201,43 @@
   }
 
   // ------------------------------------------------------------------
+  // FLEET-SORT 2026-09-21 — the presentation comparator (§1a). ONE
+  // comparator, ONE tie-break chain: every key ends with
+  // `tvlUsd desc, then pair asc`, so the same 8 books render every cycle
+  // (deterministic). Missing/null numerics sort as -Infinity — never NaN,
+  // never a thrown compare; the pair key compares with localeCompare.
+  // ------------------------------------------------------------------
+  function numVal(b, field) {
+    var v = b ? b[field] : null;
+    return (typeof v === 'number' && isFinite(v)) ? v : -Infinity;
+  }
+  function cmpPair(a, b) {
+    return String((a && a.pair) || '').localeCompare(String((b && b.pair) || ''));
+  }
+  function tieBreak(a, b) {
+    var ta = numVal(a, 'tvlUsd');
+    var tb = numVal(b, 'tvlUsd');
+    if (ta !== tb) { return (ta < tb) ? 1 : -1; } // tvlUsd desc
+    return cmpPair(a, b);                         // then pair asc
+  }
+  function sortForDisplay(list) {
+    var field = SORT_KEYS[currentSort.key] || 'feeAprPct';
+    var dir = currentSort.dir === 'asc' ? 1 : -1;
+    return list.slice().sort(function (a, b) {
+      var c;
+      if (field === 'pair') {
+        c = cmpPair(a, b);
+      } else {
+        var va = numVal(a, field);
+        var vb = numVal(b, field);
+        c = (va === vb) ? 0 : ((va < vb) ? -1 : 1);
+      }
+      if (c !== 0) { return c * dir; }
+      return tieBreak(a, b);
+    });
+  }
+
+  // ------------------------------------------------------------------
   // DOM builders. Both surfaces render from the same book list; the sheet
   // (openDetail) is the ONE surface where the pool key renders as text.
   // ------------------------------------------------------------------
@@ -291,13 +356,25 @@
     var prov = typeof f.provenance === 'function' ? f.provenance() : null;
     var hours = windowHours(prov && prov.window);
     var list = filter === 'all' ? f.rows() : f.rows(filter);
+    // FLEET-SORT 2026-09-21: ONE user-controlled presentation sort over the
+    // feed rows (the feed stays the order-of-record), then the §1b collapse —
+    // the collapsed view is the first 8 rows of the ACTIVE sort (default ⇒
+    // the top 8 books by fee APR — the paying books lead). Filter-chip
+    // changes KEEP the expanded/collapsed state (applied to the new list);
+    // the toggle strip reads the UNSLICED count. The mobile card stack
+    // renders the same shown list (one list, both surfaces).
+    var sorted = sortForDisplay(list);
+    var shown = (!expanded && sorted.length > COLLAPSE_LIMIT)
+      ? sorted.slice(0, COLLAPSE_LIMIT) : sorted;
     tbody.textContent = '';
     cards.textContent = '';
-    for (var i = 0; i < list.length; i++) {
-      tbody.appendChild(buildRow(list[i], prov, hours));
-      cards.appendChild(buildCard(list[i], prov, hours));
+    for (var i = 0; i < shown.length; i++) {
+      tbody.appendChild(buildRow(shown[i], prov, hours));
+      cards.appendChild(buildCard(shown[i], prov, hours));
     }
-    if (!list.length) { appendEmptyState(tbody, cards); }
+    if (!shown.length) { appendEmptyState(tbody, cards); }
+    updateSortHeads();
+    updateMoreStrip(sorted.length);
   }
 
   // G4 #4 (2026-09-08): the chip census. Every count comes from
@@ -356,6 +433,24 @@
     }
     var f = fleet();
     if (f && typeof f.summary === 'function' && f.summary()) { renderRows(filter); }
+  }
+
+  // FLEET-SORT 2026-09-21 (§1a): click the th → sort by that key (its
+  // FIRST_DIR on the first click); click the active key again → flip.
+  // Same discipline as setFilter: the rebuild below wipes the row/card
+  // mounts, so BOTH detail surfaces close FIRST (G2 #2's no-silent-focus-
+  // loss rule), and the same summary guard (no feed, no re-render).
+  function setSort(key) {
+    if (!SORT_KEYS[key]) { return; } // unknown key: fail-closed no-op
+    if (currentSort.key === key) {
+      currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort = { key: key, dir: FIRST_DIR[key] || 'desc' };
+    }
+    removeInlines();
+    closeSheet();
+    var f = fleet();
+    if (f && typeof f.summary === 'function' && f.summary()) { renderRows(currentFilter); }
   }
 
   // ------------------------------------------------------------------
@@ -524,11 +619,131 @@
   }
 
   // ------------------------------------------------------------------
+  // FLEET-SORT 2026-09-21 — the §1a head register. data-sort-key,
+  // tabindex, aria-sort and the .ft-sort-mark glyph span are assigned
+  // HERE, in JS, at init — the static thead markup in index.html stays
+  // byte-identical. Sortable keys resolve from the head's own §1 label
+  // text (book/tvl/vol 24h/fee apr), so the spine (status), il/age and
+  // actions heads stay non-sortable while still carrying aria-sort="none"
+  // (§1a: the register is on every th). Keyboard parity: tabindex=0 +
+  // Enter/Space activation. Idempotent per surface: a head that already
+  // carries data-sort-key is left alone (init re-runs on re-mounted
+  // surfaces — the test harness rebuilds the surface per phase).
+  // ------------------------------------------------------------------
+  var SORT_HEAD_TEXT = { 'book': 'book', 'tvl': 'tvl', 'vol 24h': 'vol', 'fee apr': 'apr' };
+  function ensureSortHeads() {
+    var surface = $('fleet-surface');
+    if (!surface || typeof surface.querySelectorAll !== 'function') { return; }
+    var heads = surface.querySelectorAll('.ft-th');
+    for (var i = 0; i < heads.length; i++) {
+      (function (th) {
+        if (typeof th.getAttribute !== 'function' || typeof th.setAttribute !== 'function') { return; }
+        if (th.getAttribute('data-sort-key') !== null) { return; } // idempotent per surface
+        var label = (typeof th.textContent === 'string')
+          ? th.textContent.replace(/\s+/g, ' ').trim().toLowerCase() : '';
+        var key = SORT_HEAD_TEXT[label] || null;
+        if (th.getAttribute('aria-sort') === null) { th.setAttribute('aria-sort', 'none'); }
+        if (!key) { return; } // spine / il / age / actions: registered, not sortable
+        th.setAttribute('data-sort-key', key);
+        th.setAttribute('tabindex', '0');
+        th.appendChild(el('span', 'ft-sort-mark', ''));
+        th.addEventListener('click', function () { setSort(key); });
+        th.addEventListener('keydown', function (ev) {
+          var k = ev && ev.key;
+          if (k === 'Enter' || k === ' ' || k === 'Spacebar') {
+            if (ev && typeof ev.preventDefault === 'function') { ev.preventDefault(); }
+            setSort(key);
+          }
+        });
+      })(heads[i]);
+    }
+  }
+  // the sorted th gets is-sorted (accent-text head) + the direction glyph;
+  // every sortable th carries aria-sort ascending|descending|none (§1a).
+  function updateSortHeads() {
+    var surface = $('fleet-surface');
+    if (!surface || typeof surface.querySelectorAll !== 'function') { return; }
+    var heads = surface.querySelectorAll('.ft-th');
+    for (var i = 0; i < heads.length; i++) {
+      var th = heads[i];
+      if (typeof th.getAttribute !== 'function') { continue; }
+      var key = th.getAttribute('data-sort-key');
+      if (key === null) { continue; }
+      var active = (key === currentSort.key);
+      if (active) {
+        th.classList.add('is-sorted');
+        th.setAttribute('aria-sort', currentSort.dir === 'asc' ? 'ascending' : 'descending');
+      } else {
+        th.classList.remove('is-sorted');
+        th.setAttribute('aria-sort', 'none');
+      }
+      var mark = typeof th.querySelector === 'function' ? th.querySelector('.ft-sort-mark') : null;
+      if (mark) { mark.textContent = active ? GLYPH[currentSort.dir] : ''; }
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // FLEET-SORT 2026-09-21 — the §1b collapse register. The toggle strip is
+  // JS-CREATED (the static markup stays byte-identical), rides the
+  // .fleet-filter chip register (44px zone, square, mono lowercase), and
+  // sits under the table before the .fleet-colophon (that colophon is
+  // absent from re-mounted test surfaces — the cards mount is the fallback
+  // anchor). Hidden until a successful render counts more than
+  // COLLAPSE_LIMIT books — fail-closed: the unavailable and empty states
+  // never grow a toggle. One toggle serves the table AND the card stack.
+  // ------------------------------------------------------------------
+  function ensureMoreStrip() {
+    var surface = $('fleet-surface');
+    if (!surface || typeof surface.querySelector !== 'function') { return; }
+    if (surface.querySelector('.fleet-more')) { return; } // idempotent per surface
+    var strip = el('div', 'fleet-more');
+    strip.setAttribute('id', 'fleet-more-strip');
+    strip.hidden = true; // fail-closed: hidden until a live render shows >8 books
+    var btn = el('button', 'fleet-more-btn', '');
+    btn.setAttribute('type', 'button');
+    btn.setAttribute('data-fleet-more', '');
+    btn.addEventListener('click', function () { toggleExpanded(); });
+    strip.appendChild(btn);
+    var anchor = surface.querySelector('.fleet-colophon') || $('fleet-cards');
+    if (anchor && anchor.parentNode === surface && typeof surface.insertBefore === 'function') {
+      surface.insertBefore(strip, anchor);
+    } else if (typeof surface.appendChild === 'function') {
+      surface.appendChild(strip);
+    }
+  }
+  // collapsed ⇒ `top 8 · show all N books` (the strip's own text carries the
+  // count — never a fabricated figure); expanded ⇒ `show top 8`. Hidden
+  // entirely when the active list is ≤ 8.
+  function updateMoreStrip(total) {
+    var surface = $('fleet-surface');
+    if (!surface || typeof surface.querySelector !== 'function') { return; }
+    var strip = surface.querySelector('.fleet-more');
+    if (!strip) { return; }
+    var btn = typeof strip.querySelector === 'function' ? strip.querySelector('.fleet-more-btn') : null;
+    if (!btn) { return; }
+    if (!(total > COLLAPSE_LIMIT)) { strip.hidden = true; return; }
+    strip.hidden = false;
+    btn.textContent = expanded ? 'show top 8' : 'top 8 · show all ' + String(total) + ' books';
+  }
+  function toggleExpanded() {
+    expanded = !expanded;
+    // the rebuild below wipes the row/card mounts — the G2 #2 discipline:
+    // close BOTH detail surfaces FIRST, then re-render
+    removeInlines();
+    closeSheet();
+    var f = fleet();
+    if (f && typeof f.summary === 'function' && f.summary()) { renderRows(currentFilter); }
+  }
+
+  // ------------------------------------------------------------------
   // wiring: ONE delegated click listener on the §1 surface resolves both
   // [data-details] (the detail surfaces) and [data-sheet-close]; the copy buttons
   // ([data-copy-position]) stay for G4's delegated handler — this module
   // never touches the clipboard. Filters re-render rows(tier); 'all' is
-  // rows(). init() self-registers its own WS.fleet.load (alongside main.js's
+  // rows(). FLEET-SORT 2026-09-21: the sortable heads + the collapse strip
+  // wire in init() (ensureSortHeads/ensureMoreStrip — per-surface,
+  // idempotent, JS-assigned so the static markup stays byte-identical).
+  // init() self-registers its own WS.fleet.load (alongside main.js's
   // call — fleet.js is untouched) and is idempotent.
   // ------------------------------------------------------------------
   function wireOnce(surface) {
@@ -653,6 +868,8 @@
     if (!surface) { return; }
     wireOnce(surface);
     wireBandSticky();
+    ensureSortHeads(); // FLEET-SORT 2026-09-21 — the head register (JS-assigned; the static thead stays byte-identical)
+    ensureMoreStrip(); // FLEET-SORT 2026-09-21 — the collapse toggle (JS-created; hidden until >8 books)
     var f = fleet();
     if (!f || typeof f.load !== 'function') {
       showUnavailable(); // the feed module is absent — the page states the gap
