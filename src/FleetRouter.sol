@@ -34,9 +34,12 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 /// defense-in-depth ceiling added BEYOND amendments A6/A7: even a compromised or
 /// captured timelock cannot raise the fee past a tenth of an ETH per position.
 ///
-/// STATUS — NOT-YET-DEPLOYED. No router address is pinned anywhere (site config,
-/// skills, datasets) until an on-chain broadcast exists in a separate, user-gated act.
-/// Until then — and forever after (MIT, permissionless chain: this router can never be
+/// STATUS — DEPLOYED 2026-09-21, RH chain 4663:
+/// 0xAFAE77E6B13a5350682C0d1a7876A3F309EEC0C9 (tx 0xe8b9956c…f8fb, deployer
+/// 0x62f0…46e1 @ nonce 25; keyless verification battery 9/9 GREEN from the live
+/// chain, incl. a free-eth_call OnlyTimelock guard probe). NOT yet pinned in the
+/// site config, skills or datasets — that bookkeeping is a separate, user-gated
+/// act. And forever after (MIT, permissionless chain: this router can never be
 /// mandatory) — the FREE fallback is a direct mint on the NPM: approve the NPM for the
 /// two tokens, call mint with recipient = your own address. The router's only value
 /// over that fallback is one-transaction convenience plus the fee-forwarding lane; it

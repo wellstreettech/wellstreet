@@ -354,3 +354,27 @@ test('(h) PDF lockstep: the md names the PDF and the artifact exists on disk', (
   assert.ok(pdf.length > 100 * 1024, 'site/whitepaper.pdf is suspiciously small (' + pdf.length + ' bytes)');
   assert.strictEqual(pdf.slice(0, 5).toString('ascii'), '%PDF-', 'site/whitepaper.pdf is not a PDF');
 });
+
+// ---- (i) router deployment state (2026-09-21) ------------------------------------------
+// FleetRouter v1 deployed 2026-09-21 on RH chain 4663 (self-custodied one-tx LP entry;
+// audit GO-WITH-FIXES, fixes in f581bef). The router is deliberately NOT pinned in
+// site/js/config.js yet (post-$WELL sequencing), so the paper carries NO router address
+// literal — test (a) rejects any non-pin literal by design. These teeth pin the
+// deployment CLAIMS instead. When config gains the router pin, replace the ban-scan
+// below with a positive scan that the paper quotes config's router address.
+
+test('(i) the paper states the router deployment: date, starting fee, timelock gate, ceiling, caller custody', () => {
+  assert.ok(countOccurrences(paper, '2026-09-21') >= 1, 'paper must date the router deployment');
+  assert.ok(countOccurrences(paper, '0.0005 ETH') >= 1, 'paper must quote the router starting fee 0.0005 ETH');
+  assert.ok(countOccurrences(paper, '0.05 ETH') >= 1, 'paper must quote the router hard ceiling 0.05 ETH');
+  assert.ok(countOccurrences(paperLower, 'setfee') >= 1, 'paper must name the timelock-gated setFee');
+  assert.ok(countOccurrences(paper, 'never leave the caller') >= 1,
+    'paper must state the zero-custody property (NFT + tokens never leave the caller)');
+});
+
+test('(i) the paper quotes NO full router address while the router is unpinned in config', () => {
+  const routerAddr = '0xafae77e6b13a5350682c0d1a7876a3f309eec0c9';
+  assert.strictEqual(countOccurrences(paperLower, routerAddr), 0,
+    'whitepaper.md quotes the full router address — pin it in site/js/config.js first, ' +
+    'then quote the pin (test (a) will enforce it matches)');
+});

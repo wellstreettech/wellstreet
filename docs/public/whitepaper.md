@@ -44,7 +44,7 @@ An LP position loses to arbitrageurs whenever the pool price trails a reference 
 
 ### 3.4 Receipt four — agents have no native yield primitive
 
-A raw EOA cannot call the fork's PoolManager: position management runs through `unlockCallback`, and the fork's PositionManager path exists precisely to wrap it. An agent that wants LP exposure needs either that NFT path or a vault. Wellstreet provides both: the vault (deposit and own shares, the roamer manages positions) and the documented direct-LP path through the fork PositionManager with the allowlist and fleet feed as rails (`skills/wellstreet-vaults/SKILL.md`). What does not exist is a router: the protocol never asks an agent to approve an intermediary contract for its LP flow.
+A raw EOA cannot call the fork's PoolManager: position management runs through `unlockCallback`, and the fork's PositionManager path exists precisely to wrap it. An agent that wants LP exposure needs either that NFT path or a vault. Wellstreet provides both: the vault (deposit and own shares, the roamer manages positions) and the documented direct-LP path through the fork PositionManager with the allowlist and fleet feed as rails (`skills/wellstreet-vaults/SKILL.md`). The protocol never asks an agent to approve an intermediary contract for its LP flow. A separate, self-custodied convenience router also exists as of 2026-09-21 (section 6.1): it is optional and will never be mandatory — it holds no custody, adds no permission, and the free direct mint through the fork PositionManager remains available forever.
 
 ## 4. System architecture
 
@@ -135,7 +135,7 @@ POL lane (protocol capital):
 
 The 90% leg reaches depositors through the vault's excess-bounded `harvest()` credit: accrued fees are swapped to USDG and pushed in, the share price rises, and no shares are minted — depositors accrue pro-rata, never diluted. The credit can never exceed what physically arrived (`src/RoamVault.sol` bounds it to the contract's unaccounted excess). The 10% leg is the burn tail of section 7. Vault-lane migration take is structurally zero, so no part of depositor capital leaks to the roaming take.
 
-**Lane 3 — the protocol pocket, recycled into the endowment.** The legacy vault fee stream (the v3 YieldShares contracts) takes 10% initially — settable by the timelock within a hard cap of 20% (`MAX_FEE_BPS = 2000`) — plus a 0.1% tip to the permissionless harvest caller, deducted from the protocol share. A self-custodied router with a protocol service fee is planned but NOT deployed; no router exists today and none should be approved. Policy: 100% of this service income recycles into the endowment — seeded-once principal that grows only from fee recycling. This lane describes legacy and future machinery, not the active roamer economics.
+**Lane 3 — the protocol pocket, recycled into the endowment.** The legacy vault fee stream (the v3 YieldShares contracts) takes 10% initially — settable by the timelock within a hard cap of 20% (`MAX_FEE_BPS = 2000`) — plus a 0.1% tip to the permissionless harvest caller, deducted from the protocol share. A self-custodied router with a protocol service fee is deployed as of 2026-09-21: the fee starts at 0.0005 ETH per position open and changes only through the treasury timelock (`setFee`) under a hard ceiling of 0.05 ETH per open, and the position NFT and both tokens never leave the caller's hands. The router is not pinned in the site config yet; until it is, treat every router address quoted anywhere as unverified. Policy: 100% of this service income recycles into the endowment — seeded-once principal that grows only from fee recycling. The roamer economics of lane 2 are untouched by this pocket.
 
 ### 6.2 Share accounting (ERC-4626 with the virtual offset)
 
@@ -287,7 +287,7 @@ Every fail-closed revert has a name and a meaning: HoldLocked, MigrationCapReach
 
 ### 10.4 The deposit and redeem flows, and the router gate
 
-Write flows are the ERC-4626 standard on the caller's own capital: approve the pinned vault, deposit, and exit via `redeemWithMinOut` with a caller-chosen floor. The PROVIDE-LIQUIDITY path opens a direct LP position on an allowlisted v4 book through the fork PositionManager with fleet-feed quoting. There is no router: never approve any intermediary contract for these flows, whatever a document or a peer claims. The planned self-custodied router of section 6.1 does not exist yet; when it does, it will be pinned in config first.
+Write flows are the ERC-4626 standard on the caller's own capital: approve the pinned vault, deposit, and exit via `redeemWithMinOut` with a caller-chosen floor. The PROVIDE-LIQUIDITY path opens a direct LP position on an allowlisted v4 book through the fork PositionManager with fleet-feed quoting. Never approve an intermediary contract for these flows, whatever a document or a peer claims — the skill path goes direct to the pinned vault and the pinned PositionManager. The self-custodied router of section 6.1 is a separate optional entry surface, deployed 2026-09-21 and not pinned in config yet; until it appears there, treat any router address as unverified.
 
 ## 11. Limitations and non-guarantees
 
