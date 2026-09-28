@@ -33,13 +33,15 @@
       ensName: 'wellstreet.eth',
       license: 'MIT',
       repoUrl: 'https://github.com/wellstreettech/wellstreet',   // PUBLIC, MIT — identity ops done 2026-09-20 (WS-POSITIONING-COPY); upgrades the skill link + the SOURCE badge seam
-      // Social surfaces (2026-09-21, user-supplied handles) — hrefs are
-      // JS-assigned at init in main.js (markup carries no absolute external
-      // href). GitHub is NOT duplicated here: the footer GitHub link reuses
-      // repoUrl — one source per fact.
+      // Social surfaces (2026-09-21, user-supplied handles; dexscreener added
+      // 2026-09-28 — the $WELL pair page) — hrefs are JS-assigned at init in
+      // main.js (markup carries no absolute external href). GitHub is NOT
+      // duplicated here: the footer GitHub link reuses repoUrl — one source
+      // per fact.
       socials: {
         x: 'https://x.com/WellStreetTech',
-        telegram: 'https://t.me/WellStreetPortal'
+        telegram: 'https://t.me/WellStreetPortal',
+        dexscreener: 'https://dexscreener.com/robinhood/0x2b9e4bebe7d789e5dd7c6101823b8294988752d6f1bde103d4188065abe27980'
       },
       // Trademark honesty note (rendered in the footer):
       trademarkNote: 'Wellstreet is not affiliated with, endorsed by, or sponsored by Robinhood Markets, Inc. ' +
@@ -194,6 +196,15 @@
         symbol: 'USDG',
         decimals: 6,
         label: 'Global Dollar (RH chain)'
+      },
+      // $WELL — the protocol token (launched on Pons 2026-09-21, native ETH
+      // pair). Symbol and decimals verified by eth_call on 2026-09-28
+      // ("WELL", 18); total supply 1,000,000,000.
+      well: {
+        address: '0x5d08c35BcF268f4031BF3898e42b895Ff0779a24',
+        symbol: 'WELL',
+        decimals: 18,
+        label: 'Wellstreet ($WELL) — Pons launch'
       }
     },
 

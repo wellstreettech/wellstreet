@@ -2187,11 +2187,43 @@
     if (socials) {
       wireSocialLink($('footer-link-x'), socials.x);
       wireSocialLink($('footer-link-tg'), socials.telegram);
+      wireSocialLink($('footer-link-dex'), socials.dexscreener);
     }
     wireSocialLink($('footer-link-gh'),
       (cfg.branding && typeof cfg.branding.repoUrl === 'string')
         ? cfg.branding.repoUrl.replace(/\/+$/, '')
         : null);
+
+    // WS-FOOTER-TOKEN (2026-09-28): the $WELL contract chip — display plus
+    // copy-to-clipboard. The address comes from cfg.tokens.well (one source
+    // per fact; markup carries no hex literal). Copy claims success only
+    // after writeText resolves — the same fail-closed contract as the
+    // agent-mirror copy seam. The label swap is instant (no motion added).
+    var wellToken = cfg.tokens && cfg.tokens.well;
+    var caBtn = $('footer-ca');
+    var caLabel = $('footer-ca-text');
+    if (wellToken && typeof wellToken.address === 'string' && wellToken.address.indexOf('0x') === 0 &&
+        caBtn && typeof caBtn.addEventListener === 'function' && caLabel) {
+      var caShort = wellToken.address.slice(0, 6) + '…' + wellToken.address.slice(-4);
+      var caResting = '$WELL ' + caShort;
+      var caTimer = null;
+      caLabel.textContent = caResting;
+      caBtn.setAttribute('title', 'Copy the $WELL contract address');
+      caBtn.setAttribute('aria-label', 'Copy the $WELL contract address ' + wellToken.address);
+      caBtn.addEventListener('click', function () {
+        function settle(ok) {
+          caLabel.textContent = ok ? 'copied ✓' : 'copy blocked';
+          if (caTimer) { clearTimeout(caTimer); }
+          caTimer = setTimeout(function () { caLabel.textContent = caResting; }, 1600);
+        }
+        var clip = (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') ? navigator.clipboard : null;
+        if (!clip) { settle(false); return; }
+        Promise.resolve(clip.writeText(wellToken.address)).then(
+          function () { settle(true); },
+          function () { settle(false); }
+        );
+      });
+    }
   }
 
   if (document.readyState === 'loading') {

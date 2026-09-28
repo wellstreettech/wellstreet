@@ -163,6 +163,10 @@ global.document = {
 // hrefs JS-assigned from cfg.branding. NOTE: the REGISTRY RIDER JSON-parses
 // THIS ARRAY — comments live HERE, above the brackets, never inside them
 // (a trailing // broke the parse once, 2026-09-21).
+// + WS-FOOTER-TOKEN (2026-09-28): footer-link-dex (the DexScreener chart chip,
+// href JS-assigned from cfg.branding.socials.dexscreener) and footer-ca with
+// footer-ca-text (the $WELL contract chip — a BUTTON; the label is JS-filled
+// from cfg.tokens.well and a click copies the full checksummed address).
 ['ws-jurisdiction-banner', 'ws-geo-block', 'chain-badge',
  'widget-chain', 'btn-connect', 'dep-amount', 'red-amount', 'btn-approve', 'btn-deposit',
  'btn-withdraw', 'btn-redeem', 'widget-status', 'wallet-balances', 'acquire-note',
@@ -175,7 +179,8 @@ global.document = {
  'apr-sim', 'sim-slider', 'sim-size', 'sim-bar-fill', 'sim-share', 'sim-projection',
  'hero-stat', 'hero-stat-num', 'hero-stat-label', 'hero-stat-window',
  'hero-stat-zero', 'hero-stat-zero-num', 'hero-stat-zero-label', 'source-badge',
- 'footer-link-x', 'footer-link-tg', 'footer-link-gh',
+ 'footer-link-x', 'footer-link-tg', 'footer-link-gh', 'footer-link-dex',
+ 'footer-ca', 'footer-ca-text',
  'fleet-flagship-apr', 'fleet-vault-reads', 'fleet-coverage',
  'fleet-surface', 'fleet-table', 'fleet-tbody', 'fleet-cards', 'fleet-sheet',
  'fleet-unavailable',

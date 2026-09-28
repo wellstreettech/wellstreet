@@ -1817,6 +1817,9 @@ button.btn-primary:hover:not(:disabled) { background: var(--accent-hover); trans
 .site-footer .social-chip:hover { border-color: var(--ink); color: var(--ink); } /* F3 contract: border steps toward ink */
 .site-footer .social-chip:hover svg { color: var(--accent-text); } /* the one accent move — the glyph only */
 .site-footer .social-chip:active { transform: translateY(1px); } /* P7 active punch — instant, not animated */
+button.social-chip { /* WS-FOOTER-TOKEN (2026-09-28): the $WELL contract chip is a button — strip UA chrome to the anchor register above; no motion added */
+  appearance: none; background: none; cursor: pointer; width: auto;
+}
 /* ---------- end WS-SOCIAL-LINKS EOF block ---------- */
 
 /* ---------- WS3-HEADER (2026-09-06) — header + nav additive EOF block ----------
