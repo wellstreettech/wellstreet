@@ -71,6 +71,9 @@ function pinnedAddresses() {
   out['contracts.harvester'] = c.harvester;
   out['tokens.weth'] = config.tokens.weth.address;
   out['tokens.spy'] = config.tokens.spy.address;
+  // $WELL launched 2026-09-21 on Pons (config pin landed with the footer batch,
+  // 7fcc7ad); docs may quote the literal now that it is config-pinned.
+  out['tokens.well'] = config.tokens.well.address;
   out['pools.spyWeth500'] = config.pools.spyWeth500.address;
   out['pools.spyWeth500.token0'] = config.pools.spyWeth500.token0;
   out['pools.spyWeth500.token1'] = config.pools.spyWeth500.token1;

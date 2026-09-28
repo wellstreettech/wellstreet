@@ -4,6 +4,8 @@
 
 Wellstreet is an open-source yield-vault protocol on Robinhood Chain (chain ID 4663). Each vault is an ERC-4626 vault wrapping a tokenized stock token — for vault #1, the SPY token ("SPDR S&P 500 ETF Trust • Robinhood Token"). The yield does not come from the stock: a protocol-owned Harvester contract holds a liquidity position in the stock token's Uniswap V3 pool on the same chain, collects the swap fees that position earns, and pushes them into the vault without minting shares, so yield accrues pro-rata to existing depositors. A protocol fee on harvested yield (10% initially, hard-capped at 20% in code) flows to a treasury controlled by a 48-hour timelock.
 
+Since 2026-09-09 the protocol also operates the roamer stack: RoamingHarvester (a multi-book concentrated-liquidity roamer), RoamAllowlist (the book registry it may enter), and RoamVault (an ERC-4626 vault, USDG asset) — 90% of that vault's LP fees accrue to depositors and 10% buys and burns $WELL. The two fee streams are documented in [docs/public/tokenomics.md](docs/public/tokenomics.md).
+
 This README is written to be checkable against the code, not to sell anything. Read [docs/public/not-guaranteed.md](docs/public/not-guaranteed.md) and [docs/public/risk-disclosure.md](docs/public/risk-disclosure.md) before using anything here.
 
 ## No company
@@ -29,16 +31,17 @@ The repository also contains `HarvesterV4` (`src/HarvesterV4.sol`) and the facto
 |---|---|
 | Chain | Robinhood Chain (chain ID 4663) |
 | Vault #1 asset | SPY — "SPDR S&P 500 ETF Trust • Robinhood Token" |
-| Vaults live | 1 — ws-SPY (deployed 2026-09-03; the vault is currently empty, `totalAssets() == 0`) |
+| Vaults live | 2 — ws-SPY (2026-09-03; empty, wind-down declared) and RoamVault (ERC-4626, USDG asset, live since 2026-09-13) |
+| Roamer stack | Deployed 2026-09-09 — RoamingHarvester + RoamAllowlist + RoamVault (USDG); vault live since 2026-09-13 |
 | Audited | NO. No third-party audit has been performed or scheduled. |
-| $WELL (protocol token) | Not yet launched |
+| $WELL (protocol token) | Launched 2026-09-21 on the Pons launchpad — address in [Contract addresses](#contract-addresses) |
 | License | MIT |
 
-(Status reflects the repository as of 2026-09-05.)
+(Status reflects the repository as of 2026-09-28.)
 
 ## Contract addresses
 
-Deployed on Robinhood Chain 4663 (broadcast 2026-09-03). Verify each on the block explorer at `robinhoodchain.blockscout.com` — these same addresses are pinned in [site/js/config.js](site/js/config.js) and in [skills/wellstreet-vaults/SKILL.md](skills/wellstreet-vaults/SKILL.md), and the factory registry lists exactly one vault:
+Deployed on Robinhood Chain 4663 — the vault family broadcast 2026-09-03, the roamer stack 2026-09-09. Verify each on the block explorer at `robinhoodchain.blockscout.com` — these same addresses are pinned in [site/js/config.js](site/js/config.js) and in [skills/wellstreet-vaults/SKILL.md](skills/wellstreet-vaults/SKILL.md), and the factory registry lists exactly one vault:
 
 | Contract | Address |
 |---|---|
@@ -46,7 +49,10 @@ Deployed on Robinhood Chain 4663 (broadcast 2026-09-03). Verify each on the bloc
 | Harvester | `0xe6c4502cfe17E99475a1B9C8511F47ea38a8A996` |
 | VaultFactory | `0x07446D9807F90eD7ED177Ab63597e8BB4D96428f` |
 | Treasury timelock | `0xD55bA510533dc5a250b4D6d49Ee825113DD69342` |
-| $WELL token | Not launched — any token using the name is not this protocol |
+| RoamingHarvester (the roamer) | `0xC7a21Aa8C15C7032eE2e8352244a0f3D2154dC68` |
+| RoamAllowlist | `0x6040bA3e356cb023C67002De45D2af56FED4e81A` |
+| RoamVault (USDG) | `0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86` |
+| $WELL token | `0x5d08c35BcF268f4031BF3898e42b895Ff0779a24` — launched on Pons 2026-09-21; any token at a different address is not this protocol |
 
 ## Repository layout
 

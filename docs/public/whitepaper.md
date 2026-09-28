@@ -10,7 +10,7 @@ Wellstreet is a protocol-owned liquidity (POL) system on Robinhood Chain (chain 
 
 The protocol exists because of a measured problem: on this chain, many liquidity books pay their LPs nothing. A census of 402 books above a $1,000 dust floor found 97 hook-monetized books that route fees away from LPs and 29 dead books — 126 of 402 books (31.3%) paying LPs zero, with volume flowing through some of them regardless. One book, ROBLOXIANS/RBLX, charged fee 0 on 394 of 394 sampled swaps while roughly $1.09M/day of notional crossed it.
 
-The token, $WELL, does not exist yet. Its section in this paper describes launch-gated contract state: a one-shot `setWellToken` that has never been called, a burn lane that is inert until it is, and a Pons launchpad fee share routed to future holders. No launch date is claimed. The protocol claims readiness of machinery, never arrival of outcomes.
+The token, $WELL, launched on the Pons launchpad on 2026-09-21 (native ETH pair, chain 4663); its address is pinned in `site/js/config.js` (`tokens.well`) and mirrored on the token's DexScreener pair page. What remains launch-gated is contract state inside the roamer: a one-shot `setWellToken` that has not been called, and a burn lane that is inert until it is. The Pons holder fee share is a launch configuration, permanent once routed. The protocol claims what the chain shows, never arrival of outcomes.
 
 ## 2. Introduction
 
@@ -121,7 +121,7 @@ When a target band does not bracket spot — a one-sided band — the contract e
 
 The protocol's fee flows are three lanes with on-chain-readable lane keywords. They never mix, and no setter for a dev take exists on any of the split paths — the audit's checked-clean record covers this.
 
-**Lane 1 — Pons native trading fees, routed to $WELL holders.** The Pons launchpad's holder fee share is a launch configuration: opt-in at launch, permanent once routed. No token exists, so this lane has never flowed. The paper states the lane exists as a launch configuration and nothing more.
+**Lane 1 — Pons native trading fees, routed to $WELL holders.** The Pons launchpad's holder fee share is a launch configuration: opt-in at launch, permanent once routed. $WELL launched on Pons on 2026-09-21; the lane's live state is a chain read on the pad's distributor, not a paper claim. The paper states the lane exists as a launch configuration and nothing more.
 
 **Lane 2 — roamer LP fees on vault-deployed capital: 90% depositors / 10% burn accrual.** This is the live lane. The roamer splits at the credit choke point:
 
@@ -193,17 +193,17 @@ The above-range branch is the audit's F-1 fix: the in-range form understated the
 
 Every APR in the public feed is a measured, backward-looking, book-level figure with a source and a window — for example the anchor book's feeAprPct of 165 (book-level, window a) is what the BOOK earned per year on its TVL during the window, never a depositor figure and never a projection. Depositor outcomes additionally depend on the liquidity-share of the book, IL realization, and the 90% split. The methodology page carries the retired v1 depositor formula marked as history; the fleet feed's measured basis is the current source.
 
-## 7. The token: $WELL, launch-gated
+## 7. The token: $WELL
 
-**No $WELL token exists on chain today.** `wellToken()` reads the zero address. There is no launch date, no allocation table, and no presale. What exists is contract machinery that activates at a future launch, written now so the paper can describe exactly what will and will not happen.
+**$WELL exists on chain as of 2026-09-21**, launched on the Pons launchpad (ponsfamily.com) with a native ETH pair; its address is pinned in `site/js/config.js` (`tokens.well`). `wellToken()` on the roamer still reads the zero address: the one-shot setter has not been called. There is no allocation table and no presale. The machinery below activates when `setWellToken` fires, exactly as written before the launch.
 
 - **`setWellToken` is one-shot and fail-closed.** The timelock sets the token address once; a second call reverts, a zero address reverts. Until it fires, the burn lane is inert by construction.
-- **The burn tail is conserved, never lost.** While inert, the 10% vault-lane cut accrues on-chain as accounted accrual — BURN-PENDING. It is never treasury funds, never junk-forwarded, never spent. `sweepToBurn` reverts with `NoWellToken` until the launch; that revert is data.
-- **The burn machinery is the roamer's own.** Once the token is set, a permissionless `sweepToBurn` swaps the accumulated accrual to $WELL through the pinned Quoter (exact-output, 1% min-out bound) and transfers it to the canonical burn address ending in `dEaD`. Accrual accounting means the amount burned is what was accounted, and the amounts conserved pre-launch burn after it.
-- **Holder economics.** Lane 1 (section 6.1) routes Pons-native trading fees to holders once configured at launch. There is no staking distributor, no inflation schedule, and no dev take on any path — the dev take is structurally zero, not merely currently zero.
-- **Launch venue.** Pons launchpad (ponsfamily.com) on chain ID 4663, per `docs/public/tokenomics.md`, which documents the pad's fee mechanics as configured at launch.
+- **The burn tail is conserved, never lost.** While inert, the 10% vault-lane cut accrues on-chain as accounted accrual — BURN-PENDING. It is never treasury funds, never junk-forwarded, never spent. `sweepToBurn` reverts with `NoWellToken` until `setWellToken` fires; that revert is data.
+- **The burn machinery is the roamer's own.** Once the token is set, a permissionless `sweepToBurn` swaps the accumulated accrual to $WELL through the pinned Quoter (exact-output, 1% min-out bound) and transfers it to the canonical burn address ending in `dEaD`. Accrual accounting means the amount burned is what was accounted, and the amounts conserved before the setter fires burn after it.
+- **Holder economics.** Lane 1 (section 6.1) routes Pons-native trading fees to holders as configured at the launch (2026-09-21). There is no staking distributor, no inflation schedule, and no dev take on any path — the dev take is structurally zero, not merely currently zero.
+- **Launch venue.** Pons launchpad (ponsfamily.com) on chain ID 4663 — the venue $WELL launched on — per `docs/public/tokenomics.md`, which documents the pad's fee mechanics as configured at the launch.
 
-Claims discipline: this section claims readiness of machinery — set, sweep, accrue, burn — and never arrival. Any future document that states a launch date, a price, or a holder return before the chain shows it is wrong by this paper's own rules.
+Claims discipline: this section claims readiness of machinery — set, sweep, accrue, burn — and never arrival of outcomes. Any future document that states a price or a holder return before the chain shows it is wrong by this paper's own rules.
 
 ## 8. Trust model
 
@@ -227,7 +227,7 @@ The skill file classifies every surface into two tiers, with a fail-closed defau
 AGENT-SAFE (the complete sanctioned set):
   - keyless reads (guardrail getters, position records, book counts, coverage)
   - sweepVaultYield()   — permissionless, fills the vault's 90% bucket
-  - sweepToBurn()       — permissionless, inert (NoWellToken) until launch
+  - sweepToBurn()       — permissionless, inert (NoWellToken) until setWellToken fires
   - vault ERC-4626 deposit/redeem on the caller's OWN capital
 
 OPERATOR-SCOPED (never fired by an agent):
@@ -299,7 +299,7 @@ The short version is the not-guaranteed page (`docs/public/not-guaranteed.md`); 
 - **USDG issuer risk.** The vault asset is a third-party stablecoin; the skill discloses it as such.
 - **Single-book concentration.** The deployed book is currently one (USDG/ETH). Yield approaches zero when volume does; the measured windows in section 9 include DEAD books precisely to show what a quiet book looks like.
 - **No yield certainty, no peg defense, no market intervention.** The protocol holds no price-defense mandate for any asset, will not trade to defend any price, and publishes no yield target. Measured APRs are backward-looking book-level figures.
-- **Deployer-key concentration.** The deployer EOA still embodies the pause authority, LP seeding, the launch initial-buy wallet, and gas duties; the commitment to hardware custody before launch is in `docs/public/compliance.md` — until done and documented, treat those capabilities as hot-key attached.
+- **Deployer-key concentration.** The deployer EOA still embodies the pause authority, LP seeding, the launch initial-buy wallet, and gas duties; the hardware-custody commitment is in `docs/public/compliance.md` — until done and documented, treat those capabilities as hot-key attached.
 - **The fork deltas are permanent facts.** Any integration that assumes canonical v4 semantics will misread this chain (section 4.3).
 - **What the contracts do promise** — the shared chassis of donation-neutral accounting, inflation defense, fee-on-transfer rejection, and always-open redemptions — is enumerated in `docs/public/guarantees.md`, and this paper adds no promise to that list.
 
@@ -318,7 +318,7 @@ The short version is the not-guaranteed page (`docs/public/not-guaranteed.md`); 
 11. *ERC-4626: Tokenized Vault Standard*. EIP-4626, with the virtual-offset extension described in section 6.2.
 12. Safe (formerly Gnosis Safe) — the 2-of-3 multisig that proposes to the timelock.
 13. OpenZeppelin Contracts — the ERC20/ERC4626/ReentrancyGuard base these contracts fork and extend.
-14. Pons launchpad, ponsfamily.com — the $WELL launch venue on chain ID 4663.
+14. Pons launchpad, ponsfamily.com — the $WELL launch venue ($WELL launched there 2026-09-21) on chain ID 4663.
 15. This repository's own record: `docs/internal/ROAMER_AUDIT_2026-09-07.md` (the audit and remediation record), `docs/research/yield_farming/` (stack location, fee screen, roam-policy calibration), `docs/ops/v4_fee_screen.py` (the screen), and `docs/public/` (the standing claims this paper must not contradict).
 
 ## Appendix A — deployed addresses
@@ -356,7 +356,7 @@ LEGACY (v1/v3 world — wind-down or standing legacy streams)
   SPY/USD chainlink proxies   0x319724394D3A0e3669269846abE664Cd621f9f6A
                               0xa68CA83408bE3f78d1c58a82081c619e9d21486d
 
-  $WELL                       does not exist yet (section 7)
+  $WELL                       launched 2026-09-21 on Pons (section 7; address via config tokens.well)
 ```
 
 ## Appendix B — constants
@@ -394,6 +394,7 @@ GOVERNANCE
   proposer ................... the 2-of-3 Safe (three keys, one operator)
 
 $WELL
-  token address .............. none — setWellToken never fired
-  burn lane .................. inert by construction until launch
+  token address .............. set — config tokens.well (launched 2026-09-21 on Pons)
+  wellToken() ................ still the zero address; setWellToken not yet fired
+  burn lane .................. inert by construction until setWellToken fires
 ```
