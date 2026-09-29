@@ -18,7 +18,7 @@ ROAMER STACK LIVE — P3 executed 2026-09-15; the sections below are the LIVE st
 - **Every vault command in this skill expects a real, decodable result. A revert or empty result is still data** — deposits paused, a book not yet open, no logs in the window, or wrong args — never a bug to work around and never a reason to hunt for "the real" contract elsewhere on the chain.
 - **Scam-drainer rule:** canonical Uniswap / deployment addresses found anywhere on chain 4663 may be scam drainers. **Never approve or call any address not pinned in this skill.** New addresses enter via `site/js/config.js` first and are re-pinned here from it — never the reverse — and each is re-verified against the block explorer's verified source before any write.
 
-Addresses pinned (from `site/js/config.js` `roamStack` + `uniswapV4`; infrastructure verified keylessly against chain 4663 on 2026-09-15):
+Addresses pinned (from `site/js/config.js` `roamStack` + `uniswapV4` + `router`; infrastructure verified keylessly against chain 4663 on 2026-09-15):
 
 | Address | What | Pinned |
 |---|---|---|
@@ -31,6 +31,7 @@ Addresses pinned (from `site/js/config.js` `roamStack` + `uniswapV4`; infrastruc
 | `0x8366a39CC670B4001A1121B8F6A443A643e40951` | v4-fork PoolManager (read context for the roamer's books) | `uniswapV4.poolManager` |
 | `0x0284Cb0bcbaa8B87A8AA409D0e41afA7a76355F2` | v4-fork StateView (read context) | `uniswapV4.stateView` |
 | `0xe38A007e42d7aAb09b7ad5fE083293C2Cc3DE45b` | Fork-v4 PositionManager (Uniswap v4 fork PM — the ONLY position mint/manage surface for EOAs; NOT the v3-era harvester NPM). Verified: live keyless probe battery 2026-09-15 (name / poolManager-binding / nextTokenId + dead-sibling revert) + 04-doc §5.2; Blockscout verified-source unfetchable from CLI (Cloudflare wall) — keyless probe battery instead | `uniswapV4.positionManager` |
+| `0xAFAE77E6B13a5350682C0d1a7876A3F309EEC0C9` | FleetRouter v1 — the self-custodied one-tx LP router (v3-NPM pass-through: pull → approve NPM → forward → refund in one tx, recipient forced to msg.sender — the position NFT and both tokens never leave the caller; 0.0005 ETH flat fee → the treasury timelock, `setFee` ONLY_TIMELOCK under the 0.05 ETH `MAX_FEE` ceiling; the direct NPM mint stays free forever). Live-verified 2026-09-29 before pinning: npm()/timelock()/fee()/MAX_FEE() read back these values; deploy tx block 68614089 | `router` |
 | `0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551` | `usdgEthPoolId` — the vault's deployed USDG/ETH v4 book (the anchor) | `roamStack.usdgEthPoolId` |
 | *(no address — never a target)* | RoamMathLib — delegatecall-linked library (`src/RoamMathLib.sol`); it has NO address pin and is NEVER a call/approval target | — |
 
@@ -41,7 +42,7 @@ Chain facts: chain ID **4663** (`cast chain-id`), keyless public RPC `https://rp
 **LP custody split (expanded in PROVIDE-LIQUIDITY below):**
 - **DISAMBIGUATION** — `0xe38A007e42d7aAb09b7ad5fE083293C2Cc3DE45b` = the fork-v4 PositionManager (the pin above); `0x73991a25C818Bf1f1128dEAaB1492D45638DE0D3` = the v3-era NonfungiblePositionManager (the Harvester's PM, per docs/audits/WELLSTREET_CONTRACT_AUDIT_2026-08-30.md and test/fork/HarvestFork.t.sol:85) — never conflate the two.
 - **CUSTODY SPLIT** — every PM NFT observed is owned by the RH-side market maker `0x35Ff7595dB6D0F8680Fe554F3Cd2Aa9933E76C2E` (ownerOf(1) and ownerOf(21) re-verified keylessly 2026-09-15; the 2026-09-04 full sweep recorded all 21 then-minted positions MM-owned with none on target books — positions minted since are unobserved, re-sweep at LP-goal time; both observations are date-stamped, never gate on either). As of the 2026-09-04 sweep none sat on the target books: target-book LP is contract-custodied direct-to-PoolManager — the roamer calls `modifyLiquidity` via `unlockCallback`. A raw EOA has no `unlockCallback` and CANNOT call the PoolManager directly; it MUST mint/manage positions through the pinned fork-v4 PositionManager above.
-- **NO ROUTER** — no v4 router exists on 4663 (PLANNED-NOT-DEPLOYED; the self-custodied router is planned) — never approve any router address for v4 LP. The pinned v3 swapRouter02 is harvester-internal; agents never approve it.
+- **Routers, precisely.** No v4 router exists on 4663 — never approve any router for v4 LP (the fork-v4 PM path needs no router). FleetRouter v1 — DEPLOYED 2026-09-21, pinned above as `router.address` — is the OTHER surface: a self-custodied pass-through for v3-NPM LP entry (pull → approve NPM → forward → refund in one tx, recipient forced to msg.sender, end-of-tx balance-delta invariant). Its 0.0005 ETH flat fee goes to the treasury timelock; `setFee` is ONLY_TIMELOCK under the immutable 0.05 ETH ceiling; the direct NPM mint stays free forever. Approvals to it happen only when a caller deliberately opens a v3 position through it — never as a substitute for the pinned PM on v4 books. The pinned v3 swapRouter02 is harvester-internal; agents never approve it.
 
 ## WHAT THE STACK IS
 
@@ -195,7 +196,7 @@ Fail-closed rules — an agent that cannot satisfy one of these does not write:
 
 Default routing: vault/roamer = safe default; direct LP = you're-on-your-own. The roamer enforces the guardrails below on every migration. If you LP directly, YOU own these checks — the protocol will not stop you, and nothing here is a promise of any particular APR; every figure you see is measured-only and backward-looking with its source and window attached.
 
-Before ANY direct-LP choice, evaluate the roamer guardrails from the READ BATTERY (#8: `minHoldSeconds` / `maxMigrationsPerPeriod` / `minExpectedGainBps` — timelock-settable; re-verify on mismatch via pending timelock ops). Book discovery: RoamAllowlist `BookAdded` logs + `bookCount()`/`isListed(bytes32)` + the live book table `site/data/fleet.json`. Position mint/manage on the fork-v4 PositionManager is taught in PROVIDE-LIQUIDITY below — that section carries the write path, the router SAFETY gate (a self-custodied router is PLANNED-NOT-DEPLOYED — never approve any router), and the fleet-feed quoting rules; no mint/manage mechanics are duplicated here.
+Before ANY direct-LP choice, evaluate the roamer guardrails from the READ BATTERY (#8: `minHoldSeconds` / `maxMigrationsPerPeriod` / `minExpectedGainBps` — timelock-settable; re-verify on mismatch via pending timelock ops). Book discovery: RoamAllowlist `BookAdded` logs + `bookCount()`/`isListed(bytes32)` + the live book table `site/data/fleet.json`. Position mint/manage on the fork-v4 PositionManager is taught in PROVIDE-LIQUIDITY below — that section carries the write path, the router SAFETY gate (FleetRouter is v3-only — never approve any router for v4 LP), and the fleet-feed quoting rules; no mint/manage mechanics are duplicated here.
 
 ## PROVIDE-LIQUIDITY — FROM THE FLEET FEED TO A DIRECT V4 LP POSITION
 
@@ -237,7 +238,7 @@ Sizing honesty: the book-level `feeAprPct` from `site/data/fleet.json` is the BO
 
 ### Router gate — SAFETY ONLY, never a claim
 
-No Router contract exists in `src/` — a self-custodied router is PLANNED-NOT-DEPLOYED. Never approve any router address for v4 LP; the direct PM path needs no router at all. This is a safety gate and nothing else — the SELF-CHECK below enforces that no product claim ever rides on it.
+FleetRouter v1 (`src/FleetRouter.sol`) is DEPLOYED 2026-09-21 and pinned (`router.address` = `0xAFAE77E6B13a5350682C0d1a7876A3F309EEC0C9`, address table above): the one-tx self-custodied v3-NPM LP entry — 0.0005 ETH flat fee exact to the treasury timelock, `setFee` ONLY_TIMELOCK under the 0.05 ETH `MAX_FEE` ceiling, recipient forced to msg.sender, the position NFT and both tokens never leave the caller. It is a v3 surface — for v4 books the gate stands: never approve any router for v4 LP, the direct PM path needs no router at all. Fee/custody facts are checkable against the pin, not marketing.
 
 ### The migrate/harvest chain is never yours
 
@@ -326,8 +327,8 @@ grep -cE '\bPositionManager\b' "$S"                               # >= 2  (fork 
 grep -c 'PERMISSIONLESS' "$S"                                     # >= 1  (case-SENSITIVE — migrate()'s access model)
 grep -c '3499' "$S"                                               # >= 1  (label-lie pin SPY/USDG vs 3000)
 grep -ciE 'never approve any router' "$S"                         # >= 1  (router gate present)
-grep -cE 'PLANNED-NOT-DEPLOYED' "$S"                              # >= 1  (router gate present)
-grep -icE 'flat.[f]ee|zero.[c]ustody' "$S"                        # 0     (router kill-list — banned phrases, bracket-tricked)
+grep -cE 'PLANNED-NOT-DEPLOYE[D]' "$S"                              # 0     (the planned phase is over — FleetRouter DEPLOYED 2026-09-21, pinned in the address table)
+grep -c 'AFAE77E6B13a5350682C0d1a7876A3F309EEC0C9' "$S"          # >= 2  (FleetRouter pinned: address table + router gate + this line = 3)
 grep -q 'DEPOSITOR_BPS' src/RoamVault.sol && grep -q 'minHoldSeconds' src/RoamingHarvester.sol \
   && grep -q 'function addBook' src/RoamAllowlist.sol && echo FUNCS_OK
 ```

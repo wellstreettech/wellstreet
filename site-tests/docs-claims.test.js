@@ -105,6 +105,13 @@ function pinnedAddresses() {
     out['uniswapV4.poolManager'] = config.uniswapV4.poolManager;
     out['uniswapV4.stateView'] = config.uniswapV4.stateView;
   }
+  // FleetRouter v1 DEPLOYED 2026-09-21, pinned 2026-09-29 (live-verified against
+  // the deployed bytecode before pinning); whitepaper.md quotes the literal from
+  // here on — same rule as tokens.well above.
+  if (config.router) {
+    out['router.address'] = config.router.address;
+    out['router.npm'] = config.router.npm;
+  }
   return out;
 }
 

@@ -41,7 +41,7 @@ The repository also contains `HarvesterV4` (`src/HarvesterV4.sol`) and the facto
 
 ## Contract addresses
 
-Deployed on Robinhood Chain 4663 — the vault family broadcast 2026-09-03, the roamer stack 2026-09-09. Verify each on the block explorer at `robinhoodchain.blockscout.com` — these same addresses are pinned in [site/js/config.js](site/js/config.js) and in [skills/wellstreet-vaults/SKILL.md](skills/wellstreet-vaults/SKILL.md), and the factory registry lists exactly one vault:
+Deployed on Robinhood Chain 4663 — the vault family broadcast 2026-09-03, the roamer stack 2026-09-09, FleetRouter 2026-09-21. Verify each on the block explorer at `robinhoodchain.blockscout.com` — these same addresses are pinned in [site/js/config.js](site/js/config.js) and in [skills/wellstreet-vaults/SKILL.md](skills/wellstreet-vaults/SKILL.md), and the factory registry lists exactly one vault:
 
 | Contract | Address |
 |---|---|
@@ -53,6 +53,7 @@ Deployed on Robinhood Chain 4663 — the vault family broadcast 2026-09-03, the 
 | RoamAllowlist | `0x6040bA3e356cb023C67002De45D2af56FED4e81A` |
 | RoamVault (USDG) | `0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86` |
 | $WELL token | `0x5d08c35BcF268f4031BF3898e42b895Ff0779a24` — launched on Pons 2026-09-21; any token at a different address is not this protocol |
+| FleetRouter (one-tx LP router) | `0xAFAE77E6B13a5350682C0d1a7876A3F309EEC0C9` — self-custodied v3 pass-through; 0.0005 ETH flat fee → treasury timelock; deployed 2026-09-21 |
 
 ## Repository layout
 

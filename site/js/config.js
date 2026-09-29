@@ -107,6 +107,30 @@
     },
 
     // ------------------------------------------------------------------
+    // FleetRouter v1 — the self-custodied one-tx LP router (src/FleetRouter.sol).
+    // DEPLOYED 2026-09-21 (deploy tx block 68614089). Every value below was
+    // live-verified against the deployed bytecode 2026-09-29 before this pin:
+    // fee() = 0.0005 ETH exact, MAX_FEE() = 0.05 ETH immutable ceiling,
+    // timelock() = contracts.treasuryTimelock (the fee recipient — 100% of the
+    // fee recycles into the roamer endowment, no team wallet), npm() = the
+    // chain's v3-era NonfungiblePositionManager 0x73991a25C818Bf1f1128dEAaB1492D45638DE0D3
+    // — NOT uniswapV4.positionManager; this router is a v3-NPM pass-through
+    // (pull → approve NPM → forward → refund in one tx, recipient forced to
+    // msg.sender — the position NFT and both tokens never leave the caller),
+    // and a free eth_call to setFee(1) reverts ONLY_TIMELOCK (the fee moves
+    // only through the 48-hour timelock, within the ceiling). The direct NPM
+    // mint needs no router and stays free forever.
+    // ------------------------------------------------------------------
+    router: {
+      address: '0xAFAE77E6B13a5350682C0d1a7876A3F309EEC0C9',
+      npm: '0x73991a25C818Bf1f1128dEAaB1492D45638DE0D3',
+      feeEth: 0.0005,
+      maxFeeEth: 0.05,
+      feeRecipient: 'contracts.treasuryTimelock',
+      deployedAt: '2026-09-21'
+    },
+
+    // ------------------------------------------------------------------
     // The ROAMER STACK (protocol v2 — the agent-native LP layer on chain 4663).
     // RoamVault DEPLOYED 2026-09-09 (16/16 keyless verification); vault LIVE
     // 2026-09-13 (P0/P1/P2 executed, seeded 12.473590 USDG, share price 1:1,

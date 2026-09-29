@@ -132,6 +132,13 @@ function pinnedAddresses() {
       out['uniswapV4.positionManager'] = config.uniswapV4.positionManager;
     }
   }
+  // FleetRouter v1 pinned 2026-09-29 (deployed 2026-09-21, live-verified against
+  // the deployed bytecode before pinning) — test (i) positively scans the paper
+  // for this pin, and test (a) enforces the quote matches.
+  if (config.router) {
+    out['router.address'] = config.router.address;
+    out['router.npm'] = config.router.npm;
+  }
   config.priceFeeds.spyUsd.proxies.forEach(function (p, i) { out['priceFeeds.spyUsd[' + i + ']'] = p; });
   return out;
 }
@@ -355,13 +362,12 @@ test('(h) PDF lockstep: the md names the PDF and the artifact exists on disk', (
   assert.strictEqual(pdf.slice(0, 5).toString('ascii'), '%PDF-', 'site/whitepaper.pdf is not a PDF');
 });
 
-// ---- (i) router deployment state (2026-09-21) ------------------------------------------
+// ---- (i) router deployment state (2026-09-21, pinned 2026-09-29) ------------------------
 // FleetRouter v1 deployed 2026-09-21 on RH chain 4663 (self-custodied one-tx LP entry;
-// audit GO-WITH-FIXES, fixes in f581bef). The router is deliberately NOT pinned in
-// site/js/config.js yet (post-$WELL sequencing), so the paper carries NO router address
-// literal — test (a) rejects any non-pin literal by design. These teeth pin the
-// deployment CLAIMS instead. When config gains the router pin, replace the ban-scan
-// below with a positive scan that the paper quotes config's router address.
+// audit GO-WITH-FIXES, fixes in f581bef). The router is now PINNED in site/js/config.js
+// (config.router, live-verified against the deployed bytecode before pinning), so the
+// paper quotes the literal and test (a) enforces it matches the pin. These teeth pin
+// the deployment CLAIMS and the positive quote.
 
 test('(i) the paper states the router deployment: date, starting fee, timelock gate, ceiling, caller custody', () => {
   assert.ok(countOccurrences(paper, '2026-09-21') >= 1, 'paper must date the router deployment');
@@ -372,9 +378,10 @@ test('(i) the paper states the router deployment: date, starting fee, timelock g
     'paper must state the zero-custody property (NFT + tokens never leave the caller)');
 });
 
-test('(i) the paper quotes NO full router address while the router is unpinned in config', () => {
-  const routerAddr = '0xafae77e6b13a5350682c0d1a7876a3f309eec0c9';
-  assert.strictEqual(countOccurrences(paperLower, routerAddr), 0,
-    'whitepaper.md quotes the full router address — pin it in site/js/config.js first, ' +
-    'then quote the pin (test (a) will enforce it matches)');
+test('(i) the paper quotes the pinned router address (config.router)', () => {
+  assert.ok(config.router, 'site/js/config.js lost the router pin — restore it before the paper may quote the literal');
+  const routerAddr = String(config.router.address).toLowerCase();
+  assert.ok(countOccurrences(paperLower, routerAddr) >= 1,
+    'whitepaper.md no longer quotes the pinned FleetRouter address — the pin and the ' +
+    'paper quote must move together (test (a) enforces the quote matches config)');
 });
