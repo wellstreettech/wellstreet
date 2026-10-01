@@ -36,7 +36,7 @@ The flagship example: the ROBLOXIANS/RBLX book carried a V2MemeHook that charges
 
 ### 3.2 Receipt two — the fee label lies
 
-Fee truth on this chain is the emitted Swap event, never the label. The SPY/USDG book is pinned deterministically in the screen: its init fee reads 3000 (0.30%), but the charged fee across 2,982 of 2,982 sampled swaps was 3499 (0.3499%) — 16.6% above the label. Merkl-labeled "0.05%" books actually charged 625e-6 (0.0625%) on 613 of 613 sampled swaps. Dynamic-fee books re-price with volatility: the USDG/ETH anchor book's charged-fee weighted average was 1057 bps over window a (1,488 sampled swaps). Any analysis that trusts init fees or marketing labels is analyzing fiction.
+Fee truth on this chain is the emitted Swap event, never the label. Fees here are quoted in true basis points; the raw v4 fee param is 100× this value (a param of 3499 is 34.99 bps). The SPY/USDG book is pinned deterministically in the screen: its init fee reads 3000 (30 bps), but the charged fee across 2,982 of 2,982 sampled swaps was 3499 (34.99 bps) — 16.6% above the label. Merkl-labeled "0.05%" books actually charged 625e-6 (6.25 bps) on 613 of 613 sampled swaps. Dynamic-fee books re-price with volatility: the USDG/ETH anchor book's charged-fee weighted average was 10.57 bps (raw param 1057) over window a (1,488 sampled swaps). Any analysis that trusts init fees or marketing labels is analyzing fiction.
 
 ### 3.3 Receipt three — LVR exposure
 
@@ -261,7 +261,7 @@ curated feed (site/data/fleet.json, source docs/ops/roam_policy_fixture.json):
   pay LPs nothing ........ 24   (paysNothingToLps: true — listed, not hidden)
   measured feeAprPct ..... 79 of 95 rows carry a numeric figure
   total TVL .............. ~$33.2M
-  anchor USDG/ETH ........ feeAprPct 165 book-level; charged wavg 1057 bps
+  anchor USDG/ETH ........ feeAprPct 165 book-level; charged wavg 10.57 bps (raw 1057)
                            over 1,488 swaps (window a)
 ```
 

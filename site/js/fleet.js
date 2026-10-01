@@ -169,7 +169,8 @@
       source: p.source,
       method: p.method,
       window: p.window,
-      generated: p.generated
+      generated: p.generated,
+      corpusDate: p.corpusDate // 2026-10-01: the frozen fixture's measurement date — the honest corpus-age signal
     };
   }
 

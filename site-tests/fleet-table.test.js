@@ -42,7 +42,7 @@ const COPY_FAIL = 'copy failed — your browser blocked the clipboard';
 const COPY_MISS = 'that pool is not in the feed right now — nothing copied';
 const HONESTY = 'ticks/minOuts/expectedGain not in the fleet feed — null until measured; verify on-chain';
 const CONTRACT_KEYS = ['v', 'protocol', 'chainId', 'action', 'poolKey', 'pair', 'feeTierBps',
-  'tickLower', 'tickUpper', 'minOuts', 'expectedGainBps', 'measured', 'honesty'];
+  'tickLower', 'tickUpper', 'minOuts', 'expectedGainBps', 'measured', 'feedGenerated', 'honesty'];
 const MEASURED_KEYS = ['tvlUsd', 'vol24hUsd', 'feeAprPct', 'tier', 'window'];
 const AGENT_KEYS = ['poolKey', 'tickLower', 'tickUpper', 'minOuts', 'expectedGainBps'];
 
@@ -312,6 +312,7 @@ test('per-tier class badges match each book (row, spine, card, badge — §1 con
   const badgeByTier = { PAYS: 'badge--pays', HOOK: 'badge--hook', DEAD: 'badge--dead' };
   const wordByTier = { PAYS: 'PAYS-LPS', HOOK: 'HOOK-MONETIZED', DEAD: 'DEAD' };
   let hookSeen = 0;
+  let oursSeen = 0;
   for (const b of feed.books) {
     const row = rows.get(b.poolId);
     const card = cards.get(b.poolId);
@@ -320,21 +321,40 @@ test('per-tier class badges match each book (row, spine, card, badge — §1 con
     const lower = String(b.tier).toLowerCase();
     assert.strictEqual(row.getAttribute('data-tier'), b.tier, 'data-tier attribute is the tier');
     assert.ok(classTokens(row).indexOf('ft-row--' + lower) !== -1, 'row carries the tier modifier');
-    assert.ok(collect(row, '.ft-spine--' + lower).length === 1, 'the spine carries the tier modifier');
     assert.ok(classTokens(card).indexOf('fleet-card--' + lower) !== -1, 'card carries the tier modifier');
-    const badge = collect(card, '.fc-badge')[0];
-    assert.ok(classTokens(badge).indexOf(badgeByTier[b.tier]) !== -1, 'badge class matches the tier');
-    assert.ok(badge.textContent.indexOf(wordByTier[b.tier]) === 0, 'badge text names the tier classification');
+    if (b.ours) {
+      // 2026-10-01: the capital EXISTS — the anchor renders the protocol
+      // identity (amber spine, is-protocol, OURS badge) and never borrows a
+      // tier flag; the measured classification stays visible in badge text.
+      oursSeen += 1;
+      assert.strictEqual(collect(row, '.ft-spine--protocol').length, 1, 'the OURS spine is the protocol modifier');
+      assert.strictEqual(collect(row, '.ft-spine--' + lower).length, 0, 'an OURS book never borrows the tier spine');
+      assert.ok(classTokens(row).indexOf('is-protocol') !== -1, 'the OURS row carries is-protocol');
+      assert.ok(classTokens(card).indexOf('is-protocol') !== -1, 'the OURS card carries is-protocol');
+      const pbadge = collect(card, '.fc-badge')[0];
+      assert.ok(classTokens(pbadge).indexOf('badge--protocol') !== -1, 'the OURS badge is the protocol badge');
+      assert.ok(pbadge.textContent.indexOf('OURS · ') === 0, 'the OURS badge leads with OURS');
+      assert.ok(pbadge.textContent.indexOf(wordByTier[b.tier]) !== -1, 'the OURS badge still names the measured classification');
+    } else {
+      assert.ok(collect(row, '.ft-spine--' + lower).length === 1, 'the spine carries the tier modifier');
+      assert.strictEqual(classTokens(row).indexOf('is-protocol'), -1, 'no protocol class without capital (per-book)');
+      assert.strictEqual(collect(row, '.ft-spine--protocol').length, 0, 'no protocol spine without capital (per-book)');
+      const badge = collect(card, '.fc-badge')[0];
+      assert.ok(classTokens(badge).indexOf(badgeByTier[b.tier]) !== -1, 'badge class matches the tier');
+      assert.ok(badge.textContent.indexOf(wordByTier[b.tier]) === 0, 'badge text names the tier classification');
+    }
     if (b.tier === 'HOOK') { hookSeen += 1; }
   }
   assert.ok(hookSeen > 0, 'the feed carries hook books (the badge rule is exercised, not vacuous)');
-  // the OURS badge is data-driven and the feed carries zero of them today —
-  // no protocol class may pre-exist the capital (WS5-OURS census is 0)
-  assert.strictEqual(feed.summary.ours, 0);
+  assert.ok(oursSeen > 0, 'the feed carries the OURS anchor (the protocol path is exercised, not vacuous)');
+  // 2026-10-01: the census is ONE — the USDG/ETH anchor (P3 vaultDeploy 2026-09-15).
+  // The badge is data-driven; the amber identity exists only on that book's row.
+  assert.strictEqual(feed.summary.ours, 1, 'exactly one OURS book — the anchor');
+  let protocolRows = 0;
   for (const r of renderedRows()) {
-    assert.strictEqual(classTokens(r).indexOf('is-protocol'), -1, 'no protocol row pre-exists the capital');
-    assert.strictEqual(collect(r, '.ft-spine--protocol').length, 0, 'no protocol spine pre-exists the capital');
+    if (classTokens(r).indexOf('is-protocol') !== -1) { protocolRows += 1; }
   }
+  assert.strictEqual(protocolRows, 1, 'exactly one protocol row on the surface — the anchor');
 });
 
 test('the §2 HOOK rule: hook-scope books show fee APR 0.0%; measured PAYS books show their own figure; figures the feed lacks stay —', () => {
@@ -469,7 +489,7 @@ test('the copy contract: build(book) is pure and byte-exact — five agent keys 
     for (const k of AGENT_KEYS) {
       assert.ok(k in obj, 'the §4 agent key ' + k + ' is present even when the feed lacks it');
     }
-    assert.strictEqual(obj.v, 1);
+    assert.strictEqual(obj.v, 2);
     assert.strictEqual(obj.protocol, 'wellstreet');
     assert.strictEqual(obj.chainId, 4663);
     assert.strictEqual(obj.action, 'mirror-position');
@@ -485,6 +505,11 @@ test('the copy contract: build(book) is pure and byte-exact — five agent keys 
     assert.strictEqual(obj.measured.tvlUsd, (typeof b.tvlUsd === 'number' && isFinite(b.tvlUsd)) ? b.tvlUsd : null);
     assert.strictEqual(obj.measured.vol24hUsd, (typeof b.vol24hUsd === 'number' && isFinite(b.vol24hUsd)) ? b.vol24hUsd : null);
     assert.strictEqual(obj.measured.feeAprPct, (typeof b.feeAprPct === 'number' && isFinite(b.feeAprPct)) ? b.feeAprPct : null);
+    // v2 feedGenerated (2026-10-01): the harness loads fleet.js but never feed data,
+    // so provenance() is null here — assert the ORDER-INDEPENDENT contract instead of
+    // pinning a value: null (feed absent) or an ISO date stamp (feed loaded).
+    assert.ok(obj.feedGenerated === null || /^\d{4}-\d{2}-\d{2}$/.test(obj.feedGenerated),
+      'feedGenerated is null (feed absent) or an ISO date stamp — never a guessed date');
     assert.strictEqual(obj.honesty, HONESTY, 'the honesty line is verbatim');
     assert.deepStrictEqual(JSON.parse(JSON.stringify(obj)), obj, 'the object round-trips JSON verbatim');
     assert.deepStrictEqual(copyPosition.serialize(b), JSON.stringify(obj, null, 2), 'the serialization is the pretty form');

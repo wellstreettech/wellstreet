@@ -1,9 +1,9 @@
 {
   "books": [
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 128,
-      "note": "charged-fee wavg 10990.0 bps over 14 swaps (window a)",
+      "note": "charged-fee wavg 109.9 bps over 14 swaps (window a)",
       "ours": null,
       "pair": "PACK/MU",
       "paysNothingToLps": false,
@@ -37,9 +37,9 @@
       "vol24hUsd": 2613524
     },
     {
-      "chargedFeeBps": 100.0,
+      "chargedFeeBps": 1.0,
       "feeAprPct": 17,
-      "note": "charged-fee wavg 100.0 bps over 518 swaps (window a)",
+      "note": "charged-fee wavg 1.0 bps over 518 swaps (window a)",
       "ours": null,
       "pair": "USDG/WETH",
       "paysNothingToLps": false,
@@ -49,9 +49,9 @@
       "vol24hUsd": 444353
     },
     {
-      "chargedFeeBps": 40960.0,
+      "chargedFeeBps": 409.6,
       "feeAprPct": 1467,
-      "note": "charged-fee wavg 40960.0 bps over 68 swaps (window a)",
+      "note": "charged-fee wavg 409.6 bps over 68 swaps (window a)",
       "ours": null,
       "pair": "ROBLOXIANS/USDG",
       "paysNothingToLps": false,
@@ -85,9 +85,9 @@
       "vol24hUsd": 187
     },
     {
-      "chargedFeeBps": 114.0,
+      "chargedFeeBps": 1.14,
       "feeAprPct": 143,
-      "note": "charged-fee wavg 114.0 bps over 5359 swaps (window a)",
+      "note": "charged-fee wavg 1.14 bps over 5359 swaps (window a)",
       "ours": null,
       "pair": "USDG/ETH",
       "paysNothingToLps": false,
@@ -109,9 +109,9 @@
       "vol24hUsd": 167
     },
     {
-      "chargedFeeBps": 125.0,
+      "chargedFeeBps": 1.25,
       "feeAprPct": 447,
-      "note": "charged-fee wavg 125.0 bps over 10126 swaps (window b)",
+      "note": "charged-fee wavg 1.25 bps over 10126 swaps (window b)",
       "ours": null,
       "pair": "USDG/ETH",
       "paysNothingToLps": false,
@@ -133,9 +133,9 @@
       "vol24hUsd": 199053
     },
     {
-      "chargedFeeBps": 475.0,
+      "chargedFeeBps": 4.75,
       "feeAprPct": 42,
-      "note": "charged-fee wavg 475.0 bps over 20 swaps (window a)",
+      "note": "charged-fee wavg 4.75 bps over 20 swaps (window a)",
       "ours": null,
       "pair": "PACK/ETH",
       "paysNothingToLps": false,
@@ -157,9 +157,9 @@
       "vol24hUsd": 437722
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 28,
-      "note": "charged-fee wavg 625.0 bps over 632 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
+      "note": "charged-fee wavg 6.25 bps over 632 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
       "ours": null,
       "pair": "SPY-GOOGL 0.05% (Merkl-only)",
       "paysNothingToLps": false,
@@ -217,9 +217,9 @@
       "vol24hUsd": 1498524
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 102,
-      "note": "charged-fee wavg 625.0 bps over 512 swaps (window a)",
+      "note": "charged-fee wavg 6.25 bps over 512 swaps (window a)",
       "ours": null,
       "pair": "USDG/ETH",
       "paysNothingToLps": false,
@@ -241,9 +241,9 @@
       "vol24hUsd": 232412
     },
     {
-      "chargedFeeBps": 40927.0,
+      "chargedFeeBps": 409.27,
       "feeAprPct": 1355,
-      "note": "charged-fee wavg 40927.0 bps over 10 swaps (window a)",
+      "note": "charged-fee wavg 409.27 bps over 10 swaps (window a)",
       "ours": null,
       "pair": "PACK/USDG",
       "paysNothingToLps": false,
@@ -277,9 +277,9 @@
       "vol24hUsd": 141056
     },
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 315,
-      "note": "charged-fee wavg 10990.0 bps over 25 swaps (window a)",
+      "note": "charged-fee wavg 109.9 bps over 25 swaps (window a)",
       "ours": null,
       "pair": "PACK/NVDA",
       "paysNothingToLps": false,
@@ -301,9 +301,9 @@
       "vol24hUsd": 23512468
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 113,
-      "note": "charged-fee wavg 625.0 bps over 1115 swaps (window a)",
+      "note": "charged-fee wavg 6.25 bps over 1115 swaps (window a)",
       "ours": null,
       "pair": "SPY/TSM",
       "paysNothingToLps": false,
@@ -313,9 +313,9 @@
       "vol24hUsd": 2684703
     },
     {
-      "chargedFeeBps": 1193.0,
+      "chargedFeeBps": 11.93,
       "feeAprPct": 21,
-      "note": "charged-fee wavg 1193.0 bps over 363 swaps (window a)",
+      "note": "charged-fee wavg 11.93 bps over 363 swaps (window a)",
       "ours": null,
       "pair": "SPY/ETH",
       "paysNothingToLps": false,
@@ -325,9 +325,9 @@
       "vol24hUsd": 175332
     },
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 392,
-      "note": "charged-fee wavg 10990.0 bps over 47 swaps (window a)",
+      "note": "charged-fee wavg 109.9 bps over 47 swaps (window a)",
       "ours": null,
       "pair": "PACK/PONS",
       "paysNothingToLps": false,
@@ -337,9 +337,9 @@
       "vol24hUsd": 39475
     },
     {
-      "chargedFeeBps": 577.0,
+      "chargedFeeBps": 5.77,
       "feeAprPct": 199,
-      "note": "charged-fee wavg 577.0 bps over 4692 swaps (window b)",
+      "note": "charged-fee wavg 5.77 bps over 4692 swaps (window b)",
       "ours": null,
       "pair": "USDG/ETH",
       "paysNothingToLps": false,
@@ -373,9 +373,9 @@
       "vol24hUsd": 3
     },
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 108,
-      "note": "charged-fee wavg 10990.0 bps over 11 swaps (window a)",
+      "note": "charged-fee wavg 109.9 bps over 11 swaps (window a)",
       "ours": null,
       "pair": "PACK/MSFT",
       "paysNothingToLps": false,
@@ -433,9 +433,9 @@
       "vol24hUsd": 47792
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 145,
-      "note": "charged-fee wavg 625.0 bps over 387 swaps (window a)",
+      "note": "charged-fee wavg 6.25 bps over 387 swaps (window a)",
       "ours": null,
       "pair": "SPY/HIMS",
       "paysNothingToLps": false,
@@ -457,9 +457,9 @@
       "vol24hUsd": 1000
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 38,
-      "note": "charged-fee wavg 625.0 bps over 1537 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
+      "note": "charged-fee wavg 6.25 bps over 1537 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
       "ours": null,
       "pair": "SPY-AMZN 0.05% (Merkl-only)",
       "paysNothingToLps": false,
@@ -469,9 +469,9 @@
       "vol24hUsd": null
     },
     {
-      "chargedFeeBps": 1000.0,
+      "chargedFeeBps": 10.0,
       "feeAprPct": 88,
-      "note": "charged-fee wavg 1000.0 bps over 339 swaps (window a)",
+      "note": "charged-fee wavg 10.0 bps over 339 swaps (window a)",
       "ours": null,
       "pair": "OOF/RBLX",
       "paysNothingToLps": false,
@@ -493,9 +493,9 @@
       "vol24hUsd": 227561
     },
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 1718,
-      "note": "charged-fee wavg 10990.0 bps over 13 swaps (window a)",
+      "note": "charged-fee wavg 109.9 bps over 13 swaps (window a)",
       "ours": null,
       "pair": "THROBBIN/PACK",
       "paysNothingToLps": false,
@@ -505,9 +505,9 @@
       "vol24hUsd": 57627
     },
     {
-      "chargedFeeBps": 1000.0,
+      "chargedFeeBps": 10.0,
       "feeAprPct": 33,
-      "note": "charged-fee wavg 1000.0 bps over 12 swaps (window a)",
+      "note": "charged-fee wavg 10.0 bps over 12 swaps (window a)",
       "ours": null,
       "pair": "ROBUX/RBLX",
       "paysNothingToLps": false,
@@ -517,9 +517,9 @@
       "vol24hUsd": 60584
     },
     {
-      "chargedFeeBps": 500.0,
+      "chargedFeeBps": 5.0,
       "feeAprPct": 3,
-      "note": "charged-fee wavg 500.0 bps over 113 swaps (window a)",
+      "note": "charged-fee wavg 5.0 bps over 113 swaps (window a)",
       "ours": null,
       "pair": "WTH/WETH",
       "paysNothingToLps": false,
@@ -541,9 +541,9 @@
       "vol24hUsd": 391681
     },
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 329,
-      "note": "charged-fee wavg 10990.0 bps over 17 swaps (window a)",
+      "note": "charged-fee wavg 109.9 bps over 17 swaps (window a)",
       "ours": null,
       "pair": "SPY/ETH",
       "paysNothingToLps": false,
@@ -565,9 +565,9 @@
       "vol24hUsd": 169339
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 96,
-      "note": "charged-fee wavg 625.0 bps over 1065 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
+      "note": "charged-fee wavg 6.25 bps over 1065 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
       "ours": null,
       "pair": "SPY-INTC 0.05% (Merkl-only)",
       "paysNothingToLps": false,
@@ -577,9 +577,9 @@
       "vol24hUsd": null
     },
     {
-      "chargedFeeBps": 252.0,
+      "chargedFeeBps": 2.52,
       "feeAprPct": 257,
-      "note": "charged-fee wavg 252.0 bps over 2909 swaps (window b)",
+      "note": "charged-fee wavg 2.52 bps over 2909 swaps (window b)",
       "ours": null,
       "pair": "USDG/WETH",
       "paysNothingToLps": false,
@@ -589,9 +589,9 @@
       "vol24hUsd": 10571975
     },
     {
-      "chargedFeeBps": 25.0,
+      "chargedFeeBps": 0.25,
       "feeAprPct": 12,
-      "note": "charged-fee wavg 25.0 bps over 1864 swaps (window a)",
+      "note": "charged-fee wavg 0.25 bps over 1864 swaps (window a)",
       "ours": null,
       "pair": "USDG/ETH",
       "paysNothingToLps": false,
@@ -601,9 +601,9 @@
       "vol24hUsd": 2091760
     },
     {
-      "chargedFeeBps": 350.0,
+      "chargedFeeBps": 3.5,
       "feeAprPct": 31,
-      "note": "charged-fee wavg 350.0 bps over 1051 swaps (window a)",
+      "note": "charged-fee wavg 3.5 bps over 1051 swaps (window a)",
       "ours": null,
       "pair": "SPY/USDG",
       "paysNothingToLps": false,
@@ -625,9 +625,9 @@
       "vol24hUsd": 116447
     },
     {
-      "chargedFeeBps": 252.0,
+      "chargedFeeBps": 2.52,
       "feeAprPct": 861,
-      "note": "charged-fee wavg 252.0 bps over 1675 swaps (window a)",
+      "note": "charged-fee wavg 2.52 bps over 1675 swaps (window a)",
       "ours": null,
       "pair": "USDG/ETH",
       "paysNothingToLps": false,
@@ -637,9 +637,9 @@
       "vol24hUsd": 1062517
     },
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 94,
-      "note": "charged-fee wavg 10990.0 bps over 3 swaps (window c)",
+      "note": "charged-fee wavg 109.9 bps over 3 swaps (window c)",
       "ours": null,
       "pair": "RBLX/USDG",
       "paysNothingToLps": false,
@@ -661,9 +661,9 @@
       "vol24hUsd": 113183
     },
     {
-      "chargedFeeBps": 3343.0,
+      "chargedFeeBps": 33.43,
       "feeAprPct": 231,
-      "note": "charged-fee wavg 3343.0 bps over 16 swaps (window a)",
+      "note": "charged-fee wavg 33.43 bps over 16 swaps (window a)",
       "ours": null,
       "pair": "RBLX/USDG",
       "paysNothingToLps": false,
@@ -673,9 +673,9 @@
       "vol24hUsd": 67120
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 60,
-      "note": "charged-fee wavg 625.0 bps over 727 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
+      "note": "charged-fee wavg 6.25 bps over 727 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
       "ours": null,
       "pair": "SPY-COIN 0.05% (Merkl-only)",
       "paysNothingToLps": false,
@@ -685,9 +685,9 @@
       "vol24hUsd": null
     },
     {
-      "chargedFeeBps": 350.0,
+      "chargedFeeBps": 3.5,
       "feeAprPct": 22,
-      "note": "charged-fee wavg 350.0 bps over 115 swaps (window a)",
+      "note": "charged-fee wavg 3.5 bps over 115 swaps (window a)",
       "ours": null,
       "pair": "SPY/NVDA",
       "paysNothingToLps": false,
@@ -697,9 +697,9 @@
       "vol24hUsd": 15000
     },
     {
-      "chargedFeeBps": 9991.0,
+      "chargedFeeBps": 99.91,
       "feeAprPct": 10008,
-      "note": "charged-fee wavg 9991.0 bps over 250 swaps (window a)",
+      "note": "charged-fee wavg 99.91 bps over 250 swaps (window a)",
       "ours": null,
       "pair": "ROBLOXIANS/USDG",
       "paysNothingToLps": false,
@@ -709,9 +709,9 @@
       "vol24hUsd": 325865
     },
     {
-      "chargedFeeBps": 50950.0,
+      "chargedFeeBps": 509.5,
       "feeAprPct": 380,
-      "note": "charged-fee wavg 50950.0 bps over 8 swaps (window a)",
+      "note": "charged-fee wavg 509.5 bps over 8 swaps (window a)",
       "ours": null,
       "pair": "SPY/ETH",
       "paysNothingToLps": false,
@@ -721,9 +721,9 @@
       "vol24hUsd": 5272
     },
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 873,
-      "note": "charged-fee wavg 10990.0 bps over 37 swaps (window a)",
+      "note": "charged-fee wavg 109.9 bps over 37 swaps (window a)",
       "ours": null,
       "pair": "PACK/CASHCAT",
       "paysNothingToLps": false,
@@ -745,9 +745,9 @@
       "vol24hUsd": 215971
     },
     {
-      "chargedFeeBps": 20881.0,
+      "chargedFeeBps": 208.81,
       "feeAprPct": 1028,
-      "note": "charged-fee wavg 20881.0 bps over 12 swaps (window a)",
+      "note": "charged-fee wavg 208.81 bps over 12 swaps (window a)",
       "ours": null,
       "pair": "PACK/USDG",
       "paysNothingToLps": false,
@@ -757,9 +757,9 @@
       "vol24hUsd": 11486
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 58,
-      "note": "charged-fee wavg 625.0 bps over 773 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
+      "note": "charged-fee wavg 6.25 bps over 773 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
       "ours": null,
       "pair": "SPY-TSLA 0.05% (Merkl-only)",
       "paysNothingToLps": false,
@@ -781,9 +781,9 @@
       "vol24hUsd": 702510
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 45,
-      "note": "charged-fee wavg 625.0 bps over 1708 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
+      "note": "charged-fee wavg 6.25 bps over 1708 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
       "ours": null,
       "pair": "SPY-MSFT 0.05% (Merkl-only)",
       "paysNothingToLps": false,
@@ -793,9 +793,9 @@
       "vol24hUsd": null
     },
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 167,
-      "note": "charged-fee wavg 10990.0 bps over 20 swaps (window a)",
+      "note": "charged-fee wavg 109.9 bps over 20 swaps (window a)",
       "ours": null,
       "pair": "PACK/AAPL",
       "paysNothingToLps": false,
@@ -817,9 +817,9 @@
       "vol24hUsd": 129455
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 87,
-      "note": "charged-fee wavg 625.0 bps over 916 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
+      "note": "charged-fee wavg 6.25 bps over 916 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
       "ours": null,
       "pair": "SPY-PLTR 0.05% (Merkl-only)",
       "paysNothingToLps": false,
@@ -829,10 +829,14 @@
       "vol24hUsd": null
     },
     {
-      "chargedFeeBps": 1057.0,
+      "chargedFeeBps": 10.57,
       "feeAprPct": 165,
-      "note": "charged-fee wavg 1057.0 bps over 1488 swaps (window a); fee wavg from the 05 prose (truncated dist)",
-      "ours": null,
+      "note": "charged-fee wavg 10.57 bps over 1488 swaps (window a); fee wavg from the 05 prose (truncated dist)",
+      "ours": {
+        "note": "RoamVault protocol seed — the vault's deployed book",
+        "pair": "USDG/ETH",
+        "status": "LIVE"
+      },
       "pair": "USDG/ETH",
       "paysNothingToLps": false,
       "poolId": "0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551",
@@ -841,9 +845,9 @@
       "vol24hUsd": 33781298
     },
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 255,
-      "note": "charged-fee wavg 10990.0 bps over 19 swaps (window a)",
+      "note": "charged-fee wavg 109.9 bps over 19 swaps (window a)",
       "ours": null,
       "pair": "PACK/TENDIES",
       "paysNothingToLps": false,
@@ -853,9 +857,9 @@
       "vol24hUsd": 7305
     },
     {
-      "chargedFeeBps": 50851.0,
+      "chargedFeeBps": 508.51,
       "feeAprPct": 118,
-      "note": "charged-fee wavg 50851.0 bps over 3 swaps (window a)",
+      "note": "charged-fee wavg 508.51 bps over 3 swaps (window a)",
       "ours": null,
       "pair": "RBLX/ETH",
       "paysNothingToLps": false,
@@ -865,9 +869,9 @@
       "vol24hUsd": 392
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 30,
-      "note": "charged-fee wavg 625.0 bps over 570 swaps (window a)",
+      "note": "charged-fee wavg 6.25 bps over 570 swaps (window a)",
       "ours": null,
       "pair": "SPY/NVDA",
       "paysNothingToLps": false,
@@ -889,9 +893,9 @@
       "vol24hUsd": 900204
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 176,
-      "note": "charged-fee wavg 625.0 bps over 406 swaps (window a)",
+      "note": "charged-fee wavg 6.25 bps over 406 swaps (window a)",
       "ours": null,
       "pair": "SPY/MU",
       "paysNothingToLps": false,
@@ -937,9 +941,9 @@
       "vol24hUsd": 1056
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 46,
-      "note": "charged-fee wavg 625.0 bps over 318 swaps (window a)",
+      "note": "charged-fee wavg 6.25 bps over 318 swaps (window a)",
       "ours": null,
       "pair": "SPY/USDG",
       "paysNothingToLps": false,
@@ -949,9 +953,9 @@
       "vol24hUsd": 1710804
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 50,
-      "note": "charged-fee wavg 625.0 bps over 1293 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
+      "note": "charged-fee wavg 6.25 bps over 1293 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
       "ours": null,
       "pair": "SPY-META 0.05% (Merkl-only)",
       "paysNothingToLps": false,
@@ -961,9 +965,9 @@
       "vol24hUsd": null
     },
     {
-      "chargedFeeBps": 45356.0,
+      "chargedFeeBps": 453.56,
       "feeAprPct": null,
-      "note": "charged-fee wavg 45356.0 bps over 3 swaps (window a); no APR figure in source",
+      "note": "charged-fee wavg 453.56 bps over 3 swaps (window a); no APR figure in source",
       "ours": null,
       "pair": "ROBLOXIANS/USDG",
       "paysNothingToLps": false,
@@ -973,9 +977,9 @@
       "vol24hUsd": 19702
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 96,
-      "note": "charged-fee wavg 625.0 bps over 2441 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
+      "note": "charged-fee wavg 6.25 bps over 2441 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
       "ours": null,
       "pair": "SPY-AMD 0.05% (Merkl-only)",
       "paysNothingToLps": false,
@@ -997,7 +1001,7 @@
       "vol24hUsd": 86
     },
     {
-      "chargedFeeBps": 30000.0,
+      "chargedFeeBps": 300.0,
       "feeAprPct": 0,
       "note": "fees flow to the hook — LP earns 0 (window a)",
       "ours": null,
@@ -1009,9 +1013,9 @@
       "vol24hUsd": 1449
     },
     {
-      "chargedFeeBps": 103.82586162218192,
+      "chargedFeeBps": 1.0382586162218193,
       "feeAprPct": 516,
-      "note": "charged-fee wavg 103.82586162218192 bps over 7718 swaps (window a)",
+      "note": "charged-fee wavg 1.0382586162218193 bps over 7718 swaps (window a)",
       "ours": null,
       "pair": "USDG/ETH",
       "paysNothingToLps": false,
@@ -1021,9 +1025,9 @@
       "vol24hUsd": 1899052
     },
     {
-      "chargedFeeBps": 625.0,
+      "chargedFeeBps": 6.25,
       "feeAprPct": 21,
-      "note": "charged-fee wavg 625.0 bps over 2644 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
+      "note": "charged-fee wavg 6.25 bps over 2644 swaps (window d); fixture vol24h is a measured $/day flow, not volume",
       "ours": null,
       "pair": "SPY-QQQ 0.05% (Merkl-only)",
       "paysNothingToLps": false,
@@ -1033,9 +1037,9 @@
       "vol24hUsd": null
     },
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 337,
-      "note": "charged-fee wavg 10990.0 bps over 14 swaps (window a)",
+      "note": "charged-fee wavg 109.9 bps over 14 swaps (window a)",
       "ours": null,
       "pair": "PACK/SPCX",
       "paysNothingToLps": false,
@@ -1045,9 +1049,9 @@
       "vol24hUsd": 9911
     },
     {
-      "chargedFeeBps": 1193.0,
+      "chargedFeeBps": 11.93,
       "feeAprPct": 912,
-      "note": "charged-fee wavg 1193.0 bps over 648 swaps (window a)",
+      "note": "charged-fee wavg 11.93 bps over 648 swaps (window a)",
       "ours": null,
       "pair": "RBLX/USDG",
       "paysNothingToLps": false,
@@ -1081,9 +1085,9 @@
       "vol24hUsd": 491181
     },
     {
-      "chargedFeeBps": 3499.0,
+      "chargedFeeBps": 34.99,
       "feeAprPct": 83,
-      "note": "charged-fee wavg 3499.0 bps over 2982 swaps (window a)",
+      "note": "charged-fee wavg 34.99 bps over 2982 swaps (window a)",
       "ours": null,
       "pair": "SPY/USDG",
       "paysNothingToLps": false,
@@ -1093,9 +1097,9 @@
       "vol24hUsd": 4173959
     },
     {
-      "chargedFeeBps": 10990.0,
+      "chargedFeeBps": 109.9,
       "feeAprPct": 106,
-      "note": "charged-fee wavg 10990.0 bps over 14 swaps (window a)",
+      "note": "charged-fee wavg 109.9 bps over 14 swaps (window a)",
       "ours": null,
       "pair": "PACK/AMD",
       "paysNothingToLps": false,
@@ -1117,9 +1121,9 @@
       "vol24hUsd": 412248
     },
     {
-      "chargedFeeBps": 25975.0,
+      "chargedFeeBps": 259.75,
       "feeAprPct": 562,
-      "note": "charged-fee wavg 25975.0 bps over 9 swaps (window a)",
+      "note": "charged-fee wavg 259.75 bps over 9 swaps (window a)",
       "ours": null,
       "pair": "PACK/ETH",
       "paysNothingToLps": false,
@@ -1129,9 +1133,9 @@
       "vol24hUsd": 4831
     },
     {
-      "chargedFeeBps": 50950.0,
+      "chargedFeeBps": 509.5,
       "feeAprPct": 2328,
-      "note": "charged-fee wavg 50950.0 bps over 58 swaps (window a)",
+      "note": "charged-fee wavg 509.5 bps over 58 swaps (window a)",
       "ours": null,
       "pair": "RBLX/ETH",
       "paysNothingToLps": false,
@@ -1142,8 +1146,9 @@
     }
   ],
   "provenance": {
-    "generated": "2026-09-07",
-    "method": "feeAprPct prefers the fixture's measured APR-M run-rate, else its formula APR-F (locked formula on DexScreener vol24h); chargedFeeBps is the fixture's swap-count-weighted mean of the charged-fee dist; zero-swap books are never estimated",
+    "corpusDate": "2026-09-04",
+    "generated": "2026-10-01",
+    "method": "feeAprPct prefers the fixture's measured APR-M run-rate, else its formula APR-F (locked formula on DexScreener vol24h); chargedFeeBps is the fixture's swap-count-weighted mean of the charged-fee dist, quoted in true bps (the raw v4 fee param is 100x this value); zero-swap books are never estimated",
     "source": "docs/ops/roam_policy_fixture.json",
     "window": "the 05 win key (a=100k blocks/2.81h, b=4×25k/2.81h, c=500k/14.05h, d=300k/8.42h; 05 §2 header)."
   },
@@ -1151,7 +1156,7 @@
     "books": 95,
     "dead": 15,
     "hookMonetized": 24,
-    "ours": 0,
+    "ours": 1,
     "paysLps": 56
   }
 }

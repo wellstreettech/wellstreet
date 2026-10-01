@@ -13,6 +13,10 @@
  *   - build(book) is PURE and returns null for anything that is not a book
  *     with a string poolId — never a fabricated skeleton, never a guessed
  *     figure; every value the feed lacks stays null;
+ *   - feedGenerated (v2, 2026-10-01) is the feed's build stamp read through
+ *     WS.fleet.provenance() — null when the feed is not in memory (pre-load
+ *     pages, standalone harnesses); the read is read-only, no other
+ *     cross-module state is touched;
  *   - the five §4 agent keys (poolKey, tickLower, tickUpper, minOuts,
  *     expectedGainBps) are ALWAYS present, null when the feed lacks them —
  *     the consuming agent skill parses them by name;
@@ -81,16 +85,32 @@ removal stays timer-based so reduced motion can never strand the node.
     return m ? m[1] : null;
   }
 
+  // v2 field (2026-10-01): the feed's build stamp, read through the data layer's
+  // own provenance accessor. Fail-closed: null whenever the feed is not loaded
+  // in memory (pre-load pages, standalone harnesses) — never a guessed date.
+  function feedGenerated() {
+    try {
+      var f = fleet();
+      var p = (f && typeof f.provenance === 'function') ? f.provenance() : null;
+      return strOrNull(p && p.generated);
+    } catch (err) {
+      return null;
+    }
+  }
+
   // ------------------------------------------------------------------
-  // build(book) — PURE: no DOM, no clipboard, no module state. §3's
-  // byte-exact key order; the five §4 agent keys always present.
+  // build(book) — PURE: no DOM, no clipboard, no writes. §3's byte-exact
+  // key order; the five §4 agent keys always present. v2: the ONE read is
+  // WS.fleet.provenance().generated (feedGenerated — fail-closed null when
+  // the feed is absent; the test harnesses run standalone, so they see
+  // null); no other cross-module state is touched.
   // ------------------------------------------------------------------
   function build(book) {
     if (!book || typeof book !== 'object' || typeof book.poolId !== 'string' || !book.poolId) {
       return null; // fail-closed: no book, no object — never a fabricated skeleton
     }
     return {
-      v: 1,
+      v: 2,
       protocol: 'wellstreet',
       chainId: CHAIN_ID,
       action: 'mirror-position',
@@ -108,6 +128,7 @@ removal stays timer-based so reduced motion can never strand the node.
         tier: strOrNull(book.tier),
         window: noteWindow(book)
       },
+      feedGenerated: feedGenerated(),
       honesty: HONESTY
     };
   }

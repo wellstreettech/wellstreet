@@ -31,16 +31,24 @@ MAX_BYTES = 40960  # goal gate: payload must stay <= 40KB
 
 # OURS — the poolIds where OUR capital actually sits (WS5-OURS closeout,
 # 2026-09-07, user directive: the badge is about capital placement, not the
-# flagship's host pool). Keyed by poolId; EMPTY TODAY because $WELL is not
-# deployed (it launches on Pons later — the WELL/ETH-vs-WETH pair is decided at
-# the launch step; the graduated book's poolId is read from the launch tx and
-# added here; the POL roamer books join the same list as S1 seeds them). When a
-# poolId is added, the page badges that row OURS with its measured window — no
-# different code path. build() REJECTS any entry whose poolId is not a live book
-# (a typo can never mint a phantom badge).
+# flagship's host pool). Keyed by poolId. First entry 2026-10-01: the USDG/ETH
+# anchor — the roamer's deployed book (P3 vaultDeploy 2026-09-15). The $WELL
+# graduated book joins when it exists (poolId read from the launch tx); the POL
+# roamer books join as S1 seeds them. When a poolId is added, the page badges
+# that row OURS with its measured window — no different code path. build()
+# REJECTS any entry whose poolId is not a live book (a typo can never mint a
+# phantom badge).
 OURS_STATUSES = {"LIVE", "SEEDED", "WINDING-DOWN"}
 OURS = {
-    # "0x<poolId>": {"pair": "WELL/ETH", "status": "LIVE", "note": "our seeded LP"},
+    # The USDG/ETH anchor book — the roamer's first deployment. RoamVault holds
+    # the protocol's USDG and vaultDeploy()ed 9.5M of its 12.47M into this book
+    # (P3, 2026-09-15); the position is live and accruing. Status flips only when
+    # the capital moves (exitBook / wind-down).
+    "0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551": {
+        "pair": "USDG/ETH",
+        "status": "LIVE",
+        "note": "RoamVault protocol seed — the vault's deployed book",
+    },
 }
 
 TIER_BY_CLASS = {
@@ -52,8 +60,8 @@ TIER_BY_CLASS = {
 METHOD_ONE_LINER = (
     "feeAprPct prefers the fixture's measured APR-M run-rate, else its formula APR-F"
     " (locked formula on DexScreener vol24h); chargedFeeBps is the fixture's"
-    " swap-count-weighted mean of the charged-fee dist; zero-swap books are never"
-    " estimated"
+    " swap-count-weighted mean of the charged-fee dist, quoted in true bps (the raw"
+    " v4 fee param is 100x this value); zero-swap books are never estimated"
 )
 
 
@@ -83,8 +91,9 @@ def note_for(row, tier):
     elif tier == "DEAD":
         note = "no swaps in the measured window — no fee stream"
     else:
+        fee_wavg = row.get("fee_wavg")
         note = "charged-fee wavg %s bps over %s swaps" % (
-            row.get("fee_wavg"),
+            None if fee_wavg is None else fee_wavg / 100,  # true bps; the raw v4 fee param is 100x
             row.get("swaps"),
         )
     note += window_note(row)
@@ -123,6 +132,11 @@ def book_entry(row, windowed):
     # NOT volume — emitting it as vol24hUsd would mislabel the quantity. Null it.
     merkl_flow = row.get("vol24h_source") == "meas-flow-day-05"
 
+    # Fee-units fix (2026-10-01): the fixture's fee_wavg is the RAW v4 fee param
+    # (hundredths of a bip). Emit true bps — "1057 bps" was a 100x label lie; the
+    # mirror's feeTierBps and the table's fee chips both read this field.
+    fee_wavg = row.get("fee_wavg")
+
     return {
         "pair": row["book"],
         "tier": tier,
@@ -130,7 +144,7 @@ def book_entry(row, windowed):
         "feeAprPct": fee_apr,
         "tvlUsd": row.get("tvl"),
         "vol24hUsd": None if merkl_flow else row.get("vol24h"),
-        "chargedFeeBps": row.get("fee_wavg"),
+        "chargedFeeBps": None if fee_wavg is None else fee_wavg / 100,
         "paysNothingToLps": pays_nothing_to_lps(tier),
         "note": note_for(row, tier),
     }
@@ -141,6 +155,21 @@ def build():
     rows = fixture.get("books") or []
     if not rows:
         raise SystemExit("build_fleet_data: fixture carries no books")
+
+    # corpusDate — the frozen fixture's own measurement date, stamped into
+    # provenance so consumers can state the corpus age honestly. Fixture-derived
+    # (static), so the determinism contract is untouched.
+    corpus_date = fixture.get("corpus_date")
+    if not (
+        isinstance(corpus_date, str)
+        and len(corpus_date) == 10
+        and corpus_date[4] == "-"
+        and corpus_date[7] == "-"
+    ):
+        raise SystemExit(
+            "build_fleet_data: fixture corpus_date missing or not an ISO date —"
+            " refusing to stamp provenance"
+        )
 
     pool_ids = [r.get("poolId") for r in rows]
     if any(not pid or not isinstance(pid, str) for pid in pool_ids):
@@ -173,6 +202,7 @@ def build():
             "source": SOURCE_LABEL,
             "method": METHOD_ONE_LINER,
             "window": legend if windowed else UNWINDOWED,
+            "corpusDate": corpus_date,
         },
         "summary": {
             "books": len(books),

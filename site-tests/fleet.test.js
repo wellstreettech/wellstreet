@@ -68,6 +68,11 @@ test('feed parses; provenance pins the fixture source, a one-line method, an ISO
   assert.strictEqual(feed.provenance.source, 'docs/ops/roam_policy_fixture.json');
   assert.ok(typeof feed.provenance.method === 'string' && feed.provenance.method.length > 0);
   assert.match(feed.provenance.generated, /^\d{4}-\d{2}-\d{2}$/);
+  // corpusDate (2026-10-01): the honest corpus-age signal — the frozen fixture's
+  // own measurement date, verbatim from the fixture, never a build-time guess.
+  assert.match(feed.provenance.corpusDate, /^\d{4}-\d{2}-\d{2}$/);
+  assert.strictEqual(feed.provenance.corpusDate, fixture.corpus_date,
+    'corpusDate must be the fixture\'s own corpus_date, verbatim');
   const clause = fixtureWindowClause(fixture);
   if (clause === null) {
     assert.strictEqual(feed.provenance.window, 'unwindowed — do not quote as current');
@@ -143,7 +148,9 @@ test('no fabrication: every pinned field of every book is the verbatim 1:1 join 
     assert.strictEqual(b.feeAprPct, sourceAprPct(row));
     assert.strictEqual(b.tvlUsd, row.tvl !== undefined && row.tvl !== null ? row.tvl : null);
     assert.strictEqual(b.vol24hUsd, expectedVol24h(row));
-    assert.strictEqual(b.chargedFeeBps, row.fee_wavg !== undefined && row.fee_wavg !== null ? row.fee_wavg : null);
+    // fee-units fix (2026-10-01): the fixture's fee_wavg is the RAW v4 fee param
+    // (hundredths of a bip); the feed emits TRUE bps — the builder divides by 100.
+    assert.strictEqual(b.chargedFeeBps, row.fee_wavg !== undefined && row.fee_wavg !== null ? row.fee_wavg / 100 : null);
     assert.strictEqual(b.paysNothingToLps, expectedPaysNothing(TIER_BY_CLASS[row['class']]));
     assert.ok(typeof b.note === 'string' && b.note.length > 0);
   }
@@ -349,7 +356,9 @@ test('determinism: the builder run twice is byte-identical, "generated" appears 
 // labels as every other figure. These pins keep that promise honest:
 // (1) shape: every book carries the `ours` key (null or {pair,status,...});
 //     statuses are the closed vocabulary; summary.ours is the census.
-// (2) TODAY: the census is ZERO — no badge may pre-exist the capital.
+// (2) TODAY (2026-10-01): the census is ONE — the USDG/ETH anchor, the roamer's
+//     deployed book (P3 vaultDeploy 2026-09-15). The $WELL graduated book joins
+//     at launch; no badge may pre-exist the capital it names.
 // (3) the accessor fails closed and is per-book.
 // (4) teeth: a phantom poolId or an unknown status ABORTS the builder (executed
 //     against source-patched copies with ROOT pinned to this repo — the guards
@@ -369,7 +378,20 @@ test('WS5-OURS: every book carries the ours key; status vocabulary closed; censu
   }
   const count = feed.books.filter((b) => b.ours !== null).length;
   assert.strictEqual(feed.summary.ours, count, 'summary.ours must equal the tagged-book census');
-  assert.strictEqual(feed.summary.ours, 0, 'today: $WELL is not deployed — no OURS badge may pre-exist the capital');
+  assert.strictEqual(feed.summary.ours, 1,
+    '2026-10-01: exactly one OURS book — the anchor (the $WELL graduated book joins at launch)');
+  const tagged = feed.books.filter((b) => b.ours !== null);
+  assert.deepStrictEqual(
+    tagged.map((b) => b.poolId),
+    ['0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551'],
+    'the tagged poolId is the anchor book, verbatim'
+  );
+  for (const b of tagged) {
+    assert.strictEqual(b.ours.status, 'LIVE');
+    assert.strictEqual(b.ours.pair, 'USDG/ETH');
+    assert.strictEqual(typeof b.ours.note, 'string');
+    assert.ok(b.ours.note.length > 0, 'ours.note is a non-empty string');
+  }
 });
 
 test('WS5-OURS: fleet.isOurs fails closed pre-load and per-book after', async () => {

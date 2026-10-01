@@ -769,12 +769,12 @@ test('FLEET-UI-V2 G4 rider: WS.copyPosition.build emits the §3 contract byte-ex
   const obj = global.WS.copyPosition.build(book);
   assert.deepStrictEqual(Object.keys(obj), [
     'v', 'protocol', 'chainId', 'action', 'poolKey', 'pair', 'feeTierBps',
-    'tickLower', 'tickUpper', 'minOuts', 'expectedGainBps', 'measured', 'honesty'
+    'tickLower', 'tickUpper', 'minOuts', 'expectedGainBps', 'measured', 'feedGenerated', 'honesty'
   ], 'the §3 key order is byte-exact');
   for (const k of ['poolKey', 'tickLower', 'tickUpper', 'minOuts', 'expectedGainBps']) {
     assert.ok(k in obj, 'the §4 agent key ' + k + ' is present even when the feed lacks it');
   }
-  assert.strictEqual(obj.v, 1);
+  assert.strictEqual(obj.v, 2);
   assert.strictEqual(obj.protocol, 'wellstreet');
   assert.strictEqual(obj.chainId, 4663);
   assert.strictEqual(obj.action, 'mirror-position');
@@ -787,6 +787,11 @@ test('FLEET-UI-V2 G4 rider: WS.copyPosition.build emits the §3 contract byte-ex
   assert.deepStrictEqual(obj.measured, {
     tvlUsd: 12831, vol24hUsd: 4092, feeAprPct: 128, tier: 'PAYS', window: 'a'
   });
+  // v2 feedGenerated (2026-10-01): ORDER-INDEPENDENT — the harness may or may not
+  // have feed data in memory, so pin the shape, not a value: null (feed absent)
+  // or an ISO date stamp (feed loaded). Never a guessed date.
+  assert.ok(obj.feedGenerated === null || /^\d{4}-\d{2}-\d{2}$/.test(obj.feedGenerated),
+    'feedGenerated is null (feed absent) or an ISO date stamp');
   assert.strictEqual(obj.honesty,
     'ticks/minOuts/expectedGain not in the fleet feed — null until measured; verify on-chain');
   assert.deepStrictEqual(JSON.parse(JSON.stringify(obj)), obj, 'the object round-trips JSON verbatim');

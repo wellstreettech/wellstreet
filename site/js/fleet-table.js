@@ -150,7 +150,11 @@
   function feeChipText(b) {
     var v = b ? b.chargedFeeBps : null;
     if (typeof v !== 'number' || !isFinite(v)) { return '—'; }
-    return String(Math.round((v / 100) * 100) / 100) + '%';
+    // chargedFeeBps is TRUE bps since the 2026-10-01 units fix (the builder now
+    // divides the raw v4 fee param by 100) — the ÷100 below turns bps into %.
+    // parseFloat(toFixed(4)) keeps sub-bip precision: 0.1057 stays "0.1057%",
+    // never rounded up to "0.11%" or collapsed to "0%".
+    return parseFloat((v / 100).toFixed(4)) + '%';
   }
   // the APR cell's title tooltip: the full provenance window clause + source
   // (+ method — §2: one measured-preferred figure per row, and the tooltip
