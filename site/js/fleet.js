@@ -148,10 +148,11 @@
     };
   }
 
-  // WS5-OURS (2026-09-07): is this book one where OUR capital sits? Returns the
-  // status word ('LIVE'|'SEEDED'|'WINDING-DOWN') or null. Data-driven — empty
-  // today ($WELL not yet deployed); the badge appears the day the poolId is
-  // added to the builder's OURS map. Fail-closed: null before a successful load.
+  // WS5-OURS (2026-09-07, first OURS book live 2026-10-01): is this book one
+  // where OUR capital sits? Returns the status word ('LIVE'|'SEEDED'|
+  // 'WINDING-DOWN') or null. Data-driven — the builder tags books from its
+  // OURS map; the USDG/ETH anchor (RoamVault protocol seed) ships as the
+  // single ours-marked book. Fail-closed: null before a successful load.
   function isOurs(book) {
     if (!state.loaded || state.failed) return null;
     return (book && book.ours && typeof book.ours.status === 'string') ? book.ours.status : null;
