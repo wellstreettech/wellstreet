@@ -1,0 +1,5238 @@
+{
+ "meta": {
+  "generatedAt": "2026-10-04T18:07:05Z",
+  "note": "additive companion to docs/ops/v4_fee_screen.json (FROZEN, md5 92c54bd870d72fb4dc1d9a6b586ef650)",
+  "dangerFlagRule": "fork low-14-bit mask (GOAL_WELLSTREET_V4_HARVESTER_2026-09-04.md:68): returnsDeltas=bits3/2 (0xC), touchesLiquidityRemoval=bits9/8 (0x300), setsDynamicFee=bit7 (0x80), touchesAddLiquidity=bits11/10 (0xC00), donate=bits5/4 (0x30)",
+  "codePresence": "codeless = eth_getCode probed empty in the 1,154-hook census (0 probe errors); unprobed = not probed \u2014 never inferred from mask or address",
+  "sweepDoc": "VIBE repo: docs/research/RH_HOOK_MINING_SWEEP_2026-10-04.md",
+  "rawBankNote": "raw census/work banks were session-local scratch (ephemeral); the sweep doc is the durable record of method, findings and ideas ledger"
+ },
+ "pools": {
+  "0x85103491628101aacde36f641d0daf6e4d18dd7c4aae2235492fb0993c91f8ae": {
+   "hook": "0x000000000000000000000000000000000002a620",
+   "mask": "0x2620",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2681
+  },
+  "0x3395f4aa622c9f49df2678f4d1f6c33e08b9aab0ea83b321d48cab24e184b178": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd6a48",
+   "mask": "0x2a48",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 8
+  },
+  "0xc68a65061d89420316b024832fadc204b539e35e66a9c34c7caaeb9635e0c745": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd2970",
+   "mask": "0x2970",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 13
+  },
+  "0x32c55fe443bb9083413aaea84183c5de86c6c06d28f60101ab9ba6895ac87949": {
+   "hook": "0x0000000000000000000000000000000000031da8",
+   "mask": "0x1da8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2869
+  },
+  "0x47c0946c18362d831c80ba59b7e38679582b402f8b8f0ebd536f80cbd0ce01ef": {
+   "hook": "0x000000000000000000000000000000000002a620",
+   "mask": "0x2620",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2681
+  },
+  "0x9778f5077fc67ee3fc4490e0eb0472a4061c5150e733007e52fde9f033e6cfe7": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdd8e8",
+   "mask": "0x18e8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe886c4965fab4156e5d242398b842ef8a05f501f25c1decd2c804edc84d21992": {
+   "hook": "0x0000000000000000000000000000000000022880",
+   "mask": "0x2880",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 4
+  },
+  "0xd3f6094181f2e7211c8bc0805d6f8ed17fb4299d652dd8985a68693fb6c7b1c9": {
+   "hook": "0x0000000000000000000000000000000000025978",
+   "mask": "0x1978",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xc8ec817528eb14bcdec25e2ce23e385e1c1b60a72e44b81c1a6e2f374045b7ec": {
+   "hook": "0x0000000000000000000000000000000000029108",
+   "mask": "0x1108",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 3
+  },
+  "0xe996ddf16295433e8eb3deb87bfaaab5ce311ef4c80e11b30e6742dbe0ad264a": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe4a98",
+   "mask": "0xa98",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 41
+  },
+  "0x40b78aa71f97f9a8d095448484645e4159473424f110fb66b66fff16ae3280dc": {
+   "hook": "0x000000000000000000000000000000000002b366",
+   "mask": "0x3366",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2928
+  },
+  "0x77090fcafa7b599a5da61c0fea877d12035fea34d7548421564dc9712da7bcc7": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd57c8",
+   "mask": "0x17c8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 75
+  },
+  "0x6c9a248454abfe0088ce1304706cac6be2bd13ec3b06e183021e39184d7cd6b9": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd8270",
+   "mask": "0x270",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 3
+  },
+  "0xafeca386a0cf3b6df4ad9c202b8de61e82ea3b188492b44e23bb0541ee50a21c": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffc8b05",
+   "mask": "0xb05",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xc57f5a4c9f894e4cbdd4c92205884609afce8b6daa612e8fa5a4106c8f81d6d4": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcf9f6",
+   "mask": "0x39f6",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xdbfe1fb19b26625d6daa64e821e905109803d7d139eef905ccde0cc8baac1b2a": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffbc258",
+   "mask": "0x258",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x69f4b74a34d1d8ac6a2ac520ee3567af67fca9017a68b5ee150c46c450ff6d10": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcf9f0",
+   "mask": "0x39f0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2
+  },
+  "0x5fb47dfbcae6f0068c9b37d1564b540c18819ef4e53d38a54498360161a1cec2": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcae25",
+   "mask": "0x2e25",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xc59eaeda6d1a6f031bc7e1d039772f2d675e7b4de2c8668610f4471bd60b3802": {
+   "hook": "0x0000000000000000000000000000000000036d63",
+   "mask": "0x2d63",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x24edd1d48826ed6bf47800536c719cc502ae69fde98870eb033eab4b94f81a13": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcf9e1",
+   "mask": "0x39e1",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x4ff64a5b656a219ce716b4a915a76942a50646bbce85e433896d9b59b730b0b0": {
+   "hook": "0x00000000000000000000000000000000000328b1",
+   "mask": "0x28b1",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2
+  },
+  "0x2262ecc47bf34b66b1daf6b4f15f454389155899f0312c9daacc94d595487192": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcf9f2",
+   "mask": "0x39f2",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x343ad9bf0d3f78d0d5ceb5ee3114b4c8a255e08ce4ac33d0d6d0491edd3b7524": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffeeb4a",
+   "mask": "0x2b4a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x3393ef4fba1516b84064c6a1303f2661fbcc76dede9c9db4b0e611405a11cbf3": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcfa11",
+   "mask": "0x3a11",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x737993739b332acbe1cf26541cdce47bd8cd7c4a055fa80e00b61cc4aa143131": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcfa23",
+   "mask": "0x3a23",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf96bfc079790c0231d95892d60432196a211a2439c5998fa63d419a6a551fea9": {
+   "hook": "0x00000000000000000000000000000000000362b0",
+   "mask": "0x22b0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x5ec737b3a50792713ef9d2b5dafc2b7ac3818b360731fb34b059334a141f17a6": {
+   "hook": "0x0000000000000000000000000000000000010667",
+   "mask": "0x667",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x7b1c4469fbc25827332bcf7a4c273fcbb5d60815c03e5844c74feb51c2313cc7": {
+   "hook": "0xffffffffffffffffffffffffffffffffffffc60d",
+   "mask": "0x60d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xc2211a92a2a0680384dc7deb0ff111eb2718111c4b792a8444f21cdfee46441e": {
+   "hook": "0x00000000000000000000000000000000000305a2",
+   "mask": "0x5a2",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 6476
+  },
+  "0x925ecc2a2476c6c7acd2fc218384198899873a35a1313e844ad498aeb4f731f7": {
+   "hook": "0x000000000000000000000000000000000003281f",
+   "mask": "0x281f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x400410889d03c0b918003d1bb7b74b71d793fc05f4b2dd7f55baa3e441040c6f": {
+   "hook": "0x000000000000000000000000000000000002c628",
+   "mask": "0x628",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 16
+  },
+  "0xfb1405b46232c8eaecd2c9276d20c46d2d50fa2b192915cf411cabf37c712cac": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcfa47",
+   "mask": "0x3a47",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x23723301208705187a00c89d02915708380b53816fce968e994e14f3b6e49d18": {
+   "hook": "0x0000000000000000000000000000000000032844",
+   "mask": "0x2844",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf2d75d1b16b7e56a1615f2e0254e9febcfe9ad1937e1037695c6642484b45fa4": {
+   "hook": "0x0000000000000000000000000000000000032859",
+   "mask": "0x2859",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xec88624484c94ff5e9692c28dc38efcb1f9e0556c3f7e8fac7ee94ddfc6a08e6": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffeea97",
+   "mask": "0x2a97",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xbc1881b0061e099077a9d2ad762e3dfd328f82578cb2acd6853f1691c60f32b7": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcfa42",
+   "mask": "0x3a42",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe5b9112909fde74416b44bb2169bb89870a1363e9897151a90126aa8e140d54f": {
+   "hook": "0x00000000000000000000000000000000000355ca",
+   "mask": "0x15ca",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xb54f7bb4824aed9c82e49b81c18ae66a3ca64d6ec3ba1eac8cea471e1d38fb3b": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd1778",
+   "mask": "0x1778",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 11
+  },
+  "0x5b624a2dd426739e85a3dae8993a139c03d0e8cce8a0f95536b24603a795ec84": {
+   "hook": "0x0000000000000000000000000000000000031f38",
+   "mask": "0x1f38",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 401
+  },
+  "0xd21af3ac46618748442a0a55c7e3471f8c82bb1e06a03d95f15a54b659c46c6e": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffbc631",
+   "mask": "0x631",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf7c7def9e044cc31b0e8640aae7e2b35e99c42f94d1c655275e2d59ac98059e2": {
+   "hook": "0xffffffffffffffffffffffffffffffffffff2918",
+   "mask": "0x2918",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xec5a642cb17dd215bf2bea2e711f96c16697497bdc80136dc609509ecc9107aa": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcfa6b",
+   "mask": "0x3a6b",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf1dbf5a472c5394e33fea5bb7f309fe693099a6b7b40115ab73c905b8a62f298": {
+   "hook": "0x000000000000000000000000000000000002c878",
+   "mask": "0x878",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 21
+  },
+  "0x2cfb39459018f3612fe1c2948a4a389be3cd9d229292473254d100d9a14dccb8": {
+   "hook": "0x000000000000000000000000000000000002dd86",
+   "mask": "0x1d86",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 199
+  },
+  "0xf9bf5011c89d04637c0d747a1f99f3940d1f001c4e30eacd33dd03a49f5fb0f9": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcfa55",
+   "mask": "0x3a55",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xd5a812869187b08e6fe4c98a2756302c3dcf94b4f53d92255e258624d85799f3": {
+   "hook": "0x000000000000000000000000000000000001cdb0",
+   "mask": "0xdb0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 19
+  },
+  "0xf4c6abf880088ad47d750f68cea6d30a627d6ac5161bae6120668f9f60da3b6f": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcfa5f",
+   "mask": "0x3a5f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x4411595a8a650502c59606bacfd6fe6fea7da4e54a6976e14be6e5c44e18a2ae": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcad72",
+   "mask": "0x2d72",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 3
+  },
+  "0x8c0ffe56d1e01d34023faaa11e024228b8cb96d83efdefc4946c9d2944086e31": {
+   "hook": "0x00000000000000000000000000000000000328b8",
+   "mask": "0x28b8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xec750a4cb4485c8a6602c08fac228ab126e8fec60c9236b74817c7af7cdd9e60": {
+   "hook": "0x0000000000000000000000000000000000004d1d",
+   "mask": "0xd1d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xb17167d38b55a66a5c116c647e0139cbe26610a1d207d4051aceeccf3495d2c7": {
+   "hook": "0x000000000000000000000000000000000002b8a1",
+   "mask": "0x38a1",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 4
+  },
+  "0x8548ab4a2bb8940ced0097c30b5df0b57436be320a0049c620ffb4e58250b0d4": {
+   "hook": "0x0000000000000000000000000000000000004863",
+   "mask": "0x863",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x29c2d316acd9d5cb1b7df19b33d13522f6805804dcfc6c5679b1c9ebd43f9ee9": {
+   "hook": "0x000000000000000000000000000000000005c355",
+   "mask": "0x355",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 499
+  },
+  "0x42c67ba72f6063442b3687507efb4e5a4aebd3fd33390b5bd44717fad4186702": {
+   "hook": "0x000000000000000000000000000000000002e38c",
+   "mask": "0x238c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 36
+  },
+  "0x5c2e02d92f27aa5c81416b2b0cce231af4f6b05edf557828e7edcb0ffa71d166": {
+   "hook": "0x000000000000000000000000000000000002d19f",
+   "mask": "0x119f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x9d58e01587ffa377ef3b11e33c0ba105995d1a6996ef008fae83cb456237b0dd": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcfa0e",
+   "mask": "0x3a0e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xc80b9ee3eb64242741cea80fb41a0a22eafa2dd2d0e87bef6f234350ae38fde8": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd2db2",
+   "mask": "0x2db2",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x60e16b188c735d122903f1770ebf71b9ee7ec66e13fb1c6b7fd5b0400315bc25": {
+   "hook": "0x000000000000000000000000000000000002b366",
+   "mask": "0x3366",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2928
+  },
+  "0x7e69995b94958a06f9b79564eacd5540e47bc8339347f2932a0817dc2add7325": {
+   "hook": "0x0000000000000000000000000000000000026779",
+   "mask": "0x2779",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 21
+  },
+  "0xc90fd0247fa6ec3d1049b29734e73eb8a7a51a66890abe6fda8c113ca4d54c2d": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd4af0",
+   "mask": "0xaf0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2
+  },
+  "0xd6a4975f5e9ad2141013cdce822d6861d178914b9bf413f9f8dce7f5f4e7476f": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdd790",
+   "mask": "0x1790",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x646241b00ea25b77d9da1460a7d87cfaf74edfeba6c27fdd99786f0df47e3a6a": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd8fd0",
+   "mask": "0xfd0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 5
+  },
+  "0xda9a53c8dd8893984541d25e2ad90a1ba186132f4e63b5f107a9a7f6ecd6eb2b": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffc99b0",
+   "mask": "0x19b0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xcb535a46eba573738f59e4f235e9b09256e27b81dd1be6efbd1ddd7699b65f17": {
+   "hook": "0x00000000000000000000000000000000000328dc",
+   "mask": "0x28dc",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2
+  },
+  "0xa821726cc99561e321390b1148b49209bf1cffb7917d8fa79d49ed991a0d1092": {
+   "hook": "0x0000000000000000000000000000000000028bf0",
+   "mask": "0xbf0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 34
+  },
+  "0xabed0bb6a0280f7b7c347d614e88127c565519d2f2f3945489cbd14ddfe5e6fd": {
+   "hook": "0x0000000000000000000000000000000000004a98",
+   "mask": "0xa98",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x6f2bd10903500f211867f4742ff8a78dd0f8213c1aef7cdfb95a1669b78f76ef": {
+   "hook": "0x0000000000000000000000000000000000033c79",
+   "mask": "0x3c79",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 3
+  },
+  "0xe1a70a92f17f4fba316ec50696ef3c9acc870139a9a3e11b1a442942dbfb37fb": {
+   "hook": "0x00000000000000000000000000000000000355d2",
+   "mask": "0x15d2",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x372b7260ba17ea1f68f359abd2ce0b904c904e5c65a2a505d72c2573434ac6a9": {
+   "hook": "0x000000000000000000000000000000000002b366",
+   "mask": "0x3366",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2928
+  },
+  "0x17c2e85d0030f9c0b5d9f1ee9b10068df2eadaba110db313cd8f651b16820e53": {
+   "hook": "0x0000000000000000000000000000000000004c91",
+   "mask": "0xc91",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xfad1472a3bf9bbecc0abed3790849e3f1b4bb271c13ec642e42801e89a13e7b2": {
+   "hook": "0x00000000000000000000000000000000000057b4",
+   "mask": "0x17b4",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xff30dfa51556d1deb90bc0bf14e08c21e66fed91b418c0444be54038d88bb613": {
+   "hook": "0xffffffffffffffffffffffffffffffffffff27fe",
+   "mask": "0x27fe",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xd57fd46717fbb787062d9a8571f40a707fbbfc0b3d6ecdfb3a85b03d7b4a447f": {
+   "hook": "0x0000000000000000000000000000000000036b4e",
+   "mask": "0x2b4e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x1f9be4f09c3d5fa79ab4701f9ba221c8ebb6402ee8615ae305ec33714bf83a34": {
+   "hook": "0x0000000000000000000000000000000000004d4f",
+   "mask": "0xd4f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x39efd1ebee687cb3a08be945450c98ee6645382c036465b18cc1afe6f68a18e1": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffc8c45",
+   "mask": "0xc45",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xc3660cd3aa6225b91dd8c47d9deb6f597da7d87b4ea7d1256d29c5180cba9ea7": {
+   "hook": "0x0000000000000000000000000000000000034689",
+   "mask": "0x689",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xc8151e4add0f437d153904724613705599eb92b0630d3742cd778b6c10e4d156": {
+   "hook": "0x0000000000000000000000000000000000004fbd",
+   "mask": "0xfbd",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe0fa6c24b04ed2bbf96be82a9dfe81464f0922ea50815c24e2022e64ace80f00": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffa3caa",
+   "mask": "0x3caa",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 319
+  },
+  "0xf52e4159c9ba4f21665900c68280b5a785c6445bc625a9d4bfe3c062d4b1518d": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd8fd0",
+   "mask": "0xfd0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 5
+  },
+  "0xc7b28b68bfc4f77b154bba0bd2500f388da575c87298aa5f1fcf403d18ab7fc0": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe152f",
+   "mask": "0x152f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x19158cf952bc48329af2489ad571daf5b211014b4793f2389964029618776bc8": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe5a9c",
+   "mask": "0x1a9c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf287d4f8e192e5a983d0182801a8ebcffcc3dbfa73e66895275ab30eaa3ff222": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffed4ba",
+   "mask": "0x14ba",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x28d16ad9513fb4c8d875d15ede356e35eac7d272f855815e763d335efdc627f6": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe78ba",
+   "mask": "0x38ba",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x8fb2ca56e41977e10278ba740c4ecd73d0e5bceb56a881d95e99fc4979911755": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe3918",
+   "mask": "0x3918",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x40af09ce36eef7f911ba5223edc6cff3d0a3adbdbd12dbd86fcc879fe440c4f5": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe0fcd",
+   "mask": "0xfcd",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x1bed2d27ead09db55df895e7e61004c54516ec388fe7846d25271845382c47f4": {
+   "hook": "0x000000000000000000000000000000000005c355",
+   "mask": "0x355",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 499
+  },
+  "0x3c087ca4f0f555eaec91c58839e5b19e157dc96eedacc214bdc4b192df6fbfd1": {
+   "hook": "0x000000000000000000000000000000000002a573",
+   "mask": "0x2573",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 4
+  },
+  "0x08478973b0bb40aebb511711f6ce1243ccf97024957ba2033084975502bcf95a": {
+   "hook": "0x000000000000000000000000000000000005c355",
+   "mask": "0x355",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 499
+  },
+  "0x669ca990559399a607f24b508c62af2fc6c5442572481152b825786d0c82a451": {
+   "hook": "0x000000000000000000000000000000000002d84f",
+   "mask": "0x184f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 66
+  },
+  "0xbccda7f9d83db6a032a4f45d07a888b24b5f59cc81a44974dcb80ad526d34f7d": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcae06",
+   "mask": "0x2e06",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x14744696ca0d363a52648b77cf88aa3542cc4a8379d0f52260d4cb55e9419acd": {
+   "hook": "0x00000000000000000000000000000000000047b4",
+   "mask": "0x7b4",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x3ee7a201318a8b5dfeafdb8a6d1e80d8a1909858d9d2ce10c79ea3b315731f32": {
+   "hook": "0xffffffffffffffffffffffffffffffffffffd49c",
+   "mask": "0x149c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x6100864e7533584e15139f1b9de0b83d27e906f824041a1b0126ece4f4a8a553": {
+   "hook": "0x00000000000000000000000000000000000057a9",
+   "mask": "0x17a9",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xcc4b39bc36c85ec2e94ce17042fc96d059844684bbc205718726a26be2c9ceaf": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0xab2d3fd9de67feae608e7609ba6a0395e91518a80cbbba43d9da181978678571": {
+   "hook": "0x0000000000000000000000000000000000029368",
+   "mask": "0x1368",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x5033219abd6d6da826f067b9fad6db4660be63b3d2ace7b8d9b48ca762aeb75e": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffec12c",
+   "mask": "0x12c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xf93f4501a3daffe8675af5c667d217e0fc52f2baf8bdb5f799f4bd4cb2e2f9d0": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe707d",
+   "mask": "0x307d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x2f7cd1197110016e013f1b5d6528ed8cbce07d13cec11a439ae76c7d8e252ebd": {
+   "hook": "0x00000000000000000000000000000000000576f7",
+   "mask": "0x36f7",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x61c4bca0a159666e6f668a03e2ff0ab5836a388975120601f430447fb2fdeba0": {
+   "hook": "0x000000000000000000000000000000000005c355",
+   "mask": "0x355",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 499
+  },
+  "0x53182a9b198f25786f8671278e52fb19a4d6dcb715107887a04d70c5f7cf82b2": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x78b4d755c5bfa404969f6f52a88b283c38a9d78e1c895f9cf89222b113920562": {
+   "hook": "0x000000000000000000000000000000000001660a",
+   "mask": "0x260a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xefc94885c96b02696b9b45de43eeeb8ac53c0199cab42b4daae4911b96fb8825": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffca1d5",
+   "mask": "0x21d5",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x18750a6e2af00ef3ae60b4daaaa492e94ef29b88294211465c0ed363cd7e1534": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x29a9f241f8299f80d4fc533fee32e97a10b4b5d39d52f6b6376e1b596ab2cad3": {
+   "hook": "0x000000000000000000000000000000000005c355",
+   "mask": "0x355",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 499
+  },
+  "0x07fb72458a3ada3d5b2b9569268b7710d807eec601bcf6e1eb03d9dca71503a5": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdd7b0",
+   "mask": "0x17b0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x377cf7f15286516cad2c4ffb433ffa18e58b6c24fab9840c4d6e994ba9f0026f": {
+   "hook": "0x0000000000000000000000000000000000022720",
+   "mask": "0x2720",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x0c519df1d986359c487ef7211f5662f3da14de7a1f64f3df10cf983dcfd8495c": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdf9eb",
+   "mask": "0x39eb",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 7
+  },
+  "0x3b0cbf0603ecc67b5fc9bb4fbb6ac9e08d3b2f406b63d1662a36063a7fe5e866": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcf981",
+   "mask": "0x3981",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xe0fb1922ec2b77f23f0d36d77addb1b701bc7e390ab12b695af616cb66e741a3": {
+   "hook": "0x0000000000000000000000000000000000039e53",
+   "mask": "0x1e53",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 4
+  },
+  "0x106aaadb0ac74f88113fca63e0fe4864998d75947fe9c93101c1b7546f482310": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdf9eb",
+   "mask": "0x39eb",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 7
+  },
+  "0xd4c4ee44266ab50c33a1ed5947b70999ef47da2a1b11c9c3d306ccae61e2b846": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffc9a78",
+   "mask": "0x1a78",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x9788011914cb8dfe477bcd29718ee099470b7b8055b3aaef473657dc6c3ea70c": {
+   "hook": "0x000000000000000000000000000000000003626c",
+   "mask": "0x226c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x71b0cbfe4d8cdbbf1b33c4206a9be59a1af341bafa90fdc4c9cc389e4c383e2a": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x2ad5c27b258ba6a9283b5f44efda1e4a2e0886656a89b239761637fb5b931870": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffc8c3a",
+   "mask": "0xc3a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xec55cbe1f376ecd43f9166e7b70a90bc9e7609ec8a5e95a47de2a95562f4b153": {
+   "hook": "0x0000000000000000000000000000000000026779",
+   "mask": "0x2779",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 21
+  },
+  "0x881b4219078c86ac3a3930a6c229c2c846209fe9b4f0b8671772d42e2a799796": {
+   "hook": "0x0000000000000000000000000000000000002519",
+   "mask": "0x2519",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xccfb091b972af7401af998548f9409adcec3822adc4c10f925a367d2e876bf52": {
+   "hook": "0x0000000000000000000000000000000000004b24",
+   "mask": "0xb24",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x7123b1e28b35a9ea4c3575efef37dbe14a8aa8fdb13bfb1f24ccad7287868ed4": {
+   "hook": "0x000000000000000000000000000000000000422a",
+   "mask": "0x22a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xab596028265cf92320a28aa7256a584bfe8fe0547c19d3b0ced4234eae4b43b0": {
+   "hook": "0x000000000000000000000000000000000000374f",
+   "mask": "0x374f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xfa4ef8d367ae464b6ab7ebed3f11debd00f8d3e34e36ae8fe0a3841e83fa5147": {
+   "hook": "0x0000000000000000000000000000000000004615",
+   "mask": "0x615",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x469ff6d2752194d039710ff990a5fe648374cb95e8a5745f504877d1324952df": {
+   "hook": "0x000000000000000000000000000000000000a002",
+   "mask": "0x2002",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x7c4a0a757037699d106747e21bb2a4eb42754c3d34f6dd6f1095d3ce74764d3e": {
+   "hook": "0x0000000000000000000000000000000000026e94",
+   "mask": "0x2e94",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xc51ae252a2abd9f4656fb082e0601a1efb0610b67af740987e6efab4c89632d1": {
+   "hook": "0x000000000000000000000000000000000002bf20",
+   "mask": "0x3f20",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 50
+  },
+  "0xefcec38281d4cccaf9c9d7da02aff071d3b94d54fa50bb14b8e6b8e74529a16b": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcfab9",
+   "mask": "0x3ab9",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x928a617edf60c8e74ead7256a3a179a4f42a44cdab3a35816df1ce24c11cb72c": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd2650",
+   "mask": "0x2650",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 18
+  },
+  "0x24dfa9d15fecb800aa2c97a6db709bc5384372db320924dc0b158310ac98ed6d": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd810a",
+   "mask": "0x10a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 45
+  },
+  "0xb3877915de5dd76fd091216b42bb25a82260a217bb78168bc31f71d89e814514": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd93d0",
+   "mask": "0x13d0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 10
+  },
+  "0xad09a48d27ce8ea7bbc14d07b77ef6b9d9e7afe01030605e1f7539f492001586": {
+   "hook": "0x00000000000000000000000000000000000064b3",
+   "mask": "0x24b3",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xce0c95fa3ae0a1bde26f85fc6891cfe723ac6d6280f910ff5eeea63574b4b687": {
+   "hook": "0x0000000000000000000000000000000000028da8",
+   "mask": "0xda8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2
+  },
+  "0xc55a12245b50b4e43db8457c6fe546190d9d99f8b73b9ee19bda2464f1ce1e10": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd7a68",
+   "mask": "0x3a68",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 62
+  },
+  "0x7d2c774dd94040dfc276a70ecbc2099de9a4e604041e5eda0aaa6f682e9e867d": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd7a68",
+   "mask": "0x3a68",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 62
+  },
+  "0xd41804e8588586e4c122a2dc7b3e82dd7f4b1b341e3dd085435b32013095af32": {
+   "hook": "0x0000000000000000000000000000000000025500",
+   "mask": "0x1500",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 11
+  },
+  "0x09e67b4805061117b1a87f886a3ed08669a90988a3e76d8f3204c78f1b0b7e81": {
+   "hook": "0x00000000000000000000000000000000000211b0",
+   "mask": "0x11b0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 8
+  },
+  "0xcc0c5e3d2d8e948b0cae13bed839aace866c16a7ac1b366e84eb42922aa2e92b": {
+   "hook": "0x0000000000000000000000000000000000026098",
+   "mask": "0x2098",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 9
+  },
+  "0xa5ee856fd919ef89f6b04c6c483e91333a2856677290d1006ede20ba9b2270f5": {
+   "hook": "0x000000000000000000000000000000000001dca0",
+   "mask": "0x1ca0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x9396496d0ffb536b74db6c6dff19b533562f38ca86b4f609bbd869fee5ad06d2": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd2650",
+   "mask": "0x2650",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 18
+  },
+  "0xd434e890610315a1922bc3f36dba2a3906cfff336c1af2ab821681a9db8fe7a0": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffda62c",
+   "mask": "0x262c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 190
+  },
+  "0x43f8744cd4967a41ed8caf7c5afd3b9c3fa9eb90f03ea7d0bb3f0796043827ab": {
+   "hook": "0x0000000000000000000000000000000000027d8f",
+   "mask": "0x3d8f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 5
+  },
+  "0xeb6a39b580311be2c1db9951f8973cefeb6b77f48151f01bcaf25c50adade5c7": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd8270",
+   "mask": "0x270",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 3
+  },
+  "0xc71002c0b03929f5874f5d83785ecbc1f639de7d9d46ec859e619c26472368b4": {
+   "hook": "0x000000000000000000000000000000000000af7a",
+   "mask": "0x2f7a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xeb5051aaed55c0ac4181a366ccf34c4f1951a8dac7090c4419f4c97e1f284173": {
+   "hook": "0x0000000000000000000000000000000000020b70",
+   "mask": "0xb70",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 7
+  },
+  "0xe8ee0ed3e3ebf3da8a5f8cbf1a9be29c11f6a619c2a41eaaa90a140812cb04e9": {
+   "hook": "0x000000000000000000000000000000000002d5c8",
+   "mask": "0x15c8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 129
+  },
+  "0xe7aec17383e27e6d06b73c3853672d27ac296fdfb512696911768a040a0a7aa2": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd8270",
+   "mask": "0x270",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 3
+  },
+  "0x18949387dc36ebb34158b1139e24079b2662018ac53d0f6fc02dc316238653fd": {
+   "hook": "0x0000000000000000000000000000000000027d8f",
+   "mask": "0x3d8f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 5
+  },
+  "0x91d4ebb0f9ff25eed5faac1f297ff42266db59b76e79d631277c1d09b58fafa9": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdf9eb",
+   "mask": "0x39eb",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 7
+  },
+  "0xff1e45c750af0a96a5841470f4a35f132b1bc64569a208214a90b24a35bf6630": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe34ae",
+   "mask": "0x34ae",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x3a8f4c8831884199a4f0d48ee5de6ad9b437b935fc0ba33dd779a95de8ff9662": {
+   "hook": "0x0000000000000000000000000000000000029260",
+   "mask": "0x1260",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf75b32cb7365495012610c5c9bd7fcabedabf57713f5728d7a26e188fe379eb5": {
+   "hook": "0x000000000000000000000000000000000003b546",
+   "mask": "0x3546",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x3f22f652e20567466ba7503e3e19e6b72aeef1ef84dcf5a0de2a2f5fbd0b4164": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x7e3e5aa9e31ae7ca698655423f9f1655d1dd8558a9ab5824315565d8e669dcd1": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0xf0d9c19962dd5111812c8e9059f07aea3e72bb98f44bf532aaed8883832b20c6": {
+   "hook": "0x000000000000000000000000000000000001afac",
+   "mask": "0x2fac",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x230bc4a0fb5fb7ab27f6e72350dfa3f2489b0cdbaf34f0189d68672086ccb919": {
+   "hook": "0xffffffffffffffffffffffffffffffffffffd91c",
+   "mask": "0x191c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x01ce94a2b9c4cfb5133b75b80bd91e63e158bc208870bd75c345ec48e88e4ece": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd6a08",
+   "mask": "0x2a08",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x08f74041e7e83584da951cb1044fae4e2dbf503cad5ae672ee5ebf9ab84dbe18": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x5a69904bf2839b4e0f3b6d35262111a60a448f39f2d9d93b8935a77a0bc464c7": {
+   "hook": "0x0000000000000000000000000000000000013fc8",
+   "mask": "0x3fc8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x7a2d5bea7c2c04e83733129c5a6c7156eb2dd946b04a9e8a065f6052a8630c23": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe1392",
+   "mask": "0x1392",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xcac90802d4ef31a81ff35881cb4ac264f68ca65384428c9aff8a16533280a33f": {
+   "hook": "0x0000000000000000000000000000000000001728",
+   "mask": "0x1728",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xea1a8080a9dc5c40449554798201fc5f041261dc9fad7276f1af2ebb7fabcb2f": {
+   "hook": "0x000000000000000000000000000000000001e4de",
+   "mask": "0x24de",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x8055fe6b3c4079318536e2d1c13d32bffc82bc554e0a7619b9ed571cd3ba3eb1": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcb410",
+   "mask": "0x3410",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x84a9700e07537eba5b9760ad2d2985d6f2b12154fe5eccb9d1fc605cfa3b01fc": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe626d",
+   "mask": "0x226d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x42ec17dbcfa210a9e5162a093574813c45116b7e0c5015639d70d79ae906310e": {
+   "hook": "0x000000000000000000000000000000000003a98f",
+   "mask": "0x298f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x32d825de31b4f9bb7e0df738fc6ec1e103ebe0574888a36b8dd9a3b53a55a745": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd8f00",
+   "mask": "0xf00",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 31
+  },
+  "0xd801072625f911a198b45ad51a7454d5d37ead5d6fc1e977b468f72cc024d39d": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcb40d",
+   "mask": "0x340d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x0fa73db8532c565f41ec0f65bd3a2a355d5f39080282be5169099a550bad4482": {
+   "hook": "0x000000000000000000000000000000000002aeb8",
+   "mask": "0x2eb8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 16
+  },
+  "0x832c4d453cc7b8363a081a9e5a657cf7503730b0025b2abf78fc446772ab99d2": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdaaff",
+   "mask": "0x2aff",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 7
+  },
+  "0x751e89b1e830a959e282377cf53bacc046ff7d6b67c6209504c3db692992c3cd": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffca1a7",
+   "mask": "0x21a7",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x725a9dee37a1001986397b56da149ca284c5db36ac2c0a8731cfcce79e43a640": {
+   "hook": "0x0000000000000000000000000000000000025500",
+   "mask": "0x1500",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 11
+  },
+  "0xbd02ace15e5830a410aa504b065a31bda1a590af40803d3604a239e0defab71b": {
+   "hook": "0x0000000000000000000000000000000000025500",
+   "mask": "0x1500",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 11
+  },
+  "0x044294a3d2eca1448f93ddfdfdad94f42e5b0a5e78b3b49c97975cf63b583aa1": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffda510",
+   "mask": "0x2510",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 85
+  },
+  "0xbf7fa772f9e6c7a6fe0c30672dbe9a20dde8bef27d5e441fee4f781a6583db5d": {
+   "hook": "0x000000000000000000000000000000000001afcc",
+   "mask": "0x2fcc",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xa54fedd77d5d8509a08f053285cc3faefd142374c6be5d61835083f77e26c423": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x8af6c6aa2e2fe7b7fed2059476e0527b02aa7eb38d75375275c3148e2d07efc0": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x37244da76539b0cc8828d0a732ffc31f03202dea6c43831e595b9431fdb1ceb8": {
+   "hook": "0x0000000000000000000000000000000000017690",
+   "mask": "0x3690",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 4
+  },
+  "0x2180843805e49f2ad9ec44a88229e3b37ad825ca537cc3bdcae20485cada59e4": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcf8b6",
+   "mask": "0x38b6",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 5
+  },
+  "0xe3e198a2899b1e82faf568ce6a08caaf165e70780a08f95341f1f2bb37e40f8f": {
+   "hook": "0x000000000000000000000000000000000002a620",
+   "mask": "0x2620",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2681
+  },
+  "0x4bd41f6b57ec6ceddfac773206e40ca713ea24fe09faf040148d96e595590ae9": {
+   "hook": "0x00000000000000000000000000000000000299a0",
+   "mask": "0x19a0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 9
+  },
+  "0xa7b26f2f7d0fdddbbe626845948f92eb006ff7df732ffc40d59d560453db8c2a": {
+   "hook": "0x000000000000000000000000000000000003b3e9",
+   "mask": "0x33e9",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf807376333cd408c36d48a11a96309b92c5bd2bca9ba9f0b21800636cb3a30da": {
+   "hook": "0x000000000000000000000000000000000003a63e",
+   "mask": "0x263e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x97c257dc1afcb5d1ac23f9b9e11950493775da132cfa97ad7003fb60fcc6b69c": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffbad83",
+   "mask": "0x2d83",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x3fdda0dee43db065437e335789038889c63ca38c9b99475cd8ba2d4266e4033f": {
+   "hook": "0x000000000000000000000000000000000002cf98",
+   "mask": "0xf98",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 4681
+  },
+  "0x1ceb0611b95db35c2385f827681eeb250dcc4fd0f3070d264255bd5c1db029ab": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffb94bb",
+   "mask": "0x14bb",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x297caa7ca7c26aa3a585eeb35004a672ee9655e68b791de28803496f99f68d1e": {
+   "hook": "0x0000000000000000000000000000000000025738",
+   "mask": "0x1738",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 7
+  },
+  "0xc770d330c8b8c7b892975900654bf89ba829e8d6b424140e2b83eb1467b0b951": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd6b23",
+   "mask": "0x2b23",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 5
+  },
+  "0x5cf9e7a7c416d1a1673a013c1bb311a1cf57be2944616949c2dd15e4624a3bff": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffbad7b",
+   "mask": "0x2d7b",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x207e1094c8de7e6037da899d24af752942d2085ce53e6a53ea403d1352953efe": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd8270",
+   "mask": "0x270",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 3
+  },
+  "0x1e3dc92b087f879a21a0f8195297b632c18a319174e7526abc26576234c5c5d1": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffbaaf2",
+   "mask": "0x2af2",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x9b311315d8b99078459800a45a48e59cfec4ba9cecdaa288790d713192b802c0": {
+   "hook": "0x0000000000000000000000000000000000020b70",
+   "mask": "0xb70",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 7
+  },
+  "0x1f7310214aa51b2a935083af4d414c1d73ee772f8283d478e90205ad03da8558": {
+   "hook": "0x0000000000000000000000000000000000020b70",
+   "mask": "0xb70",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 7
+  },
+  "0x64d8b1e1c15d265fb0bffeae3709e17890b7fe4f804d9dc67651a24d90221040": {
+   "hook": "0x0000000000000000000000000000000000028c18",
+   "mask": "0xc18",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x3ec5dbc6dc55f32443ec0be08fd49f35cb53fa3a26fca5f0fcebd88457f6ba08": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd1908",
+   "mask": "0x1908",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 17
+  },
+  "0x92154a16b1dc83181ef891af6b08f14b5779121ff5f73b4afd4a899f077d6c69": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd4d60",
+   "mask": "0xd60",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 11
+  },
+  "0xe18d171259b0e7ba7f8b5ea1247d80d81e93ce84424750e9621201a78bb9685a": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd58f0",
+   "mask": "0x18f0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 5
+  },
+  "0xae8956d431594c626adf61ed9559499218388414a87ccacf196ec0e327c7f9ff": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd72ba",
+   "mask": "0x32ba",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 54
+  },
+  "0x3397921d20f5ea75664f901d8031935d428ee2fe4add835c575c2596c970ef76": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd4d60",
+   "mask": "0xd60",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 11
+  },
+  "0x629a8c7a8d223b17d17fb038432dd71689581f7b82228c9142db8dd3e75e3db3": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x23c73750a43bb363b92e5239cbbedcc774d580e1ba83b16474b35cc56f790a5d": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd90a8",
+   "mask": "0x10a8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 4
+  },
+  "0x234d6fd95269d352da17d8e9b7cd08c06522e699aa879b0d49e93ecdefc743ac": {
+   "hook": "0x0000000000000000000000000000000000027f20",
+   "mask": "0x3f20",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 5
+  },
+  "0x5f4133c22c81ff348131837f35aea342122b39568d2c12d44276ab83cd78dafd": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x90bc884d9160c56dda09c50df090da4a97ab7094d28531416fd9618d66bb7277": {
+   "hook": "0x000000000000000000000000000000000003a61b",
+   "mask": "0x261b",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x9b68cae7f5cbe9ea9f76ce0a5b7b98708b8b88e01141c9518771841f603930a5": {
+   "hook": "0x0000000000000000000000000000000000052c1a",
+   "mask": "0x2c1a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2
+  },
+  "0x146b5d8ecc33a37b179a89f32125bfc183a37d29b529210d32d922ecdd3db2eb": {
+   "hook": "0x0000000000000000000000000000000000036d7d",
+   "mask": "0x2d7d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xb6d0880753dfb9162073669030d37d6a7f0190e5ecb1c64a436f271b3526ba66": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0xcea7bc95161dff672367b72c1d41b7003d8bbf8a74d3ff62f560b7ff91435662": {
+   "hook": "0x0000000000000000000000000000000000022c15",
+   "mask": "0x2c15",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x0b0eb09a630b6316fea9ac556f18024e2a082a8f73d505d45abf82fe29509485": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x0ae68f5042428ecd3566bf7a913c9bfaeac82bc9699e4871df220f6edd61cb72": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x7bbdf0dfe88b325edf2059be7aa9411d42fb25c3dbbcfcd6800b549b63a3b112": {
+   "hook": "0x0000000000000000000000000000000000016403",
+   "mask": "0x2403",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf96ba0a62d77c0b99811613a43a7badd892c2ef0ded74f83a3f7359ccf2c7d79": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x3280b21b63df584e8d4afb8cabd0e031eca1b4f13d64fb06456867b35fd01e07": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0xc057cb737ac2af99fcbe345af9b856c8cd603f67c1a9216649d898147c7d9132": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd6a40",
+   "mask": "0x2a40",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xdaf72ad25a49219177665853a41c10020d63252a3d5bf782cc61373fcc9b6557": {
+   "hook": "0x00000000000000000000000000000000000160e1",
+   "mask": "0x20e1",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xd6eedb73c7b267d26dffb8635d98afc2089d57391b92ee848be4c0a97a35b081": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x05279056e43d15403e87ced8e6c3f30d6389ad39430194c8371aaa7d8c8199a2": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdec10",
+   "mask": "0x2c10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 15
+  },
+  "0x278455ecd640193e8f317fb48a9c51af6e887e50e57790c891da1056ed003ec8": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffda510",
+   "mask": "0x2510",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 85
+  },
+  "0x28a2e992661db8379a7f2cba78a2731d5686d98ad474690b5f2b31963962ad34": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffb31de",
+   "mask": "0x31de",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x1fe133d75e13556276f5cf6e7a141499b201572384b47c7ea45a1b9b6b892731": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd1b60",
+   "mask": "0x1b60",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x1f8a7ff34e0d9342b0af5df8461fe80a5c21b6280c1aacdaf9ee68e8754436b0": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd72ba",
+   "mask": "0x32ba",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 54
+  },
+  "0xcfa7bb34e23a7022c3de3e1618e1ff29cde8f16a76c341eca19d16f928968a3d": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd8ea8",
+   "mask": "0xea8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xc6146d37610c4f2857e8ae3fdd605f17a9f0bcfe9dd31710e16d53545bd392d4": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd72ba",
+   "mask": "0x32ba",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 54
+  },
+  "0xe56db0bb2acc2fe9dec800c63e45cd1433ca05dbba39f97ed85ca5d1002ffe9a": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffba8c6",
+   "mask": "0x28c6",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x3c583a3eaa61213e006aa5f2c194abb3a5ef53e5078da8ca5d28911c487d5f28": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd69d0",
+   "mask": "0x29d0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x1afafd5f8ada72c1d80eb41e2b8fbc993a621f7b732f1f5a9df25691b0b59ffe": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffba78c",
+   "mask": "0x278c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x99acaf1862af2d333064b3957cd7ee9d46e6f44747cd89fd826c1936b5d44ea0": {
+   "hook": "0x000000000000000000000000000000000000a5a0",
+   "mask": "0x25a0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x91e1617a760750dd5811588b19af09e145264c86543df1b439e0109f44534fce": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffc8a69",
+   "mask": "0xa69",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x420c99856fa42b495581bfb704882f0fe3125a27e12a79f8401200e1fadaa9ef": {
+   "hook": "0x0000000000000000000000000000000000036712",
+   "mask": "0x2712",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xa3c5cf4153f2d6ecdc917270e420842197d2fc02e26731afd8e81c7fe9fc724e": {
+   "hook": "0x0000000000000000000000000000000000004eaf",
+   "mask": "0xeaf",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xcd1e3de4922c5e69a7c21bb0b381e3aa31841a0470cebf196bc7d366f2c967bb": {
+   "hook": "0x0000000000000000000000000000000000002583",
+   "mask": "0x2583",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe9defdcd963866d1d1cb7fa7859470a2f452e2a24404254e4b5c480a82584b1e": {
+   "hook": "0x0000000000000000000000000000000000025920",
+   "mask": "0x1920",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 14
+  },
+  "0xc324912da66f45e4287ded4fc59710378eb62777e840c3eb14a7ee6f92ab2f73": {
+   "hook": "0x000000000000000000000000000000000005c355",
+   "mask": "0x355",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 499
+  },
+  "0x401ea3bd447e7e432918be10acd7667036c94604b2e9edd9c687a824765c9b55": {
+   "hook": "0x0000000000000000000000000000000000028597",
+   "mask": "0x597",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 24
+  },
+  "0x34e7c4657937632cbe3181a7aa635b7acb537b05357aff2c5527822082292943": {
+   "hook": "0x0000000000000000000000000000000000014f3e",
+   "mask": "0xf3e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf0bd1330172e5940016ca9c2853fc8a8815dc0823f92855c406c5259734d8216": {
+   "hook": "0x000000000000000000000000000000000000ac52",
+   "mask": "0x2c52",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xcc7044bb44107bdc638fa7cd1a87629cb7ac40006c587ff22a8f5bedb833fbb6": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd4d38",
+   "mask": "0xd38",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x2196d7279117bcb2968392f25009634597d133a3410e7d04aed04891969ce960": {
+   "hook": "0x0000000000000000000000000000000000027ff8",
+   "mask": "0x3ff8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x52ff1dbdfd73a74a45d4402161fa1d5faed2a8a1b91e92c5d47a5f35f49977a4": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd2b00",
+   "mask": "0x2b00",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 12
+  },
+  "0x6933e062afeecc1c66ca0a9d7e269f9bfafb057bdb8f9d971426a977a2385a15": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcb488",
+   "mask": "0x3488",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x9f56da89ef17c8efc526f16872d4b5c3fdfc85f35861f478e9c23c7ab05a652f": {
+   "hook": "0x000000000000000000000000000000000000be40",
+   "mask": "0x3e40",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xa1bb85096e15d26cca05bda378052dd4dccf24527286cf76d9dc51332eba1e79": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd8d18",
+   "mask": "0xd18",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xc3e964117eab96acd7d7552606613889b338ba9e3687ce4e53a2571cca6cd745": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd83ac",
+   "mask": "0x3ac",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x1b31cea0ab55d9f08db1ba7a9dfedddef48e9b7803a0ed39092fb6cd4756ecc2": {
+   "hook": "0x0000000000000000000000000000000000029270",
+   "mask": "0x1270",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xa631292927fdac7705ce17ddf601166b9999cee0a2b7c5c7457edc32046b7d68": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdb608",
+   "mask": "0x3608",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x595f524b2852e801578e351c2d70d866d114976b0dedd2a086066997767e2cfb": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdc728",
+   "mask": "0x728",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x5133dd69760c5fd2ad1d6109dc6429e0a7d6edf2975f81d90afa786a2f99dc56": {
+   "hook": "0x000000000000000000000000000000000003b21c",
+   "mask": "0x321c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xdbb1f9663016a98cb1792480a4433946cf3ba32d0ec00b1be0c9ed46b1bbc45d": {
+   "hook": "0x0000000000000000000000000000000000015337",
+   "mask": "0x1337",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x97b491e8277e24937e4304910e4110c0ef2e2c681e89a97b927708fdf584df09": {
+   "hook": "0x00000000000000000000000000000000000336b5",
+   "mask": "0x36b5",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2
+  },
+  "0xa63fc9c760763498ecea29b528f78d7c080c005413492ad9606c906df41697d4": {
+   "hook": "0x0000000000000000000000000000000000025500",
+   "mask": "0x1500",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 11
+  },
+  "0x7cb59014eebb55e787ae06f712ef25df624dd38934ae15d31f0827ae1fe3409f": {
+   "hook": "0x000000000000000000000000000000000002048e",
+   "mask": "0x48e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 62
+  },
+  "0xb7ba4f6eff451f4cfcc4d1187af8c6816665db3c82311ab1adf4501f609241f7": {
+   "hook": "0x0000000000000000000000000000000000014868",
+   "mask": "0x868",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xafec80d9fa532b487d7298301237745aa69fc2759cbd31bfcb2aec1554a0ba13": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe9f1e",
+   "mask": "0x1f1e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x78f4dd7dec56c8af7792cc288cca7b917ed9f759acc6dbd68394d24aa956e955": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcb4ae",
+   "mask": "0x34ae",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe053cafb97fb6561679bcbd95715116b94291e6cb5edbb24d4a0393fa8e0635b": {
+   "hook": "0x000000000000000000000000000000000001d1c8",
+   "mask": "0x11c8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x509c6c6826ef06e0e29f24f18d9389533c52358a3b385d99a67a2afbb07f23c6": {
+   "hook": "0x0000000000000000000000000000000000002d42",
+   "mask": "0x2d42",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xbde49cc9ef2c6be1bd3f50a0147d989ec1ec06dd42c5a3d5263dddfc7c054a35": {
+   "hook": "0x0000000000000000000000000000000000028d45",
+   "mask": "0xd45",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 13
+  },
+  "0x640e096d0d7bddfde2621abbf5f16610dbdee536538de55a394c2afc02ea3f16": {
+   "hook": "0x000000000000000000000000000000000001cca8",
+   "mask": "0xca8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xb9bab473154f26a2485279c36c536f84f641c0545bd0be798640802706727154": {
+   "hook": "0xfffffffffffffffffffffffffffffffffff9c7fd",
+   "mask": "0x7fd",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 294
+  },
+  "0x31c56f7170f6c2166ceba2112ec83838e98354c03f0138bf006b62822115fbdc": {
+   "hook": "0x0000000000000000000000000000000000026779",
+   "mask": "0x2779",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 21
+  },
+  "0x1dfdaa8faca16dfa314979495fc95431569e821598a4fae42c18c8843f560fe1": {
+   "hook": "0x000000000000000000000000000000000003b2ab",
+   "mask": "0x32ab",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xc4ee0a6938f20db793066693af69509e4a047220145a5d389574be0829e28fc4": {
+   "hook": "0x000000000000000000000000000000000000283a",
+   "mask": "0x283a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x4d32cc447a6678feacdc39a82dba052870817b1b05499eec611ffc7395c2f201": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd6b23",
+   "mask": "0x2b23",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 5
+  },
+  "0x7368d4386dde35734ace2d1fb3325c5e4e83ec06299219078693ea72733ebbcf": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdca80",
+   "mask": "0xa80",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x76203c64d3c22873267a4550a0781f347724c929a60ee9d8f27de5b91cb6d613": {
+   "hook": "0x0000000000000000000000000000000000021768",
+   "mask": "0x1768",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x2e26cc9091a1b84bb45eee102c6ffcfc04c9ca3876428f9a7826139edd8fcb28": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd5888",
+   "mask": "0x1888",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x67983c0d78cea3a8b4a5cc283feeeefd278a8ae5c6504b983b0c72bde13d1c0c": {
+   "hook": "0x0000000000000000000000000000000000008061",
+   "mask": "0x61",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x0ba5d53d2f6255f334b7c8ead4f56b6aef5af3402c5e4d11180afd38c6b85fb1": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcb4db",
+   "mask": "0x34db",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x359ce3816696afc8f3c6990fd90888c6d8aee3bcd7530b5956910c77655feaee": {
+   "hook": "0x0000000000000000000000000000000000036d09",
+   "mask": "0x2d09",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xa656346c328c7185f783e78936b68eb5868aa9cf5809260320b279f7e13790fc": {
+   "hook": "0x0000000000000000000000000000000000029328",
+   "mask": "0x1328",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x1318b3ffba2a8f04a9ce03b2370705c4e17040c5303436ab84e7831912c6c1c3": {
+   "hook": "0x000000000000000000000000000000000003175e",
+   "mask": "0x175e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x69dc84f560204836192ccd2bafe2caafd42aef7bd5aba10d48d648ff0a71bdef": {
+   "hook": "0x00000000000000000000000000000000000014c7",
+   "mask": "0x14c7",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xa2a8b872de9a817eb3ebee0706693143b687c25606a15ec12ec0b859f8b90036": {
+   "hook": "0x0000000000000000000000000000000000016927",
+   "mask": "0x2927",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x888f708008da482bea1a0ab606b7c46ef23c6fc31d698a013e11eb36e87dbe3c": {
+   "hook": "0x0000000000000000000000000000000000038c98",
+   "mask": "0xc98",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x7458bf9fb741da112910cd1ff786d5ee95bcb729fc3dcda258e8bc0956f3d5ef": {
+   "hook": "0x0000000000000000000000000000000000005078",
+   "mask": "0x1078",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 6
+  },
+  "0x98f19386c3dabb78ddda7a0117a668dbb858ea3363c3b88aaf8f745f738a411e": {
+   "hook": "0x00000000000000000000000000000000000070d2",
+   "mask": "0x30d2",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x647836c4965c512f0d82a2128abe7826eacf5a79d2dbed252a89ba5c591d1e87": {
+   "hook": "0x0000000000000000000000000000000000005f9d",
+   "mask": "0x1f9d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x845b21902932be7f77f8ccbf793c17494f0ce7c6ffdcdb675d4dec701bc7601a": {
+   "hook": "0x0000000000000000000000000000000000035750",
+   "mask": "0x1750",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xff5e30e68690402ce94cd9466deab56ecc2014f8e2827c1a88fa6d77e9e90392": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcad8d",
+   "mask": "0x2d8d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x91c55e77c3220123e7dfc9d7dabd1e995f141294b9e40bf6b22d69345c47c48a": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffc88ac",
+   "mask": "0x8ac",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x7b924e2e50a323c8fb5f8f5b551725ef2ff0034b22c2ad0df0d72c2e00b4b1e6": {
+   "hook": "0x0000000000000000000000000000000000016ca6",
+   "mask": "0x2ca6",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x264be406b0ab766e5b82450494fb31947c9f719d75a969b440ff8170c834a7d9": {
+   "hook": "0x0000000000000000000000000000000000007743",
+   "mask": "0x3743",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x4ac4259eb99dce57268a856719d087fa1a53569b2fed6f330aabe32d9a4aa4f5": {
+   "hook": "0x00000000000000000000000000000000000340cc",
+   "mask": "0xcc",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2
+  },
+  "0x92186dd5cb043661fc7ea0a5d4a5d8b91395624929f278bfc2488e82861232ed": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcad66",
+   "mask": "0x2d66",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x14f8cf472104b8823340025c004d022de12ab0e4d7e8112a6dc73c1979e044ad": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcf816",
+   "mask": "0x3816",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x68d4f28f1432e0ad714658853edb2e6b0b1ac4060355ff3d169fea656b1d1c52": {
+   "hook": "0x000000000000000000000000000000000003ab56",
+   "mask": "0x2b56",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xbac3aa3b91584a53a579b3c999a56756e954e59247e497bad1d25a4334bde551": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcf618",
+   "mask": "0x3618",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xd5effce87036cd858146c0c15fa825c231a9de1843200ca108e431e431331e8e": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcad82",
+   "mask": "0x2d82",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xa2347ba69167e5602f74640ffbf737ee7cdd825e4726d3462564fc6533070147": {
+   "hook": "0x000000000000000000000000000000000003567a",
+   "mask": "0x167a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x988f3b6ceec4795e0d6d28a054af87ffbcbdeee2566f72ae391da5f109bd485f": {
+   "hook": "0x000000000000000000000000000000000000310e",
+   "mask": "0x310e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x7451e0490e52f6a3c6072163834d67f25fa8cde222b6f6f30f7244c61596d3b7": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdc960",
+   "mask": "0x960",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xbb5c8db782b70c4a39da7b51693bbaca13d50c4baa2aced1b6c0f911375cc655": {
+   "hook": "0x0000000000000000000000000000000000017cc0",
+   "mask": "0x3cc0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2
+  },
+  "0xa78ebe6df7bea653ca32561671e0080d8705198eb19967c76174edc022a448ba": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcad08",
+   "mask": "0x2d08",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x069bf854bd2f4f454c3d93cf60e1c0af074027050d2c1da1a1ce15c548d06c09": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcad08",
+   "mask": "0x2d08",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x55c2dddc6c6b85897009759787655c6fad1e1c4d5c63d33e38bd7e18c55000d2": {
+   "hook": "0x000000000000000000000000000000000003637f",
+   "mask": "0x237f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x8674c1c5544f3c9563565b5d4bd5916701d90b3559b072acf7cef5b4fc5b8dcd": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffccc9f",
+   "mask": "0xc9f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x7990aad9e8fb048f49a155a7df5603db0366f0657035b78eb4196395cccb3dcd": {
+   "hook": "0x00000000000000000000000000000000000363ce",
+   "mask": "0x23ce",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x7a048023759fe387c1e311e29a2354f3cbdfbe51324aafa88eec495d3af798b1": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcb524",
+   "mask": "0x3524",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xddd0fbfc0958aee6e002104c719019275e69cac540583ad8b24533c1d3e78641": {
+   "hook": "0x000000000000000000000000000000000000878d",
+   "mask": "0x78d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x0517b876fc82b3494abc9c208d5873d4b515d1761351d7d0264840551f56cc48": {
+   "hook": "0x0000000000000000000000000000000000002d15",
+   "mask": "0x2d15",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xc5883e2501d7322c6b2c9470a57d06ebb2c2d30cf6d6f2bf3585055982d688fc": {
+   "hook": "0x0000000000000000000000000000000000002e93",
+   "mask": "0x2e93",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x982af6ff6a2169c91a78634d3d10b3e1fe1e6a7e76387de04167234a41d50e4c": {
+   "hook": "0x0000000000000000000000000000000000003ffc",
+   "mask": "0x3ffc",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x2bca43d9d8c75399e3c6ba14e9dc88f44ca8968bb4694a8be4f80bd5a550df2e": {
+   "hook": "0x0000000000000000000000000000000000001f90",
+   "mask": "0x1f90",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xaef5609ceaf79abbd244bcd5198723bf34c50b33136ff3dca52dd559d9554741": {
+   "hook": "0x000000000000000000000000000000000000119e",
+   "mask": "0x119e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x7fb585f108d921de3b197cf7e26b5aebc96b035fec13f972b868e008ea062394": {
+   "hook": "0x0000000000000000000000000000000000004f35",
+   "mask": "0xf35",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xbc732a1a0baabce2574ec2bca24fccad8e2c38a061a37cefc17a2fd12809394f": {
+   "hook": "0x000000000000000000000000000000000000302f",
+   "mask": "0x302f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe8c3c059c5c09c02f3ff9e01ac706b5473eb3606f71955dbd2cb94cd580cb6e3": {
+   "hook": "0x000000000000000000000000000000000002b366",
+   "mask": "0x3366",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2928
+  },
+  "0xff1b8c5ce5c32bd90f6832a800e97129ff901b382b8717c8e73c4d729eac2929": {
+   "hook": "0x0000000000000000000000000000000000021324",
+   "mask": "0x1324",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x412b5b76a94f83e1f812f4fc41fa07490875f7bd3f0deb00c3d2f2c0010e3e9e": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffac8e5",
+   "mask": "0x8e5",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x4900c6d3f31ff1e1545a487469c134cdbd9f1499f938054c0c77a14728b3f150": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd3dc2",
+   "mask": "0x3dc2",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x052362df3d4224dd4200faad35e7ce9b97e6ae8550e1fffabd829096139fdf3f": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd066a",
+   "mask": "0x66a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x5ecdeabbf5448615109e2a2423bfb151062d849a23819b66e5a42bfcb2aea131": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd1ee7",
+   "mask": "0x1ee7",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xb0afc3cd4a67c7b9db8a857862322a911adb07019a560be5463147b452a793fb": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd320d",
+   "mask": "0x320d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xfe3e6151a19b798d83a254d165f69d14420025896fbc642f21b2216241faaa45": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd1f7a",
+   "mask": "0x1f7a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf4a4509bf8bd51e052d896ad9d53e66c9627f498f4b793de6ca6426b11ba848b": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd4df6",
+   "mask": "0xdf6",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xa0e3293bb948a13f5dad3f2a8aa40e9d839bcb9a84bfaf80b78f920221d7396b": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe585d",
+   "mask": "0x185d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x70da501d5844310bdaaabd73520b9ceeff9c53826b8e444e56bac53f71e9d224": {
+   "hook": "0xffffffffffffffffffffffffffffffffffff4254",
+   "mask": "0x254",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xbb061ffe27facf06aaff43a94cb04fb612c990afe2dc402e5c25753ce0b8aa35": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffeacab",
+   "mask": "0x2cab",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x548ae8c6751c5c7b5d3cf53f41a54e602263e7c688bd1070dede7fdb71878cbd": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffe865c",
+   "mask": "0x65c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x9ce47988f23c15b4922c8015fdca777329de3b2687bbaccde03fbf88a679827e": {
+   "hook": "0x000000000000000000000000000000000001b1a7",
+   "mask": "0x31a7",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xcab1b43540e3ef71c88cc2a1d42a52d4fdfcac76c231019e5b300db3ef1a7bd5": {
+   "hook": "0x00000000000000000000000000000000000305a2",
+   "mask": "0x5a2",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 6476
+  },
+  "0x541942afd092e6c18ccd56bb3d9205f80a2adce77edf260c464c5f9919f37168": {
+   "hook": "0x000000000000000000000000000000000000682f",
+   "mask": "0x282f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x25bd4876baa45bece6fe619b03c3c976ea52deab9279ec1161c8908293d6c483": {
+   "hook": "0xffffffffffffffffffffffffffffffffffffdd45",
+   "mask": "0x1d45",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x590649e15f644f0ff620bff03bfed433ae30390145626d9b816c56a454479fbf": {
+   "hook": "0x00000000000000000000000000000000000043c8",
+   "mask": "0x3c8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x5086ed9997ce80011771a01bf1cfb4f283fc095c53abe1c5b5cf9dc8c5196ef5": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd5870",
+   "mask": "0x1870",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 3
+  },
+  "0x1b67a7db52ea2f99ef9a13cdf198b33b5ebf2f7ea83da67bb4d43991ab15407d": {
+   "hook": "0x0000000000000000000000000000000000061440",
+   "mask": "0x1440",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 16
+  },
+  "0x404c8eb258ece3c428a6ac879854488b103f4fd33058df3af17cd5d641fa3be1": {
+   "hook": "0x0000000000000000000000000000000000017b0e",
+   "mask": "0x3b0e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x79723a75c401d5c3ad66b0d0837739e502f08799ebf6a503e6e4d0827b3eb7e5": {
+   "hook": "0x000000000000000000000000000000000001c000",
+   "mask": "0x0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x6ff5c44dbae70efd0c5124979b803395163c8e93e7d1f97a7fcdeb1ed875f5c2": {
+   "hook": "0x000000000000000000000000000000000001c000",
+   "mask": "0x0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe5923c8a8be481ec89a2ca784a2bbfa4235de6d88f92260fd66b660c4babf907": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffccba0",
+   "mask": "0xba0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf38009b348295f907c1f2e22aba84d731de3b7360d312881df1c206e85ea3b0b": {
+   "hook": "0x0000000000000000000000000000000000000314",
+   "mask": "0x314",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x4c862e5846659b086fe73896bbb9058513417e4e6938a1be93aeb7a768fa5754": {
+   "hook": "0x0000000000000000000000000000000000001802",
+   "mask": "0x1802",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xb8d9b6b622bb03dd06d95790553f327710a73d85d845a59fa9e652638ca96ae6": {
+   "hook": "0x000000000000000000000000000000000000462a",
+   "mask": "0x62a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x68beff3b4270ffbbb78a48d7670648909b9de6736456b0f450fee242e1d10a8b": {
+   "hook": "0x000000000000000000000000000000000000261d",
+   "mask": "0x261d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe6e17efdbdd916526293cf1b509171be4ffb04f47c4a5fe1a7367acdaa6ffd82": {
+   "hook": "0x0000000000000000000000000000000000001161",
+   "mask": "0x1161",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xa821b3724b451b22476c5347471b2a96d185b86af8760f226273e34ab4b2b8a0": {
+   "hook": "0x0000000000000000000000000000000000002167",
+   "mask": "0x2167",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xcc2a903a8744a65258bb07fbeea553a25410f731c9fef306321d0c176a09542c": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffffc56",
+   "mask": "0x3c56",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe6b713cf680868a40aafca45810b0c894eb5c696f5a2230d4816e6695e90e681": {
+   "hook": "0x000000000000000000000000000000000000098c",
+   "mask": "0x98c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x0703d548618b02c35d53acc889c1edb792aabccde3217004cd7dabb604fad3bd": {
+   "hook": "0x0000000000000000000000000000000000038859",
+   "mask": "0x859",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x8e0915e4860ad0426dd2f740f44cf6f4f675ae8c9f6a0ad42e323aba809a6149": {
+   "hook": "0x000000000000000000000000000000000003ace7",
+   "mask": "0x2ce7",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x7829da9b486662baa17a47fcb653cdfae3caf609ae190a152c8f2c680dbeb13c": {
+   "hook": "0x000000000000000000000000000000000005c355",
+   "mask": "0x355",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 499
+  },
+  "0xfcb1ad7c577599cd1831ae239da38cced8a833ad488f924e080a8066ab3f469f": {
+   "hook": "0x000000000000000000000000000000000000109d",
+   "mask": "0x109d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x53e74184f024eb01ceb7bbde68866bff3cc3ddf378c78745eb52bdd9ad7bcd91": {
+   "hook": "0x0000000000000000000000000000000000036892",
+   "mask": "0x2892",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xdf5c0bcd967d54774c139a4ef803ec994779736346fb4c21b50ed241b1fd2682": {
+   "hook": "0x000000000000000000000000000000000003698c",
+   "mask": "0x298c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0x85aa9a7c2ef9deec7bcbc5e78c6b26d2598c2aaf3f810b267fa4f8f9b0854142": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcefe0",
+   "mask": "0x2fe0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x806dce4cf8d55538915f8162e98032e6d24c9878c6202a867ca7a235783be4a8": {
+   "hook": "0x0000000000000000000000000000000000003199",
+   "mask": "0x3199",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xaa81b2d8910418f746ecc664a2a9413e87ff0637c8157b708a15ce115aac20bd": {
+   "hook": "0x0000000000000000000000000000000000021f10",
+   "mask": "0x1f10",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x694d0e99cb80f58c41cc77d4da8abf731d8b9c215faab16d12fc46bacaed4592": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffdc118",
+   "mask": "0x118",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 1
+  },
+  "0xafdec05aa6092532ebcfa6c597b21295a1cd39bfa71c27567feaad34563f0e2e": {
+   "hook": "0x0000000000000000000000000000000000031da8",
+   "mask": "0x1da8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 2869
+  },
+  "0xfa29c8b263aee15ed167cbe5e90ea9d89e6eec484f7de64a3465ad6b1ac1a7f6": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcabb1",
+   "mask": "0x2bb1",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe83a922258872a4337251e466e6c63921421a64a0721b95b1d73ec664c327afb": {
+   "hook": "0x000000000000000000000000000000000000289d",
+   "mask": "0x289d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x80e23c0dd75ec1e84757b41fa7530101b6775b61fdc6233eaf046e9cc5f90516": {
+   "hook": "0x00000000000000000000000000000000000035b1",
+   "mask": "0x35b1",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x6122185073beec84636be40e0336c56b639cb8a6c0331c9458c56a6048a55b1c": {
+   "hook": "0x000000000000000000000000000000000000529e",
+   "mask": "0x129e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x3d5e454a7901ae6e46718fc0139c4a5982c64a187c81daffc4c9d2296ca50073": {
+   "hook": "0x00000000000000000000000000000000000353c8",
+   "mask": "0x13c8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf9568ec0cba6e9ba30d9daabbf3e807813b8852e5737b7d83ea06529c73c9758": {
+   "hook": "0x000000000000000000000000000000000003382b",
+   "mask": "0x382b",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 6
+  },
+  "0xffaaf25d8bc4fee335f6767df01ae2452ee011ef9031e140421fd8ffa9bfb975": {
+   "hook": "0x0000000000000000000000000000000000008edd",
+   "mask": "0xedd",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x3adbf52e9a060a0696f583291823e79e3dad6b3bfb479435c0b2a0026ff41d8e": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd7778",
+   "mask": "0x3778",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x007a13fa152f6dc383cad20a8eaab4e1e2538b606936eae2a424f8aa47d6db31": {
+   "hook": "0x0000000000000000000000000000000000036f63",
+   "mask": "0x2f63",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x1264442c8fb7cded98dd6fa226d0adcd16fff538c03b3b9bf10cadc8ab1283a0": {
+   "hook": "0x0000000000000000000000000000000000003b9d",
+   "mask": "0x3b9d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xa31885709b0962366fee1e182ef1fbc81f39c150d8694965fdca2f4cd13ccc26": {
+   "hook": "0x0000000000000000000000000000000000005e60",
+   "mask": "0x1e60",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x71f9660f9535e3e81d720696a58ea80274da8b2c6eb7c3acb22611d977439a5c": {
+   "hook": "0x000000000000000000000000000000000000577d",
+   "mask": "0x177d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x069cdb4fbe913170e700159de4d5926d1de145d1c4d0e3acda27e5e94612b2bb": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd99f0",
+   "mask": "0x19f0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 3
+  },
+  "0x74c5f079d4777507514b2e548a3c9ab548ca8e79fa5abb2e2d427ff373ccede0": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd21a0",
+   "mask": "0x21a0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 6
+  },
+  "0x13b07230e8fb997cf47ec9579449ae0c8453e4310bc8d5064f9c0195b2bef72b": {
+   "hook": "0x00000000000000000000000000000000000073d6",
+   "mask": "0x33d6",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe2ece3c800a5304cd538658884905779465d54e1e0966ca3bcdd8b424e998740": {
+   "hook": "0x00000000000000000000000000000000000055e7",
+   "mask": "0x15e7",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x9194a557b6a6bb2236b49ea7e2bbccec5d3eeb705aef00903be4b3de1d949579": {
+   "hook": "0x0000000000000000000000000000000000034de7",
+   "mask": "0xde7",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xe918d67e8cd2de54bc7f9f08494f9aaab6e6d3752df5cf6d9218d412d6839972": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffd9ab0",
+   "mask": "0x1ab0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x13f9ab4e07b7f222cf49ff8ae9d7cdd2f749546eb3f83bdd84b884e27dd5e49d": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffb10b2",
+   "mask": "0x10b2",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x4be9657ec9002e528f4f17a5c43edc525a07f888f7b180c2afbf75e096c4f38a": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffb20c3",
+   "mask": "0x20c3",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xbf6e30b3a8df71bf8b79bdaab6423d6cdc032006b68a455b208b4889b3490386": {
+   "hook": "0x0000000000000000000000000000000000027de8",
+   "mask": "0x3de8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 4
+  },
+  "0xc4db99050d1f8749fbd20721da135af1753bb0e8d79b098e2de13ce79c945a7f": {
+   "hook": "0xffffffffffffffffffffffffffffffffffffd072",
+   "mask": "0x1072",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x84bd4e2d8be11aeb0afc1195b38f587b61e90068548f1063fdbe448fb8cad0b6": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcef1e",
+   "mask": "0x2f1e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x74b0c1d37ad57fcca5f3d64768d2ec6df43644d612c28cd552ff32198c940cc1": {
+   "hook": "0x00000000000000000000000000000000000026a0",
+   "mask": "0x26a0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x71c75f22871e483dfa16970efb42564462b1878112acb0d09e3f318bcd59c353": {
+   "hook": "0x000000000000000000000000000000000000675f",
+   "mask": "0x275f",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xfee96a0e7cf4a544f2b42a163eee51be5cb0920f04099ab41662f6d33419a6ab": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffb2654",
+   "mask": "0x2654",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x24fe1c9ad6f3e4118505f3269716b2f532396895611440679192d299e5aa16f8": {
+   "hook": "0x000000000000000000000000000000000000445a",
+   "mask": "0x45a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xa92a3df27a00a276183ff7265fd8affa11df1fe8bb23ddfaf13f6c879a3f818b": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffb79d0",
+   "mask": "0x39d0",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xd32646872e6712af8cf778e34b6bbef1d2ae0bddd83764e1b07333518ad59333": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffc9fe3",
+   "mask": "0x1fe3",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf2e329e631d0fb315a5c563ee3a9120f24822b5ef6c502a91cb56b174d5d8c22": {
+   "hook": "0x00000000000000000000000000000000000380ad",
+   "mask": "0xad",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x2e7ba084e848fb5af806efaeccfc9676a1a4c459f696e852b53c1a4f650c39b6": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffaf0de",
+   "mask": "0x30de",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xfe2a80bb5618fd14984b92ca6d45bf5ba67443ddb1435e28b2e48df2fc1526cd": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffccb14",
+   "mask": "0xb14",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xd4ecb79fdc521d7725d22b33ed43cb4e47aa96bfad76aa29577e3151f723ac5e": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcadee",
+   "mask": "0x2dee",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xc748f4671a867db48b552f6b7650bf3255e05f80f00e3f7aad1b17ccb7898fdb": {
+   "hook": "0x000000000000000000000000000000000003567c",
+   "mask": "0x167c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xc4852acea8d50e2e27aed3f68f0fae3e7ca4f394b80c59da68391e8ecbcd2b41": {
+   "hook": "0x0000000000000000000000000000000000003ebc",
+   "mask": "0x3ebc",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xee430ee1003e1985e1828a01b9a20dad67ad4302994fe2abb4a173de4ac54623": {
+   "hook": "0x0000000000000000000000000000000000037a6a",
+   "mask": "0x3a6a",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x5875d407a42965b0e768c8925cea290e06fa50603ef34fc99eb92a1050e6ae36": {
+   "hook": "0x00000000000000000000000000000000000338e6",
+   "mask": "0x38e6",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x5182d37e70a1c2e1060f8671739ae929913ceabcf2bd80a1a2a6356eafd4b506": {
+   "hook": "0x0000000000000000000000000000000000003cf9",
+   "mask": "0x3cf9",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x8567e70dbf639a618ba5eaf9402743452b93ca45c9bf8b97462407f07d7b7448": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffc8c9b",
+   "mask": "0xc9b",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x7d32bc830f40a330af8723b8bb50d4d6b0152297d659e9898e6a47b785686459": {
+   "hook": "0xffffffffffffffffffffffffffffffffffffcb9c",
+   "mask": "0xb9c",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x5fb97aef826b674c4bc76707563816f171043a3b1bf91431b7f82acd6381876b": {
+   "hook": "0xffffffffffffffffffffffffffffffffffffb2d8",
+   "mask": "0x32d8",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xee0d95c4644e0847eca78d5f5333abe1ab798b159fdd01712327258a755d4423": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffb7792",
+   "mask": "0x3792",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x54f7883914619af9105355bf83ed678bcf9f63560218ac61c9963b9503d0ba32": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcebeb",
+   "mask": "0x2beb",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x23a983bb3d0711aae0a5614dd37e9dc9086a44e838c9a331fb9e787bca18dace": {
+   "hook": "0x00000000000000000000000000000000000180b6",
+   "mask": "0xb6",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xb88dfb184602b74bee9c325a2b2dabdd6886ec6a995ac2fe8ec351804df00604": {
+   "hook": "0x0000000000000000000000000000000000022c71",
+   "mask": "0x2c71",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x6fa3ee0048e78bf0a513eb0ab56f482944a767c21db990fcf555605e69f05659": {
+   "hook": "0x0000000000000000000000000000000000032c60",
+   "mask": "0x2c60",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 9
+  },
+  "0x8517f8071ae5b831b738052f12125e8e3d6c158b78728aa44ce3b25e5104d32e": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffcb205",
+   "mask": "0x3205",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x3bb34a44f1b2b5f32c034c38a53065a521a47b199700fa9bd19d60985ff24bf1": {
+   "hook": "0x0000000000000000000000000000000000036773",
+   "mask": "0x2773",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xde9f85fdd9e05a943a52f2c69ffafe3064a3287df03d02c9b431bc92d4781274": {
+   "hook": "0x000000000000000000000000000000000003449e",
+   "mask": "0x49e",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 246
+  },
+  "0x7299841b076c2e7021cc1cad26b0f96046a32bd5212851b68ee3cf1958f57e3d": {
+   "hook": "0x0000000000000000000000000000000000002e48",
+   "mask": "0x2e48",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf4dda6b92ccfaa5db9d241651557195e3ef3959f1bbedb2acc38c57919a18052": {
+   "hook": "0x000000000000000000000000000000000000428d",
+   "mask": "0x28d",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": false,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xaa8039d8e39d2bbcae23762e71f5a12162875a61848f0d96914c827f61877ef6": {
+   "hook": "0x0000000000000000000000000000000000005476",
+   "mask": "0x1476",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x39910df82a4009ea98d01e9df0b9f1b5b01583cc62ea5889c6c8a8e41fbef470": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffffbd2",
+   "mask": "0x3bd2",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": true,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x24107d152f14a76d292123265ae3f3c71f863fc2f4ef7ba49d64e78d28ea379e": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffce967",
+   "mask": "0x2967",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xf7dc0af99fce7169eb76854c0b39beb9915526894d42229946e5cb469cab50b1": {
+   "hook": "0x0000000000000000000000000000000000012662",
+   "mask": "0x2662",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xb2a6d67bf3fc511d11cac788a531655f5a7b60cd31c8ff386f0476121741e751": {
+   "hook": "0x0000000000000000000000000000000000003461",
+   "mask": "0x3461",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": false,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0xcb6ffbcc84359535c2cc0a5688c0a76520ea6e0a4820fddd3ac8d7880e576370": {
+   "hook": "0xfffffffffffffffffffffffffffffffffffc8e47",
+   "mask": "0xe47",
+   "dangerFlags": {
+    "returnsDeltas": true,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": false
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  },
+  "0x74739c7ee5dda3695d01575c32371eff16e7b831e37517d1a99b568749143e7a": {
+   "hook": "0x000000000000000000000000000000000001ee12",
+   "mask": "0x2e12",
+   "dangerFlags": {
+    "returnsDeltas": false,
+    "touchesLiquidityRemoval": true,
+    "setsDynamicFee": false,
+    "touchesAddLiquidity": true,
+    "donate": true
+   },
+   "codePresence": "codeless",
+   "newSinceFixtureHead": 0
+  }
+ }
+}
