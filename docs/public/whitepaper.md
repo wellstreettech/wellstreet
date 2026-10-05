@@ -10,7 +10,7 @@ Wellstreet is a protocol-owned liquidity (POL) system on Robinhood Chain (chain 
 
 The protocol exists because of a measured problem: on this chain, many liquidity books pay their LPs nothing. A census of 402 books above a $1,000 dust floor found 97 hook-monetized books that route fees away from LPs and 29 dead books — 126 of 402 books (31.3%) paying LPs zero, with volume flowing through some of them regardless. One book, ROBLOXIANS/RBLX, charged fee 0 on 394 of 394 sampled swaps while roughly $1.09M/day of notional crossed it.
 
-The token, $WELL, launched on the Pons launchpad on 2026-09-21 (native ETH pair, chain 4663); its address is pinned in `site/js/config.js` (`tokens.well`) and mirrored on the token's DexScreener pair page. What remains launch-gated is contract state inside the roamer: a one-shot `setWellToken` that has not been called, and a burn lane that is inert until it is. The Pons holder fee share is a launch configuration, permanent once routed. The protocol claims what the chain shows, never arrival of outcomes.
+The token, $WELL, launched on the Pons launchpad on 2026-09-21 (native ETH pair, chain 4663); its address is pinned in `site/js/config.js` (`tokens.well`) and mirrored on the token's DexScreener pair page. The last launch-gated state has since resolved: the one-shot `setWellToken` executed 2026-10-01 17:37 UTC (timelock tx `0x2e860a3d…c6499`), `roamer.wellToken()` now reads the live $WELL pin, and the burn lane is LIVE — 90/10, with the 10% buying $WELL to burn on each vault-lane harvest (first harvest pending; receipts on the Burn Tape page). The Pons holder fee share is a launch configuration, permanent once routed. The protocol claims what the chain shows, never arrival of outcomes.
 
 ## 2. Introduction
 
@@ -195,11 +195,11 @@ Every APR in the public feed is a measured, backward-looking, book-level figure 
 
 ## 7. The token: $WELL
 
-**$WELL exists on chain as of 2026-09-21**, launched on the Pons launchpad (ponsfamily.com) with a native ETH pair; its address is pinned in `site/js/config.js` (`tokens.well`). `wellToken()` on the roamer still reads the zero address: the one-shot setter has not been called. There is no allocation table and no presale. The machinery below activates when `setWellToken` fires, exactly as written before the launch.
+**$WELL exists on chain as of 2026-09-21**, launched on the Pons launchpad (ponsfamily.com) with a native ETH pair; its address is pinned in `site/js/config.js` (`tokens.well`). The one-shot `setWellToken` executed 2026-10-01 17:37 UTC (timelock tx `0x2e860a3d…c6499`): `wellToken()` on the roamer now reads the live $WELL pin, and the setter's timelock op is consumed — one-shot means done. There is no allocation table and no presale. The machinery below runs exactly as written before the launch; the setter fired and nothing about the mechanics changed.
 
-- **`setWellToken` is one-shot and fail-closed.** The timelock sets the token address once; a second call reverts, a zero address reverts. Until it fires, the burn lane is inert by construction.
-- **The burn tail is conserved, never lost.** While inert, the 10% vault-lane cut accrues on-chain as accounted accrual — BURN-PENDING. It is never treasury funds, never junk-forwarded, never spent. `sweepToBurn` reverts with `NoWellToken` until `setWellToken` fires; that revert is data.
-- **The burn machinery is the roamer's own.** Once the token is set, a permissionless `sweepToBurn` swaps the accumulated accrual to $WELL through the pinned Quoter (exact-output, 1% min-out bound) and transfers it to the canonical burn address ending in `dEaD`. Accrual accounting means the amount burned is what was accounted, and the amounts conserved before the setter fires burn after it.
+- **`setWellToken` is one-shot and fail-closed.** The timelock sets the token address once; a second call reverts, a zero address reverts. It fired once, on 2026-10-01 — the burn lane is live by the same construction, and the setter can never run again.
+- **The burn tail is conserved, never lost.** The 10% vault-lane cut accrues on-chain as accounted accrual. While the lane was dormant (launch to 2026-10-01) that accrual sat BURN-PENDING, conserved on-chain; since the setter fired, the same accounted accrual feeds the burn instead of waiting. It is never treasury funds, never junk-forwarded, never spent. The `NoWellToken` guard is dead by construction — `wellToken()` reads a live address — so that revert can no longer fire.
+- **The burn machinery is the roamer's own, and it is live.** A permissionless `sweepToBurn` swaps the accumulated accrual to $WELL through the pinned Quoter (exact-output, 1% min-out bound) and transfers it to the canonical burn address ending in `dEaD` — 10% of every vault-lane harvest becomes $WELL bought and burned. Accrual accounting means the amount burned is what was accounted, and the accrual conserved while the lane was dormant burns on the same sweep. The first harvest since the setter fired is pending; the Burn Tape page reports the dEaD balance and the pending accrual as receipts.
 - **Holder economics.** Lane 1 (section 6.1) routes Pons-native trading fees to holders as configured at the launch (2026-09-21). There is no staking distributor, no inflation schedule, and no dev take on any path — the dev take is structurally zero, not merely currently zero.
 - **Launch venue.** Pons launchpad (ponsfamily.com) on chain ID 4663 — the venue $WELL launched on — per `docs/public/tokenomics.md`, which documents the pad's fee mechanics as configured at the launch.
 
@@ -227,13 +227,13 @@ The skill file classifies every surface into two tiers, with a fail-closed defau
 AGENT-SAFE (the complete sanctioned set):
   - keyless reads (guardrail getters, position records, book counts, coverage)
   - sweepVaultYield()   — permissionless, fills the vault's 90% bucket
-  - sweepToBurn()       — permissionless, inert (NoWellToken) until setWellToken fires
+  - sweepToBurn()       — permissionless, LIVE (setWellToken executed 2026-10-01; NoWellToken guard dead)
   - vault ERC-4626 deposit/redeem on the caller's OWN capital
 
 OPERATOR-SCOPED (never fired by an agent):
   - migrate()           — operator runs it off-chain from the fleet screen
   - exitBook()          — timelock-only
-  - all onlyTimelock setters, seedBook, rescueToTreasury, setWellToken
+  - all onlyTimelock setters, seedBook, rescueToTreasury; setWellToken (consumed 2026-10-01 — one-shot, fired, permanent)
   - vaultDeploy / vaultEgress (vault-gated)
 ```
 
@@ -395,6 +395,6 @@ GOVERNANCE
 
 $WELL
   token address .............. set — config tokens.well (launched 2026-09-21 on Pons)
-  wellToken() ................ still the zero address; setWellToken not yet fired
-  burn lane .................. inert by construction until setWellToken fires
+  wellToken() ................ $WELL (config tokens.well) — setWellToken executed 2026-10-01 17:37 UTC
+  burn lane .................. LIVE — 90/10; the 10% buys $WELL -> dEaD; first harvest pending
 ```
