@@ -1,0 +1,214 @@
+<!doctype html>
+<!--
+  MANUAL-INDEX-LIVE (G2, 2026-10-05) — the one-place index at wellstreet.tech/manual.
+  Fully static: zero script tags, zero loaded resources beyond the shared Doto face,
+  every link a relative path into this same package (mirror and IPFS safe). The rot
+  gate lives in site-tests/manual-links.test.js: a chapter row is added only together
+  with its live target and its mapping in that battery's HREF_MAP — the receipts and
+  burn-tape rows land with their own goals, in the same commit as their pages.
+  Identity mirrors the css/style.css tokens; the face ships from the shared fonts dir.
+-->
+<html lang="en" style="color-scheme: dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wellstreet — the manual</title>
+  <meta name="description" content="The one place: every public surface of the Wellstreet protocol — the fleet feed, the agent skill, the machine registry, the hook census, the whitepaper — indexed, relative-linked, and battery-checked.">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0A0E12">
+  <link rel="preload" href="../fonts/doto-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23070B0E'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%23EDE9DC' stroke-opacity='0.4' stroke-width='2'/%3E%3Cpath fill='%23EDE9DC' d='M13 29h8v22h-8zM24 51c-2.8 0-5-2.2-5-5V31.5c0-1.5.6-2.9 1.7-3.9l7.6-7.2c1.1-1 1.7-2.5 1.7-4v-6c0-2 1.6-3.6 3.6-3.6 3.6 0 6.4 2.9 6.4 6.4v9.3h7.2c3.2 0 5.6 2.8 5.1 5.9l-2 13.9c-.4 2.9-2.9 5-5.8 5L24 51z'/%3E%3C/svg%3E">
+  <meta property="og:title" content="Wellstreet — the manual">
+  <meta property="og:description" content="Every public surface of the protocol in one place — the fleet feed, the agent skill, the machine registry, the hook census, the whitepaper.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wellstreet.tech/manual">
+  <meta property="og:image" content="https://wellstreet.tech/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Wellstreet — the manual">
+  <meta name="twitter:description" content="Every public surface of the protocol in one place — the fleet feed, the agent skill, the machine registry, the hook census, the whitepaper.">
+  <meta name="twitter:image" content="https://wellstreet.tech/og.png">
+  <style>
+    @font-face {
+      font-family: "Doto";
+      src: url('../fonts/doto-var.woff2') format('woff2'), url('../fonts/doto-var.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root {
+      --paper: #0A0E12;
+      --paper-2: #070B0E;
+      --ink: #EDE9DC;
+      --ink-soft: #9A948A;
+      --line: #262E36;
+      --accent: #E8A33D;
+      --accent-ink: #0A0E12;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --font-display: "Doto", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--ink); }
+    .wrap { max-width: 1060px; margin: 0 auto; padding: 0 20px; }
+    .skip-link {
+      position: absolute; left: -9999px; top: 0; z-index: 20;
+      background: var(--accent); color: var(--accent-ink);
+      padding: 10px 14px; text-decoration: none; font-size: 12px;
+      text-transform: uppercase; letter-spacing: 0.14em;
+    }
+    .skip-link:focus { left: 12px; top: 12px; }
+    .site-header { border-bottom: 2px solid var(--line); background: var(--paper); }
+    .site-header .wrap {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap; padding-top: 14px; padding-bottom: 14px;
+    }
+    .brand { display: flex; align-items: baseline; gap: 12px; text-decoration: none; color: var(--ink); flex-wrap: wrap; }
+    .brand-word {
+      font-family: var(--font-display); font-weight: 800; font-variation-settings: 'ROND' 100;
+      text-transform: uppercase; letter-spacing: 0.12em; font-size: 20px;
+      border: 2px solid var(--line); background: var(--paper-2); padding: 3px 12px;
+    }
+    .brand-tag { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.14em; }
+    .header-side {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-soft);
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    .hero { position: relative; border-bottom: 2px solid var(--line); background: var(--paper); overflow: hidden; }
+    .hero-field {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none; user-select: none;
+      background-image:
+        radial-gradient(circle, rgba(237, 233, 220, 0.055) 1px, transparent 1.2px),
+        repeating-linear-gradient(90deg, transparent 0 118px, rgba(237, 233, 220, 0.035) 118px 119px);
+      background-size: 14px 14px, auto;
+    }
+    .hero .wrap { position: relative; z-index: 1; padding-top: 52px; padding-bottom: 44px; }
+    .hero-ticker { margin: 0 0 18px; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft); }
+    .hero h1 {
+      font-family: var(--font-display); font-weight: 800; font-variation-settings: 'ROND' 100;
+      text-transform: uppercase; letter-spacing: 0.01em;
+      font-size: clamp(44px, 9vw, 78px); line-height: 1.06; margin: 0 0 20px;
+    }
+    .hero-rule { width: min(560px, 72vw); height: 3px; background: var(--accent); margin: 0 0 22px; }
+    .hero-meta { margin: 0; max-width: 72ch; font-size: 13px; color: var(--ink-soft); }
+    main .wrap { padding-top: 8px; padding-bottom: 52px; }
+    .chapter {
+      border: 2px solid var(--line); background: var(--paper-2);
+      padding: 24px 26px; margin: 26px 0; max-width: 100%;
+    }
+    .chapter-kicker { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-soft); }
+    .chapter h2 {
+      font-family: var(--font-display); font-weight: 700; font-variation-settings: 'ROND' 100;
+      text-transform: uppercase; letter-spacing: 0.01em;
+      font-size: clamp(22px, 4vw, 30px); margin: 0 0 10px;
+    }
+    .chapter p { margin: 0 0 18px; font-size: 14px; color: var(--ink-soft); max-width: 78ch; }
+    .m-links { display: flex; flex-wrap: wrap; gap: 10px; }
+    .m-link {
+      display: inline-flex; flex-direction: column; justify-content: center; gap: 2px;
+      min-height: 44px; padding: 8px 14px; border: 1px solid var(--line);
+      text-decoration: none; color: var(--ink); max-width: 100%;
+      transition: border-color 120ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .m-link:hover { border-color: var(--ink); }
+    .m-link-path { font-size: 13px; }
+    .m-link-note { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-soft); }
+    .m-link:hover .m-link-note { color: var(--accent); }
+    .closing { margin: 30px 0 10px; font-size: 13px; color: var(--ink-soft); max-width: 78ch; }
+    .site-footer { border-top: 2px solid var(--line); background: var(--paper); }
+    .site-footer .wrap {
+      padding-top: 20px; padding-bottom: 30px; font-size: 12px; color: var(--ink-soft);
+      display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between;
+    }
+    .site-footer a { color: var(--ink-soft); }
+    .site-footer a:hover { color: var(--ink); }
+    @media (max-width: 560px) { .chapter { padding: 18px; } }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#m-main">Skip to the index</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../index.html">
+        <span class="brand-word">Wellstreet</span>
+        <span class="brand-tag">the agent-native LP layer · chain 4663</span>
+      </a>
+      <div class="header-side"><span class="dot" aria-hidden="true"></span>the manual</div>
+    </div>
+  </header>
+  <section class="hero">
+    <div class="hero-field" aria-hidden="true"></div>
+    <div class="wrap">
+      <p class="hero-ticker">every public surface · one place · checked by a battery</p>
+      <h1>The manual</h1>
+      <div class="hero-rule" aria-hidden="true"></div>
+      <p class="hero-meta">One place for every public surface of the protocol — the fleet feed, the agent skill, the machine registry, the hook census, the whitepaper. Every link below resolves to a file this repository ships, and a test battery fails if any of them rots. Chapters are added when their target is live — never before.</p>
+    </div>
+  </section>
+  <main id="m-main">
+    <div class="wrap">
+      <!-- chapter rows only: a row ships in the same commit as its live target -->
+      <article class="chapter">
+        <p class="chapter-kicker">the feed</p>
+        <h2>The fleet feed</h2>
+        <p>Every book the roamer screen measures, published as one JSON file: the pool, the fees it charges, the fees it pays, the verdict. The live surface reads the same file you can — read it, diff it, fork it.</p>
+        <div class="m-links">
+          <a class="m-link" href="../data/fleet.json"><span class="m-link-path">data/fleet.json</span><span class="m-link-note">the feed, as data</span></a>
+          <a class="m-link" href="../index.html#fleet"><span class="m-link-path">the fleet surface</span><span class="m-link-note">live, on the landing page</span></a>
+        </div>
+      </article>
+      <article class="chapter">
+        <p class="chapter-kicker">the agent surface</p>
+        <h2>The skill</h2>
+        <p>One skill file teaches any agent to operate this protocol: the keyless read battery, the fail-closed write flows with minimum-output guards, the sourced-reporting rules. The served mirror is the pointer agents load; the canonical source ships in the repo.</p>
+        <div class="m-links">
+          <a class="m-link" href="../skills/wellstreet-vaults.md"><span class="m-link-path">skills/wellstreet-vaults.md</span><span class="m-link-note">the served mirror</span></a>
+          <a class="m-link" href="../skills/wellstreet-vaults/SKILL.md"><span class="m-link-path">skills/wellstreet-vaults/SKILL.md</span><span class="m-link-note">the canonical source</span></a>
+        </div>
+      </article>
+      <article class="chapter">
+        <p class="chapter-kicker">the machine layer</p>
+        <h2>The registry</h2>
+        <p>The machine-readable index of the agent surface: the skill list with its source locations and guardrails — what an agent loads before it acts.</p>
+        <div class="m-links">
+          <a class="m-link" href="../skills/registry.json"><span class="m-link-path">skills/registry.json</span><span class="m-link-note">the registry, as data</span></a>
+        </div>
+      </article>
+      <article class="chapter">
+        <p class="chapter-kicker">the open data</p>
+        <h2>The hook census</h2>
+        <p>The chain's v4 hooks, measured and published as open data: code presence, danger flags, pool coverage. Names stay withheld until an alias is curated — the register reports a null name, and so does this page.</p>
+        <div class="m-links">
+          <a class="m-link" href="../data/hooks_register.json"><span class="m-link-path">data/hooks_register.json</span><span class="m-link-note">the register, as data</span></a>
+          <a class="m-link" href="../data/hooks_by_pool.json"><span class="m-link-path">data/hooks_by_pool.json</span><span class="m-link-note">the per-pool sidecar</span></a>
+        </div>
+      </article>
+      <article class="chapter">
+        <p class="chapter-kicker">the system paper</p>
+        <h2>The whitepaper</h2>
+        <p>The full system: the census receipts, the fee lanes, the vault math, the trust model. Read it as markdown or the typeset PDF.</p>
+        <div class="m-links">
+          <a class="m-link" href="../docs/public/whitepaper.md"><span class="m-link-path">docs/public/whitepaper.md</span><span class="m-link-note">the markdown</span></a>
+          <a class="m-link" href="../whitepaper.pdf"><span class="m-link-path">whitepaper.pdf</span><span class="m-link-note">the typeset PDF</span></a>
+        </div>
+      </article>
+      <p class="closing">Everything here is MIT — fork it, mirror it, and check every claim on-chain.</p>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>● 2026 Wellstreet contributors. MIT.</span>
+      <a href="../index.html">wellstreet.tech</a>
+    </div>
+  </footer>
+</body>
+</html>

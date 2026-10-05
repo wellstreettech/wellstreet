@@ -41,7 +41,11 @@
       socials: {
         x: 'https://x.com/WellStreetTech',
         telegram: 'https://t.me/WellStreetPortal',
-        dexscreener: 'https://dexscreener.com/robinhood/0x2b9e4bebe7d789e5dd7c6101823b8294988752d6f1bde103d4188065abe27980'
+        dexscreener: 'https://dexscreener.com/robinhood/0x2b9e4bebe7d789e5dd7c6101823b8294988752d6f1bde103d4188065abe27980',
+        // MANUAL-INDEX-LIVE (2026-10-05): the label of record for the one-place
+        // index. The matching DexScreener website-field addition is a USER
+        // post-ship step, not a code change.
+        manual: 'https://wellstreet.tech/manual'
       },
       // Trademark honesty note (rendered in the footer):
       trademarkNote: 'Wellstreet is not affiliated with, endorsed by, or sponsored by Robinhood Markets, Inc. ' +

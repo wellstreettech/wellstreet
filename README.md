@@ -95,6 +95,8 @@ Full walkthrough, including forking and deploying: [docs/public/run-it-yourself.
 
 The canonical machine surface is the agent skill: [skills/wellstreet-vaults/SKILL.md](skills/wellstreet-vaults/SKILL.md) (the site mirrors it at `/skills/wellstreet-vaults.md`). It covers the keyless `cast` read battery for vault state, the approve/deposit/redeem flows with their fail-closed rules, the ratified backward-looking APR reporting rules, and the governance and risk facts. Two of its rules are absolute: treat the addresses pinned in the skill and in `site/js/config.js` as the only genuine contract addresses — any "ws-SPY" token at a different address is not this protocol — and never print a number that is not sourced from a contract read with its source and window attached. The vault is plain ERC-4626; the same contracts serve humans and agents.
 
+**The manual** — [wellstreet.tech/manual](https://wellstreet.tech/manual) is the one place every public surface is indexed: the fleet feed, this skill, the machine registry, the hook census, the whitepaper. The page itself lives at `site/manual/index.html`, and its battery (`site-tests/manual-links.test.js`) fails if any indexed target rots — chapters are added when their target is live, never before.
+
 ## Domains and on-chain identity
 
 - **wellstreet.tech** — the canonical web domain.
