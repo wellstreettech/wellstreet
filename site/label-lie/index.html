@@ -503,17 +503,17 @@
     }
     function effective() { return stored() || ((mq && mq.matches) ? 'light' : 'dark'); }
     function sync() {
-      var m = effective();
-      if (m === 'light') { root.setAttribute('data-theme', 'light'); }
-      else { root.removeAttribute('data-theme'); }
-      root.style.colorScheme = m;
+      var pinned = stored();
+      var m = pinned || ((mq && mq.matches) ? 'light' : 'dark');
+      if (pinned) { root.setAttribute('data-theme', pinned); }
+      root.style.colorScheme = pinned ? m : 'light dark';
       var meta = document.querySelector('meta[name="theme-color"]');
       if (meta) {
         var paper = getComputedStyle(root).getPropertyValue('--paper').trim();
         meta.setAttribute('content', paper || (m === 'light' ? '#F2EFE6' : '#0A0E12'));
       }
       var cs = document.querySelector('meta[name="color-scheme"]');
-      if (cs) { cs.setAttribute('content', stored() ? m : 'light dark'); }
+      if (cs) { cs.setAttribute('content', pinned ? m : 'light dark'); }
       if (btn) {
         btn.textContent = (m === 'light') ? 'DARK' : 'LIGHT';
         btn.setAttribute('aria-pressed', String(m === 'light'));
