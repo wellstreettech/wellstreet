@@ -1,0 +1,419 @@
+<!doctype html>
+<!--
+  LABEL-LIE-RECEIPTS (G4, 2026-10-06) — the fee-label receipt page at
+  wellstreet.tech/label-lie.
+  The claim it receipts: the fee a pool declares when it is created and the
+  fee its swaps actually charge are two different numbers, and on chain 4663
+  they disagree for most books that pay liquidity providers. The page ships
+  the count-bearing line only — "276 books pay LPs. 257 charge a fee that
+  disagrees with their label." — because the F2 hand-check (2026-10-06)
+  found 19 books where label and measurement agree exactly, which falsifies
+  both "every one of the 276 lies" and "every book we screen" phrasings.
+  The verdict and the three hand-checked sample books are receipts on this
+  page, in their own chapter.
+  Data discipline: every figure on this page loads from the committed data
+  file (the same one you can diff), which a local-only operator tool
+  rebuilds from the frozen fee-screen fixture; the page cross-checks the
+  file's declared counts against its own rows so a stale file can never
+  pose as the truth, and a failed load renders unavailable, never
+  estimated. Nothing here is annualized: a fee label is a cut of each swap,
+  not a yield.
+  Identity system mirrors the css tokens; the face ships from the shared
+  fonts dir.
+-->
+<html lang="en" style="color-scheme: dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wellstreet — the label lie</title>
+  <meta name="description" content="The fee receipts: 276 books on chain 4663 pay liquidity providers, and 257 of them charge a fee that disagrees with the label they declare at creation — label vs measured, one row per book, exact amounts.">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0A0E12">
+  <link rel="preload" href="../fonts/doto-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23070B0E'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%23EDE9DC' stroke-opacity='0.4' stroke-width='2'/%3E%3Cpath fill='%23EDE9DC' d='M18 14h6v22l14-14h8L32 36l14 14h-8L24 36v14h-6V14z'/%3E%3C/svg%3E">
+  <meta property="og:title" content="Wellstreet — the label lie">
+  <meta property="og:description" content="276 books on chain 4663 pay liquidity providers. 257 charge a fee that disagrees with their label — label vs measured, one row per book.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wellstreet.tech/label-lie">
+  <meta property="og:image" content="https://wellstreet.tech/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Wellstreet — the label lie">
+  <meta name="twitter:description" content="276 books on chain 4663 pay liquidity providers. 257 charge a fee that disagrees with their label — label vs measured, one row per book.">
+  <meta name="twitter:image" content="https://wellstreet.tech/og.png">
+  <style>
+    @font-face {
+      font-family: "Doto";
+      src: url('../fonts/doto-var.woff2') format('woff2'), url('../fonts/doto-var.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root {
+      --paper: #0A0E12;
+      --paper-2: #070B0E;
+      --ink: #EDE9DC;
+      --ink-soft: #9A948A;
+      --line: #262E36;
+      --accent: #E8A33D;
+      --accent-ink: #0A0E12;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --font-display: "Doto", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--ink); }
+    code { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); overflow-wrap: anywhere; }
+    .wrap { max-width: 1060px; margin: 0 auto; padding: 0 20px; }
+    .skip-link {
+      position: absolute; left: -9999px; top: 0; z-index: 20;
+      background: var(--accent); color: var(--accent-ink);
+      padding: 10px 14px; text-decoration: none; font-size: 12px;
+      text-transform: uppercase; letter-spacing: 0.14em;
+    }
+    .skip-link:focus { left: 12px; top: 12px; }
+    .site-header { border-bottom: 2px solid var(--line); background: var(--paper); }
+    .site-header .wrap {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap; padding-top: 14px; padding-bottom: 14px;
+    }
+    .brand { display: flex; align-items: baseline; gap: 12px; text-decoration: none; color: var(--ink); flex-wrap: wrap; }
+    .brand-word {
+      font-family: var(--font-display); font-weight: 800; font-variation-settings: 'ROND' 100;
+      text-transform: uppercase; letter-spacing: 0.12em; font-size: 20px;
+      border: 2px solid var(--line); background: var(--paper-2); padding: 3px 12px;
+    }
+    .brand-tag { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.14em; }
+    .header-side {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-soft);
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    .hero { position: relative; border-bottom: 2px solid var(--line); background: var(--paper); overflow: hidden; }
+    .hero-field {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none; user-select: none;
+      background-image:
+        radial-gradient(circle, rgba(237, 233, 220, 0.055) 1px, transparent 1.2px),
+        repeating-linear-gradient(90deg, transparent 0 118px, rgba(237, 233, 220, 0.035) 118px 119px);
+      background-size: 14px 14px, auto;
+    }
+    .hero .wrap { position: relative; z-index: 1; padding-top: 52px; padding-bottom: 44px; }
+    .hero-ticker { margin: 0 0 18px; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft); }
+    .hero h1 {
+      font-family: var(--font-display); font-weight: 800; font-variation-settings: 'ROND' 100;
+      text-transform: uppercase; letter-spacing: 0.01em;
+      font-size: clamp(44px, 9vw, 78px); line-height: 1.06; margin: 0 0 20px;
+    }
+    .hero-rule { width: min(560px, 72vw); height: 3px; background: var(--accent); margin: 0 0 22px; }
+    .hero-meta { margin: 0; max-width: 76ch; font-size: 13px; color: var(--ink-soft); }
+    .hero-meta strong { color: var(--ink); font-weight: 400; }
+    main .wrap { padding-top: 8px; padding-bottom: 52px; }
+    .stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 12px; margin: 26px 0 0;
+    }
+    .stat {
+      border: 2px solid var(--line); background: var(--paper-2);
+      padding: 18px 18px 16px; min-width: 0;
+    }
+    .stat-label { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-soft); }
+    .stat-value {
+      font-family: var(--font-display); font-weight: 700; font-variation-settings: 'ROND' 100;
+      font-size: clamp(22px, 3.4vw, 30px); line-height: 1.15; margin: 0 0 10px;
+      overflow-wrap: anywhere;
+    }
+    .stat-note { margin: 0; font-size: 11px; color: var(--ink-soft); }
+    .chapter {
+      border: 2px solid var(--line); background: var(--paper-2);
+      padding: 24px 26px; margin: 26px 0; max-width: 100%;
+    }
+    .chapter-kicker { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-soft); }
+    .chapter h2 {
+      font-family: var(--font-display); font-weight: 700; font-variation-settings: 'ROND' 100;
+      text-transform: uppercase; letter-spacing: 0.01em;
+      font-size: clamp(22px, 4vw, 30px); margin: 0 0 10px;
+    }
+    .chapter p { margin: 0 0 18px; font-size: 14px; color: var(--ink-soft); max-width: 78ch; }
+    .chapter p:last-child { margin-bottom: 0; }
+    .chapter h3 {
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--ink); font-weight: 400; margin: 0 0 8px;
+    }
+    .receipt-meta { margin: 0 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-soft); }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+    .filters button {
+      font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--ink-soft); background: var(--paper); border: 2px solid var(--line);
+      padding: 7px 12px; cursor: pointer;
+    }
+    .filters button[aria-pressed="true"] {
+      color: var(--accent-ink); background: var(--accent); border-color: var(--accent);
+    }
+    .table-scroll { overflow-x: auto; border: 1px solid var(--line); }
+    table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 12px; }
+    th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-soft); font-weight: 400; background: var(--paper); }
+    tr:last-child td { border-bottom: none; }
+    td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    td.id { overflow-wrap: anywhere; color: var(--ink-soft); }
+    .badge {
+      display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
+      border: 1px solid var(--line); padding: 2px 7px; color: var(--ink);
+    }
+    .badge.no { border-color: var(--accent); color: var(--accent); }
+    .tape-flag, .tape-fail { margin: 12px 0 0; padding: 10px 12px 10px 14px; font-size: 12px; color: var(--ink-soft); border-left: 3px solid var(--accent); }
+    .samples { margin: 0; padding: 0; list-style: none; }
+    .samples li {
+      border: 1px solid var(--line); background: var(--paper);
+      padding: 12px 14px; margin: 10px 0; font-size: 12px; color: var(--ink-soft);
+    }
+    .samples li strong { color: var(--ink); font-weight: 400; }
+    .site-footer { border-top: 2px solid var(--line); background: var(--paper); }
+    .site-footer .wrap {
+      padding-top: 20px; padding-bottom: 30px; font-size: 12px; color: var(--ink-soft);
+      display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between;
+    }
+    .site-footer a { color: var(--ink-soft); }
+    .site-footer a:hover { color: var(--ink); }
+    @media (max-width: 560px) { .chapter { padding: 18px; } .stat { padding: 16px; } }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#ll-main">Skip to the receipts</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../index.html">
+        <span class="brand-word">Wellstreet</span>
+        <span class="brand-tag">the agent-native LP layer · chain 4663</span>
+      </a>
+      <div class="header-side"><span class="dot" aria-hidden="true"></span>the label lie</div>
+    </div>
+  </header>
+  <section class="hero">
+    <div class="hero-field" aria-hidden="true"></div>
+    <div class="wrap">
+      <p class="hero-ticker">label vs measured · one row per book · checked against the fixture</p>
+      <h1>The label lie</h1>
+      <div class="hero-rule" aria-hidden="true"></div>
+      <p class="hero-meta"><strong>276 books pay LPs. 257 charge a fee that disagrees with their label.</strong> The label is the fee a book declares when it is created; the measured fee is what its swaps actually charged, weighted per swap, as of block 56,263,800 on chain 4663. Both numbers are exact, neither is annualized — a fee label is a cut of each swap, not a yield — and the file behind every row is plain data you can diff.</p>
+    </div>
+  </section>
+  <main id="ll-main">
+    <div class="wrap">
+      <p id="boot-note" class="tape-flag" hidden></p>
+      <div class="stats">
+        <div class="stat">
+          <p class="stat-label">books paying LPs</p>
+          <p class="stat-value" id="st-books">loading</p>
+          <p class="stat-note" id="st-books-note">every book the class rule calls PAYS-LPS, as of block 56,263,800</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">label disagrees with measured</p>
+          <p class="stat-value" id="st-lie">loading</p>
+          <p class="stat-note" id="st-lie-note">the declared fee differs from the swap-weighted fee actually charged</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">label and measurement agree exactly</p>
+          <p class="stat-value" id="st-agree">loading</p>
+          <p class="stat-note" id="st-agree-note">the honesty check — two independent sources agreeing rules out a definitional artifact</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">disagree by over half the measured fee</p>
+          <p class="stat-value" id="st-half">loading</p>
+          <p class="stat-note" id="st-half-note">the census divergence threshold — label off by more than 0.5 of the measured fee</p>
+        </div>
+      </div>
+      <article class="chapter">
+        <p class="chapter-kicker">the receipts</p>
+        <h2>One row per book</h2>
+        <p class="receipt-meta" id="receipt-meta">loading the data file</p>
+        <div class="filters" role="group" aria-label="filter the receipts">
+          <button type="button" id="f-all" aria-pressed="true">all books</button>
+          <button type="button" id="f-no" aria-pressed="false">label disagrees</button>
+          <button type="button" id="f-ok" aria-pressed="false">label agrees</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>pool id</th><th>hook mask</th><th>declared label</th><th>measured fee</th><th>verdict</th></tr>
+            </thead>
+            <tbody id="rows-body"></tbody>
+          </table>
+        </div>
+        <p class="tape-flag" id="rows-flag" hidden></p>
+        <p class="tape-fail" id="rows-fail" hidden></p>
+        <p>The file behind this table is <a href="../data/label_lie.json">data/label_lie.json</a> — plain data, rebuilt by an operator tool from the frozen fee-screen fixture, never generated in your browser. Pool ids only: no pool names, no token symbols, no hook names, anywhere.</p>
+      </article>
+      <article class="chapter">
+        <p class="chapter-kicker">the method</p>
+        <h2>Two independent numbers</h2>
+        <p>The <strong>label</strong> is the fee decoded from a book's Initialize event — what the pool declared at creation, in hundredths of a bip on a 1e6 scale (10,000 = 1 percent of the swapped amount). The <strong>measured fee</strong> is the swap-count-weighted mean of the fees its Swap events actually charged. The two never share a source: one is a declaration, the other is behavior on sampled swaps.</p>
+        <p>The PAYS-LPS class itself comes from the fee screen's class rule, which reads only swap counts and protocol-fee presence — it never reads the label. That is what makes the divergence a measurement rather than a definition: a book is not called a payer because of its label, so a label that disagrees with the charges is a finding, not a tautology.</p>
+        <p>Verdict thresholds: a row is <span class="badge">agrees</span> when declared and measured are exactly equal, <span class="badge no">disagrees</span> when they differ at all, and the census threshold counts rows off by more than half the measured fee.</p>
+      </article>
+      <article class="chapter">
+        <p class="chapter-kicker">the hand-check</p>
+        <h2>Three books, read raw, before any headline</h2>
+        <p>Before any count shipped, three books were hand-checked straight from the frozen fixture — raw declared label vs raw measured fee, no code in between. This is the F2 hand-check, 2026-10-06:</p>
+        <ul class="samples">
+          <li><strong>0x007a13fa…d6db31</strong> — declared 10,000 (1.00%); measured 10,990 (1.099%) across 169 sampled swaps. Disagrees by 990, about 9.01% of measured. No hook.</li>
+          <li><strong>0x069bf854…d06c09</strong> — declared 1,000 (0.10%); measured 1,000.0 across 5 sampled swaps. Exact agreement. Hook mask 0x14c0.</li>
+          <li><strong>0x14f8cf47…9e044ad</strong> — declared 8,388,608 (about 838.86% of the scale — a garbage-scale label); measured 100 (0.01%) across 577 sampled swaps. The label is about 83,886 times the measured fee. Hook mask 0x2088.</li>
+        </ul>
+        <p>Sample two is why the honest headline is a count and not a universal: 19 of the 276 books agree exactly, and two independent sources agreeing exactly rules out the divergence being definitional. An earlier census lens reported the divergence count as 276; the fixture says 257 — the census's recompute defaulted missing labels to zero, which manufactured divergences the fixture does not carry. The row count (276, every PAYS-LPS book) and the disagreement count (257) are different numbers, and this page states both.</p>
+      </article>
+      <p class="closing">Everything here is MIT — fork it, mirror it, and replay every figure from the frozen fixture on chain 4663.</p>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>● 2026 Wellstreet contributors. MIT.</span>
+      <a href="../manual/index.html">the manual</a>
+      <a href="../index.html">wellstreet.tech</a>
+    </div>
+  </footer>
+  <script>
+  (function () {
+    'use strict';
+
+    function el(id) { return document.getElementById(id); }
+    function fmtUnits(v) {
+      return Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 });
+    }
+    function fmtPct(v) {
+      return (v / 10000).toLocaleString('en-US', { maximumFractionDigits: 4 }) + '%';
+    }
+    function fmtPctOfMeasured(v) {
+      if (v === null || v === undefined) { return 'measured fee is 0'; }
+      return Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 }) + '% of measured';
+    }
+    function verdictCell(r) {
+      var span = document.createElement('span');
+      if (r.diverges) {
+        span.className = 'badge no';
+        span.textContent = 'disagrees';
+        var wrap = document.createElement('td');
+        wrap.appendChild(span);
+        wrap.appendChild(document.createTextNode(' ' + fmtPctOfMeasured(r.pctOfMeasured)));
+        return wrap;
+      }
+      span.className = 'badge';
+      span.textContent = 'agrees';
+      var ok = document.createElement('td');
+      ok.appendChild(span);
+      return ok;
+    }
+    function rowCells(r) {
+      var tr = document.createElement('tr');
+      var id = document.createElement('td');
+      id.className = 'id';
+      id.textContent = r.poolId;
+      var mask = document.createElement('td');
+      mask.className = 'num';
+      mask.textContent = r.mask;
+      var label = document.createElement('td');
+      label.className = 'num';
+      label.textContent = fmtUnits(r.initFee) + ' (' + fmtPct(r.initFee) + ')';
+      var measured = document.createElement('td');
+      measured.className = 'num';
+      measured.textContent = fmtUnits(r.feeWavg) + ' (' + fmtPct(r.feeWavg) + ')';
+      tr.appendChild(id);
+      tr.appendChild(mask);
+      tr.appendChild(label);
+      tr.appendChild(measured);
+      tr.appendChild(verdictCell(r));
+      return tr;
+    }
+
+    var allRows = [];
+
+    function render(filter) {
+      var tbody = el('rows-body');
+      tbody.textContent = '';
+      var shown = 0;
+      var i;
+      for (i = 0; i < allRows.length; i++) {
+        var r = allRows[i];
+        if (filter === 'no' && !r.diverges) { continue; }
+        if (filter === 'ok' && r.diverges) { continue; }
+        tbody.appendChild(rowCells(r));
+        shown++;
+      }
+      el('rows-flag').textContent = shown + ' of ' + allRows.length + ' rows shown';
+      el('rows-flag').hidden = false;
+    }
+
+    function wireFilters() {
+      var buttons = [
+        ['f-all', 'all'],
+        ['f-no', 'no'],
+        ['f-ok', 'ok']
+      ];
+      buttons.forEach(function (pair) {
+        el(pair[0]).addEventListener('click', function () {
+          buttons.forEach(function (other) {
+            el(other[0]).setAttribute('aria-pressed', other[1] === pair[1] ? 'true' : 'false');
+          });
+          render(pair[1]);
+        });
+      });
+    }
+
+    function boot() {
+      wireFilters();
+      fetch('../data/label_lie.json').then(function (res) {
+        if (!res.ok) { throw new Error('http ' + res.status); }
+        return res.json();
+      }).then(function (doc) {
+        if (!doc || !Array.isArray(doc.rows) || !doc.meta || !doc.meta.counts) {
+          throw new Error('unexpected file shape');
+        }
+        var rows = doc.rows;
+        var meta = doc.meta;
+        var counts = meta.counts;
+        allRows = rows;
+        el('st-books').textContent = fmtUnits(counts.books);
+        el('st-lie').textContent = fmtUnits(counts.divergent);
+        el('st-agree').textContent = fmtUnits(counts.agree);
+        el('st-half').textContent = fmtUnits(counts.divergeOverHalf);
+        el('receipt-meta').textContent =
+          'as of block ' + Number(meta.asOfBlock).toLocaleString('en-US') +
+          ' · chain ' + meta.chainId +
+          ' · fixture md5 ' + meta.fixtureMd5;
+        render('all');
+        // the file can be rebuilt; the counts it declares must match the
+        // rows it carries — a mismatch is flagged, never smoothed over.
+        var recomputedDivergent = rows.filter(function (r) { return r.diverges; }).length;
+        var flags = [];
+        if (counts.books !== rows.length) {
+          flags.push('the file is inconsistent (declared ' + counts.books + ' books, carries ' + rows.length + ' rows)');
+        }
+        if (counts.divergent !== recomputedDivergent) {
+          flags.push('the file is inconsistent (declared ' + counts.divergent + ' disagreements, rows carry ' + recomputedDivergent + ')');
+        }
+        if (flags.length) {
+          el('boot-note').textContent = flags.join(' · ') + ' — treat the file as stale until it is rebuilt';
+          el('boot-note').hidden = false;
+        }
+      }).catch(function () {
+        el('rows-fail').textContent = 'the data file did not load: rows stay unavailable, never fabricated';
+        el('rows-fail').hidden = false;
+        ['st-books', 'st-lie', 'st-agree', 'st-half'].forEach(function (id) {
+          el(id).textContent = 'unavailable';
+        });
+      });
+    }
+
+    boot();
+  })();
+  </script>
+</body>
+</html>
