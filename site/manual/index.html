@@ -9,14 +9,17 @@
   2026-10-06); every future row follows the same rule.
   Identity mirrors the css/style.css tokens; the face ships from the shared fonts dir.
 -->
-<html lang="en" style="color-scheme: dark">
+<html lang="en" style="color-scheme: light dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Wellstreet — the manual</title>
   <meta name="description" content="The one place: every public surface of the Wellstreet protocol — the fleet feed, the agent skill, the machine registry, the hook census, the burn tape, the label lie, the whitepaper — indexed, relative-linked, and battery-checked.">
-  <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#0A0E12">
+  <meta name="color-scheme" content="light dark">
+  <!-- THEME-NAV (2026-10-06): two complementary media scopes — exactly one
+       matches, with zero scripts on the page. -->
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A0E12" />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F2EFE6" />
   <link rel="preload" href="../fonts/doto-var.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23070B0E'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%23EDE9DC' stroke-opacity='0.4' stroke-width='2'/%3E%3Cpath fill='%23EDE9DC' d='M13 29h8v22h-8zM24 51c-2.8 0-5-2.2-5-5V31.5c0-1.5.6-2.9 1.7-3.9l7.6-7.2c1.1-1 1.7-2.5 1.7-4v-6c0-2 1.6-3.6 3.6-3.6 3.6 0 6.4 2.9 6.4 6.4v9.3h7.2c3.2 0 5.6 2.8 5.1 5.9l-2 13.9c-.4 2.9-2.9 5-5.8 5L24 51z'/%3E%3C/svg%3E">
   <meta property="og:title" content="Wellstreet — the manual">
@@ -44,8 +47,31 @@
       --line: #262E36;
       --accent: #E8A33D;
       --accent-ink: #0A0E12;
+      --accent-text: #E8A33D;
       --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
       --font-display: "Doto", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    /* THEME-NAV LIGHT (2026-10-06): system-follow — this page ships zero
+       scripts, so light arrives via the OS preference only. Same tokens as
+       the landing's contrast-verified light set. The hero-field duplicate
+       rides the same scope, html-scoped so it out-specifies the dark rule
+       below it. */
+    @media (prefers-color-scheme: light) {
+      :root {
+        --paper: #F2EFE6;
+        --paper-2: #E6E0CC;
+        --ink: #26231C;
+        --ink-soft: #575144;
+        --line: #CCC4AC;
+        --accent-ink: #26231C;
+        --accent-text: #7A4E0E;
+      }
+      html .hero-field {
+        background-image:
+          radial-gradient(circle, rgba(38, 35, 28, 0.055) 1px, transparent 1.2px),
+          repeating-linear-gradient(90deg, transparent 0 118px, rgba(38, 35, 28, 0.035) 118px 119px);
+        background-size: 14px 14px, auto;
+      }
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }
@@ -122,7 +148,7 @@
     .m-link:hover { border-color: var(--ink); }
     .m-link-path { font-size: 13px; }
     .m-link-note { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-soft); }
-    .m-link:hover .m-link-note { color: var(--accent); }
+    .m-link:hover .m-link-note { color: var(--accent-text); } /* THEME-NAV (2026-10-06): accent-as-TEXT repoints to the contrast-verified light-text token; the dark value is identical to --accent, so dark rendering is unchanged */
     .closing { margin: 30px 0 10px; font-size: 13px; color: var(--ink-soft); max-width: 78ch; }
     .site-footer { border-top: 2px solid var(--line); background: var(--paper); }
     .site-footer .wrap {

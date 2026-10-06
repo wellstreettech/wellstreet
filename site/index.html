@@ -80,13 +80,19 @@
           <a href="#vault">The Vault</a>
           <a href="#deposit">Deposit</a>
           <a href="#docs">Docs</a>
+          <a href="manual/">The Manual</a>
+          <a href="burn-tape/">The Burn Tape</a>
           <a href="#agents" class="nav-cta">Run it yourself</a>
         </nav>
         <!-- WS-POSITIONING-COPY (2026-09-20): the right cluster. The badge is
              chrome-from-outside, not a section anchor · it lives beside the
-             theme toggle so the nav keeps its five section anchors on ONE row
-             (the wrap is a capped-width container; a 7th nav item orphans onto
-             a second row). href is JS-assigned at init from
+             theme toggle. THEME-NAV (2026-10-06, supersedes the one-row claim):
+             the nav now carries seven anchors — the two launch-week pages
+             joined as plain section links — and the nav strip moved to its own
+             full-width row above 640px, the same strip the mobile block
+             already ships, because seven anchors measurably cannot share the
+             brand row at the cap width. The page anchors are real relative
+             paths in the markup · href is JS-assigned at init from
              cfg.branding.repoUrl · markup carries no absolute external href
              (resource-gate scans href= as a load channel). -->
         <div class="header-actions">
@@ -950,9 +956,12 @@
             <div class="footer-socials">
               <!-- MANUAL-INDEX-LIVE (2026-10-05): first chip = the manual, the
                    one-place index. A static relative path into the same package,
-                   not a JS-assigned one, and NOT a top-nav item — the nav keeps
-                   its five anchors. -->
+                   not a JS-assigned one. THEME-NAV (2026-10-06, supersedes the
+                   not-a-nav-item note): the manual IS a top-nav anchor now;
+                   this chip row additionally carries the fee-receipts page,
+                   which stays footer-only. -->
               <a class="social-chip" href="manual/"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm2 4h10v2H7V7zm0 4h10v2H7v-2zm0 4h6v2H7v-2z"/></svg><span>the manual — wellstreet.tech/manual</span></a>
+              <a class="social-chip" href="label-lie/"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg><span>the label lie — wellstreet.tech/label-lie</span></a>
               <a id="footer-link-x" class="social-chip"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg><span>x.com/WellStreetTech</span></a>
               <a id="footer-link-tg" class="social-chip"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor"><path d="M21.945 3.684l-3.123 14.73c-.236 1.041-.849 1.3-1.718.81l-4.744-3.496-2.29 2.204c-.253.253-.466.466-.955.466l.34-4.817 8.783-7.936c.382-.34-.083-.53-.594-.19L6.766 12.28l-4.68-1.462c-1.018-.318-1.037-1.018.212-1.505l18.283-7.047c.848-.318 1.59.19 1.364 1.418z"/></svg><span>t.me/WellStreetPortal</span></a>
               <a id="footer-link-dex" class="social-chip"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h3v6H6zM7 2h1v3H7zM7 11h1v3H7zM15 9h3v6h-3zM16 6h1v3h-1zM16 15h1v3h-1z"/></svg><span>dexscreener.com — $WELL chart</span></a>

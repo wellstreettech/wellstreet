@@ -201,7 +201,9 @@ test('page identity: Doto face, ROND variation, substrate tokens', function () {
 test('page wiring: one inline script, no external script, one fetch of the data file', function () {
   const page = stripComments(raw);
   const scripts = page.match(/<script\b[^>]*>/g) || [];
-  assert.strictEqual(scripts.length, 1);
+  // THEME-NAV (2026-10-06): the anti-FOUC pre-paint script joins the head —
+  // still src-less, so the seam below is unchanged.
+  assert.strictEqual(scripts.length, 2, 'the inline script plus the anti-FOUC head script');
   assert.ok(!/<script[^>]*\bsrc=/.test(page), 'no script src anywhere');
   const fetches = page.match(/fetch\(([^)]*)\)/g) || [];
   assert.strictEqual(fetches.length, 1);
@@ -289,4 +291,48 @@ test('the data file lives where the page and the manual row point', function () 
   const manual = fs.readFileSync(MANUAL_PATH, 'utf8');
   assert.ok(manual.includes('../data/label_lie.json'), 'manual row links the data file');
   assert.ok(manual.includes('../label-lie/index.html'), 'manual row links the page');
+});
+
+// -------------------------------------------------- THEME-NAV (2026-10-06) ----
+
+test('theme-nav: the light pole ships — the pinned token block carries the contrast-verified set', function () {
+  const page = stripComments(raw);
+  const blockM = /html\[data-theme="light"\]\s*\{([\s\S]*?)\}/.exec(page);
+  assert.ok(blockM, 'the pinned light block exists');
+  assert.ok(blockM[1].includes('#F2EFE6'), 'light paper token in the pinned block');
+  assert.ok(blockM[1].includes('#26231C'), 'light ink token in the pinned block');
+  assert.ok(blockM[1].includes('--accent-text: #7A4E0E'), 'the light accent-text token ships');
+});
+
+test('theme-nav: the system-follow light block ships under the media scope', function () {
+  const page = stripComments(raw);
+  const blockM = /@media \(prefers-color-scheme: light\)\s*\{\s*html:not\(\[data-theme\]\)\s*\{([\s\S]*?)\}/.exec(page);
+  assert.ok(blockM, 'the media-scoped system-follow block exists');
+  assert.ok(blockM[1].includes('#F2EFE6') && blockM[1].includes('#26231C'), 'the same light set in the media block');
+  assert.match(page, /html\[data-theme="light"\] \.hero-field/, 'the hero-field light duplicate ships under the pinned scope');
+});
+
+test('theme-nav: the anti-FOUC pin read ships in the head, before the stylesheet', function () {
+  const styleAt = raw.indexOf('<style');
+  assert.ok(styleAt > -1, 'the stylesheet opens');
+  const head = raw.slice(0, styleAt);
+  assert.ok(head.indexOf("localStorage.getItem('ws-theme-v1')") > -1,
+    'the pre-paint pin read reads the shared key before first paint');
+  assert.ok(head.indexOf('<script') > -1, 'the pin read rides a head script');
+});
+
+test('theme-nav: the theme toggle ships once, in the header', function () {
+  const page = stripComments(raw);
+  assert.match(page, /<button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false">LIGHT<\/button>/,
+    'the toggle button ships with type, aria state and the initial GET-mode label');
+  assert.strictEqual((page.match(/id="theme-toggle"/g) || []).length, 1, 'exactly one toggle');
+  assert.match(page, /\.theme-toggle\s*\{/, 'the toggle styles ship');
+});
+
+test('theme-nav: the toggle wiring ships — click and matchMedia listeners', function () {
+  const page = stripComments(raw);
+  assert.ok(page.includes("var KEY = 'ws-theme-v1'"), 'the wiring reads the shared storage key');
+  assert.ok(page.includes('btn.addEventListener(\'click\''), 'a click listener drives the toggle');
+  assert.ok(page.includes("window.matchMedia('(prefers-color-scheme: light)')"), 'the matchMedia path ships');
+  assert.ok(page.includes("mq.addEventListener('change', onChange)"), 'the system-preference change listener ships');
 });

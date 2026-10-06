@@ -39,6 +39,19 @@
   <meta name="twitter:title" content="Wellstreet — the burn tape">
   <meta name="twitter:description" content="The burn lane's receipts: every WELL sent to the dEaD address, one row per sweep, exact amounts, read live from chain 4663.">
   <meta name="twitter:image" content="https://wellstreet.tech/og.png">
+  <script>
+    /* THEME-NAV (2026-10-06): pre-paint pin read — applies a stored theme
+       before first paint. Fail-soft; no stored pin leaves dark. */
+    (function () {
+      try {
+        var t = localStorage.getItem('ws-theme-v1');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t);
+          document.documentElement.style.colorScheme = t;
+        }
+      } catch (e) { }
+    })();
+  </script>
   <style>
     @font-face {
       font-family: "Doto";
@@ -55,8 +68,48 @@
       --line: #262E36;
       --accent: #E8A33D;
       --accent-ink: #0A0E12;
+      --accent-text: #E8A33D;
       --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
       --font-display: "Doto", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    /* THEME-NAV LIGHT (2026-10-06): the light pole uses the landing's
+       contrast-verified paper set — same tokens, same accent. A pin wins;
+       otherwise the page follows the OS preference. The hero-field duplicates
+       ride the same scopes, html-scoped so they out-specify the dark rule
+       below; the gradient forms and sizes are the dark rule's own. */
+    html[data-theme="light"] {
+      --paper: #F2EFE6;
+      --paper-2: #E6E0CC;
+      --ink: #26231C;
+      --ink-soft: #575144;
+      --line: #CCC4AC;
+      --accent-ink: #26231C;
+      --accent-text: #7A4E0E;
+    }
+    @media (prefers-color-scheme: light) {
+      html:not([data-theme]) {
+        --paper: #F2EFE6;
+        --paper-2: #E6E0CC;
+        --ink: #26231C;
+        --ink-soft: #575144;
+        --line: #CCC4AC;
+        --accent-ink: #26231C;
+        --accent-text: #7A4E0E;
+      }
+    }
+    html[data-theme="light"] .hero-field {
+      background-image:
+        radial-gradient(circle, rgba(38, 35, 28, 0.055) 1px, transparent 1.2px),
+        repeating-linear-gradient(90deg, transparent 0 118px, rgba(38, 35, 28, 0.035) 118px 119px);
+      background-size: 14px 14px, auto;
+    }
+    @media (prefers-color-scheme: light) {
+      html:not([data-theme]) .hero-field {
+        background-image:
+          radial-gradient(circle, rgba(38, 35, 28, 0.055) 1px, transparent 1.2px),
+          repeating-linear-gradient(90deg, transparent 0 118px, rgba(38, 35, 28, 0.035) 118px 119px);
+        background-size: 14px 14px, auto;
+      }
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; }
@@ -95,6 +148,24 @@
       font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-soft);
     }
     .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    /* THEME-NAV (2026-10-06): the light/dark toggle, px-adapted from the
+       landing's shipped vocabulary — mono label, hard border, 44px target. */
+    .theme-toggle {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--ink);
+      background: var(--paper);
+      border: 2px solid var(--line);
+      min-height: 44px;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: color 120ms ease, background-color 120ms ease,
+        border-color 120ms ease, transform 120ms ease;
+    }
+    .theme-toggle:hover { border-color: var(--ink-soft); transform: translateY(-1px); }
+    .theme-toggle:active { transform: translateY(0) scale(0.985); }
     .hero { position: relative; border-bottom: 2px solid var(--line); background: var(--paper); overflow: hidden; }
     .hero-field {
       position: absolute; inset: 0; z-index: 0; pointer-events: none; user-select: none;
@@ -179,7 +250,7 @@
         <span class="brand-word">Wellstreet</span>
         <span class="brand-tag">the agent-native LP layer · chain 4663</span>
       </a>
-      <div class="header-side"><span class="dot" aria-hidden="true"></span>the burn tape</div>
+      <div class="header-side"><span class="dot" aria-hidden="true"></span>the burn tape<button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false">LIGHT</button></div>
     </div>
   </header>
   <section class="hero">
@@ -544,6 +615,54 @@
     }
 
     boot();
+  })();
+
+  /* THEME-NAV (2026-10-06): one-toggle-whole-site contract, same as the
+     landing. A pin in localStorage wins; otherwise the page follows the
+     system preference. Fail-soft — any storage failure leaves dark. */
+  (function () {
+    var TOGGLE_ID = 'theme-toggle';
+    var KEY = 'ws-theme-v1';
+    var root = document.documentElement;
+    var btn = document.getElementById(TOGGLE_ID);
+    var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+    function stored() {
+      try {
+        var t = localStorage.getItem(KEY);
+        return (t === 'light' || t === 'dark') ? t : null;
+      } catch (e) { return null; }
+    }
+    function effective() { return stored() || ((mq && mq.matches) ? 'light' : 'dark'); }
+    function sync() {
+      var m = effective();
+      if (m === 'light') { root.setAttribute('data-theme', 'light'); }
+      else { root.removeAttribute('data-theme'); }
+      root.style.colorScheme = m;
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) {
+        var paper = getComputedStyle(root).getPropertyValue('--paper').trim();
+        meta.setAttribute('content', paper || (m === 'light' ? '#F2EFE6' : '#0A0E12'));
+      }
+      var cs = document.querySelector('meta[name="color-scheme"]');
+      if (cs) { cs.setAttribute('content', stored() ? m : 'light dark'); }
+      if (btn) {
+        btn.textContent = (m === 'light') ? 'DARK' : 'LIGHT';
+        btn.setAttribute('aria-pressed', String(m === 'light'));
+      }
+    }
+    if (btn) {
+      btn.addEventListener('click', function () {
+        var next = (effective() === 'light') ? 'dark' : 'light';
+        try { localStorage.setItem(KEY, next); } catch (e) { }
+        sync();
+      });
+    }
+    if (mq) {
+      var onChange = function () { if (!stored()) { sync(); } };
+      if (mq.addEventListener) { mq.addEventListener('change', onChange); }
+      else if (mq.addListener) { mq.addListener(onChange); }
+    }
+    sync();
   })();
   </script>
 </body>

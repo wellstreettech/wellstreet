@@ -325,6 +325,17 @@ pre code { background: none; border: none; padding: var(--space-0); }
 .site-nav a.nav-cta:active:not(:disabled) { transform: translateY(0) scale(0.985); box-shadow: var(--shadow-btn-hover); transition: background-color var(--t-fast) var(--ease-enter), transform var(--t-fast) var(--ease-enter); } /* BTN-MOTION (2026-09-08): the dip retires — the press settles under the finger at 0.985 */
 .site-nav a.active { border-bottom-color: var(--accent-punch); } /* WS3-HEADER P7 (2026-09-06): orientation green — accent marks where you are (11.05:1 on carbon, passes 1.4.11); hover ink-soft and active punch now differ in kind, not degree */
 
+  /* THEME-NAV (2026-10-06): the nav carries seven anchors now — the two
+     launch-week pages joined as section links. Seven anchors measurably
+     cannot share the brand+actions row at the cap width (navfit receipt
+     2026-10-06: the strip needs ~700px, the row leaves ~550px), so the nav
+     takes the full-width strip under the brand row that the mobile block
+     already ships. One pattern at every width; no orphan row. */
+  @media (min-width: 641px) {
+    .site-header .wrap { flex-wrap: wrap; }
+    .site-nav { order: 3; flex: 1 1 100%; }
+  }
+
 /* ---------- theme toggle (G1 THEME-FOUNDATION, 2026-09-08) ---------- */
 /* The header light/dark button. The mono label shows the mode you'll GET;
    aria-pressed reports "light is active". 44px tap target (the WS-MOBILE-FIXES

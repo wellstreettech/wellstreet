@@ -21,8 +21,12 @@
 //   - IDENTITY: the Doto-dark contract — self-hosted relative Doto face,
 //     display register on the headline and chapter titles, the substrate
 //     tokens, all CSS inline, zero script tags, zero loaded resources.
-//   - THE LANDING SEAM: the footer manual chip ships exactly once, the top
-//     nav keeps its five anchors (the chip is NOT a seventh nav item).
+//   - THE LANDING SEAM: the footer manual chip ships exactly once (the chip
+//     row additionally carries the fee-receipts chip, footer-only).
+//     THEME-NAV (2026-10-06, supersedes the five-anchors note): the top nav
+//     now carries seven anchors — the two launch-week pages joined as plain
+//     section links — and the seam test rot-gates all three page targets on
+//     disk.
 //   - THE RIDERS: the README pointer block and the config.js socials label.
 const test = require('node:test');
 const assert = require('node:assert');
@@ -175,7 +179,10 @@ test('manual: the substrate tokens ship', () => {
   for (const token of ['#0A0E12', '#070B0E', '#EDE9DC', '#9A948A', '#262E36', '#E8A33D']) {
     assert.ok(raw.toLowerCase().includes(token.toLowerCase()), 'token missing: ' + token);
   }
-  assert.match(raw, /<html[^>]*color-scheme:\s*dark/, 'dark-only color scheme on the root');
+  // THEME-NAV (2026-10-06): the root declares both poles — the page ships
+  // zero scripts, so light arrives via the OS preference and the two
+  // media-scoped theme-color metas carry the scopes.
+  assert.match(raw, /<html[^>]*color-scheme:\s*light\s+dark/, 'dual-pole color scheme on the root');
 });
 
 test('manual: no external resource of any kind', () => {
@@ -221,15 +228,23 @@ test('manual: the only absolute host anywhere on the page is wellstreet.tech', (
   assert.ok(hosts.has('wellstreet.tech'), 'the canonical host is named');
 });
 
-test('landing seam: the manual chip ships exactly once in the footer, never in the nav', () => {
+test('landing seam: the nav carries seven anchors; the manual and fee-receipts chips ship once each', () => {
   const indexHtml = fs.readFileSync(INDEX_PATH, 'utf8');
-  const occurrences = (indexHtml.match(/href="manual\//g) || []).length;
-  assert.strictEqual(occurrences, 1, 'exactly one relative chip into /manual');
+  // THEME-NAV (2026-10-06): two hits — the top-nav anchor plus the footer chip.
+  const manualHits = (indexHtml.match(/href="manual\//g) || []).length;
+  assert.strictEqual(manualHits, 2, 'the nav anchor plus the footer chip — exactly two relative paths into /manual');
   assert.ok(indexHtml.includes('wellstreet.tech/manual'), 'the chip names the canonical URL');
+  for (const p of ['site/manual/index.html', 'site/burn-tape/index.html', 'site/label-lie/index.html']) {
+    assert.ok(fs.existsSync(path.join(ROOT, p)), 'nav/footer target missing on disk: ' + p);
+  }
+  const burnHits = (indexHtml.match(/href="burn-tape\//g) || []).length;
+  assert.strictEqual(burnHits, 1, 'exactly one relative path into /burn-tape (the nav anchor)');
+  const labelHits = (indexHtml.match(/href="label-lie\//g) || []).length;
+  assert.strictEqual(labelHits, 1, 'exactly one relative path into /label-lie (the footer chip)');
   const navM = /<nav class="site-nav"[\s\S]*?<\/nav>/.exec(indexHtml);
   assert.ok(navM, 'the top nav block exists');
   const navAnchors = (navM[0].match(/<a\s/g) || []).length;
-  assert.strictEqual(navAnchors, 5, 'the nav keeps its five anchors — the chip is NOT a seventh nav item');
+  assert.strictEqual(navAnchors, 7, 'the nav carries seven anchors — the five sections plus the two launch-week pages');
 });
 
 test('riders: the README carries the manual pointer block', () => {

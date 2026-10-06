@@ -111,8 +111,10 @@ test('burn-tape: the page ships and parses, with exactly the shared seam as scri
   assert.ok(/<meta\s+charset="utf-8"/i.test(raw), 'charset meta present');
   assert.ok(/name="viewport"/i.test(raw), 'viewport meta present');
   assert.match(raw, /<title>[^<]*burn tape[^<]*<\/title>/i, 'the title names the burn tape');
+  // THEME-NAV (2026-10-06): the anti-FOUC pre-paint script joins the head —
+  // still src-less, so the extractSrcs seam below is unchanged.
   const scriptTags = (raw.match(/<script[\s>]/gi) || []).length;
-  assert.strictEqual(scriptTags, 3, 'two external scripts plus one inline script');
+  assert.strictEqual(scriptTags, 4, 'two external scripts plus the anti-FOUC head script and the main inline script');
   assert.deepStrictEqual(extractSrcs(raw), ['../js/config.js', '../js/rpc.js'],
     'the only external scripts are the shared config and rpc seam, in that order');
   assert.match(raw, /https:\/\/wellstreet\.tech\/burn-tape/, 'the canonical route is pinned');
@@ -313,4 +315,48 @@ test('burn-tape: the builder is a LOCAL-ONLY tool no site file references', () =
     'the operator tool name appears in site files — it must never be wired into the site');
   assert.match(raw, /fetch\('\.\.\/data\/burn_tape\.json'\)/,
     'the page loads the committed tape file, not the tool');
+});
+
+// -------------------------------------------------- THEME-NAV (2026-10-06) ----
+
+test('burn-tape: the light pole ships — the pinned token block carries the contrast-verified set', () => {
+  const page = stripComments(raw);
+  const blockM = /html\[data-theme="light"\]\s*\{([\s\S]*?)\}/.exec(page);
+  assert.ok(blockM, 'the pinned light block exists');
+  assert.ok(blockM[1].includes('#F2EFE6'), 'light paper token in the pinned block');
+  assert.ok(blockM[1].includes('#26231C'), 'light ink token in the pinned block');
+  assert.ok(blockM[1].includes('--accent-text: #7A4E0E'), 'the light accent-text token ships');
+});
+
+test('burn-tape: the system-follow light block ships under the media scope', () => {
+  const page = stripComments(raw);
+  const blockM = /@media \(prefers-color-scheme: light\)\s*\{\s*html:not\(\[data-theme\]\)\s*\{([\s\S]*?)\}/.exec(page);
+  assert.ok(blockM, 'the media-scoped system-follow block exists');
+  assert.ok(blockM[1].includes('#F2EFE6') && blockM[1].includes('#26231C'), 'the same light set in the media block');
+  assert.match(page, /html\[data-theme="light"\] \.hero-field/, 'the hero-field light duplicate ships under the pinned scope');
+});
+
+test('burn-tape: the anti-FOUC pin read ships in the head, before the stylesheet', () => {
+  const styleAt = raw.indexOf('<style');
+  assert.ok(styleAt > -1, 'the stylesheet opens');
+  const head = raw.slice(0, styleAt);
+  assert.ok(head.indexOf("localStorage.getItem('ws-theme-v1')") > -1,
+    'the pre-paint pin read reads the shared key before first paint');
+  assert.ok(head.indexOf('<script') > -1, 'the pin read rides a head script');
+});
+
+test('burn-tape: the theme toggle ships once, in the header', () => {
+  const page = stripComments(raw);
+  assert.match(page, /<button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false">LIGHT<\/button>/,
+    'the toggle button ships with type, aria state and the initial GET-mode label');
+  assert.strictEqual((page.match(/id="theme-toggle"/g) || []).length, 1, 'exactly one toggle');
+  assert.match(page, /\.theme-toggle\s*\{/, 'the toggle styles ship');
+});
+
+test('burn-tape: the toggle wiring ships — click and matchMedia listeners', () => {
+  const page = stripComments(raw);
+  assert.ok(page.includes("var KEY = 'ws-theme-v1'"), 'the wiring reads the shared storage key');
+  assert.ok(page.includes('btn.addEventListener(\'click\''), 'a click listener drives the toggle');
+  assert.ok(page.includes("window.matchMedia('(prefers-color-scheme: light)')"), 'the matchMedia path ships');
+  assert.ok(page.includes("mq.addEventListener('change', onChange)"), 'the system-preference change listener ships');
 });
