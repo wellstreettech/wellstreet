@@ -3,10 +3,10 @@
 // the one-place index. It pins:
 //   - ROT GATE: every link the page ships resolves to a file the repository
 //     actually contains. A chapter row may only be added when its target is
-//     live — the receipts and burn-tape rows land with their own goals, in the
-//     same commit as their pages, together with their mappings in HREF_MAP.
-//     The shipped href set must equal the declared set exactly: no orphan
-//     links, no undeclared targets, no dead rows.
+//     live, in the same change as the row and its HREF_MAP mapping — the
+//     burn-tape row landed that way (G5, 2026-10-06). The shipped href set
+//     must equal the declared set exactly: no orphan links, no undeclared
+//     targets, no dead rows.
 //   - TRANSPORT: all targets are same-origin RELATIVE paths (no scheme, no
 //     leading slash, no protocol-relative) — the mirror/IPFS convention every
 //     site page follows; the only absolute host allowed anywhere on the page
@@ -49,6 +49,8 @@ const HREF_MAP = {
   '../skills/registry.json': 'site/skills/registry.json',
   '../data/hooks_register.json': 'site/data/hooks_register.json',
   '../data/hooks_by_pool.json': 'site/data/hooks_by_pool.json',
+  '../burn-tape/index.html': 'site/burn-tape/index.html',
+  '../data/burn_tape.json': 'site/data/burn_tape.json',
   '../docs/public/whitepaper.md': 'docs/public/whitepaper.md',
   '../whitepaper.pdf': 'site/whitepaper.pdf',
 };
@@ -117,9 +119,9 @@ test('manual: the shipped href set equals the declared chapter set exactly', () 
     'shipped href set must equal the declared set — no orphan links');
 });
 
-test('manual: the five canonical chapters ship', () => {
+test('manual: the six canonical chapters ship', () => {
   const upper = raw.toUpperCase();
-  for (const t of ['THE FLEET FEED', 'THE SKILL', 'THE REGISTRY', 'THE HOOK CENSUS', 'THE WHITEPAPER']) {
+  for (const t of ['THE FLEET FEED', 'THE SKILL', 'THE REGISTRY', 'THE HOOK CENSUS', 'THE BURN TAPE', 'THE WHITEPAPER']) {
     assert.ok(upper.includes(t), 'chapter missing: ' + t);
   }
 });

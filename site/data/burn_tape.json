@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "generatedAt": "2026-10-06T08:17:51Z",
+    "method": "chunked eth_getLogs (Burned + SweepSkipped) on the roamer, keyless RPC; 9M-block windows under the 10M-block range cap observed 2026-10-06",
+    "chain": 4663,
+    "rpc": "rpc.mainnet.chain.robinhood.com",
+    "roamer": "0xC7a21Aa8C15C7032eE2e8352244a0f3D2154dC68",
+    "well": "0x5d08c35BcF268f4031BF3898e42b895Ff0779a24",
+    "dead": "0x000000000000000000000000000000000000dEaD",
+    "fromBlock": 0,
+    "toBlock": 81483751,
+    "burnedCount": 0,
+    "sweepSkippedCount": 0,
+    "skips": [],
+    "wellDecimals": 18,
+    "sourceFiles": [
+      "site/js/config.js",
+      "src/RoamingHarvester.sol"
+    ],
+    "tool": "docs/ops/build_burn_tape.py (LOCAL-ONLY; never wired into the site)"
+  },
+  "rows": []
+}

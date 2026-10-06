@@ -1,0 +1,550 @@
+<!doctype html>
+<!--
+  BURN-TAPE-SKELETON (G5, 2026-10-06) — the receipt page at wellstreet.tech/burn-tape.
+  Deadline-bound by a permissionless contract: sweepToBurn is external and nonReentrant
+  with no access control, so the first Burned event belongs to whoever fires it — this
+  page shipped BEFORE any register announcement so the tape is live first.
+  Zero-state honesty: the dEaD balance, the accounted accrual, the harvest count and the
+  skip count are read LIVE from chain 4663 over the keyless RPC through the shared seam
+  (the config and rpc scripts every site page shares) — a failed read renders
+  unavailable, never estimated; a confirmed zero renders as the honest state it is.
+  The tape rows load from the committed data file, which the local-only operator tool
+  rebuilds; the page never links that tool, and it cross-checks the file's row count
+  against the live Burned events so a stale file can never pose as the truth.
+  Range discipline: the keyless RPC caps eth_getLogs at a window of blocks (a
+  10,000,000-block span was refused on 2026-10-06), so every history read on this
+  page — and in the builder — scans chunked windows from zero to head, fail-closed:
+  one refused or malformed window renders the figure unavailable, never a partial
+  history.
+  Identity: the single keyless ERC-8004 probe on 2026-10-06 returned zero — the honest
+  line ships instead of a pin.
+  Identity system mirrors the css tokens; the face ships from the shared fonts dir.
+-->
+<html lang="en" style="color-scheme: dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wellstreet — the burn tape</title>
+  <meta name="description" content="The burn lane's receipts: every WELL the lane sends to the dEaD address, one row per sweep — exact amounts, blocks and transactions, read live from chain 4663 over a keyless RPC.">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0A0E12">
+  <link rel="preload" href="../fonts/doto-var.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23070B0E'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%23EDE9DC' stroke-opacity='0.4' stroke-width='2'/%3E%3Cpath fill='%23EDE9DC' d='M13 29h8v22h-8zM24 51c-2.8 0-5-2.2-5-5V31.5c0-1.5.6-2.9 1.7-3.9l7.6-7.2c1.1-1 1.7-2.5 1.7-4v-6c0-2 1.6-3.6 3.6-3.6 3.6 0 6.4 2.9 6.4 6.4v9.3h7.2c3.2 0 5.6 2.8 5.1 5.9l-2 13.9c-.4 2.9-2.9 5-5.8 5L24 51z'/%3E%3C/svg%3E">
+  <meta property="og:title" content="Wellstreet — the burn tape">
+  <meta property="og:description" content="The burn lane's receipts: every WELL sent to the dEaD address, one row per sweep, exact amounts, read live from chain 4663.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wellstreet.tech/burn-tape">
+  <meta property="og:image" content="https://wellstreet.tech/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Wellstreet — the burn tape">
+  <meta name="twitter:description" content="The burn lane's receipts: every WELL sent to the dEaD address, one row per sweep, exact amounts, read live from chain 4663.">
+  <meta name="twitter:image" content="https://wellstreet.tech/og.png">
+  <style>
+    @font-face {
+      font-family: "Doto";
+      src: url('../fonts/doto-var.woff2') format('woff2'), url('../fonts/doto-var.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root {
+      --paper: #0A0E12;
+      --paper-2: #070B0E;
+      --ink: #EDE9DC;
+      --ink-soft: #9A948A;
+      --line: #262E36;
+      --accent: #E8A33D;
+      --accent-ink: #0A0E12;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --font-display: "Doto", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--ink); }
+    code { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); overflow-wrap: anywhere; }
+    .wrap { max-width: 1060px; margin: 0 auto; padding: 0 20px; }
+    .skip-link {
+      position: absolute; left: -9999px; top: 0; z-index: 20;
+      background: var(--accent); color: var(--accent-ink);
+      padding: 10px 14px; text-decoration: none; font-size: 12px;
+      text-transform: uppercase; letter-spacing: 0.14em;
+    }
+    .skip-link:focus { left: 12px; top: 12px; }
+    .site-header { border-bottom: 2px solid var(--line); background: var(--paper); }
+    .site-header .wrap {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap; padding-top: 14px; padding-bottom: 14px;
+    }
+    .brand { display: flex; align-items: baseline; gap: 12px; text-decoration: none; color: var(--ink); flex-wrap: wrap; }
+    .brand-word {
+      font-family: var(--font-display); font-weight: 800; font-variation-settings: 'ROND' 100;
+      text-transform: uppercase; letter-spacing: 0.12em; font-size: 20px;
+      border: 2px solid var(--line); background: var(--paper-2); padding: 3px 12px;
+    }
+    .brand-tag { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.14em; }
+    .header-side {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-soft);
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    .hero { position: relative; border-bottom: 2px solid var(--line); background: var(--paper); overflow: hidden; }
+    .hero-field {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none; user-select: none;
+      background-image:
+        radial-gradient(circle, rgba(237, 233, 220, 0.055) 1px, transparent 1.2px),
+        repeating-linear-gradient(90deg, transparent 0 118px, rgba(237, 233, 220, 0.035) 118px 119px);
+      background-size: 14px 14px, auto;
+    }
+    .hero .wrap { position: relative; z-index: 1; padding-top: 52px; padding-bottom: 44px; }
+    .hero-ticker { margin: 0 0 18px; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft); }
+    .hero h1 {
+      font-family: var(--font-display); font-weight: 800; font-variation-settings: 'ROND' 100;
+      text-transform: uppercase; letter-spacing: 0.01em;
+      font-size: clamp(44px, 9vw, 78px); line-height: 1.06; margin: 0 0 20px;
+    }
+    .hero-rule { width: min(560px, 72vw); height: 3px; background: var(--accent); margin: 0 0 22px; }
+    .hero-meta { margin: 0; max-width: 72ch; font-size: 13px; color: var(--ink-soft); }
+    main .wrap { padding-top: 8px; padding-bottom: 52px; }
+    .stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 12px; margin: 26px 0 0;
+    }
+    .stat {
+      border: 2px solid var(--line); background: var(--paper-2);
+      padding: 18px 18px 16px; min-width: 0;
+    }
+    .stat-label { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-soft); }
+    .stat-value {
+      font-family: var(--font-display); font-weight: 700; font-variation-settings: 'ROND' 100;
+      font-size: clamp(22px, 3.4vw, 30px); line-height: 1.15; margin: 0 0 10px;
+      overflow-wrap: anywhere;
+    }
+    .stat-note { margin: 0; font-size: 11px; color: var(--ink-soft); }
+    .zero-line {
+      margin: 12px 0 0; padding: 10px 12px 10px 14px; font-size: 12px; color: var(--ink-soft);
+      border-left: 3px solid var(--accent);
+    }
+    .pending-list { margin: 10px 0 0; padding-left: 18px; font-size: 12px; color: var(--ink-soft); }
+    .pending-list li { margin: 4px 0; overflow-wrap: anywhere; }
+    .chapter {
+      border: 2px solid var(--line); background: var(--paper-2);
+      padding: 24px 26px; margin: 26px 0; max-width: 100%;
+    }
+    .chapter-kicker { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-soft); }
+    .chapter h2 {
+      font-family: var(--font-display); font-weight: 700; font-variation-settings: 'ROND' 100;
+      text-transform: uppercase; letter-spacing: 0.01em;
+      font-size: clamp(22px, 4vw, 30px); margin: 0 0 10px;
+    }
+    .chapter p { margin: 0 0 18px; font-size: 14px; color: var(--ink-soft); max-width: 78ch; }
+    .chapter p:last-child { margin-bottom: 0; }
+    .tape-meta { margin: 0 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-soft); }
+    .tape-flag, .tape-fail { margin: 12px 0 0; padding: 10px 12px 10px 14px; font-size: 12px; color: var(--ink-soft); border-left: 3px solid var(--accent); }
+    .table-scroll { overflow-x: auto; border: 1px solid var(--line); }
+    table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 12px; }
+    th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-soft); font-weight: 400; background: var(--paper); }
+    tr:last-child td { border-bottom: none; }
+    td.num { font-variant-numeric: tabular-nums; }
+    .lane code { color: var(--ink); }
+    .identity {
+      border: 2px solid var(--line); background: var(--paper-2);
+      padding: 16px 18px; margin: 26px 0; font-size: 13px; color: var(--ink-soft);
+    }
+    .identity p { margin: 0; max-width: 82ch; }
+    .site-footer { border-top: 2px solid var(--line); background: var(--paper); }
+    .site-footer .wrap {
+      padding-top: 20px; padding-bottom: 30px; font-size: 12px; color: var(--ink-soft);
+      display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between;
+    }
+    .site-footer a { color: var(--ink-soft); }
+    .site-footer a:hover { color: var(--ink); }
+    @media (max-width: 560px) { .chapter, .identity { padding: 18px; } .stat { padding: 16px; } }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#bt-main">Skip to the tape</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../index.html">
+        <span class="brand-word">Wellstreet</span>
+        <span class="brand-tag">the agent-native LP layer · chain 4663</span>
+      </a>
+      <div class="header-side"><span class="dot" aria-hidden="true"></span>the burn tape</div>
+    </div>
+  </header>
+  <section class="hero">
+    <div class="hero-field" aria-hidden="true"></div>
+    <div class="wrap">
+      <p class="hero-ticker">every burn · one row per sweep · checked against the chain</p>
+      <h1>The burn tape</h1>
+      <div class="hero-rule" aria-hidden="true"></div>
+      <p class="hero-meta">The receipts for the burn lane: every WELL the lane sends to the dEaD address, one row per sweep — the exact amount, the block, the transaction. The figures below are read live from chain 4663 over a keyless RPC; a failed read renders unavailable, never estimated, and nothing here is annualized. This page shipped before the first burn: its zero rows are the honest state, not a placeholder.</p>
+    </div>
+  </section>
+  <main id="bt-main">
+    <div class="wrap">
+      <p id="boot-note" class="tape-flag" hidden></p>
+      <div class="stats">
+        <div class="stat">
+          <p class="stat-label">burned to the dEaD address</p>
+          <p class="stat-value" id="st-dead">measuring</p>
+          <p class="stat-note" id="st-dead-note">reading the chain — keyless eth_call</p>
+          <p class="zero-line" id="zero-line" hidden>nothing has burned yet — the first sweep writes the first row; a zero here is the honest state, not a placeholder</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">burn-pending accrual</p>
+          <p class="stat-value" id="st-pending">measuring</p>
+          <p class="stat-note" id="st-pending-note">reading the chain — keyless eth_call</p>
+          <ul class="pending-list" id="pending-list" hidden></ul>
+          <p class="zero-line" id="pending-zero" hidden>nothing accrued right now — the lane credits at the next vault-lane harvest</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">harvest cycles</p>
+          <p class="stat-value" id="st-harvest">measuring</p>
+          <p class="stat-note" id="st-harvest-note">reading the chain — keyless eth_getLogs</p>
+          <p class="zero-line" id="harvest-zero" hidden>no harvest yet — the first one is pending</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">sweeps skipped</p>
+          <p class="stat-value" id="st-skips">measuring</p>
+          <p class="stat-note" id="st-skips-note">reading the chain — keyless eth_getLogs</p>
+        </div>
+      </div>
+      <article class="chapter">
+        <p class="chapter-kicker">the tape</p>
+        <h2>One row per sweep</h2>
+        <p class="tape-meta" id="tape-meta">loading the tape file</p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>block</th><th>transaction</th><th>amount</th><th>source token</th><th>label</th></tr>
+            </thead>
+            <tbody id="tape-body"></tbody>
+          </table>
+        </div>
+        <p class="tape-flag" id="tape-empty" hidden>no sweeps on the tape yet — the first burn writes the first row; the file is the same one you can diff</p>
+        <p class="tape-flag" id="tape-flag" hidden></p>
+        <p class="tape-fail" id="tape-fail" hidden></p>
+        <p>The file behind this table is <a href="../data/burn_tape.json">data/burn_tape.json</a> — plain data, rebuilt by an operator tool, never generated in your browser. The live figures above come straight off the chain, so the page never waits on a file to be honest.</p>
+      </article>
+      <article class="chapter lane">
+        <p class="chapter-kicker">the lane</p>
+        <h2>How a burn happens</h2>
+        <p>Vault-lane revenue splits by named constants — <code>DEPOSITOR_BPS = 9000</code> and <code>BURN_BPS = 1000</code> in <code>src/RoamVault.sol</code>: nine parts in ten raise depositors' share price, one part in ten is the burn cut. The dev take on this path is structurally zero — nothing is retained anywhere.</p>
+        <p>The burn cut accumulates as accounted accrual on the roamer — conserved, never treasury, never junk-forwarded. <code>sweepToBurn()</code> is permissionless and nonReentrant (<code>src/RoamingHarvester.sol</code>): it swaps the accrual to WELL through the pinned router and transfers the WELL to the dEaD address, emitting one <code>Burned</code> event per token. A token that cannot route is skipped and the rest of the tail stays live — <code>SweepSkipped</code> carries the reason. No operator signature is needed for a sweep: anyone can fire it, and the tape exists whether or not we pull it.</p>
+        <p>Contracts and tokens this page reads, all pinned once in <code>site/js/config.js</code>: roamer <code>0xC7a21Aa8C15C7032eE2e8352244a0f3D2154dC68</code> · vault <code>0xefA732aF74CaC318414BE8A1D645F3Ca5AB72E86</code> · WELL <code>0x5d08c35BcF268f4031BF3898e42b895Ff0779a24</code> · the burn address <code>0x000000000000000000000000000000000000dEaD</code>.</p>
+      </article>
+      <div class="identity">
+        <p>agent identity — no identity held: the operator holds no token on the canonical ERC-8004 agent registry (<code>0x8004A169FB4a3325136EB29fA0ceB6D2e539a432</code>, the same address on every chain), probed once keylessly on 2026-10-06 against chain 4663. This page reports the protocol; it claims no agent identity.</p>
+      </div>
+      <p class="closing">Everything here is MIT — fork it, mirror it, and replay every figure on chain 4663.</p>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>● 2026 Wellstreet contributors. MIT.</span>
+      <a href="../manual/index.html">the manual</a>
+      <a href="../index.html">wellstreet.tech</a>
+    </div>
+  </footer>
+  <script src="../js/config.js"></script>
+  <script src="../js/rpc.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var root = typeof globalThis !== 'undefined' ? globalThis : self;
+    var WS = root.WS || {};
+    var cfg = WS.config;
+    var makeClient = WS.rpc && WS.rpc.createRpcClient;
+
+    // Protocol constants, not config pins: the burn address is the contract's
+    // BURN_ADDRESS (src/RoamingHarvester.sol); the topics are the event
+    // signatures' keccak hashes. The Burned topic stays pinned here so the
+    // page can cross-check the tape file against the live chain — the same
+    // constant the local-only builder hashes rows with; the battery pins the
+    // two files together.
+    var DEAD = '0x000000000000000000000000000000000000dEaD';
+    var BURNED_TOPIC = '0x23ff0e75edf108e3d0392d92e13e8c8a868ef19001bd49f9e94876dc46dff87f';
+    var SKIP_TOPIC = '0x5cc0d130ea68954f3b0a05ff7c20becf3cf6c6f234bd1cdf36a658797e3827c5';
+    var HARVEST_TOPIC = '0x3fb12fb590bb295327f3bfc48158ada0b1147f8f823e0c7a09b98b301d186774';
+    var SEL = {
+      balance: '0x70a08231',
+      decimals: '0x313ce567',
+      symbol: '0x95d89b41',
+      accrued: '0x8bbca597',
+      accounted: '0x5e423394',
+      asset: '0x38d52e0f'
+    };
+    var MAX_TOKENS = 32;
+    var LOADING = 'measuring';
+    var ERROR = 'unavailable — never estimated';
+    var VALUE_IDS = ['st-dead', 'st-pending', 'st-harvest', 'st-skips'];
+
+    function el(id) { return document.getElementById(id); }
+    function setErr(id) { el(id).textContent = ERROR; }
+    function padWord(n) {
+      var s = n.toString(16);
+      while (s.length < 64) { s = '0' + s; }
+      return s;
+    }
+    function padAddr(a) { return a.toLowerCase().replace(/^0x/, '').padStart(64, '0'); }
+    function isZeroAddr(a) { return /^0x0+$/.test(a); }
+    function hexAddr(word) { return '0x' + word.slice(-40); }
+    function fmt(wei, dec) {
+      var v = BigInt(wei);
+      var base = BigInt(10) ** BigInt(dec);
+      var whole = v / base;
+      var frac = v - whole * base;
+      var s = whole.toString();
+      if (frac > 0n) {
+        var f = frac.toString();
+        while (f.length < dec) { f = '0' + f; }
+        f = f.replace(/0+$/, '');
+        if (f) { s += '.' + f; }
+      }
+      return s;
+    }
+    function decodeString(hex) {
+      var len = Number(BigInt('0x' + hex.slice(66, 130)));
+      if (!(len > 0 && len <= 64)) { return null; }
+      var out = '';
+      for (var i = 0; i < len; i++) {
+        var b = parseInt(hex.slice(130 + i * 2, 132 + i * 2), 16);
+        if (b < 32 || b > 126) { return null; }
+        out += String.fromCharCode(b);
+      }
+      return out;
+    }
+
+    var client = null;
+    var LOG_WINDOW_BLOCKS = 9 * 1000 * 1000; // under the RPC's getLogs range cap
+
+    // Full-history log scan in bounded windows: the keyless RPC refuses
+    // ranges wider than its cap (observed 2026-10-06), so a bare
+    // from-zero-to-latest query would fail forever and the honest fallback
+    // would be a permanently "unavailable" figure. Windows run zero to a
+    // resolved head, batched; ANY refused or malformed window throws and the
+    // caller renders unavailable — never a partial history.
+    async function chainLogs(address, topic) {
+      var head = parseInt(await client.call('eth_blockNumber', []), 16);
+      var windows = [];
+      for (var lo = 0; lo <= head; lo += LOG_WINDOW_BLOCKS) {
+        windows.push({ lo: lo, hi: Math.min(lo + LOG_WINDOW_BLOCKS - 1, head) });
+      }
+      var logs = [];
+      for (var w = 0; w < windows.length; w += cfg.rpc.batchMaxCalls) {
+        var slice = windows.slice(w, w + cfg.rpc.batchMaxCalls).map(function (win) {
+          return {
+            method: 'eth_getLogs',
+            params: [{ address: address, topics: [topic], fromBlock: '0x' + win.lo.toString(16), toBlock: '0x' + win.hi.toString(16) }]
+          };
+        });
+        var aligned = await client.batch(slice);
+        for (var r = 0; r < aligned.length; r++) {
+          if (!Array.isArray(aligned[r])) { throw new Error('a log window did not return an array — refusing a partial history'); }
+          logs = logs.concat(aligned[r]);
+        }
+      }
+      return logs;
+    }
+
+    async function readDead() {
+      var well = cfg.tokens.well.address;
+      try {
+        var out = await client.call('eth_call', [{ to: well, data: SEL.balance + padAddr(DEAD) }, 'latest']);
+        var wei = BigInt(out);
+        el('st-dead').textContent = fmt(wei, 18) + ' WELL';
+        el('st-dead-note').textContent = 'WELL balanceOf the dEaD address — eth_call, keyless, chain 4663';
+        el('zero-line').hidden = wei !== 0n;
+      } catch (e) {
+        setErr('st-dead');
+        el('st-dead-note').textContent = 'the eth_call read failed: the figure stays unavailable, never estimated';
+      }
+    }
+
+    async function readPending() {
+      var roamer = cfg.roamStack.roamer;
+      try {
+        var tokens = [];
+        var i;
+        for (i = 0; i < MAX_TOKENS; i++) {
+          var t;
+          try {
+            t = await client.call('eth_call', [{ to: roamer, data: SEL.accounted + padWord(i) }, 'latest']);
+          } catch (stop) { break; } // past the end of the accountedTokens array
+          var addr = hexAddr(t);
+          if (isZeroAddr(addr)) { break; }
+          tokens.push(addr);
+        }
+        var partial = tokens.length === MAX_TOKENS;
+        var rows = [];
+        var j;
+        for (j = 0; j < tokens.length; j++) {
+          var accrued = BigInt(await client.call('eth_call', [{ to: roamer, data: SEL.accrued + padAddr(tokens[j]) }, 'latest']));
+          if (accrued === 0n) { continue; }
+          var dec = null, sym = null;
+          try { dec = Number(BigInt(await client.call('eth_call', [{ to: tokens[j], data: SEL.decimals }, 'latest']))); } catch (e2) {}
+          try { sym = decodeString(await client.call('eth_call', [{ to: tokens[j], data: SEL.symbol }, 'latest'])); } catch (e3) {}
+          var amount = (dec === null || dec > 36)
+            ? accrued.toString() + ' raw units (decimals read unavailable)'
+            : fmt(accrued, dec) + (sym ? ' ' + sym : '');
+          rows.push({ token: tokens[j], amount: amount });
+        }
+        el('st-pending').textContent = rows.length === 0 ? '0' : (rows.length === 1 ? '1 token' : rows.length + ' tokens');
+        el('st-pending-note').textContent =
+          'the roamer’s accounted accrual — accountedAccrued over accountedTokens — eth_call, keyless · each token at its own decimals, never summed across tokens' +
+          (partial ? ' · enumeration bound reached: partial list' : '');
+        var ul = el('pending-list');
+        ul.textContent = '';
+        var k;
+        for (k = 0; k < rows.length; k++) {
+          var li = document.createElement('li');
+          var code = document.createElement('code');
+          code.textContent = rows[k].token;
+          li.appendChild(code);
+          li.appendChild(document.createTextNode(' — ' + rows[k].amount));
+          ul.appendChild(li);
+        }
+        ul.hidden = rows.length === 0;
+        el('pending-zero').hidden = rows.length !== 0;
+      } catch (e) {
+        setErr('st-pending');
+        el('st-pending-note').textContent = 'the accrual read failed: the figure stays unavailable, never estimated';
+      }
+    }
+
+    async function readHarvests() {
+      var vault = cfg.roamStack.vault;
+      try {
+        var logs = await chainLogs(vault, HARVEST_TOPIC);
+        var n = Array.isArray(logs) ? logs.length : 0;
+        el('st-harvest').textContent = String(n);
+        var note = 'YieldHarvested events on RoamVault — eth_getLogs, keyless · the depositor-lane harvest cycles';
+        if (n > 0) {
+          var last = logs[n - 1];
+          var assets = BigInt(last.topics[1]);
+          var assetDec = null;
+          try {
+            var assetAddr = hexAddr(await client.call('eth_call', [{ to: vault, data: SEL.asset }, 'latest']));
+            assetDec = Number(BigInt(await client.call('eth_call', [{ to: assetAddr, data: SEL.decimals }, 'latest'])));
+          } catch (e2) {}
+          var assetsText = (assetDec !== null && assetDec <= 36)
+            ? fmt(assets, assetDec)
+            : assets.toString() + ' raw units';
+          note = 'last credit: ' + assetsText + ' at block ' + parseInt(last.blockNumber, 16) + ' · ' + note;
+        }
+        el('st-harvest-note').textContent = note;
+        el('harvest-zero').hidden = n !== 0;
+      } catch (e) {
+        setErr('st-harvest');
+        el('st-harvest-note').textContent = 'the eth_getLogs read failed: the figure stays unavailable, never estimated';
+      }
+    }
+
+    async function readSkips() {
+      var roamer = cfg.roamStack.roamer;
+      try {
+        var logs = await chainLogs(roamer, SKIP_TOPIC);
+        var n = Array.isArray(logs) ? logs.length : 0;
+        el('st-skips').textContent = String(n);
+        el('st-skips-note').textContent = n === 0
+          ? 'no skips on record — SweepSkipped telemetry, eth_getLogs, keyless'
+          : n + ' skip event(s) on record — a skipped token never blocks the rest of the burn tail (per-token liveness)';
+      } catch (e) {
+        setErr('st-skips');
+        el('st-skips-note').textContent = 'the eth_getLogs read failed: the figure stays unavailable, never estimated';
+      }
+    }
+
+    async function readTape() {
+      var tbody = el('tape-body');
+      try {
+        var res = await fetch('../data/burn_tape.json');
+        if (!res.ok) { throw new Error('http ' + res.status); }
+        var doc = await res.json();
+        if (!doc || !Array.isArray(doc.rows)) { throw new Error('no rows array'); }
+        var rows = doc.rows;
+        var meta = doc.meta || {};
+        el('tape-meta').textContent = 'as of block ' + meta.toBlock + ' · pulled ' + meta.generatedAt + ' · chain ' + meta.chain;
+        tbody.textContent = '';
+        el('tape-empty').hidden = rows.length !== 0;
+        var i;
+        for (i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          var tr = document.createElement('tr');
+          var cells = [String(r.block), r.tx, r.amountWELL + ' WELL', r.sourceToken, r.label];
+          var c;
+          for (c = 0; c < cells.length; c++) {
+            var td = document.createElement('td');
+            if (c === 2) { td.className = 'num'; }
+            td.textContent = (cells[c] === undefined || cells[c] === null) ? '' : String(cells[c]);
+            tr.appendChild(td);
+          }
+          tbody.appendChild(tr);
+        }
+        // the file can trail the chain: the tape is rebuilt by an operator
+        // tool, so the page cross-checks the file's row count against the
+        // live Burned events and flags any gap instead of letting a stale
+        // file pose as truth.
+        var flags = [];
+        if (meta.burnedCount !== undefined && meta.burnedCount !== rows.length) {
+          flags.push('the file is inconsistent (declared ' + meta.burnedCount + ', carries ' + rows.length + ')');
+        }
+        if (client) {
+          try {
+            var burnedLogs = await chainLogs(cfg.roamStack.roamer, BURNED_TOPIC);
+            var chainCount = Array.isArray(burnedLogs) ? burnedLogs.length : null;
+            if (chainCount !== null && chainCount !== rows.length) {
+              flags.push('the chain carries ' + chainCount + ' Burned event(s) while the file carries ' + rows.length + ' row(s)');
+            }
+          } catch (e5) {}
+        }
+        if (flags.length) {
+          el('tape-flag').textContent = flags.join(' · ') + ' — the file is rebuilt by an operator tool and can trail the chain; the live figures above are the truth';
+          el('tape-flag').hidden = false;
+        }
+      } catch (e) {
+        el('tape-empty').hidden = true;
+        el('tape-fail').textContent = 'the tape file did not load: rows stay unavailable, never fabricated';
+        el('tape-fail').hidden = false;
+      }
+    }
+
+    function boot() {
+      if (!cfg || !makeClient || !cfg.rpc || !Array.isArray(cfg.rpc.endpoints) ||
+          !cfg.roamStack || !cfg.tokens || !cfg.tokens.well) {
+        VALUE_IDS.forEach(setErr);
+        el('boot-note').textContent = 'the config or rpc seam did not load: no figure is shown, none is estimated';
+        el('boot-note').hidden = false;
+        return;
+      }
+      client = makeClient({
+        endpoints: cfg.rpc.endpoints,
+        attemptsPerEndpoint: cfg.rpc.attemptsPerEndpoint,
+        backoffBaseMs: cfg.rpc.backoffBaseMs,
+        backoffCapMs: cfg.rpc.backoffCapMs,
+        timeoutMs: cfg.rpc.timeoutMs,
+        batchMaxCalls: cfg.rpc.batchMaxCalls
+      });
+      readDead();
+      readPending();
+      readHarvests();
+      readSkips();
+      readTape();
+    }
+
+    boot();
+  })();
+  </script>
+</body>
+</html>
