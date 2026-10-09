@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-10-06T08:17:51Z",
+    "generatedAt": "2026-10-09T19:08:10Z",
     "method": "chunked eth_getLogs (Burned + SweepSkipped) on the roamer, keyless RPC; 9M-block windows under the 10M-block range cap observed 2026-10-06",
     "chain": 4663,
     "rpc": "rpc.mainnet.chain.robinhood.com",
@@ -8,10 +8,39 @@
     "well": "0x5d08c35BcF268f4031BF3898e42b895Ff0779a24",
     "dead": "0x000000000000000000000000000000000000dEaD",
     "fromBlock": 0,
-    "toBlock": 81483751,
-    "burnedCount": 0,
-    "sweepSkippedCount": 0,
-    "skips": [],
+    "toBlock": 84391540,
+    "burnedCount": 2,
+    "sweepSkippedCount": 4,
+    "skips": [
+      {
+        "block": 81904833,
+        "tx": "0xfac5c5c21d9f56915ecff7dda59bb4084bf904e0d556ef3a2140cb07bcdc09d1",
+        "token": "0x0000000000000000000000000000000000000000",
+        "reasonHex": "0x9d19fcd400000000000000000000000000000000000000000000000000000000",
+        "reasonText": ""
+      },
+      {
+        "block": 81904833,
+        "tx": "0xfac5c5c21d9f56915ecff7dda59bb4084bf904e0d556ef3a2140cb07bcdc09d1",
+        "token": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+        "reasonHex": "0x9d19fcd400000000000000000000000000000000000000000000000000000000",
+        "reasonText": ""
+      },
+      {
+        "block": 84306890,
+        "tx": "0xba86c4b49ee6a887795012b77835c3ea1257268eaa97160d6257530a3a8c2209",
+        "token": "0x0000000000000000000000000000000000000000",
+        "reasonHex": "0x2b1b820e00000000000000000000000000000000000000000000000000000000",
+        "reasonText": "+"
+      },
+      {
+        "block": 84373864,
+        "tx": "0x7d5773ed3a551cb29b991413da51bd08b8971b8db6b4668fac1c2a87bbd2ccd1",
+        "token": "0x0000000000000000000000000000000000000000",
+        "reasonHex": "0x2b1b820e00000000000000000000000000000000000000000000000000000000",
+        "reasonText": "+"
+      }
+    ],
     "wellDecimals": 18,
     "sourceFiles": [
       "site/js/config.js",
@@ -19,5 +48,22 @@
     ],
     "tool": "docs/ops/build_burn_tape.py (LOCAL-ONLY; never wired into the site)"
   },
-  "rows": []
+  "rows": [
+    {
+      "block": 84306890,
+      "logIndex": 14,
+      "tx": "0xba86c4b49ee6a887795012b77835c3ea1257268eaa97160d6257530a3a8c2209",
+      "sourceToken": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+      "amountWELL": "44.150205068186347268",
+      "label": "burn lane sweep -- accrual swapped to WELL, transferred to the dEaD address"
+    },
+    {
+      "block": 84373864,
+      "logIndex": 11,
+      "tx": "0x7d5773ed3a551cb29b991413da51bd08b8971b8db6b4668fac1c2a87bbd2ccd1",
+      "sourceToken": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+      "amountWELL": "5.153203069444835363",
+      "label": "burn lane sweep -- accrual swapped to WELL, transferred to the dEaD address"
+    }
+  ]
 }
