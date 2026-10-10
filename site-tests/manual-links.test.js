@@ -53,6 +53,7 @@ const HREF_MAP = {
   '../skills/registry.json': 'site/skills/registry.json',
   '../data/hooks_register.json': 'site/data/hooks_register.json',
   '../data/hooks_by_pool.json': 'site/data/hooks_by_pool.json',
+  '../hooks/index.html': 'site/hooks/index.html',
   '../burn-tape/index.html': 'site/burn-tape/index.html',
   '../data/burn_tape.json': 'site/data/burn_tape.json',
   '../label-lie/index.html': 'site/label-lie/index.html',
@@ -125,9 +126,9 @@ test('manual: the shipped href set equals the declared chapter set exactly', () 
     'shipped href set must equal the declared set — no orphan links');
 });
 
-test('manual: the seven canonical chapters ship', () => {
+test('manual: the eight canonical chapters ship', () => {
   const upper = raw.toUpperCase();
-  for (const t of ['THE FLEET FEED', 'THE SKILL', 'THE REGISTRY', 'THE HOOK CENSUS', 'THE BURN TAPE', 'THE LABEL LIE', 'THE WHITEPAPER']) {
+  for (const t of ['THE FLEET FEED', 'THE SKILL', 'THE REGISTRY', 'THE HOOK CENSUS', 'THE HOOK MANUAL', 'THE BURN TAPE', 'THE LABEL LIE', 'THE WHITEPAPER']) {
     assert.ok(upper.includes(t), 'chapter missing: ' + t);
   }
 });

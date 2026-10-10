@@ -14,7 +14,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Wellstreet — the manual</title>
-  <meta name="description" content="The one place: every public surface of the Wellstreet protocol — the fleet feed, the agent skill, the machine registry, the hook census, the burn tape, the label lie, the whitepaper — indexed, relative-linked, and battery-checked.">
+  <meta name="description" content="The one place: every public surface of the Wellstreet protocol — the fleet feed, the agent skill, the machine registry, the hook census, the hook manual, the burn tape, the label lie, the whitepaper — indexed, relative-linked, and battery-checked.">
   <meta name="color-scheme" content="light dark">
   <!-- THEME-NAV (2026-10-06): two complementary media scopes — exactly one
        matches, with zero scripts on the page. -->
@@ -23,13 +23,13 @@
   <link rel="preload" href="../fonts/doto-var.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23070B0E'/%3E%3Crect x='2' y='2' width='60' height='60' fill='none' stroke='%23EDE9DC' stroke-opacity='0.4' stroke-width='2'/%3E%3Cpath fill='%23EDE9DC' d='M13 29h8v22h-8zM24 51c-2.8 0-5-2.2-5-5V31.5c0-1.5.6-2.9 1.7-3.9l7.6-7.2c1.1-1 1.7-2.5 1.7-4v-6c0-2 1.6-3.6 3.6-3.6 3.6 0 6.4 2.9 6.4 6.4v9.3h7.2c3.2 0 5.6 2.8 5.1 5.9l-2 13.9c-.4 2.9-2.9 5-5.8 5L24 51z'/%3E%3C/svg%3E">
   <meta property="og:title" content="Wellstreet — the manual">
-  <meta property="og:description" content="Every public surface of the protocol in one place — the fleet feed, the agent skill, the machine registry, the hook census, the burn tape, the label lie, the whitepaper.">
+  <meta property="og:description" content="Every public surface of the protocol in one place — the fleet feed, the agent skill, the machine registry, the hook census, the hook manual, the burn tape, the label lie, the whitepaper.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://wellstreet.tech/manual">
   <meta property="og:image" content="https://wellstreet.tech/og.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Wellstreet — the manual">
-  <meta name="twitter:description" content="Every public surface of the protocol in one place — the fleet feed, the agent skill, the machine registry, the hook census, the burn tape, the label lie, the whitepaper.">
+  <meta name="twitter:description" content="Every public surface of the protocol in one place — the fleet feed, the agent skill, the machine registry, the hook census, the hook manual, the burn tape, the label lie, the whitepaper.">
   <meta name="twitter:image" content="https://wellstreet.tech/og.png">
   <style>
     @font-face {
@@ -178,7 +178,7 @@
       <p class="hero-ticker">every public surface · one place · checked by a battery</p>
       <h1>The manual</h1>
       <div class="hero-rule" aria-hidden="true"></div>
-      <p class="hero-meta">One place for every public surface of the protocol — the fleet feed, the agent skill, the machine registry, the hook census, the burn tape, the label lie, the whitepaper. Every link below resolves to a file this repository ships, and a test battery fails if any of them rots. Chapters are added when their target is live — never before.</p>
+      <p class="hero-meta">One place for every public surface of the protocol — the fleet feed, the agent skill, the machine registry, the hook census, the hook manual, the burn tape, the label lie, the whitepaper. Every link below resolves to a file this repository ships, and a test battery fails if any of them rots. Chapters are added when their target is live — never before.</p>
     </div>
   </section>
   <main id="m-main">
@@ -217,6 +217,14 @@
         <div class="m-links">
           <a class="m-link" href="../data/hooks_register.json"><span class="m-link-path">data/hooks_register.json</span><span class="m-link-note">the register, as data</span></a>
           <a class="m-link" href="../data/hooks_by_pool.json"><span class="m-link-path">data/hooks_by_pool.json</span><span class="m-link-note">the per-pool sidecar</span></a>
+        </div>
+      </article>
+      <article class="chapter">
+        <p class="chapter-kicker">the field guide</p>
+        <h2>The hook manual</h2>
+        <p>How to check any pool's hook before you touch it: decode the permission mask from the address for free, probe the code, read the danger flags, and the rules for using a hooked book safely. Written for agents — the worked examples are real rows from the register, and the battery resolves each one against the data on every run.</p>
+        <div class="m-links">
+          <a class="m-link" href="../hooks/index.html"><span class="m-link-path">the hook manual surface</span><span class="m-link-note">the how-to, the field guide</span></a>
         </div>
       </article>
       <article class="chapter">

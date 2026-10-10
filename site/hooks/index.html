@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wellstreet — the hook manual</title>
+  <meta name="description" content="The field guide: how to check any pool's hook on chain 4663 before you touch it — decode the permission mask from the address, probe the code, read the danger flags, and follow the rules of engagement. Written for agents; every worked example is a real row from the register.">
+  <meta property="og:title" content="The hook manual">
+  <meta property="og:description" content="How to check any pool's hook before you touch it: the mask decode, the code probe, the danger flags, the rules. Written for agents; the worked examples are real rows from the register.">
+  <meta property="og:url" content="https://wellstreet.tech/hooks/">
+  <meta property="og:image" content="https://wellstreet.tech/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="The hook manual">
+  <meta name="twitter:description" content="How to check any pool's hook before you touch it: the mask decode, the code probe, the danger flags, the rules.">
+  <link rel="preload" href="../fonts/doto-var.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- the manual, chapter eight — a zero-script page; the data rot gate lives in the battery, not here -->
+  <style>
+    @font-face {
+      font-family: "Doto";
+      src: url("../fonts/doto-var.woff2") format("woff2-variations"),
+           url("../fonts/doto-var.ttf") format("truetype-variations");
+      font-weight: 100 900;
+      font-display: swap;
+    }
+    :root {
+      color-scheme: dark;
+      --bg: #0A0E12;
+      --bg2: #070B0E;
+      --ink: #EDE9DC;
+      --dim: #9A948A;
+      --line: #262E36;
+      --accent: #E8A33D;
+      --accent-text: #E8A33D;
+      --font-display: "Doto", ui-monospace, Menlo, monospace;
+      --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        color-scheme: light;
+        --bg: #F2EFE6;
+        --bg2: #EAE6DA;
+        --ink: #26231C;
+        --dim: #6E675C;
+        --line: #D8D2C4;
+        --accent: #E8A33D;
+        --accent-text: #7A4E0E;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.65 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+    a { color: var(--ink); }
+    .site-header { border-bottom: 2px solid var(--line); }
+    .site-header .wrap { display: flex; align-items: baseline; justify-content: space-between; padding-top: 18px; padding-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+    .brand { text-decoration: none; }
+    .brand-word { font-family: var(--font-display); font-weight: 800; font-size: 20px; letter-spacing: 1px; }
+    .brand-tag { display: block; color: var(--dim); font-size: 11px; letter-spacing: 1px; text-transform: lowercase; }
+    .header-side { color: var(--dim); font-size: 11px; letter-spacing: 2px; text-transform: lowercase; }
+    .hero { border-bottom: 2px solid var(--line); position: relative; overflow: hidden; }
+    .hero-field {
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(237,233,220,0.05) 1.1px, transparent 1.3px);
+      background-size: 15px 15px;
+      pointer-events: none;
+    }
+    @media (prefers-color-scheme: light) {
+      .hero-field { background-image: radial-gradient(circle, rgba(10,14,18,0.05) 1.1px, transparent 1.3px); }
+    }
+    .hero .wrap { position: relative; padding-top: 64px; padding-bottom: 56px; }
+    .hero-kicker { color: var(--accent-text); font-size: 11px; letter-spacing: 3px; text-transform: lowercase; margin: 0 0 14px; }
+    .hero h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(44px, 9vw, 84px); line-height: 1.02; letter-spacing: 1px; margin: 0 0 20px; }
+    .hero-rule { height: 2px; background: var(--accent); width: 72px; margin: 0 0 20px; }
+    .hero-meta { color: var(--dim); max-width: 640px; margin: 0; }
+    .hero-meta strong { color: var(--ink); font-weight: 600; }
+    main { padding-bottom: 72px; }
+    .chapter { border-bottom: 1px solid var(--line); padding: 44px 0 40px; }
+    .chapter:last-of-type { border-bottom: none; }
+    .chapter-kicker { color: var(--accent-text); font-size: 11px; letter-spacing: 3px; text-transform: lowercase; margin: 0 0 10px; }
+    .chapter h2 { font-family: var(--font-display); font-weight: 800; font-size: 30px; line-height: 1.15; margin: 0 0 16px; }
+    .chapter p { color: var(--dim); margin: 0 0 14px; max-width: 720px; }
+    .chapter p strong, .chapter li strong { color: var(--ink); font-weight: 600; }
+    .chapter code { color: var(--ink); background: var(--bg2); border: 1px solid var(--line); padding: 1px 5px; font-size: 13px; }
+    .scroll { overflow-x: auto; border: 2px solid var(--line); background: var(--bg2); margin: 18px 0; }
+    table { border-collapse: collapse; min-width: 560px; font-size: 13px; }
+    th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--accent-text); font-weight: 600; letter-spacing: 1px; text-transform: lowercase; font-size: 11px; }
+    td { color: var(--dim); }
+    td:first-child { color: var(--ink); white-space: nowrap; }
+    tr:last-child td { border-bottom: none; }
+    .scroll pre { margin: 0; padding: 14px 16px; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; color: var(--ink); white-space: pre; }
+    ol.rules { color: var(--dim); max-width: 720px; padding-left: 22px; margin: 0 0 14px; }
+    ol.rules li { margin-bottom: 12px; }
+    .m-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-top: 18px; }
+    .m-link { display: flex; flex-direction: column; gap: 2px; border: 2px solid var(--line); padding: 12px 14px; text-decoration: none; background: var(--bg2); transition: border-color 120ms ease; }
+    .m-link:hover { border-color: var(--accent); }
+    .m-link-path { color: var(--ink); font-size: 13px; font-weight: 600; }
+    .m-link-note { color: var(--dim); font-size: 11px; letter-spacing: 1px; text-transform: lowercase; }
+    .site-footer { border-top: 2px solid var(--line); }
+    .site-footer .wrap { display: flex; justify-content: space-between; align-items: baseline; padding-top: 22px; padding-bottom: 26px; flex-wrap: wrap; gap: 10px; }
+    .site-footer p { color: var(--dim); font-size: 11px; letter-spacing: 1px; text-transform: lowercase; margin: 0; }
+    .site-footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
+    .site-footer a { color: var(--ink); font-size: 12px; text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 1px; }
+    .site-footer a:hover { border-bottom-color: var(--accent); }
+    @media (max-width: 560px) {
+      .hero .wrap { padding-top: 44px; padding-bottom: 40px; }
+      .chapter { padding: 34px 0 30px; }
+      .chapter h2 { font-size: 24px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../index.html">
+        <span class="brand-word">Wellstreet</span>
+        <span class="brand-tag">the agent-native LP layer · chain 4663</span>
+      </a>
+      <div class="header-side">the manual · chapter eight</div>
+    </div>
+  </header>
+  <section class="hero">
+    <div class="hero-field" aria-hidden="true"></div>
+    <div class="wrap">
+      <p class="hero-kicker">the field guide</p>
+      <h1>The hook manual</h1>
+      <div class="hero-rule" aria-hidden="true"></div>
+      <p class="hero-meta">How to check any pool's hook on this chain before you touch it: <strong>decode the permission mask from the address, probe the code, read the danger flags, follow the rules.</strong> Written for agents. Every worked example below is a real row from the register, and the battery re-checks each one against the data on every run.</p>
+    </div>
+  </section>
+  <main>
+    <div class="wrap">
+
+      <section class="chapter">
+        <p class="chapter-kicker">the reason</p>
+        <h2>Labels lie. Masks do not.</h2>
+        <p>On this chain a pool's label is marketing and its hook is law. In v4, every pool carries a hook address inside its pool key, and the hook's permissions ride <strong>in the address itself</strong> — the low fourteen bits. That makes the permission set the one fact you can read for free, before any RPC call and before any dashboard: it cannot be edited, curated, or worded.</p>
+        <p>The hook census measured the chain and found labels diverging from fees across hundreds of books — and the operator of the most books on the chain turning out to be an address with no code at all. This chapter is the check an agent runs before it touches any hooked book. The census it reads lives in <a href="../manual/index.html">the manual</a> as open data.</p>
+        <div class="m-links">
+          <a class="m-link" href="../manual/index.html"><span class="m-link-path">the manual</span><span class="m-link-note">the index of surfaces</span></a>
+          <a class="m-link" href="../data/hooks_register.json"><span class="m-link-path">data/hooks_register.json</span><span class="m-link-note">the register, as data</span></a>
+        </div>
+      </section>
+
+      <section class="chapter">
+        <p class="chapter-kicker">the primitive</p>
+        <h2>What a hook is on this fork</h2>
+        <p>A v4 pool's rules live at one address. When a pool initializes on the fork PoolManager — pinned at <code>0x8366a39CC670B4001A1121B8F6A443A643e40951</code> — its pool key carries that hook address, and every swap, mint, burn, and donate on the pool passes through it. The fork reads the hook's low fourteen bits as the <strong>permission mask</strong>: each bit arms one callback. The decode is arithmetic, free, and permanent.</p>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>bits</th><th>arms</th><th>callbacks</th></tr></thead>
+            <tbody>
+              <tr><td>13, 12</td><td>initialize</td><td>beforeInitialize, afterInitialize</td></tr>
+              <tr><td>11, 10</td><td>add liquidity</td><td>beforeAddLiquidity, afterAddLiquidity</td></tr>
+              <tr><td>9, 8</td><td>remove liquidity</td><td>beforeRemoveLiquidity, afterRemoveLiquidity</td></tr>
+              <tr><td>7, 6</td><td>swap</td><td>beforeSwap, afterSwap</td></tr>
+              <tr><td>5, 4</td><td>donate</td><td>beforeDonate, afterDonate</td></tr>
+              <tr><td>3, 2</td><td>swap returns delta</td><td>beforeSwapReturnsDelta, afterSwapReturnsDelta</td></tr>
+              <tr><td>1, 0</td><td>unobserved</td><td>never assume them — the census records them as unknown</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The mask window is <code>0x3fff</code> — fourteen bits, <code>(1 &lt;&lt; 14) − 1</code>. Anything above bit 13 in an address is just where the deployer landed.</p>
+      </section>
+
+      <section class="chapter">
+        <p class="chapter-kicker">the surfaces</p>
+        <h2>Where to check</h2>
+        <p>Three files carry the census. Read them before you read the chain — they are the chain, measured.</p>
+        <p><strong>The register</strong> — <code>5,558</code> hooks, one row each: the decoded permissions, the five danger flags, the pool coverage in books, code presence, the classes (<code>PAYS-LPS</code>, <code>HOOK-MONETIZED</code>, <code>DEAD</code>), the label tier, and a null name until an alias is curated. The register reports a null name, and so does this page.</p>
+        <p><strong>The per-pool sidecar</strong> — <code>402</code> pools mapped poolId to hook, mask, flags, and code presence: the lookup for a pool you already hold.</p>
+        <p><strong>The fleet feed</strong> — the measured fee screen: what each book charges and what it pays, from the same measurement pass that powers the fleet surface.</p>
+        <p>How the register was built, as a receipt: one full pass over the fork PoolManager's Initialize logs — <code>961,768</code> logs mined over keyless RPC slices — then <code>1,154</code> hooks probed with <code>eth_getCode</code>. A probe that fails records <strong>unprobed</strong>. Codelessness is a measurement, never an inference. As of the fixture head, no register row reports deployable code — and a coded hook can arrive tomorrow, so every row is measured the same way.</p>
+        <p>For live state, read the pinned StateView at <code>0x0284Cb0bcbaa8B87A8AA409D0e41afA7a76355F2</code> — its slot0 read carries the pool's live fee. A slot0 read is a measurement of now, never a promise about the next swap.</p>
+        <div class="m-links">
+          <a class="m-link" href="../data/hooks_register.json"><span class="m-link-path">data/hooks_register.json</span><span class="m-link-note">the register, as data</span></a>
+          <a class="m-link" href="../data/hooks_by_pool.json"><span class="m-link-path">data/hooks_by_pool.json</span><span class="m-link-note">the per-pool sidecar</span></a>
+          <a class="m-link" href="../data/fleet.json"><span class="m-link-path">data/fleet.json</span><span class="m-link-note">the measured fee screen</span></a>
+        </div>
+      </section>
+
+      <section class="chapter">
+        <p class="chapter-kicker">the decode</p>
+        <h2>How to read a mask</h2>
+        <p>The five danger flags are groups of permission bits with consequences. The register computes them per row; here is what each one means for money.</p>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>flag</th><th>bits</th><th>window</th><th>what it means</th></tr></thead>
+            <tbody>
+              <tr><td>returnsDeltas</td><td>3, 2</td><td>0x0c</td><td>the hook can move swap money in-pool — a swap that pays in can pay out something other than the quoted figure</td></tr>
+              <tr><td>touchesLiquidityRemoval</td><td>9, 8</td><td>0x300</td><td>the hook runs on removal — your withdrawal can be seen, gated, or taxed</td></tr>
+              <tr><td>setsDynamicFee</td><td>7</td><td>0x80</td><td>the hook sets the pool fee per swap — yesterday's fee is not today's</td></tr>
+              <tr><td>touchesAddLiquidity</td><td>11, 10</td><td>0xc00</td><td>the hook runs on entry — your mint can be gated or sized</td></tr>
+              <tr><td>donate</td><td>5, 4</td><td>0x30</td><td>donations route through the hook</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Two masks recur enough to carry names in the census. <strong>mask <code>0x14c0</code></strong> — nineteen hooks — arms afterInitialize, afterAddLiquidity, beforeSwap, and afterSwap, and nothing that returns deltas: these hooks cannot skim swap value inside the pool; any payout must arrive as a separate transfer. <strong>mask <code>0x28cc</code></strong> — sixteen hooks — arms beforeInitialize, beforeAddLiquidity, beforeSwap, afterSwap, and both swap-returns-delta bits: these hooks can take or give tokens inside the swap itself. Treat every quoted output on a 0x28cc book as unverified until you re-derive it.</p>
+        <p>One rule above all: <strong>masks on codeless addresses are inert labels.</strong> A mask on an address with no bytecode arms nothing, taxes nothing, and redirects nothing — but it still advertises. Read the mask for intent; probe the code for power.</p>
+      </section>
+
+      <section class="chapter">
+        <p class="chapter-kicker">the drill</p>
+        <h2>The worked check — four steps, zero keys</h2>
+        <p>Everything runs over the keyless RPC pinned in the skill. No wallet, no approval, no signature — reading is free.</p>
+        <p><strong>Step 1 — pool to hook.</strong> Look the poolId up in the per-pool sidecar, or mine your own: an <code>eth_getLogs</code> pass over the pinned PoolManager's Initialize topic yields poolId, currencies, hook, and fee for every pool since genesis. Window your scans — keyless RPC caps log ranges.</p>
+        <p><strong>Step 2 — decode the mask. Free, before any call:</strong></p>
+        <div class="scroll"><pre>mask = int(hook, 16) &amp; 0x3fff   # the low 14 bits are the whole permission set</pre></div>
+        <p><strong>Step 3 — probe the code:</strong></p>
+        <div class="scroll"><pre>cast code 0xfffffffffffffffffffffffffffffffffff9a8cc --rpc-url https://rpc.mainnet.chain.robinhood.com</pre></div>
+        <p><code>0x</code> back means codeless — the mask is an inert label. A timeout or error means <strong>unprobed</strong>: record it as unprobed, never codeless.</p>
+        <p><strong>Step 4 — read the register row.</strong> Permissions, danger flags, classes, label tier, books. Three real rows, resolved live from the register by this page's battery:</p>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>hook</th><th>mask</th><th>books</th><th>code</th><th>what the row says</th></tr></thead>
+            <tbody>
+              <tr><td>0x00000000000000000000000000000000000305a2</td><td>0x5a2</td><td>59,350</td><td>codeless</td><td>removal, dynamic fee, entry, donate armed · classes DEAD and PAYS-LPS · tier LABEL-LIE — the most-covered hook on the chain is a label, and the label lies</td></tr>
+              <tr><td>0xfffffffffffffffffffffffffffffffffff9a8cc</td><td>0x28cc</td><td>42</td><td>codeless</td><td>returnsDeltas armed — the delta cohort; in-pool money movement is on the table</td></tr>
+              <tr><td>0x00000000000000000000000000000000000314c0</td><td>0x14c0</td><td>43</td><td>codeless</td><td>no delta bits — skimming swap value in-pool is structurally off the table; payouts must arrive as separate transfers</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The register currently carries <code>270</code> rows in the LABEL-LIE tier — hooks whose books charge a fee their label does not declare. The fee receipts page carries the book-level counts and the hand-check receipt.</p>
+        <div class="m-links">
+          <a class="m-link" href="../data/hooks_by_pool.json"><span class="m-link-path">data/hooks_by_pool.json</span><span class="m-link-note">step 1 lookup</span></a>
+          <a class="m-link" href="../label-lie/index.html"><span class="m-link-path">the label lie surface</span><span class="m-link-note">the fee receipts</span></a>
+        </div>
+      </section>
+
+      <section class="chapter">
+        <p class="chapter-kicker">the rules</p>
+        <h2>Rules of engagement</h2>
+        <p>For any interaction with a hooked book — swap, mint, or exit — the drill above first. Then these:</p>
+        <ol class="rules">
+          <li><strong>Never approve a token to a hook.</strong> Approvals go to the PoolManager at <code>0x8366a39CC670B4001A1121B8F6A443A643e40951</code>, and to the position manager for v3 positions. A hook is code the PoolManager calls, not a counterparty you sign to.</li>
+          <li><strong>Re-derive, never trust.</strong> On a returnsDeltas book the quoted output is a hypothesis. Measure what you actually received.</li>
+          <li><strong>A dynamic-fee book reprices per swap.</strong> Quote late, settle fast, and treat a stale fee as unknown.</li>
+          <li><strong>A hook can revert your swap.</strong> That is the pool enforcing its rules, not an outage — read the mask instead of retrying blind.</li>
+          <li><strong>Hooks compose through executor adapters.</strong> The register measures a pool's own hook; anything composed next to it is unmeasured. Treat labels as claims and measurements as measurements.</li>
+          <li><strong>Know the removal bits before you mint.</strong> touchesLiquidityRemoval means your exit can be seen, gated, or taxed — the one check an LP cannot do from a pool label.</li>
+          <li><strong>Read the measured fee, not the declared one.</strong> The fee receipts page lists every book whose charged fee disagrees with its label.</li>
+          <li><strong>Check code presence first.</strong> A mask on a codeless address is a label; a mask on a coded address is law. The register records which, per row, per fixture head.</li>
+        </ol>
+      </section>
+
+      <section class="chapter">
+        <p class="chapter-kicker">the doctrine</p>
+        <h2>This book audits hooks. It ships none.</h2>
+        <p>A hook is mutable, permission-carrying code parked next to every swap. Deploying one would recreate the exact advertised-versus-charged gap this census measures — on a protocol whose whole posture is immutable contracts and timelock-gated seams. So the line is drawn where the measurement is: the chain's hooks get probed, tiered, and published; none get shipped.</p>
+        <p>What an agent does instead is the rest of the manual: provide liquidity directly through the pinned PoolManager under the skill's permission model, quote through the pinned quoter, operate the vault, and read every fee from data. The skill and the registry carry the flows.</p>
+        <div class="m-links">
+          <a class="m-link" href="../skills/wellstreet-vaults.md"><span class="m-link-path">skills/wellstreet-vaults.md</span><span class="m-link-note">the agent skill</span></a>
+          <a class="m-link" href="../skills/registry.json"><span class="m-link-path">skills/registry.json</span><span class="m-link-note">the machine registry</span></a>
+          <a class="m-link" href="../label-lie/index.html"><span class="m-link-path">the label lie surface</span><span class="m-link-note">the fee receipts</span></a>
+        </div>
+      </section>
+
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>the hook manual · chain 4663 · checked by a battery</p>
+      <nav>
+        <a href="../index.html">the landing page</a>
+        <a href="../manual/index.html">the manual</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
